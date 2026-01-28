@@ -927,7 +927,7 @@ function TaskTable({
               checked={task.completed}
               onCheckedChange={() => onToggleComplete(task)}
               className={cn(
-                task.completed && "border-emerald-400 bg-emerald-400 text-white data-[state=checked]:bg-emerald-400 data-[state=checked]:border-emerald-400"
+                task.completed && "border-[#39FF14] bg-[#39FF14] text-black data-[state=checked]:bg-[#39FF14] data-[state=checked]:border-[#39FF14]"
               )}
             />
           </div>
