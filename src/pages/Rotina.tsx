@@ -1,22 +1,16 @@
 import { useMemo, useState } from 'react';
-import { Plus, Filter, Search, LayoutList, LayoutGrid, Settings } from 'lucide-react';
+import { Plus, Search, LayoutList, LayoutGrid } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from '@/components/ui/dropdown-menu';
 import { useTaskData } from '@/hooks/useTaskData';
+import { useSavedFilters } from '@/hooks/useSavedFilters';
 import { TaskSidebar } from '@/components/tasks/TaskSidebar';
 import { TaskTableView } from '@/components/tasks/TaskTableView';
 import { TaskBoardView } from '@/components/tasks/TaskBoardView';
 import { TaskDialog } from '@/components/tasks/TaskDialog';
+import { TaskFiltersAdvanced, FilterCondition, SavedFilter } from '@/components/tasks/TaskFiltersAdvanced';
+import { applyFilters } from '@/utils/filterTasks';
 import { Task, ViewMode } from '@/types/tasks';
-import { cn } from '@/lib/utils';
 
 export default function Rotina() {
   const {
@@ -35,14 +29,14 @@ export default function Rotina() {
     deleteFolder,
   } = useTaskData();
 
+  const { savedFilters, saveFilter, deleteFilter } = useSavedFilters();
+
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [defaultStatusId, setDefaultStatusId] = useState<string | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterPriority, setFilterPriority] = useState<number | null>(null);
-  const [filterStatusId, setFilterStatusId] = useState<string | null>(null);
-  const [showCompleted, setShowCompleted] = useState(true);
+  const [advancedFilters, setAdvancedFilters] = useState<FilterCondition[]>([]);
 
   // Calculate task counts per folder
   const taskCounts = useMemo(() => {
@@ -72,23 +66,11 @@ export default function Rotina() {
       );
     }
 
-    // Filter by priority
-    if (filterPriority !== null) {
-      result = result.filter(t => t.priority === filterPriority);
-    }
-
-    // Filter by status
-    if (filterStatusId) {
-      result = result.filter(t => t.status_id === filterStatusId);
-    }
-
-    // Filter completed
-    if (!showCompleted) {
-      result = result.filter(t => !t.completed);
-    }
+    // Apply advanced filters
+    result = applyFilters(result, advancedFilters);
 
     return result;
-  }, [tasks, selectedFolderId, searchQuery, filterPriority, filterStatusId, showCompleted, statuses]);
+  }, [tasks, selectedFolderId, searchQuery, advancedFilters]);
 
   const handleCreateTask = (statusId?: string) => {
     setEditingTask(null);
@@ -134,7 +116,9 @@ export default function Rotina() {
     await deleteTask(id);
   };
 
-  const hasActiveFilters = filterPriority !== null || filterStatusId !== null || !showCompleted;
+  const handleLoadSavedFilter = (saved: SavedFilter) => {
+    setAdvancedFilters(saved.filters);
+  };
 
   if (loading) {
     return (
@@ -203,68 +187,16 @@ export default function Rotina() {
             />
           </div>
 
-          {/* Filter */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className={cn("h-8", hasActiveFilters && "text-primary")}>
-                <Filter className="h-3.5 w-3.5 mr-1.5" />
-                Filtro
-                {hasActiveFilters && <span className="ml-1 w-1.5 h-1.5 rounded-full bg-primary" />}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48 bg-popover">
-              <DropdownMenuLabel>Prioridade</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => setFilterPriority(null)}>
-                Todas
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterPriority(3)}>
-                🔴 Urgente
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterPriority(2)}>
-                🟡 Alta
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterPriority(1)}>
-                🔵 Normal
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterPriority(0)}>
-                ⚪ Baixa
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Status</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => setFilterStatusId(null)}>
-                Todos
-              </DropdownMenuItem>
-              {statuses.map((status) => (
-                <DropdownMenuItem key={status.id} onClick={() => setFilterStatusId(status.id)}>
-                  <span 
-                    className="w-2.5 h-2.5 rounded-full mr-2"
-                    style={{ backgroundColor: status.color }}
-                  />
-                  {status.name}
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setShowCompleted(!showCompleted)}>
-                {showCompleted ? '✓ ' : ''}Mostrar concluídas
-              </DropdownMenuItem>
-              {hasActiveFilters && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={() => {
-                      setFilterPriority(null);
-                      setFilterStatusId(null);
-                      setShowCompleted(true);
-                    }}
-                    className="text-destructive"
-                  >
-                    Limpar filtros
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
+          {/* Advanced Filters */}
+          <TaskFiltersAdvanced
+            statuses={statuses}
+            filters={advancedFilters}
+            onFiltersChange={setAdvancedFilters}
+            savedFilters={savedFilters}
+            onSaveFilter={saveFilter}
+            onDeleteSavedFilter={deleteFilter}
+            onLoadSavedFilter={handleLoadSavedFilter}
+          />
 
           <div className="flex-1" />
 
