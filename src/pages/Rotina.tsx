@@ -12,7 +12,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useTaskData } from '@/hooks/useTaskData';
 import { TaskSidebar } from '@/components/tasks/TaskSidebar';
-import { TaskListView } from '@/components/tasks/TaskListView';
+import { TaskTableView } from '@/components/tasks/TaskTableView';
+import { TaskBoardView } from '@/components/tasks/TaskBoardView';
 import { TaskDialog } from '@/components/tasks/TaskDialog';
 import { Task, ViewMode, SortField, SortDirection } from '@/types/tasks';
 import { cn } from '@/lib/utils';
@@ -37,6 +38,7 @@ export default function Rotina() {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [defaultStatusId, setDefaultStatusId] = useState<string | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('priority');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -59,9 +61,7 @@ export default function Rotina() {
     let result = tasks;
 
     // Filter by folder
-    if (selectedFolderId === 'unorganized') {
-      result = result.filter(t => !t.folder_id);
-    } else if (selectedFolderId) {
+    if (selectedFolderId) {
       result = result.filter(t => t.folder_id === selectedFolderId);
     }
 
@@ -121,13 +121,15 @@ export default function Rotina() {
     return result;
   }, [tasks, selectedFolderId, searchQuery, filterPriority, filterStatusId, showCompleted, sortField, sortDirection, statuses]);
 
-  const handleCreateTask = () => {
+  const handleCreateTask = (statusId?: string) => {
     setEditingTask(null);
+    setDefaultStatusId(statusId);
     setDialogOpen(true);
   };
 
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
+    setDefaultStatusId(undefined);
     setDialogOpen(true);
   };
 
@@ -135,7 +137,10 @@ export default function Rotina() {
     if (editingTask) {
       await updateTask(editingTask.id, taskData);
     } else {
-      await createTask(taskData);
+      await createTask({
+        ...taskData,
+        status_id: taskData.status_id || defaultStatusId || (statuses[0]?.id ?? null),
+      });
     }
   };
 
@@ -152,11 +157,11 @@ export default function Rotina() {
   if (loading) {
     return (
       <div className="flex h-full">
-        <div className="w-64 border-r border-border bg-sidebar-background animate-pulse" />
+        <div className="w-56 border-r border-border/30 bg-background animate-pulse" />
         <div className="flex-1 p-6">
           <div className="space-y-4">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-12 bg-muted rounded animate-pulse" />
+              <div key={i} className="h-12 bg-muted/30 rounded animate-pulse" />
             ))}
           </div>
         </div>
@@ -178,30 +183,54 @@ export default function Rotina() {
       />
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden bg-background">
         {/* Toolbar */}
-        <div className="flex items-center gap-3 px-6 py-3 border-b border-border bg-background">
+        <div className="flex items-center gap-3 px-4 py-2 border-b border-border/30">
+          {/* View mode */}
+          <div className="flex items-center gap-1 bg-muted/30 rounded-md p-0.5">
+            <Button 
+              variant={viewMode === 'list' ? 'secondary' : 'ghost'} 
+              size="sm"
+              className="h-7 px-2"
+              onClick={() => setViewMode('list')}
+            >
+              <LayoutList className="h-4 w-4 mr-1.5" />
+              Lista
+            </Button>
+            <Button 
+              variant={viewMode === 'board' ? 'secondary' : 'ghost'} 
+              size="sm"
+              className="h-7 px-2"
+              onClick={() => setViewMode('board')}
+            >
+              <LayoutGrid className="h-4 w-4 mr-1.5" />
+              Quadro
+            </Button>
+          </div>
+
+          <div className="h-4 w-px bg-border/50" />
+
           {/* Search */}
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
               placeholder="Buscar tarefas..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9"
+              className="h-8 pl-8 text-sm bg-muted/30 border-0"
             />
           </div>
 
           {/* Filter */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className={cn(hasActiveFilters && "border-primary text-primary")}>
-                <Filter className="h-4 w-4 mr-2" />
-                Filtrar
-                {hasActiveFilters && <span className="ml-1 w-2 h-2 rounded-full bg-primary" />}
+              <Button variant="ghost" size="sm" className={cn("h-8", hasActiveFilters && "text-primary")}>
+                <Filter className="h-3.5 w-3.5 mr-1.5" />
+                Filtro
+                {hasActiveFilters && <span className="ml-1 w-1.5 h-1.5 rounded-full bg-primary" />}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56 bg-popover">
+            <DropdownMenuContent align="start" className="w-48 bg-popover">
               <DropdownMenuLabel>Prioridade</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => setFilterPriority(null)}>
                 Todas
@@ -226,7 +255,7 @@ export default function Rotina() {
               {statuses.map((status) => (
                 <DropdownMenuItem key={status.id} onClick={() => setFilterStatusId(status.id)}>
                   <span 
-                    className="w-3 h-3 rounded-full mr-2"
+                    className="w-2.5 h-2.5 rounded-full mr-2"
                     style={{ backgroundColor: status.color }}
                   />
                   {status.name}
@@ -257,29 +286,26 @@ export default function Rotina() {
           {/* Sort */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <SortAsc className="h-4 w-4 mr-2" />
+              <Button variant="ghost" size="sm" className="h-8">
+                <SortAsc className="h-3.5 w-3.5 mr-1.5" />
                 Ordenar
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="bg-popover">
               <DropdownMenuItem onClick={() => { setSortField('priority'); setSortDirection('desc'); }}>
-                Prioridade (maior primeiro)
+                Prioridade ↓
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => { setSortField('priority'); setSortDirection('asc'); }}>
-                Prioridade (menor primeiro)
+                Prioridade ↑
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => { setSortField('due_date'); setSortDirection('asc'); }}>
-                Data (mais próxima)
+                Data ↓
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => { setSortField('due_date'); setSortDirection('desc'); }}>
-                Data (mais distante)
+                Data ↑
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => { setSortField('title'); setSortDirection('asc'); }}>
-                Nome (A-Z)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setSortField('title'); setSortDirection('desc'); }}>
-                Nome (Z-A)
+                Nome A-Z
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => { setSortField('status'); setSortDirection('asc'); }}>
                 Status
@@ -287,45 +313,41 @@ export default function Rotina() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* View mode */}
-          <div className="flex items-center border border-border rounded-md">
-            <Button 
-              variant={viewMode === 'list' ? 'secondary' : 'ghost'} 
-              size="sm"
-              className="rounded-r-none"
-              onClick={() => setViewMode('list')}
-            >
-              <LayoutList className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant={viewMode === 'board' ? 'secondary' : 'ghost'} 
-              size="sm"
-              className="rounded-l-none"
-              onClick={() => setViewMode('board')}
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </Button>
-          </div>
+          <div className="flex-1" />
 
           {/* New task */}
-          <Button size="sm" onClick={handleCreateTask}>
-            <Plus className="h-4 w-4 mr-2" />
+          <Button size="sm" className="h-8" onClick={() => handleCreateTask()}>
+            <Plus className="h-4 w-4 mr-1.5" />
             Nova Tarefa
           </Button>
         </div>
 
         {/* Task view */}
-        <TaskListView
-          tasks={filteredTasks}
-          statuses={statuses}
-          folders={folders}
-          selectedFolderId={selectedFolderId}
-          onToggleComplete={handleToggleComplete}
-          onUpdateTask={updateTask}
-          onDeleteTask={handleDeleteTask}
-          onEditTask={handleEditTask}
-          onCreateTask={handleCreateTask}
-        />
+        {viewMode === 'list' ? (
+          <TaskTableView
+            tasks={filteredTasks}
+            statuses={statuses}
+            folders={folders}
+            selectedFolderId={selectedFolderId}
+            onToggleComplete={handleToggleComplete}
+            onUpdateTask={updateTask}
+            onDeleteTask={handleDeleteTask}
+            onEditTask={handleEditTask}
+            onCreateTask={() => handleCreateTask()}
+          />
+        ) : (
+          <TaskBoardView
+            tasks={filteredTasks}
+            statuses={statuses}
+            folders={folders}
+            selectedFolderId={selectedFolderId}
+            onToggleComplete={handleToggleComplete}
+            onUpdateTask={updateTask}
+            onDeleteTask={handleDeleteTask}
+            onEditTask={handleEditTask}
+            onCreateTask={handleCreateTask}
+          />
+        )}
       </div>
 
       {/* Task dialog */}
@@ -336,7 +358,7 @@ export default function Rotina() {
         folders={folders}
         statuses={statuses}
         onSave={handleSaveTask}
-        defaultFolderId={selectedFolderId !== 'unorganized' ? selectedFolderId : null}
+        defaultFolderId={selectedFolderId}
       />
     </div>
   );

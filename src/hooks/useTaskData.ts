@@ -159,10 +159,33 @@ export function useTaskData() {
 
   const toggleTaskComplete = async (task: Task) => {
     const completed = !task.completed;
-    return updateTask(task.id, {
-      completed,
-      completed_at: completed ? new Date().toISOString() : null,
-    });
+    const completedAt = completed ? new Date().toISOString() : null;
+    
+    // Optimistic update - update state immediately
+    setTasks(prev => prev.map(t => 
+      t.id === task.id 
+        ? { ...t, completed, completed_at: completedAt } 
+        : t
+    ));
+    
+    // Then sync with database
+    const { error } = await supabase
+      .from('daily_tasks')
+      .update({ completed, completed_at: completedAt })
+      .eq('id', task.id);
+
+    if (error) {
+      // Revert on error
+      setTasks(prev => prev.map(t => 
+        t.id === task.id 
+          ? { ...t, completed: task.completed, completed_at: task.completed_at } 
+          : t
+      ));
+      toast({ title: 'Erro ao atualizar tarefa', variant: 'destructive' });
+      return false;
+    }
+    
+    return true;
   };
 
   // Folder operations
