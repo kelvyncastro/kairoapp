@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { 
   Plus,
   ChevronDown,
@@ -9,6 +9,9 @@ import {
   GripVertical,
   Settings2,
   CalendarIcon,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -47,15 +50,23 @@ interface ColumnConfig {
   visible: boolean;
   width: number;
   minWidth: number;
+  sortable: boolean;
+}
+
+type SortDirection = 'asc' | 'desc' | null;
+
+interface SortState {
+  column: string | null;
+  direction: SortDirection;
 }
 
 const DEFAULT_COLUMNS: ColumnConfig[] = [
-  { id: 'title', label: 'Nome', visible: true, width: 250, minWidth: 150 },
-  { id: 'status', label: 'Status', visible: true, width: 140, minWidth: 100 },
-  { id: 'start_date', label: 'Data início', visible: true, width: 120, minWidth: 100 },
-  { id: 'due_date', label: 'Vencimento', visible: true, width: 120, minWidth: 100 },
-  { id: 'priority', label: 'Prioridade', visible: true, width: 110, minWidth: 90 },
-  { id: 'time_estimate', label: 'Tempo', visible: true, width: 100, minWidth: 80 },
+  { id: 'title', label: 'Nome', visible: true, width: 250, minWidth: 150, sortable: true },
+  { id: 'status', label: 'Status', visible: true, width: 140, minWidth: 100, sortable: true },
+  { id: 'start_date', label: 'Data início', visible: true, width: 120, minWidth: 100, sortable: true },
+  { id: 'due_date', label: 'Vencimento', visible: true, width: 120, minWidth: 100, sortable: true },
+  { id: 'priority', label: 'Prioridade', visible: true, width: 110, minWidth: 90, sortable: true },
+  { id: 'time_estimate', label: 'Tempo', visible: true, width: 100, minWidth: 80, sortable: true },
 ];
 
 interface TaskTableViewProps {
@@ -87,14 +98,68 @@ export function TaskTableView({
   const [columns, setColumns] = useState<ColumnConfig[]>(DEFAULT_COLUMNS);
   const [resizingColumn, setResizingColumn] = useState<string | null>(null);
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
+  const [sortState, setSortState] = useState<SortState>({ column: null, direction: null });
+
+  // Handle column sort
+  const handleColumnSort = useCallback((columnId: string) => {
+    setSortState(prev => {
+      if (prev.column !== columnId) {
+        return { column: columnId, direction: 'desc' };
+      }
+      if (prev.direction === 'desc') {
+        return { column: columnId, direction: 'asc' };
+      }
+      return { column: null, direction: null };
+    });
+  }, []);
+
+  // Sort tasks
+  const sortTasks = useCallback((tasksToSort: Task[]): Task[] => {
+    if (!sortState.column || !sortState.direction) return tasksToSort;
+
+    return [...tasksToSort].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortState.column) {
+        case 'title':
+          comparison = a.title.localeCompare(b.title);
+          break;
+        case 'status':
+          const statusOrderA = statuses.find(s => s.id === a.status_id)?.order || 999;
+          const statusOrderB = statuses.find(s => s.id === b.status_id)?.order || 999;
+          comparison = statusOrderA - statusOrderB;
+          break;
+        case 'start_date':
+          const startA = a.start_date || '';
+          const startB = b.start_date || '';
+          comparison = startA.localeCompare(startB);
+          break;
+        case 'due_date':
+          const dueA = a.due_date || a.date || '';
+          const dueB = b.due_date || b.date || '';
+          comparison = dueA.localeCompare(dueB);
+          break;
+        case 'priority':
+          comparison = (b.priority || 0) - (a.priority || 0);
+          break;
+        case 'time_estimate':
+          comparison = (a.time_estimate_minutes || 0) - (b.time_estimate_minutes || 0);
+          break;
+      }
+
+      return sortState.direction === 'asc' ? comparison : -comparison;
+    });
+  }, [sortState, statuses]);
 
   // Group tasks by folder
-  const groupedTasks = tasks.reduce((acc, task) => {
-    const folderId = task.folder_id || 'no-folder';
-    if (!acc[folderId]) acc[folderId] = [];
-    acc[folderId].push(task);
-    return acc;
-  }, {} as Record<string, Task[]>);
+  const groupedTasks = useMemo(() => {
+    return tasks.reduce((acc, task) => {
+      const folderId = task.folder_id || 'no-folder';
+      if (!acc[folderId]) acc[folderId] = [];
+      acc[folderId].push(task);
+      return acc;
+    }, {} as Record<string, Task[]>);
+  }, [tasks]);
 
   const toggleFolder = (folderId: string) => {
     setExpandedFolders(prev => ({
@@ -255,7 +320,7 @@ export function TaskTableView({
             {/* Tasks table */}
             {isFolderExpanded(folder.id) && (
               <TaskTable
-                tasks={folderTasks}
+                tasks={sortTasks(folderTasks)}
                 statuses={statuses}
                 columns={visibleColumns}
                 gridTemplateColumns={gridTemplateColumns}
@@ -273,6 +338,8 @@ export function TaskTableView({
                 onColumnDragOver={handleColumnDragOver}
                 onColumnDragEnd={handleColumnDragEnd}
                 draggedColumn={draggedColumn}
+                sortState={sortState}
+                onColumnSort={handleColumnSort}
               />
             )}
           </div>
@@ -301,7 +368,7 @@ export function TaskTableView({
 
           {isFolderExpanded('no-folder') && (
             <TaskTable
-              tasks={groupedTasks['no-folder'] || []}
+              tasks={sortTasks(groupedTasks['no-folder'] || [])}
               statuses={statuses}
               columns={visibleColumns}
               gridTemplateColumns={gridTemplateColumns}
@@ -319,6 +386,8 @@ export function TaskTableView({
               onColumnDragOver={handleColumnDragOver}
               onColumnDragEnd={handleColumnDragEnd}
               draggedColumn={draggedColumn}
+              sortState={sortState}
+              onColumnSort={handleColumnSort}
             />
           )}
         </div>
@@ -347,6 +416,8 @@ interface TaskTableProps {
   onColumnDragOver: (e: React.DragEvent, targetColumnId: string) => void;
   onColumnDragEnd: () => void;
   draggedColumn: string | null;
+  sortState: SortState;
+  onColumnSort: (columnId: string) => void;
 }
 
 interface InlineAddTaskProps {
@@ -685,7 +756,19 @@ function TaskTable({
   onColumnDragOver,
   onColumnDragEnd,
   draggedColumn,
+  sortState,
+  onColumnSort,
 }: TaskTableProps) {
+  // Sort icon component
+  const SortIcon = ({ columnId }: { columnId: string }) => {
+    if (sortState.column !== columnId) {
+      return <ArrowUpDown className="h-3 w-3 text-muted-foreground/40" />;
+    }
+    if (sortState.direction === 'asc') {
+      return <ArrowUp className="h-3 w-3 text-primary" />;
+    }
+    return <ArrowDown className="h-3 w-3 text-primary" />;
+  };
   const renderCell = (task: Task, columnId: string) => {
     switch (columnId) {
       case 'title':
@@ -808,15 +891,20 @@ function TaskTable({
             key={col.id}
             className={cn(
               "relative flex items-center gap-1 px-2 select-none",
-              draggedColumn === col.id && "opacity-50"
+              draggedColumn === col.id && "opacity-50",
+              col.sortable && "cursor-pointer hover:text-foreground transition-colors"
             )}
             draggable
             onDragStart={() => onColumnDragStart(col.id)}
             onDragOver={(e) => onColumnDragOver(e, col.id)}
             onDragEnd={onColumnDragEnd}
+            onClick={() => col.sortable && onColumnSort(col.id)}
           >
             <GripVertical className="h-3 w-3 text-muted-foreground/50 cursor-grab" />
-            <span>{col.label}</span>
+            <span className={cn(sortState.column === col.id && "text-foreground font-medium")}>
+              {col.label}
+            </span>
+            {col.sortable && <SortIcon columnId={col.id} />}
             <ResizeHandle onResize={(delta) => onColumnResize(col.id, delta)} />
           </div>
         ))}
