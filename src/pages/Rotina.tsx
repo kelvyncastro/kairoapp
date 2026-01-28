@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Plus, Filter, SortAsc, Search, LayoutList, LayoutGrid, Settings } from 'lucide-react';
+import { Plus, Filter, Search, LayoutList, LayoutGrid, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -15,7 +15,7 @@ import { TaskSidebar } from '@/components/tasks/TaskSidebar';
 import { TaskTableView } from '@/components/tasks/TaskTableView';
 import { TaskBoardView } from '@/components/tasks/TaskBoardView';
 import { TaskDialog } from '@/components/tasks/TaskDialog';
-import { Task, ViewMode, SortField, SortDirection } from '@/types/tasks';
+import { Task, ViewMode } from '@/types/tasks';
 import { cn } from '@/lib/utils';
 
 export default function Rotina() {
@@ -40,8 +40,6 @@ export default function Rotina() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [defaultStatusId, setDefaultStatusId] = useState<string | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortField, setSortField] = useState<SortField>('priority');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [filterPriority, setFilterPriority] = useState<number | null>(null);
   const [filterStatusId, setFilterStatusId] = useState<string | null>(null);
   const [showCompleted, setShowCompleted] = useState(true);
@@ -89,37 +87,8 @@ export default function Rotina() {
       result = result.filter(t => !t.completed);
     }
 
-    // Sort
-    result = [...result].sort((a, b) => {
-      let comparison = 0;
-      
-      switch (sortField) {
-        case 'title':
-          comparison = a.title.localeCompare(b.title);
-          break;
-        case 'priority':
-          comparison = (b.priority || 0) - (a.priority || 0);
-          break;
-        case 'due_date':
-          const dateA = a.due_date || a.date || '';
-          const dateB = b.due_date || b.date || '';
-          comparison = dateA.localeCompare(dateB);
-          break;
-        case 'created_at':
-          comparison = (a.created_at || '').localeCompare(b.created_at || '');
-          break;
-        case 'status':
-          const statusOrderA = statuses.find(s => s.id === a.status_id)?.order || 999;
-          const statusOrderB = statuses.find(s => s.id === b.status_id)?.order || 999;
-          comparison = statusOrderA - statusOrderB;
-          break;
-      }
-      
-      return sortDirection === 'asc' ? comparison : -comparison;
-    });
-
     return result;
-  }, [tasks, selectedFolderId, searchQuery, filterPriority, filterStatusId, showCompleted, sortField, sortDirection, statuses]);
+  }, [tasks, selectedFolderId, searchQuery, filterPriority, filterStatusId, showCompleted, statuses]);
 
   const handleCreateTask = (statusId?: string) => {
     setEditingTask(null);
@@ -291,35 +260,6 @@ export default function Rotina() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Sort */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8">
-                <SortAsc className="h-3.5 w-3.5 mr-1.5" />
-                Ordenar
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="bg-popover">
-              <DropdownMenuItem onClick={() => { setSortField('priority'); setSortDirection('desc'); }}>
-                Prioridade ↓
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setSortField('priority'); setSortDirection('asc'); }}>
-                Prioridade ↑
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setSortField('due_date'); setSortDirection('asc'); }}>
-                Data ↓
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setSortField('due_date'); setSortDirection('desc'); }}>
-                Data ↑
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setSortField('title'); setSortDirection('asc'); }}>
-                Nome A-Z
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setSortField('status'); setSortDirection('asc'); }}>
-                Status
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
 
           <div className="flex-1" />
 
