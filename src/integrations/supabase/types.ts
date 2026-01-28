@@ -51,10 +51,16 @@ export type Database = {
           created_at: string | null
           date: string
           description: string | null
+          due_date: string | null
+          folder_id: string | null
           id: string
           is_recurring: boolean | null
+          labels: string[] | null
           priority: number | null
           recurring_rule: string | null
+          start_date: string | null
+          status_id: string | null
+          time_estimate_minutes: number | null
           title: string
           updated_at: string | null
           user_id: string
@@ -65,10 +71,16 @@ export type Database = {
           created_at?: string | null
           date: string
           description?: string | null
+          due_date?: string | null
+          folder_id?: string | null
           id?: string
           is_recurring?: boolean | null
+          labels?: string[] | null
           priority?: number | null
           recurring_rule?: string | null
+          start_date?: string | null
+          status_id?: string | null
+          time_estimate_minutes?: number | null
           title: string
           updated_at?: string | null
           user_id: string
@@ -79,15 +91,36 @@ export type Database = {
           created_at?: string | null
           date?: string
           description?: string | null
+          due_date?: string | null
+          folder_id?: string | null
           id?: string
           is_recurring?: boolean | null
+          labels?: string[] | null
           priority?: number | null
           recurring_rule?: string | null
+          start_date?: string | null
+          status_id?: string | null
+          time_estimate_minutes?: number | null
           title?: string
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "daily_tasks_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "task_folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_tasks_status_id_fkey"
+            columns: ["status_id"]
+            isOneToOne: false
+            referencedRelation: "task_statuses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ebook_content: {
         Row: {
@@ -391,6 +424,93 @@ export type Database = {
           target_fiber?: number | null
           target_protein?: number | null
           updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      task_folders: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          icon: string | null
+          id: string
+          name: string
+          order: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          order?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          order?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      task_labels: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      task_statuses: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          id: string
+          is_default: boolean | null
+          name: string
+          order: number | null
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          name: string
+          order?: number | null
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          order?: number | null
           user_id?: string
         }
         Relationships: []
