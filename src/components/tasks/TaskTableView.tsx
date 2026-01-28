@@ -732,6 +732,10 @@ function ResizeHandle({ onResize }: { onResize: (delta: number) => void }) {
       ref={handleRef}
       className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize group z-20 flex items-center justify-center"
       onMouseDown={handleMouseDown}
+      onClick={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+      }}
     >
       {/* Visible handle bar - sempre visível */}
       <div 
