@@ -19,6 +19,7 @@ import {
   User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import batmanLogo from "@/assets/batman-logo.jpg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -71,20 +72,12 @@ export default function AppLayout() {
         {/* Logo */}
         <div className="flex h-14 items-center border-b border-sidebar-border px-4">
           <Link to="/dashboard" className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                className="w-4 h-4"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path
-                  d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+            <div className="flex h-8 w-8 items-center justify-center rounded-full overflow-hidden">
+              <img
+                src={batmanLogo}
+                alt="BWP"
+                className="w-full h-full object-cover"
+              />
             </div>
             {!collapsed && (
               <span className="font-semibold text-sidebar-primary">BWP</span>

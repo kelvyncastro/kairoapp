@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Eye, EyeOff } from "lucide-react";
+import batmanLogo from "@/assets/batman-logo.jpg";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -59,20 +60,12 @@ export default function Auth() {
       <div className="w-full max-w-sm animate-fade-in">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-card border border-border mb-4">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              className="w-8 h-8"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <path
-                d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full overflow-hidden border-2 border-border mb-4">
+            <img
+              src={batmanLogo}
+              alt="Bruce Wayne Projects"
+              className="w-full h-full object-cover"
+            />
           </div>
           <h1 className="text-2xl font-semibold tracking-tight">
             Bruce Wayne Projects
