@@ -214,22 +214,6 @@ export function TaskTableView({
         </div>
       )}
 
-      {/* Empty state */}
-      {tasks.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
-            <Plus className="h-8 w-8 text-muted-foreground" />
-          </div>
-          <h3 className="text-lg font-medium mb-1">Nenhuma tarefa</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Clique para adicionar sua primeira tarefa
-          </p>
-          <Button onClick={onCreateTask}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Tarefa
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
@@ -337,237 +321,175 @@ function TaskTable({
   handleStatusChange,
   handlePriorityChange,
 }: TaskTableProps) {
-  // Group by status
-  const tasksByStatus = statuses.reduce((acc, status) => {
-    acc[status.id] = tasks.filter(t => t.status_id === status.id);
-    return acc;
-  }, {} as Record<string, Task[]>);
-
-  // Tasks without status
-  const noStatusTasks = tasks.filter(t => !t.status_id);
-
-  const [expandedStatuses, setExpandedStatuses] = useState<Record<string, boolean>>({});
-
-  const toggleStatus = (statusId: string) => {
-    setExpandedStatuses(prev => ({
-      ...prev,
-      [statusId]: prev[statusId] === false ? true : false,
-    }));
-  };
-
-  const isStatusExpanded = (statusId: string) => {
-    return expandedStatuses[statusId] !== false;
-  };
-
-  const allStatuses = [
-    ...statuses,
-    ...(noStatusTasks.length > 0 ? [{ id: 'no-status', name: 'Sem status', color: '#6b7280', order: 999, user_id: '', is_default: false, created_at: '' }] : [])
-  ];
-
   return (
     <div>
-      {allStatuses.map((status) => {
-        const statusTasks = status.id === 'no-status' ? noStatusTasks : (tasksByStatus[status.id] || []);
-        if (statusTasks.length === 0 && status.id !== 'no-status') return null;
+      {/* Table header - always show */}
+      {tasks.length > 0 && (
+        <div className="grid grid-cols-[1fr,140px,100px,100px,100px,80px,40px] gap-2 px-6 py-1.5 text-xs text-muted-foreground border-b border-border/10">
+          <span className="pl-8">Nome</span>
+          <span>Status</span>
+          <span>Data início</span>
+          <span>Vencimento</span>
+          <span>Prioridade</span>
+          <span>Tempo</span>
+          <span></span>
+        </div>
+      )}
+
+      {/* Task rows - flat list, no status grouping */}
+      {tasks.map((task) => {
+        const statusInfo = getStatusInfo(task.status_id);
+        const priorityInfo = getPriorityLabel(task.priority);
 
         return (
-          <div key={status.id}>
-            {/* Status header */}
-            <button
-              onClick={() => toggleStatus(status.id)}
-              className="w-full flex items-center gap-2 px-6 py-2 hover:bg-muted/20 transition-colors"
-            >
-              {isStatusExpanded(status.id) ? (
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-              ) : (
-                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
-              )}
-              <span
-                className="text-xs font-medium px-2 py-0.5 rounded"
-                style={{ 
-                  backgroundColor: `${status.color}30`,
-                  color: status.color 
-                }}
+          <div
+            key={task.id}
+            className={cn(
+              "group grid grid-cols-[1fr,140px,100px,100px,100px,80px,40px] gap-2 px-6 py-2 items-center hover:bg-muted/20 transition-colors border-b border-border/5",
+              task.completed && "opacity-50"
+            )}
+          >
+            {/* Name */}
+            <div className="flex items-center gap-2 min-w-0">
+              <Checkbox
+                checked={task.completed}
+                onCheckedChange={() => onToggleComplete(task)}
+                className="shrink-0"
+              />
+              <span 
+                className={cn(
+                  "text-sm truncate cursor-pointer hover:text-primary transition-colors",
+                  task.completed && "line-through"
+                )}
+                onClick={() => onEditTask(task)}
               >
-                {status.name.toUpperCase()}
+                {task.title}
               </span>
-              <span className="text-xs text-muted-foreground">{statusTasks.length}</span>
-            </button>
+            </div>
 
-            {/* Table header */}
-            {isStatusExpanded(status.id) && statusTasks.length > 0 && (
-              <>
-                <div className="grid grid-cols-[1fr,140px,100px,100px,100px,80px,40px] gap-2 px-6 py-1.5 text-xs text-muted-foreground border-b border-border/10">
-                  <span className="pl-8">Nome</span>
-                  <span>Status</span>
-                  <span>Data início</span>
-                  <span>Vencimento</span>
-                  <span>Prioridade</span>
-                  <span>Tempo</span>
-                  <span></span>
-                </div>
-
-                {/* Task rows */}
-                {statusTasks.map((task) => {
-                  const statusInfo = getStatusInfo(task.status_id);
-                  const priorityInfo = getPriorityLabel(task.priority);
-
-                  return (
-                    <div
-                      key={task.id}
-                      className={cn(
-                        "group grid grid-cols-[1fr,140px,100px,100px,100px,80px,40px] gap-2 px-6 py-2 items-center hover:bg-muted/20 transition-colors border-b border-border/5",
-                        task.completed && "opacity-50"
-                      )}
+            {/* Status */}
+            <Select
+              value={task.status_id || ''}
+              onValueChange={(value) => handleStatusChange(task.id, value)}
+            >
+              <SelectTrigger className="h-7 text-xs border-0 bg-transparent hover:bg-muted/50">
+                <span
+                  className="px-2 py-0.5 rounded text-xs font-medium"
+                  style={{ 
+                    backgroundColor: `${statusInfo.color}30`,
+                    color: statusInfo.color 
+                  }}
+                >
+                  {statusInfo.name}
+                </span>
+              </SelectTrigger>
+              <SelectContent>
+                {statuses.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    <span
+                      className="px-2 py-0.5 rounded text-xs"
+                      style={{ 
+                        backgroundColor: `${s.color}30`,
+                        color: s.color 
+                      }}
                     >
-                      {/* Name */}
-                      <div className="flex items-center gap-2 min-w-0">
-                        <Checkbox
-                          checked={task.completed}
-                          onCheckedChange={() => onToggleComplete(task)}
-                          className="shrink-0"
-                        />
-                        <span 
-                          className={cn(
-                            "text-sm truncate cursor-pointer hover:text-primary transition-colors",
-                            task.completed && "line-through"
-                          )}
-                          onClick={() => onEditTask(task)}
-                        >
-                          {task.title}
-                        </span>
-                      </div>
+                      {s.name}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-                      {/* Status */}
-                      <Select
-                        value={task.status_id || ''}
-                        onValueChange={(value) => handleStatusChange(task.id, value)}
-                      >
-                        <SelectTrigger className="h-7 text-xs border-0 bg-transparent hover:bg-muted/50">
-                          <span
-                            className="px-2 py-0.5 rounded text-xs font-medium"
-                            style={{ 
-                              backgroundColor: `${statusInfo.color}30`,
-                              color: statusInfo.color 
-                            }}
-                          >
-                            {statusInfo.name}
-                          </span>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {statuses.map((s) => (
-                            <SelectItem key={s.id} value={s.id}>
-                              <span
-                                className="px-2 py-0.5 rounded text-xs"
-                                style={{ 
-                                  backgroundColor: `${s.color}30`,
-                                  color: s.color 
-                                }}
-                              >
-                                {s.name}
-                              </span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+            {/* Start date */}
+            <span className={cn(
+              "text-xs",
+              task.start_date ? "text-foreground" : "text-muted-foreground"
+            )}>
+              {formatDate(task.start_date) || '—'}
+            </span>
 
-                      {/* Start date */}
-                      <span className={cn(
-                        "text-xs",
-                        task.start_date ? "text-foreground" : "text-muted-foreground"
-                      )}>
-                        {formatDate(task.start_date) || '—'}
-                      </span>
+            {/* Due date */}
+            <span className={cn(
+              "text-xs",
+              task.due_date ? "text-primary" : "text-muted-foreground"
+            )}>
+              {formatDate(task.due_date || task.date) || '—'}
+            </span>
 
-                      {/* Due date */}
-                      <span className={cn(
-                        "text-xs",
-                        task.due_date ? "text-primary" : "text-muted-foreground"
-                      )}>
-                        {formatDate(task.due_date || task.date) || '—'}
-                      </span>
+            {/* Priority */}
+            <Select
+              value={task.priority.toString()}
+              onValueChange={(value) => handlePriorityChange(task.id, value)}
+            >
+              <SelectTrigger className="h-7 text-xs border-0 bg-transparent hover:bg-muted/50">
+                <span
+                  className={cn("px-2 py-0.5 rounded text-xs font-medium", priorityInfo.bg)}
+                  style={{ color: priorityInfo.color }}
+                >
+                  {priorityInfo.label}
+                </span>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="3">
+                  <span className="text-red-500">🔴 Urgente</span>
+                </SelectItem>
+                <SelectItem value="2">
+                  <span className="text-amber-500">🟡 Alta</span>
+                </SelectItem>
+                <SelectItem value="1">
+                  <span className="text-blue-500">🔵 Normal</span>
+                </SelectItem>
+                <SelectItem value="0">
+                  <span className="text-gray-500">⚪ Baixa</span>
+                </SelectItem>
+              </SelectContent>
+            </Select>
 
-                      {/* Priority */}
-                      <Select
-                        value={task.priority.toString()}
-                        onValueChange={(value) => handlePriorityChange(task.id, value)}
-                      >
-                        <SelectTrigger className="h-7 text-xs border-0 bg-transparent hover:bg-muted/50">
-                          <span
-                            className={cn("px-2 py-0.5 rounded text-xs font-medium", priorityInfo.bg)}
-                            style={{ color: priorityInfo.color }}
-                          >
-                            {priorityInfo.label}
-                          </span>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="3">
-                            <span className="text-red-500">🔴 Urgente</span>
-                          </SelectItem>
-                          <SelectItem value="2">
-                            <span className="text-amber-500">🟡 Alta</span>
-                          </SelectItem>
-                          <SelectItem value="1">
-                            <span className="text-blue-500">🔵 Normal</span>
-                          </SelectItem>
-                          <SelectItem value="0">
-                            <span className="text-gray-500">⚪ Baixa</span>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+            {/* Time estimate */}
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              {task.time_estimate_minutes ? (
+                <>
+                  <Clock className="h-3 w-3" />
+                  {task.time_estimate_minutes >= 60 
+                    ? `${Math.floor(task.time_estimate_minutes / 60)}h`
+                    : `${task.time_estimate_minutes}m`}
+                </>
+              ) : (
+                '—'
+              )}
+            </span>
 
-                      {/* Time estimate */}
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        {task.time_estimate_minutes ? (
-                          <>
-                            <Clock className="h-3 w-3" />
-                            {task.time_estimate_minutes >= 60 
-                              ? `${Math.floor(task.time_estimate_minutes / 60)}h`
-                              : `${task.time_estimate_minutes}m`}
-                          </>
-                        ) : (
-                          '—'
-                        )}
-                      </span>
-
-                      {/* Actions */}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-popover">
-                          <DropdownMenuItem onClick={() => onEditTask(task)}>
-                            <Edit2 className="h-3.5 w-3.5 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            className="text-destructive"
-                            onClick={() => onDeleteTask(task.id)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5 mr-2" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  );
-                })}
-              </>
-            )}
-
-            {/* Inline add task */}
-            {isStatusExpanded(status.id) && (
-              <InlineAddTask onAdd={onQuickAdd} />
-            )}
+            {/* Actions */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-popover">
+                <DropdownMenuItem onClick={() => onEditTask(task)}>
+                  <Edit2 className="h-3.5 w-3.5 mr-2" />
+                  Editar
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="text-destructive"
+                  onClick={() => onDeleteTask(task.id)}
+                >
+                  <Trash2 className="h-3.5 w-3.5 mr-2" />
+                  Excluir
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         );
       })}
+
+      {/* Inline add task - always visible */}
+      <InlineAddTask onAdd={onQuickAdd} />
     </div>
   );
 }
