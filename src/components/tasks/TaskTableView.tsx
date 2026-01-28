@@ -142,7 +142,8 @@ export function TaskTableView({
   }, [onUpdateTask]);
 
   const handlePriorityChange = useCallback((taskId: string, priority: string) => {
-    onUpdateTask(taskId, { priority: parseInt(priority) });
+    const priorityValue = priority === 'low' ? 0 : parseInt(priority);
+    onUpdateTask(taskId, { priority: priorityValue });
   }, [onUpdateTask]);
 
   const toggleColumnVisibility = (columnId: string) => {
@@ -654,10 +655,13 @@ function ResizeHandle({ onResize }: { onResize: (delta: number) => void }) {
   return (
     <div
       ref={handleRef}
-      className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-primary/50 transition-colors group"
+      className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize group z-20"
       onMouseDown={handleMouseDown}
     >
-      <div className="absolute inset-y-0 -left-1 -right-1" />
+      {/* Visible handle bar */}
+      <div className="absolute inset-y-2 right-0.5 w-0.5 bg-border group-hover:bg-primary transition-colors rounded-full" />
+      {/* Larger hit area */}
+      <div className="absolute inset-y-0 -left-2 -right-1" />
     </div>
   );
 }
@@ -750,7 +754,7 @@ function TaskTable({
         const priorityInfo = getPriorityLabel(task.priority);
         return (
           <Select
-            value={task.priority.toString()}
+            value={task.priority === 0 ? 'low' : task.priority.toString()}
             onValueChange={(value) => handlePriorityChange(task.id, value)}
           >
             <SelectTrigger className="h-7 text-xs border-0 bg-transparent hover:bg-muted/50 p-0">
@@ -761,7 +765,7 @@ function TaskTable({
                 {priorityInfo.label}
               </span>
             </SelectTrigger>
-            <SelectContent className="bg-popover">
+            <SelectContent className="bg-popover z-50">
               <SelectItem value="3">
                 <span className="text-red-500">🔴 Urgente</span>
               </SelectItem>
@@ -771,7 +775,7 @@ function TaskTable({
               <SelectItem value="1">
                 <span className="text-blue-500">🔵 Normal</span>
               </SelectItem>
-              <SelectItem value="0">
+              <SelectItem value="low">
                 <span className="text-gray-500">⚪ Baixa</span>
               </SelectItem>
             </SelectContent>
