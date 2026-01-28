@@ -40,6 +40,7 @@ interface TaskTableViewProps {
   onDeleteTask: (id: string) => void;
   onEditTask: (task: Task) => void;
   onCreateTask: () => void;
+  onQuickCreateTask: (title: string, folderId?: string | null, statusId?: string) => void;
 }
 
 export function TaskTableView({
@@ -52,6 +53,7 @@ export function TaskTableView({
   onDeleteTask,
   onEditTask,
   onCreateTask,
+  onQuickCreateTask,
 }: TaskTableViewProps) {
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
 
@@ -161,7 +163,7 @@ export function TaskTableView({
                 onUpdateTask={onUpdateTask}
                 onDeleteTask={onDeleteTask}
                 onEditTask={onEditTask}
-                onCreateTask={onCreateTask}
+                onQuickAdd={(title) => onQuickCreateTask(title, folder.id)}
                 formatDate={formatDate}
                 getPriorityLabel={getPriorityLabel}
                 getStatusInfo={getStatusInfo}
@@ -201,7 +203,7 @@ export function TaskTableView({
               onUpdateTask={onUpdateTask}
               onDeleteTask={onDeleteTask}
               onEditTask={onEditTask}
-              onCreateTask={onCreateTask}
+              onQuickAdd={(title) => onQuickCreateTask(title, null)}
               formatDate={formatDate}
               getPriorityLabel={getPriorityLabel}
               getStatusInfo={getStatusInfo}
@@ -240,12 +242,86 @@ interface TaskTableProps {
   onUpdateTask: (id: string, updates: Partial<Task>) => void;
   onDeleteTask: (id: string) => void;
   onEditTask: (task: Task) => void;
-  onCreateTask: () => void;
+  onQuickAdd: (title: string) => void;
   formatDate: (date: string | null) => string | null;
   getPriorityLabel: (priority: number) => { label: string; color: string; bg: string };
   getStatusInfo: (statusId: string | null) => { name: string; color: string };
   handleStatusChange: (taskId: string, statusId: string) => void;
   handlePriorityChange: (taskId: string, priority: string) => void;
+}
+
+interface InlineAddTaskProps {
+  onAdd: (title: string) => void;
+}
+
+function InlineAddTask({ onAdd }: InlineAddTaskProps) {
+  const [isAdding, setIsAdding] = useState(false);
+  const [title, setTitle] = useState('');
+
+  const handleSubmit = () => {
+    if (title.trim()) {
+      onAdd(title.trim());
+      setTitle('');
+      setIsAdding(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSubmit();
+    } else if (e.key === 'Escape') {
+      setTitle('');
+      setIsAdding(false);
+    }
+  };
+
+  if (!isAdding) {
+    return (
+      <button
+        onClick={() => setIsAdding(true)}
+        className="w-full flex items-center gap-2 px-6 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors"
+      >
+        <Plus className="h-4 w-4 ml-6" />
+        <span>Adicionar Tarefa</span>
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2 px-6 py-2 bg-muted/10 border-y border-border/20">
+      <Plus className="h-4 w-4 ml-6 text-muted-foreground" />
+      <input
+        type="text"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="Tarefa Nome ou type '/' for commands"
+        className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
+        autoFocus
+      />
+      <div className="flex items-center gap-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 text-xs text-muted-foreground"
+          onClick={() => {
+            setTitle('');
+            setIsAdding(false);
+          }}
+        >
+          Cancelar
+        </Button>
+        <Button
+          size="sm"
+          className="h-6 text-xs"
+          onClick={handleSubmit}
+          disabled={!title.trim()}
+        >
+          Salvar
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 function TaskTable({
@@ -254,7 +330,7 @@ function TaskTable({
   onToggleComplete,
   onDeleteTask,
   onEditTask,
-  onCreateTask,
+  onQuickAdd,
   formatDate,
   getPriorityLabel,
   getStatusInfo,
@@ -485,15 +561,9 @@ function TaskTable({
               </>
             )}
 
-            {/* Add task button */}
+            {/* Inline add task */}
             {isStatusExpanded(status.id) && (
-              <button
-                onClick={onCreateTask}
-                className="w-full flex items-center gap-2 px-6 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors"
-              >
-                <Plus className="h-4 w-4 ml-6" />
-                <span>Adicionar Tarefa</span>
-              </button>
+              <InlineAddTask onAdd={onQuickAdd} />
             )}
           </div>
         );

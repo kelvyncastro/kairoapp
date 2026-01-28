@@ -144,6 +144,14 @@ export default function Rotina() {
     }
   };
 
+  const handleQuickCreateTask = async (title: string, folderId?: string | null, statusId?: string) => {
+    await createTask({
+      title,
+      folder_id: folderId ?? selectedFolderId,
+      status_id: statusId || statuses[0]?.id || null,
+    });
+  };
+
   const handleToggleComplete = async (task: Task) => {
     await toggleTaskComplete(task);
   };
@@ -334,6 +342,7 @@ export default function Rotina() {
             onDeleteTask={handleDeleteTask}
             onEditTask={handleEditTask}
             onCreateTask={() => handleCreateTask()}
+            onQuickCreateTask={handleQuickCreateTask}
           />
         ) : (
           <TaskBoardView
