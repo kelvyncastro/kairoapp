@@ -703,10 +703,13 @@ function EditableTimeEstimate({ value, onChange }: { value: number | null; onCha
 function ResizeHandle({ onResize }: { onResize: (delta: number) => void }) {
   const handleRef = useRef<HTMLDivElement>(null);
   const startXRef = useRef(0);
+  const [isDragging, setIsDragging] = useState(false);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     startXRef.current = e.clientX;
+    setIsDragging(true);
     
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const delta = moveEvent.clientX - startXRef.current;
@@ -715,6 +718,7 @@ function ResizeHandle({ onResize }: { onResize: (delta: number) => void }) {
     };
 
     const handleMouseUp = () => {
+      setIsDragging(false);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
@@ -726,13 +730,20 @@ function ResizeHandle({ onResize }: { onResize: (delta: number) => void }) {
   return (
     <div
       ref={handleRef}
-      className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize group z-20"
+      className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize group z-20 flex items-center justify-center"
       onMouseDown={handleMouseDown}
     >
-      {/* Visible handle bar */}
-      <div className="absolute inset-y-2 right-0.5 w-0.5 bg-border group-hover:bg-primary transition-colors rounded-full" />
+      {/* Visible handle bar - sempre visível */}
+      <div 
+        className={cn(
+          "h-full w-[3px] rounded-full transition-all duration-150",
+          isDragging 
+            ? "bg-primary shadow-[0_0_8px_rgba(59,130,246,0.5)]" 
+            : "bg-border/60 group-hover:bg-primary/80 group-hover:w-[4px]"
+        )} 
+      />
       {/* Larger hit area */}
-      <div className="absolute inset-y-0 -left-2 -right-1" />
+      <div className="absolute inset-y-0 -left-2 -right-2" />
     </div>
   );
 }
