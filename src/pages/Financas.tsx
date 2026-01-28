@@ -295,14 +295,14 @@ export default function Financas() {
               <div className="space-y-2">
                 <Label>Setor</Label>
                 <Select
-                  value={newTransaction.sector_id}
-                  onValueChange={(v) => setNewTransaction({ ...newTransaction, sector_id: v })}
+                  value={newTransaction.sector_id || "none"}
+                  onValueChange={(v) => setNewTransaction({ ...newTransaction, sector_id: v === "none" ? "" : v })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione um setor" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Sem setor</SelectItem>
+                    <SelectItem value="none">Sem setor</SelectItem>
                     {sectors.map((s) => (
                       <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                     ))}
@@ -606,14 +606,14 @@ export default function Financas() {
               <div className="space-y-2">
                 <Label>Setor</Label>
                 <Select
-                  value={editingTransaction.sector_id || ""}
-                  onValueChange={(v) => setEditingTransaction({ ...editingTransaction, sector_id: v || null })}
+                  value={editingTransaction.sector_id || "none"}
+                  onValueChange={(v) => setEditingTransaction({ ...editingTransaction, sector_id: v === "none" ? null : v })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Sem setor</SelectItem>
+                    <SelectItem value="none">Sem setor</SelectItem>
                     {sectors.map((s) => (
                       <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                     ))}
