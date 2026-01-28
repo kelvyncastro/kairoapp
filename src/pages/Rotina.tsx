@@ -102,13 +102,18 @@ export default function Rotina() {
     setDialogOpen(true);
   };
 
+  // Find "Não iniciada" status for new tasks
+  const naoIniciadaStatus = statuses.find(s => 
+    s.name.toLowerCase().trim() === 'não iniciada'
+  );
+
   const handleSaveTask = async (taskData: Partial<Task>) => {
     if (editingTask) {
       await updateTask(editingTask.id, taskData);
     } else {
       await createTask({
         ...taskData,
-        status_id: taskData.status_id || defaultStatusId || (statuses[0]?.id ?? null),
+        status_id: taskData.status_id || defaultStatusId || naoIniciadaStatus?.id || (statuses[0]?.id ?? null),
       });
     }
   };
@@ -117,7 +122,7 @@ export default function Rotina() {
     await createTask({
       title,
       folder_id: folderId ?? selectedFolderId,
-      status_id: statusId || statuses[0]?.id || null,
+      status_id: statusId || naoIniciadaStatus?.id || statuses[0]?.id || null,
     });
   };
 
