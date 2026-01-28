@@ -44,26 +44,15 @@ export function useTaskData() {
         .order('name', { ascending: true }),
     ]);
 
-    if (tasksRes.error) {
-      toast({ title: 'Erro ao carregar tarefas', variant: 'destructive' });
-    } else {
-      setTasks((tasksRes.data || []).map(t => ({
-        ...t,
-        labels: t.labels || [],
-      })) as Task[]);
-    }
+    const normalizeStatusName = (name: string | null | undefined) => (name || '').trim().toLowerCase();
 
-    if (foldersRes.error) {
-      toast({ title: 'Erro ao carregar pastas', variant: 'destructive' });
-    } else {
-      setFolders(foldersRes.data || []);
-    }
+    // Prepare statuses (and auto-heal duplicates)
+    let statusData = (statusesRes.data || []) as TaskStatus[];
+    const statusRemap: Record<string, string> = {};
 
     if (statusesRes.error) {
       toast({ title: 'Erro ao carregar status', variant: 'destructive' });
     } else {
-      let statusData = statusesRes.data || [];
-      
       // Create default statuses if none exist
       if (statusData.length === 0) {
         const defaultStatuses = DEFAULT_STATUSES.map((s, i) => ({
@@ -73,19 +62,98 @@ export function useTaskData() {
           order: s.order,
           is_default: i === 0,
         }));
-        
+
         const { data: newStatuses, error } = await supabase
           .from('task_statuses')
           .insert(defaultStatuses)
           .select();
-        
+
         if (!error && newStatuses) {
-          statusData = newStatuses;
+          statusData = newStatuses as TaskStatus[];
         }
       }
-      
+
+      // Dedupe statuses by name (auto-fix: remap tasks + delete duplicates)
+      const groups = new Map<string, TaskStatus[]>();
+      for (const s of statusData) {
+        const key = normalizeStatusName(s.name);
+        if (!key) continue;
+        const arr = groups.get(key) || [];
+        arr.push(s);
+        groups.set(key, arr);
+      }
+
+      const duplicates = [...groups.values()].filter(arr => arr.length > 1);
+
+      if (duplicates.length > 0) {
+        // Choose a canonical status per name and remap the rest to it
+        const pickCanonical = (arr: TaskStatus[]) => {
+          return [...arr].sort((a, b) => {
+            // Prefer default, then lowest order, then earliest created_at
+            const defA = a.is_default ? 0 : 1;
+            const defB = b.is_default ? 0 : 1;
+            if (defA !== defB) return defA - defB;
+            const orderA = a.order ?? 999;
+            const orderB = b.order ?? 999;
+            if (orderA !== orderB) return orderA - orderB;
+            return (a.created_at || '').localeCompare(b.created_at || '');
+          })[0];
+        };
+
+        for (const arr of duplicates) {
+          const canonical = pickCanonical(arr);
+          for (const dup of arr) {
+            if (dup.id === canonical.id) continue;
+            statusRemap[dup.id] = canonical.id;
+
+            // Remap tasks in DB
+            await supabase
+              .from('daily_tasks')
+              .update({ status_id: canonical.id })
+              .eq('user_id', user.id)
+              .eq('status_id', dup.id);
+
+            // Delete duplicate status in DB
+            await supabase
+              .from('task_statuses')
+              .delete()
+              .eq('user_id', user.id)
+              .eq('id', dup.id);
+          }
+        }
+
+        // Keep only canonical statuses in-memory
+        statusData = [...groups.values()].map(pickCanonical);
+        statusData.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+
+        toast({ title: 'Status duplicados foram consolidados', description: 'Mantive apenas 1 por nome.' });
+      }
+
       setStatuses(statusData as TaskStatus[]);
     }
+
+    // Tasks
+    if (tasksRes.error) {
+      toast({ title: 'Erro ao carregar tarefas', variant: 'destructive' });
+    } else {
+      const remapped = (tasksRes.data || []).map(t => {
+        const nextStatusId = t.status_id ? (statusRemap[t.status_id] || t.status_id) : t.status_id;
+        return {
+          ...t,
+          status_id: nextStatusId,
+          labels: t.labels || [],
+        };
+      });
+      setTasks(remapped as Task[]);
+    }
+
+    if (foldersRes.error) {
+      toast({ title: 'Erro ao carregar pastas', variant: 'destructive' });
+    } else {
+      setFolders(foldersRes.data || []);
+    }
+
+    // statuses handled above (including auto-dedupe)
 
     if (labelsRes.error) {
       toast({ title: 'Erro ao carregar etiquetas', variant: 'destructive' });
