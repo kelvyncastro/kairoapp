@@ -229,24 +229,41 @@ export function useTaskData() {
     const completed = !task.completed;
     const completedAt = completed ? new Date().toISOString() : null;
     
+    // Find "Concluída" status to auto-assign when completing
+    const completedStatus = statuses.find(s => 
+      s.name.toLowerCase().trim() === 'concluída'
+    );
+    
+    // Find first status (usually "Não iniciada") to assign when uncompleting
+    const defaultStatus = statuses.find(s => s.is_default) || statuses[0];
+    
+    // Determine new status_id
+    const newStatusId = completed 
+      ? (completedStatus?.id || task.status_id) 
+      : (task.status_id === completedStatus?.id ? defaultStatus?.id : task.status_id);
+    
     // Optimistic update - update state immediately
     setTasks(prev => prev.map(t => 
       t.id === task.id 
-        ? { ...t, completed, completed_at: completedAt } 
+        ? { ...t, completed, completed_at: completedAt, status_id: newStatusId || null } 
         : t
     ));
     
     // Then sync with database
     const { error } = await supabase
       .from('daily_tasks')
-      .update({ completed, completed_at: completedAt })
+      .update({ 
+        completed, 
+        completed_at: completedAt,
+        status_id: newStatusId 
+      })
       .eq('id', task.id);
 
     if (error) {
       // Revert on error
       setTasks(prev => prev.map(t => 
         t.id === task.id 
-          ? { ...t, completed: task.completed, completed_at: task.completed_at } 
+          ? { ...t, completed: task.completed, completed_at: task.completed_at, status_id: task.status_id } 
           : t
       ));
       toast({ title: 'Erro ao atualizar tarefa', variant: 'destructive' });
