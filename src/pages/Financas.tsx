@@ -16,8 +16,10 @@ import {
   Search,
   CalendarIcon,
   MessageCircle,
+  Brain,
 } from "lucide-react";
 import { FinanceChat } from "@/components/finance/FinanceChat";
+import { FinanceAnalysis } from "@/components/finance/FinanceAnalysis";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -142,6 +144,7 @@ export default function Financas() {
   const [transactionFilter, setTransactionFilter] = useState<TransactionFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
+  const [analysisOpen, setAnalysisOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   
   const [newTransaction, setNewTransaction] = useState<NewTransaction>({
@@ -442,6 +445,14 @@ export default function Financas() {
           <p className="text-sm text-muted-foreground">Controle é liberdade.</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant={analysisOpen ? "secondary" : "outline"}
+            size="icon"
+            onClick={() => setAnalysisOpen(!analysisOpen)}
+            title="Análise IA"
+          >
+            <Brain className="h-4 w-4" />
+          </Button>
           <Link to="/chat-financeiro">
             <Button
               variant="outline"
@@ -1199,6 +1210,22 @@ export default function Financas() {
         sectors={sectors.map((s) => ({ id: s.id, name: s.name }))}
         onTransactionAdded={fetchData}
       />
+
+      {/* Finance Analysis Panel */}
+      {analysisOpen && (
+        <div className="fixed top-16 right-0 bottom-0 z-40">
+          <FinanceAnalysis
+            userId={user?.id || ""}
+            transactions={transactions}
+            sectors={sectors}
+            income={income}
+            expenses={expenses}
+            balance={balance}
+            isOpen={analysisOpen}
+            onClose={() => setAnalysisOpen(false)}
+          />
+        </div>
+      )}
     </div>
   );
 }
