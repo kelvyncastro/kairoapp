@@ -120,15 +120,16 @@ export function GoalDetailModal({
   };
 
   const handleSaveEdit = async () => {
-    if (!editingEntry) return;
+    if (!editingEntry || !goal) return;
 
     const newValue = parseFloat(editValue);
-    if (isNaN(newValue)) {
+    if (isNaN(newValue) || newValue < 0) {
       toast({ title: "Valor inválido", variant: "destructive" });
       return;
     }
 
-    const { error } = await supabase
+    // Update the history entry
+    const { error: historyError } = await supabase
       .from("goal_progress_history")
       .update({
         value: newValue,
@@ -136,35 +137,33 @@ export function GoalDetailModal({
       })
       .eq("id", editingEntry.id);
 
-    if (error) {
-      toast({ title: "Erro ao atualizar registro", variant: "destructive" });
+    if (historyError) {
+      console.error("Error updating history:", historyError);
+      toast({ title: "Erro ao atualizar registro", description: historyError.message, variant: "destructive" });
       return;
     }
 
-    // Update goal current_value to the latest entry value
-    const latestValue = progressHistory.reduce((latest, entry) => {
-      if (entry.id === editingEntry.id) {
-        return { ...entry, value: newValue };
-      }
-      return new Date(entry.created_at) > new Date(latest.created_at) ? entry : latest;
-    }, progressHistory[0]);
-
-    // If we edited the latest entry, update the goal
+    // Find the most recent entry to determine new current_value
     const sortedHistory = [...progressHistory].sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
     
+    // If we edited the latest entry, update the goal's current_value
     if (sortedHistory[0]?.id === editingEntry.id) {
-      await supabase
+      const { error: goalError } = await supabase
         .from("goals")
         .update({
           current_value: newValue,
           status: newValue >= goal.target_value ? "COMPLETED" : "ACTIVE",
         })
         .eq("id", goal.id);
+
+      if (goalError) {
+        console.error("Error updating goal:", goalError);
+      }
     }
 
-    toast({ title: "Registro atualizado" });
+    toast({ title: "Registro atualizado com sucesso" });
     handleCancelEdit();
     onRefresh();
   };
