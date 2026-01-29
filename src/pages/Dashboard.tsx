@@ -371,7 +371,9 @@ export default function Dashboard() {
                     <div
                       className={cn(
                         "w-2 h-2 rounded-full shrink-0",
-                        task.priority === 3 ? "bg-primary" : task.priority === 2 ? "bg-muted-foreground" : "bg-muted"
+                        task.priority === 3 ? "bg-red-500" : 
+                        task.priority === 2 ? "bg-amber-500" : 
+                        task.priority === 1 ? "bg-blue-500" : "bg-muted-foreground"
                       )}
                     />
                     <span className="truncate">{task.title}</span>
