@@ -396,7 +396,7 @@ export default function Financas() {
       case "paid": return "Pago";
       case "pending": return "A pagar";
       case "to_receive": return "A receber";
-      case "received": return "Recebimento";
+      case "received": return "Recebido";
       default: return "Pago";
     }
   };
