@@ -102,14 +102,14 @@ export default function Metas() {
   const { toast } = useToast();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<GoalType>("DAILY");
+  const [activeTab, setActiveTab] = useState<GoalType>("WEEKLY");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
 
   const [newGoal, setNewGoal] = useState<NewGoal>({
     title: "",
     description: "",
-    type: "DAILY",
+    type: "WEEKLY",
     target_value: 1,
     unit_label: "vezes",
   });
@@ -307,7 +307,6 @@ export default function Metas() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="DAILY">Diária</SelectItem>
                     <SelectItem value="WEEKLY">Semanal</SelectItem>
                     <SelectItem value="MONTHLY">Mensal</SelectItem>
                     <SelectItem value="YEARLY">Anual</SelectItem>
@@ -348,14 +347,13 @@ export default function Metas() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as GoalType)}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="DAILY">Diárias</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="WEEKLY">Semanais</TabsTrigger>
           <TabsTrigger value="MONTHLY">Mensais</TabsTrigger>
           <TabsTrigger value="YEARLY">Anuais</TabsTrigger>
         </TabsList>
 
-        {(["DAILY", "WEEKLY", "MONTHLY", "YEARLY"] as GoalType[]).map((type) => (
+        {(["WEEKLY", "MONTHLY", "YEARLY"] as GoalType[]).map((type) => (
           <TabsContent key={type} value={type} className="space-y-4 mt-6">
             {loading ? (
               <div className="space-y-3">
