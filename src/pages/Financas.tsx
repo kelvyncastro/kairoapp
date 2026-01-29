@@ -523,7 +523,7 @@ export default function Financas() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="paid">Pago</SelectItem>
-                    <SelectItem value="received">Recebimento</SelectItem>
+                    <SelectItem value="received">Recebido</SelectItem>
                     <SelectItem value="pending">A pagar</SelectItem>
                     <SelectItem value="to_receive">A receber</SelectItem>
                   </SelectContent>
@@ -1051,7 +1051,7 @@ export default function Financas() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="paid">Pago</SelectItem>
-                    <SelectItem value="received">Recebimento</SelectItem>
+                    <SelectItem value="received">Recebido</SelectItem>
                     <SelectItem value="pending">A pagar</SelectItem>
                     <SelectItem value="to_receive">A receber</SelectItem>
                   </SelectContent>
