@@ -366,7 +366,7 @@ export default function Financas() {
     if (transactionFilter === "paid" && t.status !== "paid") return false;
     if (transactionFilter === "pending" && t.status !== "pending") return false;
     if (transactionFilter === "to_receive" && t.status !== "to_receive") return false;
-    if (transactionFilter === "received" && !(t.value > 0 && t.status === "paid")) return false;
+    if (transactionFilter === "received" && t.status !== "received") return false;
     
     // Filtro por pesquisa
     if (searchQuery) {
