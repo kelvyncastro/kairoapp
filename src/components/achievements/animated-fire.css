@@ -4,7 +4,7 @@
   align-items: center;
   justify-content: center;
   /* Subir levemente o ícone para alinhar visualmente com o número */
-  transform: translateY(-3px);
+  transform: translateY(-8px);
 }
 
 .fire {
