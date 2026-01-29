@@ -145,7 +145,7 @@ const HabitGrid = React.memo(function HabitGrid({
                         {getMonthlyCompletionCount(habit, daysInMonth)}x
                       </span>
                       <span className="text-sm text-muted-foreground">•</span>
-                      <span className="text-sm font-semibold text-[#39FF14]">
+                      <span className="text-sm font-semibold text-emerald-400">
                         {getHabitAdherence(habit)}%
                       </span>
                     </div>
@@ -264,14 +264,14 @@ const HabitGrid = React.memo(function HabitGrid({
                         }}
                         disabled={status === 'future'}
                         className={cn(
-                          'w-6 h-6 rounded flex items-center justify-center transition-all duration-150',
-                          status === 'done' && 'bg-[#39FF14] hover:bg-[#32e612]',
-                          (status === 'not_done' || status === 'not_planned') && 'border border-muted-foreground/30 hover:border-[#39FF14]/60 hover:bg-muted/30',
+                          'w-5 h-5 rounded flex items-center justify-center transition-all duration-150',
+                          status === 'done' && 'bg-emerald-400 hover:bg-emerald-500',
+                          (status === 'not_done' || status === 'not_planned') && 'border border-muted-foreground/30 hover:border-emerald-400/60 hover:bg-muted/30',
                           status === 'pending' && 'border-2 border-destructive hover:bg-destructive/10',
                           status === 'future' && 'border border-muted-foreground/15 opacity-30 cursor-not-allowed'
                         )}
                       >
-                        {status === 'done' && <Check className="h-3.5 w-3.5 text-black" />}
+                        {status === 'done' && <Check className="h-3 w-3 text-black" />}
                       </button>
                     </div>
                   );
