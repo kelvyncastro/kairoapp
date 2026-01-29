@@ -107,38 +107,86 @@ const sectorColors = [
   "#6b7280", // gray
 ];
 
-// Ícones para setores financeiros
+// Ícones para setores financeiros (apenas os suportados pelo FolderIconRenderer
+// para evitar vários ícones iguais aparecendo como fallback)
 const sectorIcons = [
   // Finanças
-  "wallet", "credit-card", "banknote", "coins", "piggy-bank", "landmark", "receipt",
+  "wallet",
+  "credit-card",
+  "banknote",
+  "coins",
+  "piggy-bank",
+  "receipt",
   // Gráficos
-  "chart-line", "chart-bar", "trending-up", "calculator",
+  "chart-line",
+  "chart-bar",
   // Compras
-  "shopping-bag", "shopping-cart", "store", "tag", "package", "gift",
+  "shopping-bag",
+  "tag",
+  "gift",
   // Casa
-  "home", "building", "sofa", "lightbulb", "droplet", "flame",
+  "home",
+  "building",
+  "lightbulb",
+  "droplet",
+  "flame",
   // Transporte
-  "car", "bus", "plane", "bike", "fuel",
+  "car",
+  "plane",
+  "bike",
   // Alimentação
-  "utensils", "coffee", "pizza", "wine", "beer",
-  // Vestuário
-  "shirt", "watch", "glasses", "gem", "scissors",
-  // Educação
-  "graduation-cap", "book", "pencil", "briefcase",
+  "utensils",
+  "coffee",
+  "pizza",
+  "apple",
+  "wine",
+  "beer",
+  "cake",
+  // Educação/Trabalho
+  "briefcase",
+  "graduation-cap",
+  "book",
+  "pencil",
   // Tecnologia
-  "smartphone", "laptop", "headphones", "camera", "wifi", "globe",
+  "laptop",
+  "smartphone",
+  "camera",
+  "headphones",
+  "globe",
   // Entretenimento
-  "gamepad", "tv", "music", "film", "ticket",
-  // Saúde
-  "heart", "dumbbell", "pill",
+  "tv",
+  "gamepad",
+  "music",
+  "puzzle",
+  "dice",
+  // Saúde/Fitness
+  "heart",
+  "dumbbell",
   // Conquistas
-  "trophy", "medal", "crown", "star", "target",
-  // Natureza
-  "dog", "cat", "tree", "sun",
-  // Social
-  "baby", "users", "smile",
-  // Outros
-  "wrench", "key", "shield", "umbrella", "calendar", "clock", "bell",
+  "trophy",
+  "medal",
+  "crown",
+  "star",
+  "target",
+  // Natureza/Pets
+  "sun",
+  "cloud",
+  "umbrella",
+  "tree",
+  "flower",
+  "leaf",
+  "dog",
+  "cat",
+  // Utilitários
+  "calendar",
+  "clock",
+  "alarm-clock",
+  "bell",
+  "shield",
+  "key",
+  "wrench",
+  "hammer",
+  "lock",
 ];
 
 // Setores padrão
