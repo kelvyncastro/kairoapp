@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { LayoutList, LayoutGrid } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useTaskData } from '@/hooks/useTaskData';
 import { useSavedFilters } from '@/hooks/useSavedFilters';
 import { TaskSidebar } from '@/components/tasks/TaskSidebar';
@@ -38,7 +37,6 @@ export default function Rotina() {
   const [searchQuery, setSearchQuery] = useState('');
   const [advancedFilters, setAdvancedFilters] = useState<FilterCondition[]>([]);
 
-  // Calculate task counts per folder
   const taskCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     counts['null'] = tasks.filter(t => !t.folder_id).length;
@@ -48,16 +46,13 @@ export default function Rotina() {
     return counts;
   }, [tasks, folders]);
 
-  // Filter and sort tasks
   const filteredTasks = useMemo(() => {
     let result = tasks;
 
-    // Filter by folder
     if (selectedFolderId) {
       result = result.filter(t => t.folder_id === selectedFolderId);
     }
 
-    // Filter by search
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(t => 
@@ -66,7 +61,6 @@ export default function Rotina() {
       );
     }
 
-    // Apply advanced filters
     result = applyFilters(result, advancedFilters);
 
     return result;
@@ -84,7 +78,6 @@ export default function Rotina() {
     setDialogOpen(true);
   };
 
-  // Find "Não iniciada" status for new tasks
   const naoIniciadaStatus = statuses.find(s => 
     s.name.toLowerCase().trim() === 'não iniciada'
   );
@@ -122,13 +115,18 @@ export default function Rotina() {
 
   if (loading) {
     return (
-      <div className="flex h-full">
+      <div className="flex h-[calc(100vh-4rem)] -m-6">
         <div className="w-56 border-r border-border/30 bg-background animate-pulse" />
-        <div className="flex-1 p-6">
-          <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-12 bg-muted/30 rounded animate-pulse" />
-            ))}
+        <div className="flex-1 flex flex-col">
+          <div className="px-6 py-4 border-b border-border/30">
+            <div className="h-8 w-48 bg-muted/30 rounded animate-pulse" />
+          </div>
+          <div className="flex-1 p-6">
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-12 bg-muted/30 rounded animate-pulse" />
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -150,8 +148,16 @@ export default function Rotina() {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden bg-background">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border/30">
+          <div>
+            <h1 className="text-2xl font-bold">Rotina</h1>
+            <p className="text-sm text-muted-foreground">Suas tarefas e projetos</p>
+          </div>
+        </div>
+
         {/* Toolbar */}
-        <div className="flex items-center gap-3 px-4 py-2 border-b border-border/30">
+        <div className="flex items-center gap-3 px-6 py-3 border-b border-border/30">
           {/* View mode */}
           <div className="flex items-center gap-1 bg-muted/30 rounded-md p-0.5">
             <Button 

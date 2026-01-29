@@ -65,7 +65,6 @@ export default function Consistencia() {
     if (!user) return;
     setLoading(true);
 
-    // Fetch all consistency days
     const { data: days } = await supabase
       .from("consistency_days")
       .select("*")
@@ -74,14 +73,12 @@ export default function Consistencia() {
 
     setConsistencyDays((days as ConsistencyDay[]) || []);
 
-    // Calculate stats
     const allDays = (days as ConsistencyDay[]) || [];
     const monthDays = allDays.filter((d) =>
       isSameMonth(new Date(d.date), currentMonth)
     );
     const activeDaysThisMonth = monthDays.filter((d) => d.is_active).length;
 
-    // Calculate current streak
     let currentStreak = 0;
     const todayStart = startOfDay(new Date());
     for (let i = 0; i <= 365; i++) {
@@ -94,7 +91,6 @@ export default function Consistencia() {
       }
     }
 
-    // Calculate best streak
     let bestStreak = 0;
     let tempStreak = 0;
     const sortedDays = [...allDays].sort(
@@ -135,173 +131,201 @@ export default function Consistencia() {
     return consistencyDays.find((d) => d.date === dateStr);
   };
 
-  const unlockedBadges = badges.filter((b) => stats.bestStreak >= b.days);
+  if (loading) {
+    return (
+      <div className="h-[calc(100vh-4rem)] flex flex-col -m-6 bg-background">
+        <div className="px-6 py-4 border-b border-border/30">
+          <div className="h-8 w-48 bg-muted/30 rounded animate-pulse" />
+        </div>
+        <div className="flex-1 p-6">
+          <div className="grid gap-4 md:grid-cols-4 mb-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-28 bg-muted/30 rounded-lg animate-pulse" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="h-[calc(100vh-4rem)] flex flex-col -m-6 bg-background">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold">Consistência</h1>
-        <p className="text-muted-foreground">
-          O segredo está em aparecer todo dia.
-        </p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <div className="cave-card p-6">
-          <div className="flex items-center gap-2 mb-2">
-            {stats.currentStreak >= 30 ? (
-              <Crown className="h-5 w-5 streak-crown" />
-            ) : stats.currentStreak >= 7 ? (
-              <Trophy className="h-5 w-5 streak-trophy" />
-            ) : stats.currentStreak >= 3 ? (
-              <Flame className="h-5 w-5 streak-fire" />
-            ) : (
-              <Flame className="h-5 w-5 text-muted-foreground" />
-            )}
-            <span className="text-sm text-muted-foreground">Streak atual</span>
-          </div>
-          <p className="text-3xl font-bold">{stats.currentStreak}</p>
-          <p className="text-xs text-muted-foreground">dias seguidos</p>
-        </div>
-
-        <div className="cave-card p-6">
-          <div className="flex items-center gap-2 mb-2">
-            <Trophy className="h-5 w-5 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Melhor streak</span>
-          </div>
-          <p className="text-3xl font-bold">{stats.bestStreak}</p>
-          <p className="text-xs text-muted-foreground">dias</p>
-        </div>
-
-        <div className="cave-card p-6">
-          <div className="flex items-center gap-2 mb-2">
-            <Calendar className="h-5 w-5 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Este mês</span>
-          </div>
-          <p className="text-3xl font-bold">{stats.activeDaysThisMonth}</p>
-          <p className="text-xs text-muted-foreground">dias ativos</p>
-        </div>
-
-        <div className="cave-card p-6">
-          <div className="flex items-center gap-2 mb-2">
-            <Flame className="h-5 w-5 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Total</span>
-          </div>
-          <p className="text-3xl font-bold">{stats.totalDays}</p>
-          <p className="text-xs text-muted-foreground">dias ativos</p>
+      <div className="flex items-center justify-between px-6 py-4 border-b border-border/30 flex-shrink-0">
+        <div>
+          <h1 className="text-2xl font-bold">Consistência</h1>
+          <p className="text-sm text-muted-foreground">O segredo está em aparecer todo dia.</p>
         </div>
       </div>
 
-      {/* Calendar */}
-      <div className="cave-card p-6">
-        <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <h2 className="font-semibold">
-            {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Stats Cards */}
+        <div className="px-6 py-5">
+          <h2 className="text-xl font-bold text-foreground uppercase tracking-wider mb-4">
+            Estatísticas
           </h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* Weekday headers */}
-        <div className="grid grid-cols-7 gap-1 mb-2">
-          {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((day) => (
-            <div
-              key={day}
-              className="text-center text-xs text-muted-foreground py-2"
-            >
-              {day}
+          <div className="grid gap-4 md:grid-cols-4">
+            <div className="cave-card p-6">
+              <div className="flex items-center gap-2 mb-2">
+                {stats.currentStreak >= 30 ? (
+                  <Crown className="h-5 w-5 streak-crown" />
+                ) : stats.currentStreak >= 7 ? (
+                  <Trophy className="h-5 w-5 streak-trophy" />
+                ) : stats.currentStreak >= 3 ? (
+                  <Flame className="h-5 w-5 streak-fire" />
+                ) : (
+                  <Flame className="h-5 w-5 text-muted-foreground" />
+                )}
+                <span className="text-sm text-muted-foreground">Streak atual</span>
+              </div>
+              <p className="text-3xl font-bold">{stats.currentStreak}</p>
+              <p className="text-xs text-muted-foreground">dias seguidos</p>
             </div>
-          ))}
+
+            <div className="cave-card p-6">
+              <div className="flex items-center gap-2 mb-2">
+                <Trophy className="h-5 w-5 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Melhor streak</span>
+              </div>
+              <p className="text-3xl font-bold">{stats.bestStreak}</p>
+              <p className="text-xs text-muted-foreground">dias</p>
+            </div>
+
+            <div className="cave-card p-6">
+              <div className="flex items-center gap-2 mb-2">
+                <Calendar className="h-5 w-5 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Este mês</span>
+              </div>
+              <p className="text-3xl font-bold">{stats.activeDaysThisMonth}</p>
+              <p className="text-xs text-muted-foreground">dias ativos</p>
+            </div>
+
+            <div className="cave-card p-6">
+              <div className="flex items-center gap-2 mb-2">
+                <Flame className="h-5 w-5 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Total</span>
+              </div>
+              <p className="text-3xl font-bold">{stats.totalDays}</p>
+              <p className="text-xs text-muted-foreground">dias ativos</p>
+            </div>
+          </div>
         </div>
 
-        {/* Calendar grid */}
-        <div className="grid grid-cols-7 gap-1">
-          {/* Padding for start of month */}
-          {[...Array(paddingDays)].map((_, i) => (
-            <div key={`pad-${i}`} className="aspect-square" />
-          ))}
-
-          {/* Days */}
-          {daysInMonth.map((date) => {
-            const dayData = getDayData(date);
-            const isActive = dayData?.is_active;
-            const today = isToday(date);
-
-            return (
-              <div
-                key={date.toISOString()}
-                className={cn(
-                  "aspect-square flex items-center justify-center rounded-md text-sm transition-colors relative group",
-                  isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary/50 text-muted-foreground",
-                  today && "ring-2 ring-ring"
-                )}
-                title={dayData?.reason || "Sem atividade"}
+        {/* Calendar */}
+        <div className="px-6 py-5 border-t border-border/30">
+          <h2 className="text-xl font-bold text-foreground uppercase tracking-wider mb-4">
+            Calendário
+          </h2>
+          <div className="cave-card p-6">
+            <div className="flex items-center justify-between mb-6">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
               >
-                {format(date, "d")}
-                {dayData?.reason && (
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-                    {dayData.reason}
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <h3 className="font-bold uppercase tracking-wider">
+                {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
+              </h3>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Weekday headers */}
+            <div className="grid grid-cols-7 gap-1 mb-2">
+              {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((day) => (
+                <div
+                  key={day}
+                  className="text-center text-xs font-bold uppercase tracking-wider text-muted-foreground py-2"
+                >
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            {/* Calendar grid */}
+            <div className="grid grid-cols-7 gap-1">
+              {[...Array(paddingDays)].map((_, i) => (
+                <div key={`pad-${i}`} className="aspect-square" />
+              ))}
+
+              {daysInMonth.map((date) => {
+                const dayData = getDayData(date);
+                const isActive = dayData?.is_active;
+                const today = isToday(date);
+
+                return (
+                  <div
+                    key={date.toISOString()}
+                    className={cn(
+                      "aspect-square flex items-center justify-center rounded-md text-sm transition-colors relative group",
+                      isActive
+                        ? "bg-success text-success-foreground"
+                        : "bg-secondary/50 text-muted-foreground",
+                      today && "ring-2 ring-ring"
+                    )}
+                    title={dayData?.reason || "Sem atividade"}
+                  >
+                    {format(date, "d")}
+                    {dayData?.reason && (
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                        {dayData.reason}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+
+            <p className="text-xs text-muted-foreground mt-4 text-center">
+              Passe o mouse sobre um dia para ver o motivo
+            </p>
+          </div>
         </div>
 
-        <p className="text-xs text-muted-foreground mt-4 text-center">
-          Passe o mouse sobre um dia para ver o motivo
-        </p>
-      </div>
+        {/* Badges */}
+        <div className="px-6 py-5 border-t border-border/30">
+          <h2 className="text-xl font-bold text-foreground uppercase tracking-wider mb-4">
+            Conquistas
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {badges.map((badge) => {
+              const unlocked = stats.bestStreak >= badge.days;
+              const Icon = badge.icon;
 
-      {/* Badges */}
-      <div className="cave-card p-6">
-        <h2 className="font-semibold mb-4">Conquistas</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {badges.map((badge) => {
-            const unlocked = stats.bestStreak >= badge.days;
-            const Icon = badge.icon;
-
-            return (
-              <div
-                key={badge.days}
-                className={cn(
-                  "flex flex-col items-center gap-2 p-4 rounded-lg border transition-all",
-                  unlocked
-                    ? "border-primary bg-primary/5"
-                    : "border-border bg-secondary/20 opacity-50"
-                )}
-              >
-                <Icon
+              return (
+                <div
+                  key={badge.days}
                   className={cn(
-                    "h-8 w-8",
-                    unlocked ? badge.color : "text-muted-foreground"
+                    "cave-card flex flex-col items-center gap-2 p-4 transition-all",
+                    unlocked
+                      ? "border-success/30"
+                      : "opacity-50"
                   )}
-                />
-                <span className="text-sm font-medium text-center">
-                  {badge.label}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {badge.days} dias
-                </span>
-              </div>
-            );
-          })}
+                >
+                  <Icon
+                    className={cn(
+                      "h-8 w-8",
+                      unlocked ? badge.color : "text-muted-foreground"
+                    )}
+                  />
+                  <span className="text-sm font-medium text-center">
+                    {badge.label}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {badge.days} dias
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

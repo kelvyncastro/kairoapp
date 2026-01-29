@@ -8,9 +8,6 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
-  Camera,
-  MessageSquare,
-  Edit3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,11 +17,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { format, addDays, subDays, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -107,7 +102,6 @@ export default function Dieta() {
     if (!user) return;
     setLoading(true);
 
-    // Fetch or create nutrition day
     let { data: dayData } = await supabase
       .from("nutrition_days")
       .select("*")
@@ -116,7 +110,6 @@ export default function Dieta() {
       .maybeSingle();
 
     if (!dayData) {
-      // Create nutrition day
       const { data: newDay } = await supabase
         .from("nutrition_days")
         .insert({
@@ -135,7 +128,6 @@ export default function Dieta() {
 
     setNutritionDay(dayData as NutritionDay);
 
-    // Fetch meals with foods
     if (dayData) {
       const { data: mealsData } = await supabase
         .from("meals")
@@ -193,7 +185,6 @@ export default function Dieta() {
       })
       .eq("id", nutritionDay.id);
 
-    // Update consistency
     if (totals.calories > 0) {
       await supabase.from("consistency_days").upsert(
         {
@@ -267,7 +258,6 @@ export default function Dieta() {
     setAddFoodOpen(false);
     setSelectedMealId(null);
     
-    // Update totals
     setTimeout(updateNutritionTotals, 100);
     toast({ title: "Alimento adicionado" });
   };
@@ -291,7 +281,6 @@ export default function Dieta() {
     toast({ title: "Refeição excluída" });
   };
 
-  // Calculate totals from current meals
   const totals = meals.reduce(
     (acc, meal) => {
       meal.foods.forEach((food) => {
@@ -317,187 +306,204 @@ export default function Dieta() {
   const getProgress = (current: number, target: number) =>
     Math.min(100, Math.round((current / target) * 100));
 
+  if (loading) {
+    return (
+      <div className="h-[calc(100vh-4rem)] flex flex-col -m-6 bg-background">
+        <div className="px-6 py-4 border-b border-border/30">
+          <div className="h-8 w-48 bg-muted/30 rounded animate-pulse" />
+        </div>
+        <div className="flex-1 p-6">
+          <div className="h-48 bg-muted/30 rounded-lg animate-pulse mb-6" />
+          <div className="h-32 bg-muted/30 rounded-lg animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="h-[calc(100vh-4rem)] flex flex-col -m-6 bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-border/30 flex-shrink-0">
         <div>
-          <h1 className="text-2xl font-semibold">Dieta</h1>
-          <p className="text-muted-foreground">
-            Você é o que você come.
-          </p>
+          <h1 className="text-2xl font-bold">Dieta</h1>
+          <p className="text-sm text-muted-foreground">Você é o que você come.</p>
         </div>
       </div>
 
-      {/* Date Navigation */}
-      <div className="flex items-center justify-between cave-card p-4">
-        <Button variant="ghost" size="icon" onClick={() => setSelectedDate(subDays(selectedDate, 1))}>
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <div className="text-center">
-          <p className="font-medium">{isToday(selectedDate) ? "Hoje" : format(selectedDate, "EEEE", { locale: ptBR })}</p>
-          <p className="text-sm text-muted-foreground">{format(selectedDate, "dd/MM/yyyy")}</p>
-        </div>
-        <Button variant="ghost" size="icon" onClick={() => setSelectedDate(addDays(selectedDate, 1))}>
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
-
-      {/* Macros Summary */}
-      <div className="cave-card p-6">
-        <h2 className="font-semibold mb-4">Resumo do Dia</h2>
-        
-        {/* Calories */}
-        <div className="mb-6">
-          <div className="flex justify-between text-sm mb-2">
-            <span>Calorias</span>
-            <span>
-              {totals.calories} / {targets.calories} kcal
-            </span>
-          </div>
-          <Progress value={getProgress(totals.calories, targets.calories)} className="h-3" />
-          <p className="text-xs text-muted-foreground mt-1">
-            Restam {Math.max(0, targets.calories - totals.calories)} kcal
-          </p>
-        </div>
-
-        {/* Macros Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Proteína</span>
-              <span>{totals.protein}g</span>
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Date Navigation */}
+        <div className="px-6 py-5">
+          <div className="flex items-center justify-between cave-card p-4 mb-6">
+            <Button variant="ghost" size="icon" onClick={() => setSelectedDate(subDays(selectedDate, 1))}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="text-center">
+              <p className="font-bold uppercase tracking-wider">
+                {isToday(selectedDate) ? "Hoje" : format(selectedDate, "EEEE", { locale: ptBR })}
+              </p>
+              <p className="text-sm text-muted-foreground">{format(selectedDate, "dd/MM/yyyy")}</p>
             </div>
-            <Progress value={getProgress(totals.protein, targets.protein)} className="h-2" />
-            <p className="text-xs text-muted-foreground">Meta: {targets.protein}g</p>
-          </div>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Carboidratos</span>
-              <span>{totals.carbs}g</span>
-            </div>
-            <Progress value={getProgress(totals.carbs, targets.carbs)} className="h-2" />
-            <p className="text-xs text-muted-foreground">Meta: {targets.carbs}g</p>
-          </div>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Gordura</span>
-              <span>{totals.fat}g</span>
-            </div>
-            <Progress value={getProgress(totals.fat, targets.fat)} className="h-2" />
-            <p className="text-xs text-muted-foreground">Meta: {targets.fat}g</p>
-          </div>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Fibra</span>
-              <span>{totals.fiber}g</span>
-            </div>
-            <Progress value={getProgress(totals.fiber, targets.fiber)} className="h-2" />
-            <p className="text-xs text-muted-foreground">Meta: {targets.fiber}g</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Meals */}
-      <div className="space-y-4">
-        {loading ? (
-          <div className="space-y-3">
-            {[...Array(2)].map((_, i) => (
-              <div key={i} className="cave-card p-4 animate-pulse">
-                <div className="h-5 w-1/4 bg-muted rounded" />
-              </div>
-            ))}
-          </div>
-        ) : meals.length === 0 ? (
-          <div className="empty-state">
-            <UtensilsCrossed className="empty-state-icon" />
-            <h3 className="empty-state-title">Nenhuma refeição</h3>
-            <p className="empty-state-description">
-              Adicione sua primeira refeição do dia
-            </p>
-            <Button onClick={() => setAddMealOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Refeição
+            <Button variant="ghost" size="icon" onClick={() => setSelectedDate(addDays(selectedDate, 1))}>
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-        ) : (
-          <>
-            {meals.map((meal) => (
-              <div key={meal.id} className="cave-card p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold">{meal.name}</h3>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setSelectedMealId(meal.id);
-                        setAddFoodOpen(true);
-                      }}
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Alimento
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="text-destructive"
-                      onClick={() => handleDeleteMeal(meal.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+
+          {/* Macros Summary */}
+          <h2 className="text-xl font-bold text-foreground uppercase tracking-wider mb-4">
+            Resumo do Dia
+          </h2>
+          <div className="cave-card p-6 mb-6">
+            {/* Calories */}
+            <div className="mb-6">
+              <div className="flex justify-between text-sm mb-2">
+                <span className="font-bold uppercase tracking-wider text-xs">Calorias</span>
+                <span>
+                  {totals.calories} / {targets.calories} kcal
+                </span>
+              </div>
+              <Progress value={getProgress(totals.calories, targets.calories)} className="h-3" />
+              <p className="text-xs text-muted-foreground mt-1">
+                Restam {Math.max(0, targets.calories - totals.calories)} kcal
+              </p>
+            </div>
+
+            {/* Macros Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Proteína</span>
+                  <span>{totals.protein}g</span>
                 </div>
-
-                {meal.foods.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    Nenhum alimento adicionado
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {meal.foods.map((food) => (
-                      <div
-                        key={food.id}
-                        className="flex items-center justify-between p-2 rounded-md bg-secondary/50 group"
-                      >
-                        <div>
-                          <p className="text-sm font-medium">{food.name}</p>
-                          {food.quantity_text && (
-                            <p className="text-xs text-muted-foreground">
-                              {food.quantity_text}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <p className="text-sm text-muted-foreground">
-                            {food.calories} kcal
-                          </p>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 opacity-0 group-hover:opacity-100 text-destructive"
-                            onClick={() => handleDeleteFood(meal.id, food.id)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <Progress value={getProgress(totals.protein, targets.protein)} className="h-2" />
+                <p className="text-xs text-muted-foreground">Meta: {targets.protein}g</p>
               </div>
-            ))}
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Carboidratos</span>
+                  <span>{totals.carbs}g</span>
+                </div>
+                <Progress value={getProgress(totals.carbs, targets.carbs)} className="h-2" />
+                <p className="text-xs text-muted-foreground">Meta: {targets.carbs}g</p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Gordura</span>
+                  <span>{totals.fat}g</span>
+                </div>
+                <Progress value={getProgress(totals.fat, targets.fat)} className="h-2" />
+                <p className="text-xs text-muted-foreground">Meta: {targets.fat}g</p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Fibra</span>
+                  <span>{totals.fiber}g</span>
+                </div>
+                <Progress value={getProgress(totals.fiber, targets.fiber)} className="h-2" />
+                <p className="text-xs text-muted-foreground">Meta: {targets.fiber}g</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => setAddMealOpen(true)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Refeição
-            </Button>
-          </>
-        )}
+        {/* Meals */}
+        <div className="px-6 py-5 border-t border-border/30">
+          <h2 className="text-xl font-bold text-foreground uppercase tracking-wider mb-4">
+            Refeições
+          </h2>
+          <div className="space-y-4">
+            {meals.length === 0 ? (
+              <div className="empty-state">
+                <UtensilsCrossed className="empty-state-icon" />
+                <h3 className="empty-state-title">Nenhuma refeição</h3>
+                <p className="empty-state-description">
+                  Adicione sua primeira refeição do dia
+                </p>
+                <Button onClick={() => setAddMealOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar Refeição
+                </Button>
+              </div>
+            ) : (
+              <>
+                {meals.map((meal) => (
+                  <div key={meal.id} className="cave-card p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-bold uppercase tracking-wider text-sm">{meal.name}</h3>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedMealId(meal.id);
+                            setAddFoodOpen(true);
+                          }}
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Alimento
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="text-destructive"
+                          onClick={() => handleDeleteMeal(meal.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {meal.foods.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        Nenhum alimento adicionado
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {meal.foods.map((food) => (
+                          <div
+                            key={food.id}
+                            className="flex items-center justify-between p-2 rounded-md bg-secondary/50 group"
+                          >
+                            <div>
+                              <p className="text-sm font-medium">{food.name}</p>
+                              {food.quantity_text && (
+                                <p className="text-xs text-muted-foreground">
+                                  {food.quantity_text}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <p className="text-sm text-muted-foreground">
+                                {food.calories} kcal
+                              </p>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 opacity-0 group-hover:opacity-100 text-destructive"
+                                onClick={() => handleDeleteFood(meal.id, food.id)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => setAddMealOpen(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar Refeição
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Add Meal Dialog */}

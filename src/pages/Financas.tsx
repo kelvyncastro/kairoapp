@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
   Plus,
-  Wallet,
   TrendingUp,
   TrendingDown,
   PiggyBank,
@@ -12,7 +11,6 @@ import {
   Edit2,
   ChevronLeft,
   ChevronRight,
-  Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -206,12 +204,10 @@ export default function Financas() {
     fetchData();
   };
 
-  // Calculate stats
   const income = transactions.filter((t) => t.value > 0).reduce((sum, t) => sum + t.value, 0);
   const expenses = transactions.filter((t) => t.value < 0).reduce((sum, t) => sum + t.value, 0);
   const balance = income + expenses;
 
-  // Expenses by sector for chart
   const expensesBySector = sectors.map((sector) => {
     const total = transactions
       .filter((t) => t.sector_id === sector.id && t.value < 0)
@@ -221,7 +217,6 @@ export default function Financas() {
 
   const totalExpenses = Math.abs(expenses);
 
-  // Daily expenses for chart
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
@@ -236,17 +231,31 @@ export default function Financas() {
 
   const maxDaily = Math.max(...dailyExpenses.map((d) => d.total), 1);
 
-  return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Finanças</h1>
-          <p className="text-muted-foreground">
-            Controle é liberdade.
-          </p>
+  if (loading) {
+    return (
+      <div className="h-[calc(100vh-4rem)] flex flex-col -m-6 bg-background">
+        <div className="px-6 py-4 border-b border-border/30">
+          <div className="h-8 w-48 bg-muted/30 rounded animate-pulse" />
         </div>
+        <div className="flex-1 p-6">
+          <div className="grid gap-4 md:grid-cols-3 mb-6">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-28 bg-muted/30 rounded-lg animate-pulse" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
+  return (
+    <div className="h-[calc(100vh-4rem)] flex flex-col -m-6 bg-background">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-border/30 flex-shrink-0">
+        <div>
+          <h1 className="text-2xl font-bold">Finanças</h1>
+          <p className="text-sm text-muted-foreground">Controle é liberdade.</p>
+        </div>
         <Dialog open={addTransactionOpen} onOpenChange={setAddTransactionOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -326,262 +335,265 @@ export default function Financas() {
         </Dialog>
       </div>
 
-      {/* Month Navigation */}
-      <div className="flex items-center justify-between cave-card p-4">
-        <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <span className="font-medium">
-          {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
-        </span>
-        <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="cave-card p-6">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="h-5 w-5 text-success" />
-            <span className="text-sm text-muted-foreground">Ganhos</span>
-          </div>
-          <p className="text-2xl font-bold text-success">
-            R$ {income.toFixed(2)}
-          </p>
-        </div>
-
-        <div className="cave-card p-6">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingDown className="h-5 w-5 text-destructive" />
-            <span className="text-sm text-muted-foreground">Gastos</span>
-          </div>
-          <p className="text-2xl font-bold text-destructive">
-            R$ {Math.abs(expenses).toFixed(2)}
-          </p>
-        </div>
-
-        <div className="cave-card p-6">
-          <div className="flex items-center gap-2 mb-2">
-            <PiggyBank className="h-5 w-5 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Sobra</span>
-          </div>
-          <p className={cn(
-            "text-2xl font-bold",
-            balance >= 0 ? "text-success" : "text-destructive"
-          )}>
-            R$ {balance.toFixed(2)}
-          </p>
-        </div>
-      </div>
-
-      <Tabs defaultValue="overview">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="transactions">Transações</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-6 mt-6">
-          {/* Daily Chart */}
-          <div className="cave-card p-6">
-            <h2 className="font-semibold mb-4">Gastos Diários</h2>
-            <div className="flex items-end gap-1 h-32">
-              {dailyExpenses.map((day) => (
-                <div
-                  key={day.date}
-                  className="flex-1 flex flex-col items-center group"
-                >
-                  <div
-                    className="w-full bg-primary/70 rounded-t transition-all hover:bg-primary"
-                    style={{ height: `${(day.total / maxDaily) * 100}%`, minHeight: day.total > 0 ? "4px" : "0" }}
-                    title={`R$ ${day.total.toFixed(2)}`}
-                  />
-                  <span className="text-[10px] text-muted-foreground mt-1">
-                    {Number(day.day) % 5 === 0 || Number(day.day) === 1 ? day.day : ""}
-                  </span>
-                </div>
-              ))}
-            </div>
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Month Navigation */}
+        <div className="px-6 py-5">
+          <div className="flex items-center justify-between cave-card p-4 mb-6">
+            <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="font-bold uppercase tracking-wider">
+              {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
+            </span>
+            <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
 
-          {/* By Sector */}
-          <div className="cave-card p-6">
-            <h2 className="font-semibold mb-4">Gastos por Setor</h2>
-            {expensesBySector.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                Nenhum gasto categorizado
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {expensesBySector.map((sector) => {
-                  const percent = totalExpenses > 0 ? (sector.total / totalExpenses) * 100 : 0;
-                  return (
-                    <div key={sector.id} className="space-y-1">
-                      <div className="flex justify-between text-sm">
-                        <span>{sector.name}</span>
-                        <span>R$ {sector.total.toFixed(2)} ({percent.toFixed(0)}%)</span>
-                      </div>
-                      <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{
-                            width: `${percent}%`,
-                            backgroundColor: sector.color_label,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+          {/* Stats Cards */}
+          <h2 className="text-xl font-bold text-foreground uppercase tracking-wider mb-4">
+            Resumo
+          </h2>
+          <div className="grid gap-4 md:grid-cols-3 mb-6">
+            <div className="cave-card p-6">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="h-5 w-5 text-success" />
+                <span className="text-sm text-muted-foreground">Ganhos</span>
               </div>
-            )}
-          </div>
-
-          {/* Sectors Management */}
-          <div className="cave-card p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold">Setores</h2>
-              <Dialog open={addSectorOpen} onOpenChange={setAddSectorOpen}>
-                <DialogTrigger asChild>
-                  <Button size="sm" variant="outline">
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Novo Setor</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label>Nome</Label>
-                      <Input
-                        placeholder="Ex: Mercado, Transporte..."
-                        value={newSectorName}
-                        onChange={(e) => setNewSectorName(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button onClick={handleAddSector} disabled={!newSectorName.trim()}>
-                      Criar
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+              <p className="text-2xl font-bold text-success">
+                R$ {income.toFixed(2)}
+              </p>
             </div>
 
-            {sectors.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                Nenhum setor criado
+            <div className="cave-card p-6">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingDown className="h-5 w-5 text-destructive" />
+                <span className="text-sm text-muted-foreground">Gastos</span>
+              </div>
+              <p className="text-2xl font-bold text-destructive">
+                R$ {Math.abs(expenses).toFixed(2)}
               </p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {sectors.map((sector) => (
-                  <div
-                    key={sector.id}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-secondary group"
-                  >
+            </div>
+
+            <div className="cave-card p-6">
+              <div className="flex items-center gap-2 mb-2">
+                <PiggyBank className="h-5 w-5 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Sobra</span>
+              </div>
+              <p className={cn(
+                "text-2xl font-bold",
+                balance >= 0 ? "text-success" : "text-destructive"
+              )}>
+                R$ {balance.toFixed(2)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-6 py-5 border-t border-border/30">
+          <Tabs defaultValue="overview">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+              <TabsTrigger value="transactions">Transações</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview" className="space-y-6">
+              {/* Daily Chart */}
+              <div className="cave-card p-6">
+                <h3 className="font-bold uppercase tracking-wider text-sm mb-4">Gastos Diários</h3>
+                <div className="flex items-end gap-1 h-32">
+                  {dailyExpenses.map((day) => (
                     <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: sector.color_label }}
-                    />
-                    <span className="text-sm">{sector.name}</span>
-                    <button
-                      onClick={() => handleDeleteSector(sector.id)}
-                      className="opacity-0 group-hover:opacity-100 text-destructive transition-opacity"
+                      key={day.date}
+                      className="flex-1 flex flex-col items-center group"
                     >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="transactions" className="space-y-4 mt-6">
-          {loading ? (
-            <div className="space-y-2">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="cave-card p-4 animate-pulse">
-                  <div className="h-5 w-1/3 bg-muted rounded" />
+                      <div
+                        className="w-full bg-primary/70 rounded-t transition-all hover:bg-primary"
+                        style={{ height: `${(day.total / maxDaily) * 100}%`, minHeight: day.total > 0 ? "4px" : "0" }}
+                        title={`R$ ${day.total.toFixed(2)}`}
+                      />
+                      <span className="text-[10px] text-muted-foreground mt-1">
+                        {Number(day.day) % 5 === 0 || Number(day.day) === 1 ? day.day : ""}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          ) : transactions.length === 0 ? (
-            <div className="empty-state">
-              <Wallet className="empty-state-icon" />
-              <h3 className="empty-state-title">Nenhuma transação</h3>
-              <p className="empty-state-description">
-                Adicione sua primeira transação
-              </p>
-              <Button onClick={() => setAddTransactionOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Transação
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {transactions.map((t) => {
-                const sector = sectors.find((s) => s.id === t.sector_id);
-                const isIncome = t.value > 0;
+              </div>
 
-                return (
-                  <div
-                    key={t.id}
-                    className="cave-card p-4 flex items-center justify-between group"
-                  >
-                    <div className="flex items-center gap-3">
-                      {sector && (
+              {/* By Sector */}
+              <div className="cave-card p-6">
+                <h3 className="font-bold uppercase tracking-wider text-sm mb-4">Gastos por Setor</h3>
+                {expensesBySector.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Nenhum gasto categorizado
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {expensesBySector.map((sector) => {
+                      const percent = totalExpenses > 0 ? (sector.total / totalExpenses) * 100 : 0;
+                      return (
+                        <div key={sector.id} className="space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span>{sector.name}</span>
+                            <span>R$ {sector.total.toFixed(2)} ({percent.toFixed(0)}%)</span>
+                          </div>
+                          <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all"
+                              style={{
+                                width: `${percent}%`,
+                                backgroundColor: sector.color_label,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Sectors Management */}
+              <div className="cave-card p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold uppercase tracking-wider text-sm">Setores</h3>
+                  <Dialog open={addSectorOpen} onOpenChange={setAddSectorOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" variant="outline">
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Novo Setor</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label>Nome</Label>
+                          <Input
+                            placeholder="Ex: Mercado, Transporte..."
+                            value={newSectorName}
+                            onChange={(e) => setNewSectorName(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button onClick={handleAddSector} disabled={!newSectorName.trim()}>
+                          Criar
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+
+                {sectors.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Nenhum setor criado
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {sectors.map((sector) => (
+                      <div
+                        key={sector.id}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-secondary group"
+                      >
                         <div
                           className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: sector.color_label }}
                         />
-                      )}
-                      <div>
-                        <p className="font-medium">{t.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(t.date), "dd/MM")}
-                          {sector && ` • ${sector.name}`}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <p className={cn(
-                        "font-medium",
-                        isIncome ? "text-success" : "text-destructive"
-                      )}>
-                        {isIncome ? "+" : "-"} R$ {Math.abs(t.value).toFixed(2)}
-                      </p>
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8"
-                          onClick={() => setEditingTransaction(t)}
-                        >
-                          <Edit2 className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 text-destructive"
-                          onClick={() => handleDeleteTransaction(t.id)}
+                        <span className="text-sm">{sector.name}</span>
+                        <button
+                          onClick={() => handleDeleteSector(sector.id)}
+                          className="opacity-0 group-hover:opacity-100 text-destructive transition-opacity"
                         >
                           <Trash2 className="h-3 w-3" />
-                        </Button>
+                        </button>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="transactions" className="space-y-4">
+              {transactions.length === 0 ? (
+                <div className="empty-state">
+                  <PiggyBank className="empty-state-icon" />
+                  <h3 className="empty-state-title">Nenhuma transação</h3>
+                  <p className="empty-state-description">
+                    Adicione sua primeira transação do mês
+                  </p>
+                </div>
+              ) : (
+                <div className="cave-card overflow-hidden">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left p-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Data</th>
+                        <th className="text-left p-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Nome</th>
+                        <th className="text-left p-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Setor</th>
+                        <th className="text-right p-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Valor</th>
+                        <th className="w-12"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {transactions.map((t) => (
+                        <tr key={t.id} className="border-b border-border/50 hover:bg-secondary/30 group">
+                          <td className="p-4 text-sm text-muted-foreground">
+                            {format(new Date(t.date), "dd/MM")}
+                          </td>
+                          <td className="p-4 text-sm font-medium">{t.name}</td>
+                          <td className="p-4 text-sm">
+                            {t.sector_id ? (
+                              <span 
+                                className="px-2 py-0.5 rounded text-xs"
+                                style={{ 
+                                  backgroundColor: `${sectors.find(s => s.id === t.sector_id)?.color_label}20`,
+                                  color: sectors.find(s => s.id === t.sector_id)?.color_label
+                                }}
+                              >
+                                {sectors.find(s => s.id === t.sector_id)?.name}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </td>
+                          <td className={cn(
+                            "p-4 text-sm font-medium text-right",
+                            t.value >= 0 ? "text-success" : "text-destructive"
+                          )}>
+                            {t.value >= 0 ? "+" : ""}R$ {Math.abs(t.value).toFixed(2)}
+                          </td>
+                          <td className="p-4">
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => setEditingTransaction(t)}
+                                className="p-1 hover:bg-secondary rounded"
+                              >
+                                <Edit2 className="h-3 w-3" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteTransaction(t.id)}
+                                className="p-1 hover:bg-secondary rounded text-destructive"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
 
       {/* Edit Transaction Dialog */}
-      <Dialog open={!!editingTransaction} onOpenChange={(open) => !open && setEditingTransaction(null)}>
+      <Dialog open={!!editingTransaction} onOpenChange={() => setEditingTransaction(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Editar Transação</DialogTitle>
@@ -599,8 +611,11 @@ export default function Financas() {
                 <Label>Valor (R$)</Label>
                 <Input
                   type="number"
-                  value={editingTransaction.value}
-                  onChange={(e) => setEditingTransaction({ ...editingTransaction, value: Number(e.target.value) })}
+                  value={Math.abs(editingTransaction.value)}
+                  onChange={(e) => setEditingTransaction({ 
+                    ...editingTransaction, 
+                    value: editingTransaction.value >= 0 ? Number(e.target.value) : -Number(e.target.value)
+                  })}
                 />
               </div>
               <div className="space-y-2">
@@ -610,7 +625,7 @@ export default function Financas() {
                   onValueChange={(v) => setEditingTransaction({ ...editingTransaction, sector_id: v === "none" ? null : v })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Sem setor</SelectItem>
