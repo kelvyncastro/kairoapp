@@ -12,6 +12,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Check,
+  Search,
+  CalendarIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,10 +36,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { format, startOfMonth, endOfMonth, subMonths, addMonths, eachDayOfInterval } from "date-fns";
+import { format, startOfMonth, endOfMonth, subMonths, addMonths, eachDayOfInterval, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { FolderIconRenderer } from "@/components/tasks/FolderIconRenderer";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 
 interface Sector {
   id: string;
@@ -53,6 +58,7 @@ interface Transaction {
   value: number;
   sector_id: string | null;
   description: string | null;
+  status: string;
 }
 
 interface NewTransaction {
@@ -61,6 +67,8 @@ interface NewTransaction {
   type: "income" | "expense";
   sector_id: string;
   description: string;
+  status: string;
+  date: string;
 }
 
 interface NewSector {
@@ -68,6 +76,8 @@ interface NewSector {
   color_label: string;
   icon: string;
 }
+
+type TransactionFilter = "all" | "paid" | "received" | "pending" | "to_receive";
 
 // Mesmas cores usadas na Rotina
 const sectorColors = [
@@ -125,12 +135,17 @@ export default function Financas() {
   const [editingSector, setEditingSector] = useState<Sector | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   
+  const [transactionFilter, setTransactionFilter] = useState<TransactionFilter>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  
   const [newTransaction, setNewTransaction] = useState<NewTransaction>({
     name: "",
     value: 0,
     type: "expense",
     sector_id: "",
     description: "",
+    status: "paid",
+    date: format(new Date(), "yyyy-MM-dd"),
   });
   
   const [newSector, setNewSector] = useState<NewSector>({
@@ -244,10 +259,11 @@ export default function Financas() {
     const { error } = await supabase.from("finance_transactions").insert({
       user_id: user.id,
       name: newTransaction.name,
-      date: format(new Date(), "yyyy-MM-dd"),
+      date: newTransaction.date,
       value,
       sector_id: newTransaction.sector_id || null,
       description: newTransaction.description || null,
+      status: newTransaction.status,
     });
 
     if (error) {
@@ -256,7 +272,15 @@ export default function Financas() {
     }
 
     toast({ title: "Transação adicionada" });
-    setNewTransaction({ name: "", value: 0, type: "expense", sector_id: "", description: "" });
+    setNewTransaction({ 
+      name: "", 
+      value: 0, 
+      type: "expense", 
+      sector_id: "", 
+      description: "", 
+      status: "paid",
+      date: format(new Date(), "yyyy-MM-dd"),
+    });
     setAddTransactionOpen(false);
     fetchData();
   };
@@ -271,6 +295,8 @@ export default function Financas() {
         value: editingTransaction.value,
         sector_id: editingTransaction.sector_id,
         description: editingTransaction.description,
+        status: editingTransaction.status,
+        date: editingTransaction.date,
       })
       .eq("id", editingTransaction.id);
 
@@ -328,6 +354,44 @@ export default function Financas() {
 
   const maxDaily = Math.max(...dailyExpenses.map((d) => d.total), 1);
 
+  // Filtrar transações
+  const filteredTransactions = transactions.filter((t) => {
+    // Filtro por status/tipo
+    if (transactionFilter === "paid" && t.status !== "paid") return false;
+    if (transactionFilter === "pending" && t.status !== "pending") return false;
+    if (transactionFilter === "to_receive" && t.status !== "to_receive") return false;
+    if (transactionFilter === "received" && !(t.value > 0 && t.status === "paid")) return false;
+    
+    // Filtro por pesquisa
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const sector = sectors.find(s => s.id === t.sector_id);
+      const matchesName = t.name.toLowerCase().includes(query);
+      const matchesSector = sector?.name.toLowerCase().includes(query);
+      if (!matchesName && !matchesSector) return false;
+    }
+    
+    return true;
+  });
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "paid": return "Pago";
+      case "pending": return "A pagar";
+      case "to_receive": return "A receber";
+      default: return "Pago";
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "paid": return "text-success";
+      case "pending": return "text-amber-500";
+      case "to_receive": return "text-blue-500";
+      default: return "text-success";
+    }
+  };
+
   if (loading) {
     return (
       <div className="h-[calc(100vh-4rem)] flex flex-col -m-6 bg-background">
@@ -360,18 +424,47 @@ export default function Financas() {
               Nova Transação
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Nova Transação</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>Nome</Label>
+                <Label>Descrição</Label>
                 <Input
                   placeholder="Ex: Mercado, Salário..."
                   value={newTransaction.name}
                   onChange={(e) => setNewTransaction({ ...newTransaction, name: e.target.value })}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label>Valor (R$)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  value={newTransaction.value || ""}
+                  onChange={(e) => setNewTransaction({ ...newTransaction, value: Number(e.target.value) })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Categoria</Label>
+                <Select
+                  value={newTransaction.sector_id || "none"}
+                  onValueChange={(v) => setNewTransaction({ ...newTransaction, sector_id: v === "none" ? "" : v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem categoria</SelectItem>
+                    {sectors.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label>Tipo</Label>
@@ -383,54 +476,67 @@ export default function Financas() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="expense">Gasto</SelectItem>
-                    <SelectItem value="income">Ganho</SelectItem>
+                    <SelectItem value="expense">Despesa</SelectItem>
+                    <SelectItem value="income">Receita</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Valor (R$)</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  step={0.01}
-                  value={newTransaction.value}
-                  onChange={(e) => setNewTransaction({ ...newTransaction, value: Number(e.target.value) })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Setor</Label>
+                <Label>Status</Label>
                 <Select
-                  value={newTransaction.sector_id || "none"}
-                  onValueChange={(v) => setNewTransaction({ ...newTransaction, sector_id: v === "none" ? "" : v })}
+                  value={newTransaction.status}
+                  onValueChange={(v) => setNewTransaction({ ...newTransaction, status: v })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione um setor" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Sem setor</SelectItem>
-                    {sectors.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        <div className="flex items-center gap-2">
-                          <FolderIconRenderer icon={s.icon || "wallet"} color={s.color_label} className="h-4 w-4" />
-                          {s.name}
-                        </div>
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="paid">Pago</SelectItem>
+                    <SelectItem value="pending">A pagar</SelectItem>
+                    <SelectItem value="to_receive">A receber</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Descrição (opcional)</Label>
-                <Textarea
-                  value={newTransaction.description}
-                  onChange={(e) => setNewTransaction({ ...newTransaction, description: e.target.value })}
-                />
+                <Label>Data</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !newTransaction.date && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {newTransaction.date 
+                        ? format(parse(newTransaction.date, "yyyy-MM-dd", new Date()), "dd/MM/yyyy")
+                        : "Selecione uma data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={newTransaction.date ? parse(newTransaction.date, "yyyy-MM-dd", new Date()) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          setNewTransaction({ ...newTransaction, date: format(date, "yyyy-MM-dd") });
+                        }
+                      }}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handleAddTransaction} disabled={!newTransaction.name.trim() || newTransaction.value === 0}>
-                Adicionar
+              <Button 
+                onClick={handleAddTransaction} 
+                disabled={!newTransaction.name.trim() || newTransaction.value === 0}
+                className="w-full"
+              >
+                Adicionar Transação
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -600,84 +706,129 @@ export default function Financas() {
             </TabsContent>
 
             <TabsContent value="transactions" className="space-y-4">
-              {transactions.length === 0 ? (
+              {/* Filters and Search */}
+              <div className="cave-card p-6">
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-bold uppercase tracking-wider text-sm">Transações</h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Verifique suas transações completas.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col md:flex-row gap-4">
+                    {/* Filter Tabs */}
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { value: "all", label: "Todas" },
+                        { value: "paid", label: "Pagos" },
+                        { value: "received", label: "Recebidos" },
+                        { value: "pending", label: "A pagar" },
+                        { value: "to_receive", label: "A receber" },
+                      ].map((filter) => (
+                        <Button
+                          key={filter.value}
+                          variant={transactionFilter === filter.value ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setTransactionFilter(filter.value as TransactionFilter)}
+                        >
+                          {filter.label}
+                        </Button>
+                      ))}
+                    </div>
+                    
+                    {/* Search */}
+                    <div className="relative flex-1 md:max-w-xs">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Pesquisar por descrição, categoria..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-9"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {filteredTransactions.length === 0 ? (
                 <div className="empty-state">
                   <PiggyBank className="empty-state-icon" />
                   <h3 className="empty-state-title">Nenhuma transação</h3>
                   <p className="empty-state-description">
-                    Adicione sua primeira transação do mês
+                    {transactions.length === 0 
+                      ? "Adicione sua primeira transação do mês"
+                      : "Nenhuma transação encontrada com os filtros selecionados"}
                   </p>
                 </div>
               ) : (
                 <div className="cave-card overflow-hidden">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-border">
-                        <th className="text-left p-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Data</th>
-                        <th className="text-left p-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Nome</th>
-                        <th className="text-left p-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Setor</th>
-                        <th className="text-right p-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Valor</th>
-                        <th className="w-12"></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {transactions.map((t) => {
-                        const sector = sectors.find(s => s.id === t.sector_id);
-                        return (
-                          <tr key={t.id} className="border-b border-border/50 hover:bg-secondary/30 group">
-                            <td className="p-4 text-sm text-muted-foreground">
-                              {format(new Date(t.date), "dd/MM")}
-                            </td>
-                            <td className="p-4 text-sm font-medium">{t.name}</td>
-                            <td className="p-4 text-sm">
-                              {sector ? (
-                                <span className="flex items-center gap-2">
-                                  <FolderIconRenderer 
-                                    icon={sector.icon || "wallet"} 
-                                    color={sector.color_label} 
-                                    className="h-4 w-4" 
-                                  />
-                                  <span 
-                                    className="px-2 py-0.5 rounded text-xs"
-                                    style={{ 
-                                      backgroundColor: `${sector.color_label}20`,
-                                      color: sector.color_label
-                                    }}
-                                  >
-                                    {sector.name}
-                                  </span>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-border">
+                          <th className="text-left p-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Descrição</th>
+                          <th className="text-left p-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Valor</th>
+                          <th className="text-left p-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Categoria</th>
+                          <th className="text-left p-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Tipo</th>
+                          <th className="text-left p-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Status</th>
+                          <th className="text-left p-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Data</th>
+                          <th className="text-right p-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredTransactions.map((t) => {
+                          const sector = sectors.find(s => s.id === t.sector_id);
+                          const isExpense = t.value < 0;
+                          return (
+                            <tr key={t.id} className="border-b border-border/50 hover:bg-secondary/30 group">
+                              <td className="p-4 text-sm font-medium">{t.name}</td>
+                              <td className={cn(
+                                "p-4 text-sm font-medium",
+                                isExpense ? "text-primary" : "text-success"
+                              )}>
+                                R$ {Math.abs(t.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              </td>
+                              <td className="p-4 text-sm">
+                                {sector ? sector.name : "-"}
+                              </td>
+                              <td className="p-4">
+                                <Badge variant={isExpense ? "destructive" : "default"} className="text-xs">
+                                  {isExpense ? "Despesa" : "Receita"}
+                                </Badge>
+                              </td>
+                              <td className="p-4">
+                                <span className={cn("text-sm font-medium", getStatusColor(t.status || "paid"))}>
+                                  {getStatusLabel(t.status || "paid")}
                                 </span>
-                              ) : (
-                                <span className="text-muted-foreground">-</span>
-                              )}
-                            </td>
-                            <td className={cn(
-                              "p-4 text-sm font-medium text-right",
-                              t.value >= 0 ? "text-success" : "text-destructive"
-                            )}>
-                              {t.value >= 0 ? "+" : ""}R$ {Math.abs(t.value).toFixed(2)}
-                            </td>
-                            <td className="p-4">
-                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button
-                                  onClick={() => setEditingTransaction(t)}
-                                  className="p-1 hover:bg-secondary rounded"
-                                >
-                                  <Edit2 className="h-3 w-3" />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteTransaction(t.id)}
-                                  className="p-1 hover:bg-secondary rounded text-destructive"
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                              </td>
+                              <td className="p-4 text-sm text-muted-foreground">
+                                {format(parse(t.date, "yyyy-MM-dd", new Date()), "dd/MM/yyyy")}
+                              </td>
+                              <td className="p-4">
+                                <div className="flex gap-1 justify-end">
+                                  <button
+                                    onClick={() => setEditingTransaction(t)}
+                                    className="p-2 hover:bg-secondary rounded"
+                                  >
+                                    <Edit2 className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteTransaction(t.id)}
+                                    className="p-2 hover:bg-secondary rounded text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
             </TabsContent>
@@ -814,14 +965,14 @@ export default function Financas() {
 
       {/* Edit Transaction Dialog */}
       <Dialog open={!!editingTransaction} onOpenChange={() => setEditingTransaction(null)}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Editar Transação</DialogTitle>
           </DialogHeader>
           {editingTransaction && (
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>Nome</Label>
+                <Label>Descrição</Label>
                 <Input
                   value={editingTransaction.name}
                   onChange={(e) => setEditingTransaction({ ...editingTransaction, name: e.target.value })}
@@ -831,7 +982,8 @@ export default function Financas() {
                 <Label>Valor (R$)</Label>
                 <Input
                   type="number"
-                  value={Math.abs(editingTransaction.value)}
+                  step="0.01"
+                  value={Math.abs(editingTransaction.value).toFixed(2)}
                   onChange={(e) => setEditingTransaction({ 
                     ...editingTransaction, 
                     value: editingTransaction.value >= 0 ? Number(e.target.value) : -Number(e.target.value)
@@ -839,7 +991,7 @@ export default function Financas() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Setor</Label>
+                <Label>Categoria</Label>
                 <Select
                   value={editingTransaction.sector_id || "none"}
                   onValueChange={(v) => setEditingTransaction({ ...editingTransaction, sector_id: v === "none" ? null : v })}
@@ -848,22 +1000,90 @@ export default function Financas() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Sem setor</SelectItem>
+                    <SelectItem value="none">Sem categoria</SelectItem>
                     {sectors.map((s) => (
                       <SelectItem key={s.id} value={s.id}>
-                        <div className="flex items-center gap-2">
-                          <FolderIconRenderer icon={s.icon || "wallet"} color={s.color_label} className="h-4 w-4" />
-                          {s.name}
-                        </div>
+                        {s.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-2">
+                <Label>Tipo</Label>
+                <Select
+                  value={editingTransaction.value >= 0 ? "income" : "expense"}
+                  onValueChange={(v) => setEditingTransaction({ 
+                    ...editingTransaction, 
+                    value: v === "expense" ? -Math.abs(editingTransaction.value) : Math.abs(editingTransaction.value)
+                  })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="expense">Despesa</SelectItem>
+                    <SelectItem value="income">Receita</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select
+                  value={editingTransaction.status || "paid"}
+                  onValueChange={(v) => setEditingTransaction({ ...editingTransaction, status: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="paid">Pago</SelectItem>
+                    <SelectItem value="pending">A pagar</SelectItem>
+                    <SelectItem value="to_receive">A receber</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Data</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !editingTransaction.date && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {editingTransaction.date 
+                        ? format(parse(editingTransaction.date, "yyyy-MM-dd", new Date()), "dd/MM/yyyy")
+                        : "Selecione uma data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={editingTransaction.date ? parse(editingTransaction.date, "yyyy-MM-dd", new Date()) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          setEditingTransaction({ 
+                            ...editingTransaction, 
+                            date: format(date, "yyyy-MM-dd") 
+                          });
+                        }
+                      }}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
           )}
           <DialogFooter>
-            <Button onClick={handleUpdateTransaction}>Salvar</Button>
+            <Button onClick={handleUpdateTransaction} className="w-full">
+              Salvar Alterações
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -211,6 +211,7 @@ export type Database = {
           id: string
           name: string
           sector_id: string | null
+          status: string | null
           updated_at: string | null
           user_id: string
           value: number
@@ -222,6 +223,7 @@ export type Database = {
           id?: string
           name: string
           sector_id?: string | null
+          status?: string | null
           updated_at?: string | null
           user_id: string
           value: number
@@ -233,6 +235,7 @@ export type Database = {
           id?: string
           name?: string
           sector_id?: string | null
+          status?: string | null
           updated_at?: string | null
           user_id?: string
           value?: number
