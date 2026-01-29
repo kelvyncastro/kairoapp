@@ -293,6 +293,9 @@ export default function Financas() {
   const handleUpdateTransaction = async () => {
     if (!editingTransaction) return;
 
+    const isIncome = editingTransaction.value > 0;
+    const status = isIncome ? "received" : (editingTransaction.status || "paid");
+
     const { error } = await supabase
       .from("finance_transactions")
       .update({
@@ -300,7 +303,7 @@ export default function Financas() {
         value: editingTransaction.value,
         sector_id: editingTransaction.sector_id,
         description: editingTransaction.description,
-        status: editingTransaction.status,
+        status,
         date: editingTransaction.date,
       })
       .eq("id", editingTransaction.id);
@@ -360,13 +363,21 @@ export default function Financas() {
 
   const maxDaily = Math.max(...dailyExpenses.map((d) => d.total), 1);
 
+  // Status efetivo: transações de ganho são sempre "received" (Recebimento)
+  const getEffectiveStatus = (t: { value: number; status?: string | null }) => {
+    if (t.value > 0) return "received";
+    return t.status || "paid";
+  };
+
   // Filtrar transações
   const filteredTransactions = transactions.filter((t) => {
+    const effectiveStatus = getEffectiveStatus(t);
+
     // Filtro por status/tipo
-    if (transactionFilter === "paid" && t.status !== "paid") return false;
-    if (transactionFilter === "pending" && t.status !== "pending") return false;
-    if (transactionFilter === "to_receive" && t.status !== "to_receive") return false;
-    if (transactionFilter === "received" && t.status !== "received") return false;
+    if (transactionFilter === "paid" && effectiveStatus !== "paid") return false;
+    if (transactionFilter === "pending" && effectiveStatus !== "pending") return false;
+    if (transactionFilter === "to_receive" && effectiveStatus !== "to_receive") return false;
+    if (transactionFilter === "received" && effectiveStatus !== "received") return false;
     
     // Filtro por pesquisa
     if (searchQuery) {
@@ -395,7 +406,7 @@ export default function Financas() {
       case "paid": return "text-success";
       case "pending": return "text-amber-500";
       case "to_receive": return "text-blue-500";
-      case "received": return "text-success";
+      case "received": return "text-blue-500";
       default: return "text-success";
     }
   };
@@ -478,7 +489,18 @@ export default function Financas() {
                 <Label>Tipo</Label>
                 <Select
                   value={newTransaction.type}
-                  onValueChange={(v) => setNewTransaction({ ...newTransaction, type: v as "income" | "expense" })}
+                  onValueChange={(v) =>
+                    setNewTransaction((prev) => {
+                      const type = v as "income" | "expense";
+                      const nextStatus =
+                        type === "income"
+                          ? "received"
+                          : prev.status === "received"
+                            ? "paid"
+                            : prev.status;
+                      return { ...prev, type, status: nextStatus };
+                    })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -492,6 +514,7 @@ export default function Financas() {
               <div className="space-y-2">
                 <Label>Status</Label>
                 <Select
+                  disabled={newTransaction.type === "income"}
                   value={newTransaction.status}
                   onValueChange={(v) => setNewTransaction({ ...newTransaction, status: v })}
                 >
@@ -500,6 +523,7 @@ export default function Financas() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="paid">Pago</SelectItem>
+                    <SelectItem value="received">Recebimento</SelectItem>
                     <SelectItem value="pending">A pagar</SelectItem>
                     <SelectItem value="to_receive">A receber</SelectItem>
                   </SelectContent>
@@ -722,6 +746,7 @@ export default function Financas() {
                         {filteredTransactions.map((t) => {
                           const sector = sectors.find(s => s.id === t.sector_id);
                           const isExpense = t.value < 0;
+                          const effectiveStatus = getEffectiveStatus(t);
                           return (
                             <tr key={t.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors group">
                               <td className="p-4">
@@ -773,12 +798,12 @@ export default function Financas() {
                               <td className="p-4">
                                 <span className={cn(
                                   "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium",
-                                  t.status === "paid" && "bg-emerald-500/15 text-emerald-500",
-                                  t.status === "received" && "bg-blue-500/15 text-blue-500",
-                                  t.status === "pending" && "bg-amber-500/15 text-amber-500",
-                                  t.status === "to_receive" && "bg-sky-500/15 text-sky-500"
+                                  effectiveStatus === "paid" && "bg-emerald-500/15 text-emerald-500",
+                                  effectiveStatus === "received" && "bg-blue-500/15 text-blue-500",
+                                  effectiveStatus === "pending" && "bg-amber-500/15 text-amber-500",
+                                  effectiveStatus === "to_receive" && "bg-sky-500/15 text-sky-500"
                                 )}>
-                                  {getStatusLabel(t.status || "paid")}
+                                  {getStatusLabel(effectiveStatus)}
                                 </span>
                               </td>
                               <td className="p-4 text-sm text-muted-foreground">
@@ -990,10 +1015,20 @@ export default function Financas() {
                 <Label>Tipo</Label>
                 <Select
                   value={editingTransaction.value >= 0 ? "income" : "expense"}
-                  onValueChange={(v) => setEditingTransaction({ 
-                    ...editingTransaction, 
-                    value: v === "expense" ? -Math.abs(editingTransaction.value) : Math.abs(editingTransaction.value)
-                  })}
+                  onValueChange={(v) =>
+                    setEditingTransaction((prev) => {
+                      if (!prev) return prev;
+                      const nextValue =
+                        v === "expense" ? -Math.abs(prev.value) : Math.abs(prev.value);
+                      const nextStatus =
+                        v === "income"
+                          ? "received"
+                          : prev.status === "received"
+                            ? "paid"
+                            : prev.status;
+                      return { ...prev, value: nextValue, status: nextStatus };
+                    })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -1007,7 +1042,8 @@ export default function Financas() {
               <div className="space-y-2">
                 <Label>Status</Label>
                 <Select
-                  value={editingTransaction.status || "paid"}
+                  disabled={editingTransaction.value > 0}
+                  value={getEffectiveStatus(editingTransaction)}
                   onValueChange={(v) => setEditingTransaction({ ...editingTransaction, status: v })}
                 >
                   <SelectTrigger>
@@ -1015,6 +1051,7 @@ export default function Financas() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="paid">Pago</SelectItem>
+                    <SelectItem value="received">Recebimento</SelectItem>
                     <SelectItem value="pending">A pagar</SelectItem>
                     <SelectItem value="to_receive">A receber</SelectItem>
                   </SelectContent>
