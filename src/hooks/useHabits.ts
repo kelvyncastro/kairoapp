@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Habit, HabitLog, HabitWithLogs, DAY_MAP } from '@/types/habits';
@@ -243,8 +243,8 @@ export function useHabits(currentDate: Date) {
     return planned > 0 ? Math.round((done / planned) * 100) : 0;
   }, [daysInMonth, isHabitPlannedForDay]);
 
-  // Calculate daily score for the chart - returns all days in the month
-  const getDailyScores = useCallback((): { day: number; score: number }[] => {
+  // Calculate daily score for the chart - returns all days in the month (as useMemo for reactivity)
+  const dailyScores = useMemo((): { day: number; score: number }[] => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -309,7 +309,7 @@ export function useHabits(currentDate: Date) {
     deleteHabit,
     toggleHabitLog,
     getHabitAdherence,
-    getDailyScores,
+    dailyScores,
     getLogStatus,
     isHabitPlannedForDay,
   };

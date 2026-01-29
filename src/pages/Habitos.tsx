@@ -20,7 +20,7 @@ export default function Habitos() {
     deleteHabit,
     toggleHabitLog,
     getHabitAdherence,
-    getDailyScores,
+    dailyScores,
     getLogStatus,
   } = useHabits(currentDate);
 
@@ -68,7 +68,7 @@ export default function Habitos() {
           <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
             Progresso do Mês
           </h2>
-          <HabitProgressChart dailyScores={getDailyScores()} />
+          <HabitProgressChart dailyScores={dailyScores} />
         </div>
 
         {/* Habits Grid */}
