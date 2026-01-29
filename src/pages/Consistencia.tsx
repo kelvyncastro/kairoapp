@@ -26,6 +26,7 @@ import {
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { AchievementCelebration } from "@/components/achievements/AchievementCelebration";
+import { AnimatedFire } from "@/components/achievements/AnimatedFire";
 
 interface ConsistencyDay {
   date: string;
@@ -192,15 +193,7 @@ export default function Consistencia() {
           <div className="grid gap-4 md:grid-cols-4">
             <div className="cave-card p-6">
               <div className="flex items-center gap-2 mb-2">
-                {stats.currentStreak >= 30 ? (
-                  <Crown className="h-5 w-5 streak-crown" />
-                ) : stats.currentStreak >= 7 ? (
-                  <Trophy className="h-5 w-5 streak-trophy" />
-                ) : stats.currentStreak >= 3 ? (
-                  <Flame className="h-5 w-5 streak-fire" />
-                ) : (
-                  <Flame className="h-5 w-5 text-muted-foreground" />
-                )}
+                <AnimatedFire streak={stats.currentStreak} />
                 <span className="text-sm text-muted-foreground">Streak atual</span>
               </div>
               <p className="text-3xl font-bold">{stats.currentStreak}</p>
