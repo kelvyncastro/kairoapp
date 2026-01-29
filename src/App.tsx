@@ -16,6 +16,7 @@ import Consistencia from "./pages/Consistencia";
 import Treino from "./pages/Treino";
 import Dieta from "./pages/Dieta";
 import Financas from "./pages/Financas";
+import ChatFinanceiro from "./pages/ChatFinanceiro";
 import Ebook from "./pages/Ebook";
 import Configuracoes from "./pages/Configuracoes";
 import Agenda from "./pages/Agenda";
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="/treino" element={<AdminRoute><Treino /></AdminRoute>} />
               <Route path="/dieta" element={<AdminRoute><Dieta /></AdminRoute>} />
               <Route path="/financas" element={<Financas />} />
+              <Route path="/chat-financeiro" element={<ChatFinanceiro />} />
               <Route path="/ebook" element={<AdminRoute><Ebook /></AdminRoute>} />
               <Route path="/agenda" element={<Agenda />} />
               <Route path="/configuracoes" element={<Configuracoes />} />
