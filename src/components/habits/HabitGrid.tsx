@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import * as React from 'react';
 import { Check, MoreHorizontal, Trash2, Edit2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,6 @@ import {
 import { cn } from '@/lib/utils';
 import { HabitWithLogs } from '@/types/habits';
 import { format, isSameDay, getDay } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 
 interface HabitGridProps {
   habits: HabitWithLogs[];
@@ -24,7 +23,7 @@ interface HabitGridProps {
   getLogStatus: (habit: HabitWithLogs, date: Date) => 'done' | 'not_done' | 'pending' | 'future' | 'not_planned';
 }
 
-export function HabitGrid({
+const HabitGrid = React.memo(function HabitGrid({
   habits,
   daysInMonth,
   onToggleLog,
@@ -34,38 +33,38 @@ export function HabitGrid({
   getHabitAdherence,
   getLogStatus,
 }: HabitGridProps) {
-  const [newHabitName, setNewHabitName] = useState('');
-  const [isAddingHabit, setIsAddingHabit] = useState(false);
-  const [editingHabitId, setEditingHabitId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-  const editInputRef = useRef<HTMLInputElement>(null);
-  const gridRef = useRef<HTMLDivElement>(null);
+  const [newHabitName, setNewHabitName] = React.useState('');
+  const [isAddingHabit, setIsAddingHabit] = React.useState(false);
+  const [editingHabitId, setEditingHabitId] = React.useState<string | null>(null);
+  const [editingName, setEditingName] = React.useState('');
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const editInputRef = React.useRef<HTMLInputElement>(null);
+  const gridRef = React.useRef<HTMLDivElement>(null);
   const today = new Date();
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (isAddingHabit && inputRef.current) {
       inputRef.current.focus();
     }
   }, [isAddingHabit]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (editingHabitId && editInputRef.current) {
       editInputRef.current.focus();
     }
   }, [editingHabitId]);
 
   // Scroll to today's column on mount
-  useEffect(() => {
-    if (gridRef.current) {
+  React.useEffect(() => {
+    if (gridRef.current && daysInMonth.length > 0) {
       const todayIndex = daysInMonth.findIndex((d) => isSameDay(d, today));
       if (todayIndex > 0) {
-        const cellWidth = 36; // w-9 = 36px
-        const scrollPosition = Math.max(0, (todayIndex - 3) * cellWidth);
+        const cellWidth = 40;
+        const scrollPosition = Math.max(0, (todayIndex - 5) * cellWidth);
         gridRef.current.scrollLeft = scrollPosition;
       }
     }
-  }, [daysInMonth, today]);
+  }, [daysInMonth]);
 
   const handleAddHabit = () => {
     if (newHabitName.trim()) {
@@ -91,19 +90,21 @@ export function HabitGrid({
   const isSunday = (date: Date) => getDay(date) === 0;
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col w-full overflow-hidden">
       {/* Grid container */}
-      <div className="flex">
+      <div className="flex w-full">
         {/* Fixed left column - Habit names */}
-        <div className="flex-shrink-0 w-52 border-r border-border/30">
+        <div className="flex-shrink-0 w-56 border-r border-border/30 bg-background z-10">
           {/* Header spacer */}
-          <div className="h-10 border-b border-border/30" />
+          <div className="h-12 border-b border-border/30 flex items-center px-4">
+            <span className="text-xs font-medium text-muted-foreground uppercase">Hábitos</span>
+          </div>
           
           {/* Habit rows */}
           {habits.map((habit) => (
             <div
               key={habit.id}
-              className="h-14 px-3 flex items-center justify-between border-b border-border/20 group"
+              className="h-14 px-4 flex items-center justify-between border-b border-border/20 group hover:bg-muted/20 transition-colors"
             >
               {editingHabitId === habit.id ? (
                 <Input
@@ -122,9 +123,9 @@ export function HabitGrid({
                 />
               ) : (
                 <>
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 pr-2">
                     <p className="text-sm font-medium truncate">{habit.name}</p>
-                    <p className="text-xs text-red-500 font-semibold">
+                    <p className="text-xs text-destructive font-semibold">
                       {getHabitAdherence(habit)}%
                     </p>
                   </div>
@@ -133,21 +134,21 @@ export function HabitGrid({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
                       >
-                        <MoreHorizontal className="h-3.5 w-3.5" />
+                        <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="end" className="z-50">
                       <DropdownMenuItem onClick={() => handleEditHabit(habit)}>
-                        <Edit2 className="h-3.5 w-3.5 mr-2" />
+                        <Edit2 className="h-4 w-4 mr-2" />
                         Editar
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        className="text-destructive"
+                        className="text-destructive focus:text-destructive"
                         onClick={() => onDeleteHabit(habit.id)}
                       >
-                        <Trash2 className="h-3.5 w-3.5 mr-2" />
+                        <Trash2 className="h-4 w-4 mr-2" />
                         Remover
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -158,7 +159,7 @@ export function HabitGrid({
           ))}
 
           {/* Add habit row */}
-          <div className="h-14 px-3 flex items-center border-b border-border/20">
+          <div className="h-14 px-4 flex items-center border-b border-border/20">
             {isAddingHabit ? (
               <Input
                 ref={inputRef}
@@ -181,10 +182,10 @@ export function HabitGrid({
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground w-full justify-start"
                 onClick={() => setIsAddingHabit(true)}
               >
-                <Plus className="h-4 w-4 mr-1.5" />
+                <Plus className="h-4 w-4 mr-2" />
                 Adicionar hábito
               </Button>
             )}
@@ -193,9 +194,9 @@ export function HabitGrid({
 
         {/* Scrollable right section - Days grid */}
         <div ref={gridRef} className="flex-1 overflow-x-auto">
-          <div className="inline-flex flex-col min-w-full">
+          <div className="inline-flex flex-col min-w-max">
             {/* Days header */}
-            <div className="flex h-10 border-b border-border/30">
+            <div className="flex h-12 border-b border-border/30">
               {daysInMonth.map((day) => {
                 const isToday = isSameDay(day, today);
                 const isSun = isSunday(day);
@@ -204,15 +205,15 @@ export function HabitGrid({
                   <div
                     key={day.toISOString()}
                     className={cn(
-                      'w-9 flex-shrink-0 flex items-center justify-center text-xs font-medium',
-                      isSun && 'text-red-500',
+                      'w-10 flex-shrink-0 flex items-center justify-center text-xs font-medium',
+                      isSun && 'text-destructive',
                       isToday && 'text-foreground'
                     )}
                   >
                     <span
                       className={cn(
-                        'w-6 h-6 flex items-center justify-center rounded-full',
-                        isToday && 'bg-red-500 text-white'
+                        'w-7 h-7 flex items-center justify-center rounded-full transition-colors',
+                        isToday && 'bg-destructive text-destructive-foreground font-bold'
                       )}
                     >
                       {format(day, 'd')}
@@ -231,19 +232,23 @@ export function HabitGrid({
                   return (
                     <div
                       key={day.toISOString()}
-                      className="w-9 flex-shrink-0 flex items-center justify-center"
+                      className="w-10 flex-shrink-0 flex items-center justify-center"
                     >
                       <button
-                        onClick={() => onToggleLog(habit.id, day)}
+                        type="button"
+                        onClick={() => {
+                          if (status !== 'future' && status !== 'not_planned') {
+                            onToggleLog(habit.id, day);
+                          }
+                        }}
                         disabled={status === 'future' || status === 'not_planned'}
                         className={cn(
-                          'w-7 h-7 rounded-lg flex items-center justify-center transition-all',
-                          status === 'done' && 'bg-green-500',
-                          status === 'not_done' && 'border border-muted-foreground/30',
-                          status === 'pending' && 'border-2 border-red-500',
-                          status === 'future' && 'border border-muted-foreground/20 opacity-30 cursor-not-allowed',
-                          status === 'not_planned' && 'opacity-0 cursor-default',
-                          (status === 'not_done' || status === 'pending') && 'hover:border-green-500/50'
+                          'w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-150',
+                          status === 'done' && 'bg-green-500 hover:bg-green-600',
+                          status === 'not_done' && 'border-2 border-muted-foreground/30 hover:border-green-500/60 hover:bg-muted/30',
+                          status === 'pending' && 'border-2 border-destructive hover:bg-destructive/10',
+                          status === 'future' && 'border border-muted-foreground/15 opacity-30 cursor-not-allowed',
+                          status === 'not_planned' && 'opacity-0 cursor-default pointer-events-none'
                         )}
                       >
                         {status === 'done' && <Check className="h-4 w-4 text-white" />}
@@ -254,10 +259,10 @@ export function HabitGrid({
               </div>
             ))}
 
-            {/* Empty row for add habit */}
+            {/* Empty row for add habit alignment */}
             <div className="flex h-14 border-b border-border/20">
               {daysInMonth.map((day) => (
-                <div key={day.toISOString()} className="w-9 flex-shrink-0" />
+                <div key={day.toISOString()} className="w-10 flex-shrink-0" />
               ))}
             </div>
           </div>
@@ -265,4 +270,6 @@ export function HabitGrid({
       </div>
     </div>
   );
-}
+});
+
+export { HabitGrid };
