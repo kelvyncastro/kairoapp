@@ -280,13 +280,17 @@ export function useHabits(currentDate: Date) {
       const targetDate = new Date(date);
       targetDate.setHours(0, 0, 0, 0);
 
-      if (!isHabitPlannedForDay(habit, date)) return 'not_planned';
-      if (isAfter(targetDate, today)) return 'future';
-
       const dateStr = format(date, 'yyyy-MM-dd');
       const log = habit.logs.find((l) => l.date === dateStr);
 
+      // If there is an explicit log, it wins (even if the day isn't in the planned frequency).
+      // This guarantees: contador só soma quando o quadrado estiver com check.
       if (log?.status === 'done') return 'done';
+
+      if (isAfter(targetDate, today)) return 'future';
+
+      // Only mark as not_planned when there is no log for that day.
+      if (!isHabitPlannedForDay(habit, date) && !log) return 'not_planned';
       if (isSameDay(targetDate, today)) return 'pending';
       return 'not_done';
     },

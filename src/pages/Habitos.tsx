@@ -65,28 +65,32 @@ export default function Habitos() {
       <div className="flex-1 overflow-y-auto">
         {/* Progress Chart */}
         <div className="px-6 py-5">
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-            Progresso do Mês
-          </h2>
-          <HabitProgressChart dailyScores={getDailyScores()} />
+          <div className="max-w-6xl mx-auto w-full">
+            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+              Progresso do Mês
+            </h2>
+            <HabitProgressChart dailyScores={getDailyScores()} />
+          </div>
         </div>
 
         {/* Habits Grid */}
         <div className="px-6 py-5 border-t border-border/30">
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-            Grade de Hábitos
-          </h2>
-          <HabitGrid
-            habits={habits}
-            daysInMonth={daysInMonth}
-            monthKey={monthKey}
-            onToggleLog={toggleHabitLog}
-            onCreateHabit={createHabit}
-            onUpdateHabit={updateHabit}
-            onDeleteHabit={deleteHabit}
-            getHabitAdherence={getHabitAdherence}
-            getLogStatus={getLogStatus}
-          />
+          <div className="max-w-6xl mx-auto w-full">
+            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+              Grade de Hábitos
+            </h2>
+            <HabitGrid
+              habits={habits}
+              daysInMonth={daysInMonth}
+              monthKey={monthKey}
+              onToggleLog={toggleHabitLog}
+              onCreateHabit={createHabit}
+              onUpdateHabit={updateHabit}
+              onDeleteHabit={deleteHabit}
+              getHabitAdherence={getHabitAdherence}
+              getLogStatus={getLogStatus}
+            />
+          </div>
         </div>
       </div>
     </div>
