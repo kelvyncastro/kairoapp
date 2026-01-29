@@ -26,7 +26,7 @@ import {
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { AchievementCelebration } from "@/components/achievements/AchievementCelebration";
-import fireAnimation from "@/assets/fire-animation.avif";
+import { AnimatedFire } from "@/components/achievements/AnimatedFire";
 
 interface ConsistencyDay {
   date: string;
@@ -204,23 +204,9 @@ export default function Consistencia() {
                 )}
                 <span className="text-sm text-muted-foreground">Streak atual</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <p className="text-3xl font-bold">{stats.currentStreak}</p>
-                {stats.currentStreak > 0 && (
-                  <img 
-                    src={fireAnimation} 
-                    alt="Fire animation" 
-                    className="h-10 w-10 object-contain"
-                    style={{
-                      opacity: stats.currentStreak < 3 ? 0.5 : 1,
-                      filter: stats.currentStreak >= 30 
-                        ? "drop-shadow(0 0 8px rgba(250, 204, 21, 0.8))" 
-                        : stats.currentStreak >= 14 
-                        ? "drop-shadow(0 0 6px rgba(251, 146, 60, 0.6))"
-                        : "none"
-                    }}
-                  />
-                )}
+                <AnimatedFire streak={stats.currentStreak} size="md" />
               </div>
               <p className="text-xs text-muted-foreground">dias seguidos</p>
             </div>
