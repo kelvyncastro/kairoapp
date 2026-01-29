@@ -192,16 +192,17 @@ export default function Metas() {
     const numValue = parseFloat(progressValue);
     if (isNaN(numValue)) return;
 
-    const newValue = progressMode === "increment" 
-      ? goal.current_value + numValue 
-      : numValue;
+    // We store history as the VALUE ADDED in that update (delta), not the cumulative total.
+    // For "absolute" mode, we convert the entered total into a delta against current_value.
+    const delta = progressMode === "increment" ? numValue : numValue - goal.current_value;
+    const newCurrentValue = goal.current_value + delta;
 
     // Add to progress history
     const { error: historyError } = await supabase
       .from("goal_progress_history")
       .insert({
         goal_id: selectedGoalId,
-        value: newValue,
+        value: delta,
         note: progressNote || null,
       });
 
@@ -211,11 +212,11 @@ export default function Metas() {
     }
 
     // Update goal current value
-    const completed = newValue >= goal.target_value;
+    const completed = newCurrentValue >= goal.target_value;
     const { error } = await supabase
       .from("goals")
       .update({
-        current_value: newValue,
+        current_value: newCurrentValue,
         status: completed ? "COMPLETED" : "ACTIVE",
       })
       .eq("id", selectedGoalId);
@@ -290,12 +291,19 @@ export default function Metas() {
     : goals.filter((g) => g.category === activeCategory);
 
   const getProgressChartData = (goalId: string) => {
-    const history = progressHistory[goalId] || [];
-    return history.map((entry, index) => ({
-      index: index + 1,
-      value: entry.value,
-      date: format(new Date(entry.created_at), "dd/MM", { locale: ptBR }),
-    }));
+    const history = [...(progressHistory[goalId] || [])].sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
+
+    let runningTotal = 0;
+    return history.map((entry, index) => {
+      runningTotal += entry.value;
+      return {
+        index: index + 1,
+        value: runningTotal,
+        date: format(new Date(entry.created_at), "dd/MM", { locale: ptBR }),
+      };
+    });
   };
 
   return (
