@@ -270,7 +270,7 @@ export function TaskDetailModal({
                       📆 {task.start_date ? format(new Date(task.start_date), "d MMM", { locale: ptBR }) : 'Início'}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-popover" align="start">
+                  <PopoverContent className="w-auto p-0 bg-popover z-[100]" align="start">
                     <Calendar
                       mode="single"
                       selected={task.start_date ? new Date(task.start_date) : undefined}
@@ -278,7 +278,8 @@ export function TaskDetailModal({
                         start_date: date ? format(date, 'yyyy-MM-dd') : null 
                       })}
                       locale={ptBR}
-                      className="pointer-events-auto"
+                      initialFocus
+                      className="p-3 pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
@@ -289,7 +290,7 @@ export function TaskDetailModal({
                       📅 {task.due_date ? format(new Date(task.due_date), "d MMM", { locale: ptBR }) : 'Vencimento'}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-popover" align="start">
+                  <PopoverContent className="w-auto p-0 bg-popover z-[100]" align="start">
                     <Calendar
                       mode="single"
                       selected={task.due_date ? new Date(task.due_date) : undefined}
@@ -297,7 +298,8 @@ export function TaskDetailModal({
                         due_date: date ? format(date, 'yyyy-MM-dd') : null 
                       })}
                       locale={ptBR}
-                      className="pointer-events-auto"
+                      initialFocus
+                      className="p-3 pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
