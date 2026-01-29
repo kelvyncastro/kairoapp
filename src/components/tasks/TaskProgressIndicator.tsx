@@ -5,16 +5,18 @@ import { cn } from '@/lib/utils';
 
 interface TaskProgressIndicatorProps {
   taskId: string;
+  refreshKey?: number;
   className?: string;
 }
 
-export function TaskProgressIndicator({ taskId, className }: TaskProgressIndicatorProps) {
+export function TaskProgressIndicator({ taskId, refreshKey, className }: TaskProgressIndicatorProps) {
   const [total, setTotal] = useState(0);
   const [completed, setCompleted] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCounts = async () => {
+      setLoading(true);
       // Fetch subtasks count
       const { data: subtasks } = await supabase
         .from('task_subtasks')
@@ -47,7 +49,7 @@ export function TaskProgressIndicator({ taskId, className }: TaskProgressIndicat
     };
 
     fetchCounts();
-  }, [taskId]);
+  }, [taskId, refreshKey]);
 
   if (loading || total === 0) return null;
 
@@ -58,7 +60,7 @@ export function TaskProgressIndicator({ taskId, className }: TaskProgressIndicat
       className={cn(
         "flex items-center gap-1 text-xs px-1.5 py-0.5 rounded",
         isAllCompleted 
-          ? "bg-green-500/20 text-green-500" 
+          ? "bg-primary/15 text-primary" 
           : "bg-muted/50 text-muted-foreground",
         className
       )}

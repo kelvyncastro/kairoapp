@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { 
-  X, 
-  Calendar as CalendarIcon, 
-  Clock, 
-  Flag, 
-  FolderIcon, 
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  Flag,
+  FolderIcon,
   Tag,
   ListChecks,
   Plus,
@@ -21,6 +20,8 @@ import { Progress } from '@/components/ui/progress';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogTitle,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -50,6 +51,7 @@ interface TaskDetailModalProps {
   statuses: TaskStatus[];
   onUpdateTask: (id: string, updates: Partial<Task>) => Promise<boolean>;
   onDeleteTask: (id: string) => void;
+  onDetailsChanged?: (taskId: string) => void;
 }
 
 export function TaskDetailModal({
@@ -60,6 +62,7 @@ export function TaskDetailModal({
   statuses,
   onUpdateTask,
   onDeleteTask,
+  onDetailsChanged,
 }: TaskDetailModalProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -114,6 +117,8 @@ export function TaskDetailModal({
 
   if (!task) return null;
 
+  const notifyDetailsChanged = () => onDetailsChanged?.(task.id);
+
   const handleTitleSave = async () => {
     if (title.trim() && title !== task.title) {
       await onUpdateTask(task.id, { title });
@@ -132,6 +137,7 @@ export function TaskDetailModal({
     if (newSubtaskTitle.trim()) {
       await createSubtask(newSubtaskTitle.trim());
       setNewSubtaskTitle('');
+      notifyDetailsChanged();
     }
   };
 
@@ -139,6 +145,7 @@ export function TaskDetailModal({
     const name = newChecklistName.trim() || 'Checklist';
     await createChecklist(name);
     setNewChecklistName('');
+    notifyDetailsChanged();
   };
 
   const handleAddChecklistItem = async (checklistId: string) => {
@@ -146,6 +153,7 @@ export function TaskDetailModal({
     if (title) {
       await createChecklistItem(checklistId, title);
       setNewItemInputs(prev => ({ ...prev, [checklistId]: '' }));
+      notifyDetailsChanged();
     }
   };
 
@@ -174,20 +182,16 @@ export function TaskDetailModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0 bg-background">
+        <DialogTitle className="sr-only">Detalhes da tarefa</DialogTitle>
+        <DialogDescription className="sr-only">
+          Visualize e edite título, descrição, status, prioridade, datas, subtarefas e checklists.
+        </DialogDescription>
         {/* Header */}
         <div className="flex items-center justify-between px-8 py-5 border-b border-border/30">
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <span className="text-base">📋 Tarefa</span>
             <span className="text-xs opacity-60 bg-muted/30 px-2 py-1 rounded">{task.id.slice(0, 8)}</span>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9"
-            onClick={() => onOpenChange(false)}
-          >
-            <X className="h-5 w-5" />
-          </Button>
         </div>
 
         <div className="overflow-y-auto max-h-[calc(90vh-140px)] px-8 py-6 space-y-8">
@@ -347,12 +351,6 @@ export function TaskDetailModal({
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Etiquetas placeholder */}
-            <div className="flex items-center gap-3">
-              <span className="text-muted-foreground w-28">🏷 Etiquetas</span>
-              <span className="text-muted-foreground/60">Vazio</span>
-            </div>
           </div>
 
           {/* Description */}
@@ -414,7 +412,10 @@ export function TaskDetailModal({
               >
                 <Checkbox
                   checked={subtask.completed}
-                  onCheckedChange={() => toggleSubtask(subtask)}
+                  onCheckedChange={async () => {
+                    await toggleSubtask(subtask);
+                    notifyDetailsChanged();
+                  }}
                 />
                 <span className={cn(
                   "flex-1",
@@ -426,7 +427,10 @@ export function TaskDetailModal({
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                  onClick={() => deleteSubtask(subtask.id)}
+                  onClick={async () => {
+                    await deleteSubtask(subtask.id);
+                    notifyDetailsChanged();
+                  }}
                 >
                   <Trash2 className="h-3 w-3" />
                 </Button>
@@ -484,7 +488,10 @@ export function TaskDetailModal({
                       variant="ghost"
                       size="icon"
                       className="h-6 w-6"
-                      onClick={() => deleteChecklist(checklist.id)}
+                      onClick={async () => {
+                        await deleteChecklist(checklist.id);
+                        notifyDetailsChanged();
+                      }}
                     >
                       <Trash2 className="h-3 w-3" />
                     </Button>
@@ -506,7 +513,10 @@ export function TaskDetailModal({
                         >
                           <Checkbox
                             checked={item.completed}
-                            onCheckedChange={() => toggleChecklistItem(item)}
+                            onCheckedChange={async () => {
+                              await toggleChecklistItem(item);
+                              notifyDetailsChanged();
+                            }}
                           />
                           <span className={cn(
                             "flex-1 text-sm",
@@ -518,7 +528,10 @@ export function TaskDetailModal({
                             variant="ghost"
                             size="icon"
                             className="h-5 w-5 opacity-0 group-hover:opacity-100"
-                            onClick={() => deleteChecklistItem(item.id)}
+                            onClick={async () => {
+                              await deleteChecklistItem(item.id);
+                              notifyDetailsChanged();
+                            }}
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>

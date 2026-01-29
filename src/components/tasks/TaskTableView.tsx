@@ -102,11 +102,26 @@ export function TaskTableView({
   const [resizingColumn, setResizingColumn] = useState<string | null>(null);
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
   const [sortState, setSortState] = useState<SortState>({ column: null, direction: null });
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
 
+  // Refresh token per task to force the list progress indicator to re-fetch
+  const [progressRefresh, setProgressRefresh] = useState<Record<string, number>>({});
+
+  const selectedTask = useMemo(() => {
+    if (!selectedTaskId) return null;
+    return tasks.find(t => t.id === selectedTaskId) || null;
+  }, [tasks, selectedTaskId]);
+
+  const bumpProgressRefresh = useCallback((taskId: string) => {
+    setProgressRefresh(prev => ({
+      ...prev,
+      [taskId]: (prev[taskId] ?? 0) + 1,
+    }));
+  }, []);
+
   const handleOpenTaskDetail = (task: Task) => {
-    setSelectedTask(task);
+    setSelectedTaskId(task.id);
     setDetailModalOpen(true);
   };
 
@@ -334,6 +349,7 @@ export function TaskTableView({
                 statuses={statuses}
                 columns={visibleColumns}
                 gridTemplateColumns={gridTemplateColumns}
+                progressRefresh={progressRefresh}
                 onToggleComplete={onToggleComplete}
                 onUpdateTask={onUpdateTask}
                 onDeleteTask={onDeleteTask}
@@ -383,6 +399,7 @@ export function TaskTableView({
               statuses={statuses}
               columns={visibleColumns}
               gridTemplateColumns={gridTemplateColumns}
+              progressRefresh={progressRefresh}
               onToggleComplete={onToggleComplete}
               onUpdateTask={onUpdateTask}
               onDeleteTask={onDeleteTask}
@@ -414,6 +431,7 @@ export function TaskTableView({
         statuses={statuses}
         onUpdateTask={onUpdateTask}
         onDeleteTask={onDeleteTask}
+        onDetailsChanged={bumpProgressRefresh}
       />
     </div>
   );
@@ -425,6 +443,7 @@ interface TaskTableProps {
   statuses: TaskStatus[];
   columns: ColumnConfig[];
   gridTemplateColumns: string;
+  progressRefresh: Record<string, number>;
   onToggleComplete: (task: Task) => void;
   onUpdateTask: (id: string, updates: Partial<Task>) => void;
   onDeleteTask: (id: string) => void;
@@ -781,6 +800,7 @@ function TaskTable({
   statuses,
   columns,
   gridTemplateColumns,
+  progressRefresh,
   onToggleComplete,
   onUpdateTask,
   onDeleteTask,
@@ -820,7 +840,7 @@ function TaskTable({
             >
               {task.title}
             </span>
-            <TaskProgressIndicator taskId={task.id} />
+            <TaskProgressIndicator taskId={task.id} refreshKey={progressRefresh[task.id] ?? 0} />
           </div>
         );
 
@@ -906,16 +926,16 @@ function TaskTable({
             </SelectTrigger>
             <SelectContent className="bg-popover z-50">
               <SelectItem value="3">
-                <span className="text-red-500">🔴 Urgente</span>
+                <span className="text-destructive">🔴 Urgente</span>
               </SelectItem>
               <SelectItem value="2">
-                <span className="text-amber-500">🟡 Alta</span>
+                <span className="text-primary">🟡 Alta</span>
               </SelectItem>
               <SelectItem value="1">
-                <span className="text-blue-500">🔵 Normal</span>
+                <span className="text-foreground">🔵 Normal</span>
               </SelectItem>
               <SelectItem value="low">
-                <span className="text-gray-500">⚪ Baixa</span>
+                <span className="text-muted-foreground">⚪ Baixa</span>
               </SelectItem>
             </SelectContent>
           </Select>
