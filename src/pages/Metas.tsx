@@ -642,6 +642,7 @@ export default function Metas() {
                     onSelect={(date) => setNewGoal({ ...newGoal, end_date: date })}
                     disabled={(date) => date < new Date()}
                     initialFocus
+                    fixedWeeks
                     className="p-3 pointer-events-auto"
                   />
                 </PopoverContent>
@@ -799,6 +800,7 @@ export default function Metas() {
                         end_date: date ? format(date, "yyyy-MM-dd") : editingGoal.end_date 
                       })}
                       initialFocus
+                      fixedWeeks
                       className="p-3 pointer-events-auto"
                     />
                   </PopoverContent>
