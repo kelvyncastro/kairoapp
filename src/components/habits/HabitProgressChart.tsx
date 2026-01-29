@@ -3,9 +3,11 @@ import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'rec
 
 interface HabitProgressChartProps {
   dailyScores: { day: number; score: number }[];
+  /** Used to visually align the chart width with the day-columns grid. */
+  chartWidth?: number;
 }
 
-const HabitProgressChart = React.memo(function HabitProgressChart({ dailyScores }: HabitProgressChartProps) {
+const HabitProgressChart = React.memo(function HabitProgressChart({ dailyScores, chartWidth }: HabitProgressChartProps) {
   const chartData = React.useMemo(() => {
     return dailyScores.map(({ day, score }) => ({
       day,
@@ -22,7 +24,7 @@ const HabitProgressChart = React.memo(function HabitProgressChart({ dailyScores 
   }
 
   return (
-    <div className="h-32 w-full">
+    <div className="h-36" style={chartWidth ? { width: chartWidth } : undefined}>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <defs>
@@ -35,7 +37,7 @@ const HabitProgressChart = React.memo(function HabitProgressChart({ dailyScores 
             dataKey="day"
             axisLine={false}
             tickLine={false}
-            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
             interval={0}
             tickCount={chartData.length}
           />
@@ -43,7 +45,7 @@ const HabitProgressChart = React.memo(function HabitProgressChart({ dailyScores 
             domain={[0, 100]}
             axisLine={false}
             tickLine={false}
-            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
             tickFormatter={(value) => `${value}%`}
             width={40}
           />
