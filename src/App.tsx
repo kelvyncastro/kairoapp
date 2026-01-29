@@ -17,6 +17,7 @@ import Dieta from "./pages/Dieta";
 import Financas from "./pages/Financas";
 import Ebook from "./pages/Ebook";
 import Configuracoes from "./pages/Configuracoes";
+import Agenda from "./pages/Agenda";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,6 +48,7 @@ const App = () => (
               <Route path="/dieta" element={<Dieta />} />
               <Route path="/financas" element={<Financas />} />
               <Route path="/ebook" element={<Ebook />} />
+              <Route path="/agenda" element={<Agenda />} />
               <Route path="/configuracoes" element={<Configuracoes />} />
             </Route>
             <Route path="*" element={<NotFound />} />
