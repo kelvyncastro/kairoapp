@@ -204,9 +204,9 @@ export default function Consistencia() {
                 )}
                 <span className="text-sm text-muted-foreground">Streak atual</span>
               </div>
-              <div className="flex items-end gap-0">
-                <p className="text-3xl font-bold leading-none">{stats.currentStreak}</p>
-                <AnimatedFire streak={stats.currentStreak} size="md" className="-mb-1" />
+              <div className="flex items-center gap-0">
+                <p className="text-3xl font-bold">{stats.currentStreak}</p>
+                <AnimatedFire streak={stats.currentStreak} size="md" />
               </div>
               <p className="text-xs text-muted-foreground">dias seguidos</p>
             </div>
