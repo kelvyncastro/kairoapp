@@ -109,7 +109,7 @@ export default function Dashboard() {
       habitLogsRes,
       transactionsRes,
     ] = await Promise.all([
-      supabase.from("daily_tasks").select("*").eq("user_id", user.id).eq("date", today),
+      supabase.from("daily_tasks").select("*").eq("user_id", user.id).or(`date.eq.${today},due_date.eq.${today}`),
       supabase.from("daily_tasks").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("completed", true),
       supabase.from("user_settings").select("created_at").eq("user_id", user.id).maybeSingle(),
       supabase.from("consistency_days").select("*").eq("user_id", user.id).order("date", { ascending: false }).limit(60),
