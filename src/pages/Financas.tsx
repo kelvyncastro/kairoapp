@@ -385,7 +385,7 @@ export default function Financas() {
       case "paid": return "Pago";
       case "pending": return "A pagar";
       case "to_receive": return "A receber";
-      case "received": return "Recebido";
+      case "received": return "Recebimento";
       default: return "Pago";
     }
   };
@@ -773,10 +773,10 @@ export default function Financas() {
                               <td className="p-4">
                                 <span className={cn(
                                   "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium",
-                                  t.status === "paid" && "bg-emerald-500/10 text-emerald-500",
-                                  t.status === "received" && "bg-emerald-500/10 text-emerald-500",
-                                  t.status === "pending" && "bg-amber-500/10 text-amber-500",
-                                  t.status === "to_receive" && "bg-blue-500/10 text-blue-500"
+                                  t.status === "paid" && "bg-emerald-500/15 text-emerald-500",
+                                  t.status === "received" && "bg-blue-500/15 text-blue-500",
+                                  t.status === "pending" && "bg-amber-500/15 text-amber-500",
+                                  t.status === "to_receive" && "bg-sky-500/15 text-sky-500"
                                 )}>
                                   {getStatusLabel(t.status || "paid")}
                                 </span>
