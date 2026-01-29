@@ -68,8 +68,7 @@ export default function Consistencia() {
     totalDays: 0,
   });
   const [loading, setLoading] = useState(true);
-  // Demo: show 7-day badge celebration
-  const [celebratingBadge, setCelebratingBadge] = useState<Badge | null>(() => badges[1]);
+  const [celebratingBadge, setCelebratingBadge] = useState<Badge | null>(null);
   const previousBestStreakRef = useRef<number | null>(null);
 
   const fetchData = useCallback(async () => {
@@ -326,15 +325,13 @@ export default function Consistencia() {
               const Icon = badge.icon;
 
               return (
-                <button
+                <div
                   key={badge.days}
-                  onClick={() => unlocked && setCelebratingBadge(badge)}
-                  disabled={!unlocked}
                   className={cn(
                     "cave-card flex flex-col items-center gap-2 p-4 transition-all",
                     unlocked
-                      ? "border-success/30 cursor-pointer hover:scale-105 hover:border-success/50"
-                      : "opacity-50 cursor-not-allowed"
+                      ? "border-success/30"
+                      : "opacity-50"
                   )}
                 >
                   <Icon
@@ -349,7 +346,7 @@ export default function Consistencia() {
                   <span className="text-xs text-muted-foreground">
                     {badge.days} dias
                   </span>
-                </button>
+                </div>
               );
             })}
           </div>
