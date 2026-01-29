@@ -38,12 +38,12 @@ export default function Habitos() {
   }
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col -m-6">
+    <div className="h-[calc(100vh-4rem)] flex flex-col -m-6 bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border/30">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-border/30 flex-shrink-0">
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-semibold">Criador de Hábitos</h1>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={goToPreviousMonth}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -63,8 +63,8 @@ export default function Habitos() {
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
         {/* Progress Chart */}
-        <div className="px-6 py-4 border-b border-border/30">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+        <div className="px-6 py-5 border-b border-border/30">
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
             Progresso do Mês
           </h2>
           <HabitProgressChart dailyScores={getDailyScores()} />
@@ -72,7 +72,7 @@ export default function Habitos() {
 
         {/* Habits Grid */}
         <div className="py-4">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-6">
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4 px-6">
             Grade de Hábitos
           </h2>
           <HabitGrid

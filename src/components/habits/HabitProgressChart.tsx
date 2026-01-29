@@ -1,12 +1,12 @@
-import { useMemo } from 'react';
+import * as React from 'react';
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 
 interface HabitProgressChartProps {
   dailyScores: { day: number; score: number }[];
 }
 
-export function HabitProgressChart({ dailyScores }: HabitProgressChartProps) {
-  const chartData = useMemo(() => {
+const HabitProgressChart = React.memo(function HabitProgressChart({ dailyScores }: HabitProgressChartProps) {
+  const chartData = React.useMemo(() => {
     return dailyScores.map(({ day, score }) => ({
       day,
       score,
@@ -16,33 +16,33 @@ export function HabitProgressChart({ dailyScores }: HabitProgressChartProps) {
   if (chartData.length === 0) {
     return (
       <div className="h-40 flex items-center justify-center text-muted-foreground text-sm">
-        Nenhum dado disponível ainda
+        Nenhum dado disponível ainda. Adicione hábitos para ver seu progresso.
       </div>
     );
   }
 
   return (
-    <div className="h-40">
+    <div className="h-40 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#ef4444" stopOpacity={0.4} />
-              <stop offset="100%" stopColor="#ef4444" stopOpacity={0.05} />
+              <stop offset="0%" stopColor="hsl(var(--destructive))" stopOpacity={0.4} />
+              <stop offset="100%" stopColor="hsl(var(--destructive))" stopOpacity={0.05} />
             </linearGradient>
           </defs>
           <XAxis
             dataKey="day"
             axisLine={false}
             tickLine={false}
-            tick={{ fill: '#6b7280', fontSize: 10 }}
+            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
             interval="preserveStartEnd"
           />
           <YAxis
             domain={[0, 100]}
             axisLine={false}
             tickLine={false}
-            tick={{ fill: '#6b7280', fontSize: 10 }}
+            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
             tickFormatter={(value) => `${value}%`}
             width={40}
           />
@@ -62,7 +62,7 @@ export function HabitProgressChart({ dailyScores }: HabitProgressChartProps) {
           <Area
             type="monotone"
             dataKey="score"
-            stroke="#ef4444"
+            stroke="hsl(var(--destructive))"
             strokeWidth={2}
             fill="url(#scoreGradient)"
           />
@@ -70,4 +70,6 @@ export function HabitProgressChart({ dailyScores }: HabitProgressChartProps) {
       </ResponsiveContainer>
     </div>
   );
-}
+});
+
+export { HabitProgressChart };
