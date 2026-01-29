@@ -471,7 +471,7 @@ export default function Metas() {
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                       <DropdownMenuItem onClick={() => openDetailModal(goal)}>
                         <Eye className="h-4 w-4 mr-2" />
                         Ver Detalhes
