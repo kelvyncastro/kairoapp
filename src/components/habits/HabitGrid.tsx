@@ -139,7 +139,7 @@ const HabitGrid = React.memo(function HabitGrid({
               ) : (
                 <>
                   <div className="flex-1 min-w-0 pr-2">
-                    <p className="text-base font-medium truncate text-foreground">{habit.name}</p>
+                    <p className="text-lg font-semibold truncate text-foreground">{habit.name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-sm text-muted-foreground">
                         {getMonthlyCompletionCount(habit, daysInMonth)}x
