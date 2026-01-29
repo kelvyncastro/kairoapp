@@ -43,6 +43,20 @@ import { FolderIconRenderer } from './FolderIconRenderer';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
+// Parse YYYY-MM-DD string to Date using local timezone (avoids UTC shift)
+function parseDateString(dateStr: string): Date {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+// Format Date to YYYY-MM-DD string using local components
+function formatDateString(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 interface TaskDetailModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -267,15 +281,15 @@ export function TaskDetailModal({
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-8 bg-muted/30">
-                      📆 {task.start_date ? format(new Date(task.start_date), "d MMM", { locale: ptBR }) : 'Início'}
+                      📆 {task.start_date ? format(parseDateString(task.start_date), "d MMM", { locale: ptBR }) : 'Início'}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 bg-popover z-[100]" align="start">
                     <Calendar
                       mode="single"
-                      selected={task.start_date ? new Date(task.start_date) : undefined}
+                      selected={task.start_date ? parseDateString(task.start_date) : undefined}
                       onSelect={(date) => onUpdateTask(task.id, { 
-                        start_date: date ? format(date, 'yyyy-MM-dd') : null 
+                        start_date: date ? formatDateString(date) : null 
                       })}
                       locale={ptBR}
                       initialFocus
@@ -287,15 +301,15 @@ export function TaskDetailModal({
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-8 bg-muted/30">
-                      📅 {task.due_date ? format(new Date(task.due_date), "d MMM", { locale: ptBR }) : 'Vencimento'}
+                      📅 {task.due_date ? format(parseDateString(task.due_date), "d MMM", { locale: ptBR }) : 'Vencimento'}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 bg-popover z-[100]" align="start">
                     <Calendar
                       mode="single"
-                      selected={task.due_date ? new Date(task.due_date) : undefined}
+                      selected={task.due_date ? parseDateString(task.due_date) : undefined}
                       onSelect={(date) => onUpdateTask(task.id, { 
-                        due_date: date ? format(date, 'yyyy-MM-dd') : null 
+                        due_date: date ? formatDateString(date) : null 
                       })}
                       locale={ptBR}
                       initialFocus
