@@ -14,7 +14,9 @@ import {
   Check,
   Search,
   CalendarIcon,
+  MessageCircle,
 } from "lucide-react";
+import { FinanceChat } from "@/components/finance/FinanceChat";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -138,6 +140,7 @@ export default function Financas() {
   
   const [transactionFilter, setTransactionFilter] = useState<TransactionFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [chatOpen, setChatOpen] = useState(false);
   
   const [newTransaction, setNewTransaction] = useState<NewTransaction>({
     name: "",
@@ -436,13 +439,23 @@ export default function Financas() {
           <h1 className="text-2xl font-bold">Finanças</h1>
           <p className="text-sm text-muted-foreground">Controle é liberdade.</p>
         </div>
-        <Dialog open={addTransactionOpen} onOpenChange={setAddTransactionOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Transação
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setChatOpen(true)}
+            className="relative"
+            title="Chat Financeiro"
+          >
+            <MessageCircle className="h-4 w-4" />
+          </Button>
+          <Dialog open={addTransactionOpen} onOpenChange={setAddTransactionOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Nova Transação
+              </Button>
+            </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Nova Transação</DialogTitle>
@@ -573,6 +586,7 @@ export default function Financas() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Content */}
@@ -1174,6 +1188,14 @@ export default function Financas() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Finance Chat */}
+      <FinanceChat
+        isOpen={chatOpen}
+        onClose={() => setChatOpen(false)}
+        sectors={sectors.map((s) => ({ id: s.id, name: s.name }))}
+        onTransactionAdded={fetchData}
+      />
     </div>
   );
 }
