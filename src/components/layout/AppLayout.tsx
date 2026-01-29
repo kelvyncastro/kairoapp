@@ -50,8 +50,8 @@ const mainNavItems = [
   { path: "/habitos", label: "Hábitos", icon: CalendarCheck },
   { path: "/metas", label: "Metas", icon: Target },
   { path: "/consistencia", label: "Consistência", icon: Flame },
-  { path: "/financas", label: "Finanças", icon: Wallet },
   { path: "/chat-financeiro", label: "Chat Financeiro", icon: MessageSquare },
+  { path: "/financas", label: "Finanças", icon: Wallet },
   { path: "/configuracoes", label: "Configurações", icon: Settings },
 ];
 
