@@ -114,9 +114,9 @@ export default function Metas() {
     unit_label: "",
   });
 
-  const fetchGoals = useCallback(async () => {
+  const fetchGoals = useCallback(async (showLoading = true) => {
     if (!user) return;
-    setLoading(true);
+    if (showLoading) setLoading(true);
 
     const { data, error } = await supabase
       .from("goals")
@@ -148,7 +148,7 @@ export default function Metas() {
         setProgressHistory(historyByGoal);
       }
     }
-    setLoading(false);
+    if (showLoading) setLoading(false);
   }, [user, toast]);
 
   useEffect(() => {
@@ -180,7 +180,7 @@ export default function Metas() {
     toast({ title: "Meta criada com sucesso!" });
     setNewGoal({ title: "", description: "", category: "PERSONAL", target_value: 1, unit_label: "" });
     setDialogOpen(false);
-    fetchGoals();
+    await fetchGoals(false);
   };
 
   const handleAddProgress = async () => {
@@ -235,7 +235,7 @@ export default function Metas() {
     setProgressValue("");
     setProgressNote("");
     setSelectedGoalId(null);
-    fetchGoals();
+    await fetchGoals(false);
   };
 
   const handleDeleteGoal = async (goalId: string) => {
@@ -245,7 +245,7 @@ export default function Metas() {
       return;
     }
     toast({ title: "Meta excluída" });
-    fetchGoals();
+    await fetchGoals(false);
   };
 
   const handleSaveEdit = async () => {
@@ -269,7 +269,7 @@ export default function Metas() {
 
     toast({ title: "Meta atualizada" });
     setEditingGoal(null);
-    fetchGoals();
+    await fetchGoals(false);
   };
 
   const openProgressDialog = (goalId: string) => {
@@ -729,7 +729,7 @@ export default function Metas() {
         progressHistory={detailGoal ? progressHistory[detailGoal.id] || [] : []}
         open={detailModalOpen}
         onOpenChange={setDetailModalOpen}
-        onRefresh={fetchGoals}
+        onRefresh={() => fetchGoals(false)}
       />
     </div>
   );
