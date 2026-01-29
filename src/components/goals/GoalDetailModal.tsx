@@ -101,11 +101,19 @@ export function GoalDetailModal({
   const isCompleted = goal.status === "COMPLETED" || goal.current_value >= goal.target_value;
   const categoryConfig = CATEGORY_CONFIG[goal.category] || CATEGORY_CONFIG.PERSONAL;
 
-  const chartData = progressHistory.map((entry, index) => ({
-    index: index + 1,
-    value: entry.value,
-    date: format(new Date(entry.created_at), "dd/MM", { locale: ptBR }),
-  }));
+  const sortedHistoryAsc = [...progressHistory].sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  );
+
+  let runningTotal = 0;
+  const chartData = sortedHistoryAsc.map((entry, index) => {
+    runningTotal += entry.value;
+    return {
+      index: index + 1,
+      value: runningTotal,
+      date: format(new Date(entry.created_at), "dd/MM", { locale: ptBR }),
+    };
+  });
 
   const handleStartEdit = (entry: ProgressEntry) => {
     setEditingEntry(entry);
@@ -143,24 +151,22 @@ export function GoalDetailModal({
       return;
     }
 
-    // Find the most recent entry to determine new current_value
-    const sortedHistory = [...progressHistory].sort(
-      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    // History values are deltas; goal current_value should be the SUM of history values.
+    const updatedHistory = progressHistory.map((entry) =>
+      entry.id === editingEntry.id ? { ...entry, value: newValue } : entry
     );
-    
-    // If we edited the latest entry, update the goal's current_value
-    if (sortedHistory[0]?.id === editingEntry.id) {
-      const { error: goalError } = await supabase
-        .from("goals")
-        .update({
-          current_value: newValue,
-          status: newValue >= goal.target_value ? "COMPLETED" : "ACTIVE",
-        })
-        .eq("id", goal.id);
+    const newCurrentValue = updatedHistory.reduce((sum, entry) => sum + entry.value, 0);
 
-      if (goalError) {
-        console.error("Error updating goal:", goalError);
-      }
+    const { error: goalError } = await supabase
+      .from("goals")
+      .update({
+        current_value: newCurrentValue,
+        status: newCurrentValue >= goal.target_value ? "COMPLETED" : "ACTIVE",
+      })
+      .eq("id", goal.id);
+
+    if (goalError) {
+      console.error("Error updating goal:", goalError);
     }
 
     toast({ title: "Registro atualizado com sucesso" });
@@ -179,13 +185,9 @@ export function GoalDetailModal({
       return;
     }
 
-    // Recalculate current value from remaining history
+    // Recalculate current value as the SUM of remaining deltas
     const remainingHistory = progressHistory.filter((e) => e.id !== entryId);
-    const sortedRemaining = remainingHistory.sort(
-      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
-
-    const newCurrentValue = sortedRemaining[0]?.value ?? 0;
+    const newCurrentValue = remainingHistory.reduce((sum, entry) => sum + entry.value, 0);
 
     await supabase
       .from("goals")
