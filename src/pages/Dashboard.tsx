@@ -272,7 +272,7 @@ export default function Dashboard() {
                 {getStreakIcon(stats.currentStreak)}
                 <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <div className="flex items-center gap-0">
+              <div className="flex items-center gap-1">
                 <p className="text-2xl font-bold">{stats.currentStreak}</p>
                 <AnimatedFire streak={stats.currentStreak} size="sm" />
               </div>
