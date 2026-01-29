@@ -15,14 +15,14 @@ const HabitProgressChart = React.memo(function HabitProgressChart({ dailyScores 
 
   if (chartData.length === 0) {
     return (
-      <div className="h-32 flex items-center justify-center text-muted-foreground text-sm">
+      <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">
         Nenhum dado disponível ainda. Adicione hábitos para ver seu progresso.
       </div>
     );
   }
 
   return (
-    <div className="h-32 w-full">
+    <div className="h-48 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <defs>
@@ -35,7 +35,7 @@ const HabitProgressChart = React.memo(function HabitProgressChart({ dailyScores 
             dataKey="day"
             axisLine={false}
             tickLine={false}
-            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
             interval={0}
             tickCount={chartData.length}
           />
@@ -43,9 +43,9 @@ const HabitProgressChart = React.memo(function HabitProgressChart({ dailyScores 
             domain={[0, 100]}
             axisLine={false}
             tickLine={false}
-            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
             tickFormatter={(value) => `${value}%`}
-            width={40}
+            width={45}
           />
           <Tooltip
             content={({ active, payload }) => {
