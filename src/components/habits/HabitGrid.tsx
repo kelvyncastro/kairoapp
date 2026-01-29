@@ -15,6 +15,7 @@ import { format, isSameDay, getDay } from 'date-fns';
 interface HabitGridProps {
   habits: HabitWithLogs[];
   daysInMonth: Date[];
+  monthKey?: string;
   onToggleLog: (habitId: string, date: Date) => void;
   onCreateHabit: (name: string) => void;
   onUpdateHabit: (id: string, updates: { name: string }) => void;
@@ -26,6 +27,7 @@ interface HabitGridProps {
 const HabitGrid = React.memo(function HabitGrid({
   habits,
   daysInMonth,
+  monthKey,
   onToggleLog,
   onCreateHabit,
   onUpdateHabit,
@@ -64,7 +66,7 @@ const HabitGrid = React.memo(function HabitGrid({
         gridRef.current.scrollLeft = scrollPosition;
       }
     }
-  }, [daysInMonth]);
+  }, [daysInMonth, monthKey, habits.length]);
 
   const handleAddHabit = () => {
     if (newHabitName.trim()) {
