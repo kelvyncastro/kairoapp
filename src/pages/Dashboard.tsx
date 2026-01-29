@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { format, differenceInDays, startOfDay, subDays, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarWidget } from "@/components/calendar/CalendarWidget";
+import { AnimatedFire } from "@/components/achievements/AnimatedFire";
 
 interface DashboardStats {
   tasksCompletedToday: number;
@@ -271,15 +272,13 @@ export default function Dashboard() {
                 {getStreakIcon(stats.currentStreak)}
                 <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-2xl font-bold">{stats.currentStreak}</p>
+              <div className="flex items-center gap-0">
+                <p className="text-2xl font-bold">{stats.currentStreak}</p>
+                <AnimatedFire streak={stats.currentStreak} size="sm" />
+              </div>
               <p className="text-sm text-muted-foreground">
                 {stats.currentStreak === 1 ? "Dia ativo" : "Dias seguidos"}
               </p>
-              {stats.currentStreak >= 3 && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  {stats.currentStreak >= 30 ? "👑 Lendário!" : stats.currentStreak >= 7 ? "🏆 Excelente!" : "🔥 Continue!"}
-                </p>
-              )}
             </Link>
 
             {/* Habits */}
