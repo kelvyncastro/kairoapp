@@ -68,7 +68,8 @@ export default function Consistencia() {
     totalDays: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [celebratingBadge, setCelebratingBadge] = useState<Badge | null>(null);
+  // Demo: trigger 7-day badge celebration on mount
+  const [celebratingBadge, setCelebratingBadge] = useState<Badge | null>(badges[1]);
   const previousBestStreakRef = useRef<number | null>(null);
 
   const fetchData = useCallback(async () => {
