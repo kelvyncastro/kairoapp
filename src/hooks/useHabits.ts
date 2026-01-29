@@ -243,33 +243,36 @@ export function useHabits(currentDate: Date) {
     return planned > 0 ? Math.round((done / planned) * 100) : 0;
   }, [daysInMonth, isHabitPlannedForDay]);
 
-  // Calculate daily score for the chart
+  // Calculate daily score for the chart - returns all days in the month
   const getDailyScores = useCallback((): { day: number; score: number }[] => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    return daysInMonth
-      .filter((day) => !isAfter(day, today))
-      .map((day) => {
-        let planned = 0;
-        let done = 0;
+    return daysInMonth.map((day) => {
+      // Future days get score 0 (no data yet)
+      if (isAfter(day, today)) {
+        return { day: day.getDate(), score: 0 };
+      }
 
-        for (const habit of habits) {
-          if (!isHabitPlannedForDay(habit, day)) continue;
-          planned++;
-          
-          const dateStr = format(day, 'yyyy-MM-dd');
-          const log = habit.logs.find((l) => l.date === dateStr);
-          if (log?.status === 'done') {
-            done++;
-          }
+      let planned = 0;
+      let done = 0;
+
+      for (const habit of habits) {
+        if (!isHabitPlannedForDay(habit, day)) continue;
+        planned++;
+        
+        const dateStr = format(day, 'yyyy-MM-dd');
+        const log = habit.logs.find((l) => l.date === dateStr);
+        if (log?.status === 'done') {
+          done++;
         }
+      }
 
-        return {
-          day: day.getDate(),
-          score: planned > 0 ? Math.round((done / planned) * 100) : 0,
-        };
-      });
+      return {
+        day: day.getDate(),
+        score: planned > 0 ? Math.round((done / planned) * 100) : 0,
+      };
+    });
   }, [daysInMonth, habits, isHabitPlannedForDay]);
 
   // Get log status for a specific habit and day
