@@ -47,6 +47,7 @@ const HabitGrid = React.memo(function HabitGrid({
   getHabitAdherence,
   getLogStatus,
 }: HabitGridProps) {
+  const CELL_WIDTH = 44; // matches Tailwind w-11
   const [newHabitName, setNewHabitName] = React.useState('');
   const [isAddingHabit, setIsAddingHabit] = React.useState(false);
   const [editingHabitId, setEditingHabitId] = React.useState<string | null>(null);
@@ -73,12 +74,12 @@ const HabitGrid = React.memo(function HabitGrid({
     if (gridRef.current && daysInMonth.length > 0) {
       const todayIndex = daysInMonth.findIndex((d) => isSameDay(d, today));
       if (todayIndex > 0) {
-        const cellWidth = 40;
+        const cellWidth = CELL_WIDTH;
         const scrollPosition = Math.max(0, (todayIndex - 5) * cellWidth);
         gridRef.current.scrollLeft = scrollPosition;
       }
     }
-  }, [daysInMonth, monthKey, habits.length]);
+  }, [daysInMonth, monthKey, habits.length, CELL_WIDTH]);
 
   const handleAddHabit = () => {
     if (newHabitName.trim()) {
@@ -108,7 +109,7 @@ const HabitGrid = React.memo(function HabitGrid({
       {/* Grid container */}
       <div className="flex w-full">
         {/* Fixed left column - Habit names */}
-        <div className="flex-shrink-0 w-56 border-r border-border/30 bg-background z-10">
+        <div className="flex-shrink-0 w-64 border-r border-border/30 bg-background z-10">
           {/* Header spacer */}
           <div className="h-12 border-b border-border/30 flex items-center px-4">
             <span className="text-xs font-medium text-muted-foreground uppercase">Hábitos</span>
@@ -118,7 +119,7 @@ const HabitGrid = React.memo(function HabitGrid({
           {habits.map((habit) => (
             <div
               key={habit.id}
-              className="h-14 px-4 flex items-center justify-between border-b border-border/20 group hover:bg-muted/20 transition-colors"
+              className="h-16 px-4 flex items-center justify-between border-b border-border/20 group hover:bg-muted/20 transition-colors"
             >
               {editingHabitId === habit.id ? (
                 <Input
@@ -179,7 +180,7 @@ const HabitGrid = React.memo(function HabitGrid({
           ))}
 
           {/* Add habit row */}
-          <div className="h-14 px-4 flex items-center border-b border-border/20">
+          <div className="h-16 px-4 flex items-center border-b border-border/20">
             {isAddingHabit ? (
               <Input
                 ref={inputRef}
@@ -214,7 +215,7 @@ const HabitGrid = React.memo(function HabitGrid({
 
         {/* Scrollable right section - Days grid */}
         <div ref={gridRef} className="flex-1 overflow-x-auto">
-          <div className="inline-flex flex-col min-w-max">
+          <div className="inline-flex flex-col w-max min-w-full">
             {/* Days header */}
             <div className="flex h-12 border-b border-border/30">
               {daysInMonth.map((day) => {
@@ -225,14 +226,14 @@ const HabitGrid = React.memo(function HabitGrid({
                   <div
                     key={day.toISOString()}
                     className={cn(
-                      'w-10 flex-shrink-0 flex items-center justify-center text-xs font-medium',
+                      'w-11 flex-shrink-0 flex items-center justify-center text-xs font-medium',
                       isSun && 'text-destructive',
                       isToday && 'text-foreground'
                     )}
                   >
                     <span
                       className={cn(
-                        'w-7 h-7 flex items-center justify-center rounded-full transition-colors',
+                        'w-8 h-8 flex items-center justify-center rounded-full transition-colors',
                         isToday && 'bg-destructive text-destructive-foreground font-bold'
                       )}
                     >
@@ -245,14 +246,14 @@ const HabitGrid = React.memo(function HabitGrid({
 
             {/* Habit day cells */}
             {habits.map((habit) => (
-              <div key={habit.id} className="flex h-14 border-b border-border/20">
+              <div key={habit.id} className="flex h-16 border-b border-border/20">
                 {daysInMonth.map((day) => {
                   const status = getLogStatus(habit, day);
 
                   return (
                     <div
                       key={day.toISOString()}
-                      className="w-10 flex-shrink-0 flex items-center justify-center"
+                      className="w-11 flex-shrink-0 flex items-center justify-center"
                     >
                       <button
                         type="button"
@@ -263,14 +264,14 @@ const HabitGrid = React.memo(function HabitGrid({
                         }}
                         disabled={status === 'future'}
                         className={cn(
-                          'w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-150',
+                          'w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-150',
                           status === 'done' && 'bg-green-500 hover:bg-green-600',
                           (status === 'not_done' || status === 'not_planned') && 'border-2 border-muted-foreground/30 hover:border-green-500/60 hover:bg-muted/30',
                           status === 'pending' && 'border-2 border-destructive hover:bg-destructive/10',
                           status === 'future' && 'border border-muted-foreground/15 opacity-30 cursor-not-allowed'
                         )}
                       >
-                        {status === 'done' && <Check className="h-4 w-4 text-white" />}
+                        {status === 'done' && <Check className="h-5 w-5 text-white" />}
                       </button>
                     </div>
                   );
@@ -279,9 +280,9 @@ const HabitGrid = React.memo(function HabitGrid({
             ))}
 
             {/* Empty row for add habit alignment */}
-            <div className="flex h-14 border-b border-border/20">
+            <div className="flex h-16 border-b border-border/20">
               {daysInMonth.map((day) => (
-                <div key={day.toISOString()} className="w-10 flex-shrink-0" />
+                <div key={day.toISOString()} className="w-11 flex-shrink-0" />
               ))}
             </div>
           </div>
