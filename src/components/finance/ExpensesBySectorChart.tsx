@@ -26,8 +26,14 @@ interface ExpensesBySectorChartProps {
 
 type ChartFilter = "paid" | "pending";
 
+interface SectorData extends Sector {
+  total: number;
+  percent: number;
+}
+
 export function ExpensesBySectorChart({ sectors, transactions }: ExpensesBySectorChartProps) {
   const [chartFilter, setChartFilter] = useState<ChartFilter>("paid");
+  const [hoveredSector, setHoveredSector] = useState<SectorData | null>(null);
 
   // Filter transactions based on selected filter
   const filteredTransactions = transactions.filter((t) => {
@@ -42,14 +48,15 @@ export function ExpensesBySectorChart({ sectors, transactions }: ExpensesBySecto
   });
 
   // Calculate expenses by sector
-  const expensesBySector = sectors.map((sector) => {
+  const totalExpenses = filteredTransactions.reduce((sum, t) => sum + Math.abs(t.value), 0);
+  
+  const expensesBySector: SectorData[] = sectors.map((sector) => {
     const total = filteredTransactions
       .filter((t) => t.sector_id === sector.id)
       .reduce((sum, t) => sum + Math.abs(t.value), 0);
-    return { ...sector, total };
+    const percent = totalExpenses > 0 ? (total / totalExpenses) * 100 : 0;
+    return { ...sector, total, percent };
   }).filter((s) => s.total > 0);
-
-  const totalExpenses = expensesBySector.reduce((sum, s) => sum + s.total, 0);
 
   // Format currency
   const formatCurrency = (value: number) => {
@@ -96,20 +103,21 @@ export function ExpensesBySectorChart({ sectors, transactions }: ExpensesBySecto
         </p>
       ) : (
         <div className="flex flex-col lg:flex-row items-center gap-8">
-          {/* Donut Chart */}
-          <div className="w-64 h-64 relative flex-shrink-0">
+          {/* Donut Chart with Tooltip */}
+          <div className="w-72 h-72 relative flex-shrink-0">
             <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
               {(() => {
                 let cumulativePercent = 0;
-                const strokeWidth = 12;
-                const radius = 38;
+                const strokeWidth = 14;
+                const radius = 36;
                 const circumference = 2 * Math.PI * radius;
 
                 return expensesBySector.map((sector) => {
-                  const percent = totalExpenses > 0 ? (sector.total / totalExpenses) * 100 : 0;
-                  const strokeDasharray = (percent / 100) * circumference;
+                  const strokeDasharray = (sector.percent / 100) * circumference;
                   const strokeDashoffset = -(cumulativePercent / 100) * circumference;
-                  cumulativePercent += percent;
+                  cumulativePercent += sector.percent;
+
+                  const isHovered = hoveredSector?.id === sector.id;
 
                   return (
                     <circle
@@ -119,16 +127,24 @@ export function ExpensesBySectorChart({ sectors, transactions }: ExpensesBySecto
                       r={radius}
                       fill="none"
                       stroke={sector.color_label}
-                      strokeWidth={strokeWidth}
+                      strokeWidth={isHovered ? strokeWidth + 4 : strokeWidth}
                       strokeDasharray={`${strokeDasharray} ${circumference}`}
                       strokeDashoffset={strokeDashoffset}
-                      className="transition-all duration-300"
+                      className="transition-all duration-200 cursor-pointer"
+                      style={{ 
+                        opacity: hoveredSector && !isHovered ? 0.4 : 1,
+                        filter: isHovered ? 'drop-shadow(0 0 8px rgba(0,0,0,0.3))' : 'none'
+                      }}
+                      onMouseEnter={() => setHoveredSector(sector)}
+                      onMouseLeave={() => setHoveredSector(null)}
                     />
                   );
                 });
               })()}
             </svg>
-            <div className="absolute inset-0 flex items-center justify-center">
+            
+            {/* Center Content */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="text-center">
                 <p className="text-2xl font-bold">R$ {formatCurrency(totalExpenses)}</p>
                 <p className="text-sm text-muted-foreground">
@@ -136,18 +152,46 @@ export function ExpensesBySectorChart({ sectors, transactions }: ExpensesBySecto
                 </p>
               </div>
             </div>
+
+            {/* Tooltip */}
+            {hoveredSector && (
+              <div 
+                className="absolute left-1/2 -translate-x-1/2 bottom-4 z-10 animate-in fade-in-0 zoom-in-95 duration-150"
+              >
+                <div className="bg-card border border-border rounded-lg shadow-xl px-4 py-3 min-w-[200px]">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div 
+                      className="w-3 h-3 rounded-sm flex-shrink-0"
+                      style={{ backgroundColor: hoveredSector.color_label }}
+                    />
+                    <span className="font-semibold text-sm">{hoveredSector.name}</span>
+                  </div>
+                  <p className="text-muted-foreground text-sm pl-5">
+                    {hoveredSector.name}: R$ {formatCurrency(hoveredSector.total)} ({hoveredSector.percent.toFixed(1)}%)
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Legend - Detailed */}
-          <div className="flex-1 w-full">
+          <div className="flex-1 w-full lg:max-w-md">
             <h4 className="text-sm font-medium text-muted-foreground mb-4">Detalhes por Categoria</h4>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {expensesBySector
                 .sort((a, b) => b.total - a.total)
                 .map((sector) => {
-                  const percent = totalExpenses > 0 ? (sector.total / totalExpenses) * 100 : 0;
+                  const isHovered = hoveredSector?.id === sector.id;
                   return (
-                    <div key={sector.id} className="flex items-center gap-3">
+                    <div 
+                      key={sector.id} 
+                      className={cn(
+                        "flex items-center gap-3 p-2 rounded-lg transition-all cursor-pointer",
+                        isHovered ? "bg-secondary" : "hover:bg-secondary/50"
+                      )}
+                      onMouseEnter={() => setHoveredSector(sector)}
+                      onMouseLeave={() => setHoveredSector(null)}
+                    >
                       <div 
                         className="w-3 h-3 rounded-full flex-shrink-0"
                         style={{ backgroundColor: sector.color_label }}
@@ -159,8 +203,8 @@ export function ExpensesBySectorChart({ sectors, transactions }: ExpensesBySecto
                       />
                       <span className="text-sm flex-1 truncate">{sector.name}</span>
                       <div className="text-right flex-shrink-0">
-                        <p className="text-sm font-medium">R$ {formatCurrency(sector.total)}</p>
-                        <p className="text-xs text-muted-foreground">{percent.toFixed(1)}%</p>
+                        <p className="text-sm font-semibold">R$ {formatCurrency(sector.total)}</p>
+                        <p className="text-xs text-muted-foreground">{sector.percent.toFixed(1)}%</p>
                       </div>
                     </div>
                   );
