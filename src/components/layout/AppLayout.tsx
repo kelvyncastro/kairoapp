@@ -22,6 +22,7 @@ import {
   User,
   Calendar,
   Construction,
+  MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import batmanLogo from "@/assets/batman-logo.jpg";
@@ -50,6 +51,7 @@ const mainNavItems = [
   { path: "/metas", label: "Metas", icon: Target },
   { path: "/consistencia", label: "Consistência", icon: Flame },
   { path: "/financas", label: "Finanças", icon: Wallet },
+  { path: "/chat-financeiro", label: "Chat Financeiro", icon: MessageSquare },
   { path: "/configuracoes", label: "Configurações", icon: Settings },
 ];
 
