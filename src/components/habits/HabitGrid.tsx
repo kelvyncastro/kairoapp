@@ -26,8 +26,14 @@ interface HabitGridProps {
 
 // Calculate how many times a habit was completed in the current month
 const getMonthlyCompletionCount = (habit: HabitWithLogs, daysInMonth: Date[]): number => {
-  const monthDates = new Set(daysInMonth.map(d => format(d, 'yyyy-MM-dd')));
-  return habit.logs.filter(log => log.status === 'done' && monthDates.has(log.date)).length;
+  const monthStart = daysInMonth[0];
+  const monthEnd = daysInMonth[daysInMonth.length - 1];
+  
+  return habit.logs.filter(log => {
+    if (log.status !== 'done') return false;
+    const logDate = new Date(log.date + 'T00:00:00');
+    return logDate >= monthStart && logDate <= monthEnd;
+  }).length;
 };
 
 const HabitGrid = React.memo(function HabitGrid({
