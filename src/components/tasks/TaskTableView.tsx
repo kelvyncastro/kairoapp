@@ -42,6 +42,8 @@ import { Task, TaskStatus, TaskFolder } from '@/types/tasks';
 import { format, isToday, isTomorrow, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { FolderIconRenderer } from './FolderIconRenderer';
+import { TaskDetailModal } from './TaskDetailModal';
+import { TaskProgressIndicator } from './TaskProgressIndicator';
 
 // Column configuration
 interface ColumnConfig {
@@ -75,7 +77,7 @@ interface TaskTableViewProps {
   folders: TaskFolder[];
   selectedFolderId: string | null;
   onToggleComplete: (task: Task) => void;
-  onUpdateTask: (id: string, updates: Partial<Task>) => void;
+  onUpdateTask: (id: string, updates: Partial<Task>) => Promise<boolean>;
   onDeleteTask: (id: string) => void;
   onEditTask: (task: Task) => void;
   onCreateTask: () => void;
@@ -99,6 +101,13 @@ export function TaskTableView({
   const [resizingColumn, setResizingColumn] = useState<string | null>(null);
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
   const [sortState, setSortState] = useState<SortState>({ column: null, direction: null });
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+
+  const handleOpenTaskDetail = (task: Task) => {
+    setSelectedTask(task);
+    setDetailModalOpen(true);
+  };
 
   // Handle column sort
   const handleColumnSort = useCallback((columnId: string) => {
@@ -340,6 +349,7 @@ export function TaskTableView({
                 draggedColumn={draggedColumn}
                 sortState={sortState}
                 onColumnSort={handleColumnSort}
+                onOpenTaskDetail={handleOpenTaskDetail}
               />
             )}
           </div>
@@ -382,16 +392,28 @@ export function TaskTableView({
               handleStatusChange={handleStatusChange}
               handlePriorityChange={handlePriorityChange}
               onColumnResize={handleColumnResize}
-              onColumnDragStart={handleColumnDragStart}
-              onColumnDragOver={handleColumnDragOver}
-              onColumnDragEnd={handleColumnDragEnd}
-              draggedColumn={draggedColumn}
-              sortState={sortState}
-              onColumnSort={handleColumnSort}
-            />
-          )}
-        </div>
-      )}
+                onColumnDragStart={handleColumnDragStart}
+                onColumnDragOver={handleColumnDragOver}
+                onColumnDragEnd={handleColumnDragEnd}
+                draggedColumn={draggedColumn}
+                sortState={sortState}
+                onColumnSort={handleColumnSort}
+                onOpenTaskDetail={handleOpenTaskDetail}
+              />
+            )}
+          </div>
+        )}
+
+      {/* Task Detail Modal */}
+      <TaskDetailModal
+        open={detailModalOpen}
+        onOpenChange={setDetailModalOpen}
+        task={selectedTask}
+        folders={folders}
+        statuses={statuses}
+        onUpdateTask={onUpdateTask}
+        onDeleteTask={onDeleteTask}
+      />
     </div>
   );
 }
@@ -418,6 +440,7 @@ interface TaskTableProps {
   draggedColumn: string | null;
   sortState: SortState;
   onColumnSort: (columnId: string) => void;
+  onOpenTaskDetail: (task: Task) => void;
 }
 
 interface InlineAddTaskProps {
@@ -773,6 +796,7 @@ function TaskTable({
   draggedColumn,
   sortState,
   onColumnSort,
+  onOpenTaskDetail,
 }: TaskTableProps) {
   // Sort icon component
   const SortIcon = ({ columnId }: { columnId: string }) => {
@@ -788,10 +812,15 @@ function TaskTable({
     switch (columnId) {
       case 'title':
         return (
-          <EditableTitle
-            value={task.title}
-            onChange={(v) => onUpdateTask(task.id, { title: v })}
-          />
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <span
+              className="text-sm truncate cursor-pointer hover:text-primary transition-colors flex-1"
+              onClick={() => onOpenTaskDetail(task)}
+            >
+              {task.title}
+            </span>
+            <TaskProgressIndicator taskId={task.id} />
+          </div>
         );
       
       case 'status':

@@ -195,7 +195,7 @@ export function useTaskData() {
     return data;
   };
 
-  const updateTask = async (id: string, updates: Partial<Task>) => {
+  const updateTask = async (id: string, updates: Partial<Task>): Promise<boolean> => {
     const { error } = await supabase
       .from('daily_tasks')
       .update(updates)

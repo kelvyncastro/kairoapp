@@ -29,6 +29,34 @@ export interface TaskLabel {
   created_at: string;
 }
 
+export interface TaskSubtask {
+  id: string;
+  task_id: string;
+  title: string;
+  completed: boolean;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TaskChecklist {
+  id: string;
+  task_id: string;
+  name: string;
+  order_index: number;
+  created_at: string;
+  items?: TaskChecklistItem[];
+}
+
+export interface TaskChecklistItem {
+  id: string;
+  checklist_id: string;
+  title: string;
+  completed: boolean;
+  order_index: number;
+  created_at: string;
+}
+
 export interface Task {
   id: string;
   user_id: string;
@@ -48,6 +76,11 @@ export interface Task {
   labels: string[];
   created_at: string;
   updated_at: string;
+  // Computed fields for subtasks/checklists counts
+  subtasks_count?: number;
+  subtasks_completed?: number;
+  checklists_count?: number;
+  checklists_completed?: number;
 }
 
 export interface NewTask {
