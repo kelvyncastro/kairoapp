@@ -257,15 +257,18 @@ export function useHabits(currentDate: Date) {
       let planned = 0;
       let done = 0;
 
+      const dateStr = format(day, 'yyyy-MM-dd');
+
       for (const habit of habits) {
-        if (!isHabitPlannedForDay(habit, day)) continue;
-        planned++;
-        
-        const dateStr = format(day, 'yyyy-MM-dd');
         const log = habit.logs.find((l) => l.date === dateStr);
-        if (log?.status === 'done') {
-          done++;
-        }
+
+        // Se o usuário marcou (log existe), esse dia precisa contar no score
+        // mesmo que não estivesse "planejado" (ex.: hábito criado depois).
+        const countsForThisDay = isHabitPlannedForDay(habit, day) || Boolean(log);
+        if (!countsForThisDay) continue;
+
+        planned++;
+        if (log?.status === 'done') done++;
       }
 
       return {
