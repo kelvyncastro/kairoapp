@@ -141,6 +141,7 @@ export default function Financas() {
   const [transactionFilter, setTransactionFilter] = useState<TransactionFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
   
   const [newTransaction, setNewTransaction] = useState<NewTransaction>({
     name: "",
@@ -646,7 +647,7 @@ export default function Financas() {
         </div>
 
         <div className="px-6 py-5 border-t border-border/30">
-          <Tabs defaultValue="overview">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-3 mb-6">
               <TabsTrigger value="overview">Visão Geral</TabsTrigger>
               <TabsTrigger value="transactions">Transações</TabsTrigger>
