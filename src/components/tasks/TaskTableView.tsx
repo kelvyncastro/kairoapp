@@ -63,12 +63,13 @@ interface SortState {
 }
 
 const DEFAULT_COLUMNS: ColumnConfig[] = [
-  { id: 'title', label: 'Nome', visible: true, width: 250, minWidth: 150, sortable: true },
-  { id: 'status', label: 'Status', visible: true, width: 140, minWidth: 100, sortable: true },
-  { id: 'start_date', label: 'Data início', visible: true, width: 120, minWidth: 100, sortable: true },
-  { id: 'due_date', label: 'Vencimento', visible: true, width: 120, minWidth: 100, sortable: true },
-  { id: 'priority', label: 'Prioridade', visible: true, width: 110, minWidth: 90, sortable: true },
-  { id: 'time_estimate', label: 'Tempo', visible: true, width: 100, minWidth: 80, sortable: true },
+  { id: 'title', label: 'Nome', visible: true, width: 220, minWidth: 150, sortable: true },
+  { id: 'description', label: 'Descrição', visible: true, width: 180, minWidth: 100, sortable: false },
+  { id: 'status', label: 'Status', visible: true, width: 130, minWidth: 100, sortable: true },
+  { id: 'start_date', label: 'Data início', visible: true, width: 110, minWidth: 100, sortable: true },
+  { id: 'due_date', label: 'Vencimento', visible: true, width: 110, minWidth: 100, sortable: true },
+  { id: 'priority', label: 'Prioridade', visible: true, width: 100, minWidth: 90, sortable: true },
+  { id: 'time_estimate', label: 'Tempo', visible: true, width: 90, minWidth: 80, sortable: true },
 ];
 
 interface TaskTableViewProps {
@@ -821,6 +822,17 @@ function TaskTable({
             </span>
             <TaskProgressIndicator taskId={task.id} />
           </div>
+        );
+
+      case 'description':
+        return (
+          <span 
+            className="text-xs text-muted-foreground truncate cursor-pointer hover:text-foreground transition-colors"
+            onClick={() => onOpenTaskDetail(task)}
+            title={task.description || 'Sem descrição'}
+          >
+            {task.description || '—'}
+          </span>
         );
       
       case 'status':

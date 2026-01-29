@@ -173,24 +173,24 @@ export function TaskDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0 bg-background">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0 bg-background">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border/30">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>📋 Tarefa</span>
-            <span className="text-xs opacity-60">{task.id.slice(0, 8)}</span>
+        <div className="flex items-center justify-between px-8 py-5 border-b border-border/30">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <span className="text-base">📋 Tarefa</span>
+            <span className="text-xs opacity-60 bg-muted/30 px-2 py-1 rounded">{task.id.slice(0, 8)}</span>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="h-9 w-9"
             onClick={() => onOpenChange(false)}
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </Button>
         </div>
 
-        <div className="overflow-y-auto max-h-[calc(90vh-120px)] px-6 py-4 space-y-6">
+        <div className="overflow-y-auto max-h-[calc(90vh-140px)] px-8 py-6 space-y-8">
           {/* Title */}
           <div>
             {isEditingTitle ? (
@@ -213,7 +213,7 @@ export function TaskDetailModal({
           </div>
 
           {/* Properties grid */}
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-2 gap-x-8 gap-y-5 text-sm bg-muted/10 rounded-lg p-5">
             {/* Status */}
             <div className="flex items-center gap-3">
               <span className="text-muted-foreground w-28">⊙ Status</span>
@@ -356,25 +356,25 @@ export function TaskDetailModal({
           </div>
 
           {/* Description */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <FileText className="h-4 w-4" />
-              <span>Adicionar descrição</span>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <span>Descrição</span>
             </div>
             {isEditingDescription ? (
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 onBlur={handleDescriptionSave}
-                placeholder="Adicione uma descrição..."
-                className="min-h-[100px] bg-muted/20 border-border/30"
+                placeholder="Adicione uma descrição detalhada..."
+                className="min-h-[120px] bg-muted/20 border-border/30 text-sm"
                 autoFocus
               />
             ) : (
               <div
                 className={cn(
-                  "min-h-[60px] p-3 rounded-md cursor-pointer bg-muted/20 border border-border/30",
-                  !description && "text-muted-foreground"
+                  "min-h-[80px] p-4 rounded-lg cursor-pointer bg-muted/20 border border-border/30 text-sm leading-relaxed transition-colors hover:bg-muted/30",
+                  !description && "text-muted-foreground italic"
                 )}
                 onClick={() => setIsEditingDescription(true)}
               >
@@ -394,11 +394,16 @@ export function TaskDetailModal({
           )}
 
           {/* Subtasks */}
-          <div className="space-y-3">
+          <div className="space-y-4 bg-muted/10 rounded-lg p-5">
             <div className="flex items-center justify-between">
-              <h3 className="font-medium flex items-center gap-2">
-                <ListChecks className="h-4 w-4" />
-                Adicionar subtarefa
+              <h3 className="font-medium flex items-center gap-2 text-base">
+                <ListChecks className="h-5 w-5 text-primary" />
+                Subtarefas
+                {subtasks.length > 0 && (
+                  <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded">
+                    {subtasks.filter(s => s.completed).length}/{subtasks.length}
+                  </span>
+                )}
               </h3>
             </div>
 
@@ -441,12 +446,12 @@ export function TaskDetailModal({
           </div>
 
           {/* Checklists */}
-          <div className="space-y-4">
+          <div className="space-y-4 bg-muted/10 rounded-lg p-5">
             <div className="flex items-center justify-between">
-              <h3 className="font-medium flex items-center gap-2">
-                ☑️ Checklists
+              <h3 className="font-medium flex items-center gap-2 text-base">
+                <span className="text-lg">☑️</span> Checklists
                 {checklists.length > 0 && (
-                  <span className="text-xs text-muted-foreground ml-2">
+                  <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded">
                     {totalCompleted}/{totalItems}
                   </span>
                 )}
