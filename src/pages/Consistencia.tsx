@@ -355,6 +355,37 @@ export default function Consistencia() {
             })}
           </div>
         </div>
+
+        {/* Fire Preview Demo - TEMPORARY */}
+        <div className="px-6 py-5 border-t border-border/30">
+          <h2 className="text-xl font-bold text-foreground uppercase tracking-wider mb-4">
+            Preview dos Estágios do Fogo (Temporário)
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {[
+              { streak: 1, label: "Morrendo", desc: "1-2 dias" },
+              { streak: 4, label: "Baixo", desc: "3-6 dias" },
+              { streak: 10, label: "Médio", desc: "7-13 dias" },
+              { streak: 20, label: "Alto", desc: "14-29 dias" },
+              { streak: 50, label: "Inferno!", desc: "30+ dias" },
+            ].map((stage) => (
+              <div
+                key={stage.streak}
+                className="cave-card flex flex-col items-center gap-3 p-4"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold">{stage.streak}</span>
+                  <AnimatedFire streak={stage.streak} size="lg" />
+                </div>
+                <span className="text-sm font-medium">{stage.label}</span>
+                <span className="text-xs text-muted-foreground">{stage.desc}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-4 text-center">
+            Esta seção é apenas para preview - me avise quando quiser remover
+          </p>
+        </div>
       </div>
 
       {/* Achievement Celebration Modal */}
