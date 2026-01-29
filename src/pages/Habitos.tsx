@@ -64,7 +64,7 @@ export default function Habitos() {
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
         {/* Progress Chart */}
-        <div className="px-6 py-5 border-b border-border/30">
+        <div className="px-6 py-5">
           <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
             Progresso do Mês
           </h2>
@@ -72,8 +72,8 @@ export default function Habitos() {
         </div>
 
         {/* Habits Grid */}
-        <div className="py-4">
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4 px-6">
+        <div className="px-6 py-5 border-t border-border/30">
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
             Grade de Hábitos
           </h2>
           <HabitGrid
