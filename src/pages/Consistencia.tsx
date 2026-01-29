@@ -26,7 +26,7 @@ import {
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { AchievementCelebration } from "@/components/achievements/AchievementCelebration";
-import { AnimatedFire } from "@/components/achievements/AnimatedFire";
+import fireAnimation from "@/assets/fire-animation.avif";
 
 interface ConsistencyDay {
   date: string;
@@ -193,10 +193,35 @@ export default function Consistencia() {
           <div className="grid gap-4 md:grid-cols-4">
             <div className="cave-card p-6">
               <div className="flex items-center gap-2 mb-2">
-                <AnimatedFire streak={stats.currentStreak} />
+                {stats.currentStreak >= 30 ? (
+                  <Crown className="h-5 w-5 streak-crown" />
+                ) : stats.currentStreak >= 7 ? (
+                  <Trophy className="h-5 w-5 streak-trophy" />
+                ) : stats.currentStreak >= 3 ? (
+                  <Flame className="h-5 w-5 streak-fire" />
+                ) : (
+                  <Flame className="h-5 w-5 text-muted-foreground" />
+                )}
                 <span className="text-sm text-muted-foreground">Streak atual</span>
               </div>
-              <p className="text-3xl font-bold">{stats.currentStreak}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-3xl font-bold">{stats.currentStreak}</p>
+                {stats.currentStreak > 0 && (
+                  <img 
+                    src={fireAnimation} 
+                    alt="Fire animation" 
+                    className="h-10 w-10 object-contain"
+                    style={{
+                      opacity: stats.currentStreak < 3 ? 0.5 : 1,
+                      filter: stats.currentStreak >= 30 
+                        ? "drop-shadow(0 0 8px rgba(250, 204, 21, 0.8))" 
+                        : stats.currentStreak >= 14 
+                        ? "drop-shadow(0 0 6px rgba(251, 146, 60, 0.6))"
+                        : "none"
+                    }}
+                  />
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">dias seguidos</p>
             </div>
 
