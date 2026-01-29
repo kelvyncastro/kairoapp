@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -25,6 +25,7 @@ import {
   startOfDay,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { AchievementCelebration } from "@/components/achievements/AchievementCelebration";
 
 interface ConsistencyDay {
   date: string;
@@ -40,7 +41,14 @@ interface Stats {
   totalDays: number;
 }
 
-const badges = [
+interface Badge {
+  days: number;
+  icon: typeof Flame | typeof Trophy | typeof Crown;
+  label: string;
+  color: string;
+}
+
+const badges: Badge[] = [
   { days: 3, icon: Flame, label: "Primeira chama", color: "streak-fire" },
   { days: 7, icon: Trophy, label: "Semana forte", color: "streak-trophy" },
   { days: 14, icon: Flame, label: "Duas semanas", color: "streak-fire" },
@@ -60,6 +68,8 @@ export default function Consistencia() {
     totalDays: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [celebratingBadge, setCelebratingBadge] = useState<Badge | null>(null);
+  const previousBestStreakRef = useRef<number | null>(null);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
@@ -106,9 +116,23 @@ export default function Consistencia() {
       }
     }
 
+    const newBestStreak = Math.max(bestStreak, currentStreak);
+    
+    // Check for new achievement
+    if (previousBestStreakRef.current !== null) {
+      const previousBest = previousBestStreakRef.current;
+      const newlyUnlockedBadge = badges.find(
+        (badge) => newBestStreak >= badge.days && previousBest < badge.days
+      );
+      if (newlyUnlockedBadge) {
+        setCelebratingBadge(newlyUnlockedBadge);
+      }
+    }
+    previousBestStreakRef.current = newBestStreak;
+
     setStats({
       currentStreak,
-      bestStreak: Math.max(bestStreak, currentStreak),
+      bestStreak: newBestStreak,
       activeDaysThisMonth,
       totalDays: allDays.filter((d) => d.is_active).length,
     });
@@ -301,13 +325,15 @@ export default function Consistencia() {
               const Icon = badge.icon;
 
               return (
-                <div
+                <button
                   key={badge.days}
+                  onClick={() => unlocked && setCelebratingBadge(badge)}
+                  disabled={!unlocked}
                   className={cn(
                     "cave-card flex flex-col items-center gap-2 p-4 transition-all",
                     unlocked
-                      ? "border-success/30"
-                      : "opacity-50"
+                      ? "border-success/30 cursor-pointer hover:scale-105 hover:border-success/50"
+                      : "opacity-50 cursor-not-allowed"
                   )}
                 >
                   <Icon
@@ -322,12 +348,18 @@ export default function Consistencia() {
                   <span className="text-xs text-muted-foreground">
                     {badge.days} dias
                   </span>
-                </div>
+                </button>
               );
             })}
           </div>
         </div>
       </div>
+
+      {/* Achievement Celebration Modal */}
+      <AchievementCelebration
+        badge={celebratingBadge}
+        onClose={() => setCelebratingBadge(null)}
+      />
     </div>
   );
 }
