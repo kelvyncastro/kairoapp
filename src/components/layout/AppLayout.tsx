@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Outlet, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import {
   LayoutDashboard,
   ListTodo,
@@ -40,17 +41,17 @@ import {
 } from "@/components/ui/dialog";
 
 const navItems = [
-  { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { path: "/rotina", label: "Rotina", icon: ListTodo },
-  { path: "/agenda", label: "Agenda", icon: Calendar },
-  { path: "/habitos", label: "Hábitos", icon: CalendarCheck },
-  { path: "/metas", label: "Metas", icon: Target },
-  { path: "/consistencia", label: "Consistência", icon: Flame },
-  { path: "/treino", label: "Treino", icon: Dumbbell },
-  { path: "/dieta", label: "Dieta", icon: UtensilsCrossed },
-  { path: "/financas", label: "Finanças", icon: Wallet },
-  { path: "/ebook", label: "Ebook", icon: BookOpen },
-  { path: "/configuracoes", label: "Configurações", icon: Settings },
+  { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard, adminOnly: false },
+  { path: "/rotina", label: "Rotina", icon: ListTodo, adminOnly: false },
+  { path: "/agenda", label: "Agenda", icon: Calendar, adminOnly: false },
+  { path: "/habitos", label: "Hábitos", icon: CalendarCheck, adminOnly: false },
+  { path: "/metas", label: "Metas", icon: Target, adminOnly: false },
+  { path: "/consistencia", label: "Consistência", icon: Flame, adminOnly: false },
+  { path: "/treino", label: "Treino", icon: Dumbbell, adminOnly: true },
+  { path: "/dieta", label: "Dieta", icon: UtensilsCrossed, adminOnly: true },
+  { path: "/financas", label: "Finanças", icon: Wallet, adminOnly: false },
+  { path: "/ebook", label: "Ebook", icon: BookOpen, adminOnly: true },
+  { path: "/configuracoes", label: "Configurações", icon: Settings, adminOnly: false },
 ];
 
 export default function AppLayout() {
@@ -59,6 +60,9 @@ export default function AppLayout() {
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
+
+  const filteredNavItems = navItems.filter(item => !item.adminOnly || isAdmin);
 
   const handleSignOut = async () => {
     await signOut();
@@ -91,7 +95,7 @@ export default function AppLayout() {
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 p-2">
-          {navItems.map((item) => {
+          {filteredNavItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link
