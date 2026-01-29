@@ -14,12 +14,14 @@ import {
   ArrowRight,
   Trophy,
   Crown,
+  CalendarDays,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { format, differenceInDays, startOfDay, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { CalendarWidget } from "@/components/calendar/CalendarWidget";
 
 interface DashboardStats {
   tasksCompletedToday: number;
@@ -345,6 +347,9 @@ export default function Dashboard() {
             Últimos 30 dias • Cada quadrado = 1 dia ativo
           </p>
         </div>
+
+        {/* Calendar Widget */}
+        <CalendarWidget />
       </div>
 
       {/* Quick Actions */}

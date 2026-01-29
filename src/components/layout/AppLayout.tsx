@@ -18,6 +18,7 @@ import {
   Search,
   LogOut,
   User,
+  Calendar,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import batmanLogo from "@/assets/batman-logo.jpg";
@@ -41,6 +42,7 @@ import {
 const navItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { path: "/rotina", label: "Rotina", icon: ListTodo },
+  { path: "/agenda", label: "Agenda", icon: Calendar },
   { path: "/habitos", label: "Hábitos", icon: CalendarCheck },
   { path: "/metas", label: "Metas", icon: Target },
   { path: "/consistencia", label: "Consistência", icon: Flame },
