@@ -11,9 +11,8 @@ const Checkbox = React.forwardRef<
   <CheckboxPrimitive.Root
     ref={ref}
     className={cn(
-      // Use CSS tokens directly to guarantee the same green everywhere (Habits + Rotina)
-      // even if a Tailwind semantic color mapping changes.
-      "peer h-4 w-4 shrink-0 rounded-sm border border-muted-foreground/50 ring-offset-background data-[state=checked]:bg-[hsl(var(--success))] data-[state=checked]:border-[hsl(var(--success))] data-[state=checked]:text-[hsl(var(--success-foreground))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+      // Exact same green as Habits (bg-success) with black checkmark (text-black)
+      "peer h-5 w-5 shrink-0 rounded border border-muted-foreground/30 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-success data-[state=checked]:border-success data-[state=checked]:text-black",
       className,
     )}
     {...props}
