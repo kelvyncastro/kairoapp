@@ -723,24 +723,61 @@ export default function Financas() {
                           const sector = sectors.find(s => s.id === t.sector_id);
                           const isExpense = t.value < 0;
                           return (
-                            <tr key={t.id} className="border-b border-border/50 hover:bg-secondary/30 group">
-                              <td className="p-4 text-sm font-medium">{t.name}</td>
-                              <td className={cn(
-                                "p-4 text-sm font-medium",
-                                isExpense ? "text-primary" : "text-success"
-                              )}>
-                                R$ {Math.abs(t.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                              </td>
-                              <td className="p-4 text-sm">
-                                {sector ? sector.name : "-"}
+                            <tr key={t.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors group">
+                              <td className="p-4">
+                                <div className="flex items-center gap-3">
+                                  <div className={cn(
+                                    "w-2 h-2 rounded-full flex-shrink-0",
+                                    isExpense ? "bg-red-500" : "bg-emerald-500"
+                                  )} />
+                                  <span className="text-sm font-medium">{t.name}</span>
+                                </div>
                               </td>
                               <td className="p-4">
-                                <Badge variant={isExpense ? "destructive" : "default"} className="text-xs">
+                                <span className={cn(
+                                  "text-sm font-semibold",
+                                  isExpense ? "text-red-500" : "text-emerald-500"
+                                )}>
+                                  {isExpense ? "- " : "+ "}R$ {Math.abs(t.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                </span>
+                              </td>
+                              <td className="p-4">
+                                {sector ? (
+                                  <div className="flex items-center gap-2">
+                                    <FolderIconRenderer 
+                                      icon={sector.icon || "wallet"} 
+                                      color={sector.color_label} 
+                                      className="h-4 w-4" 
+                                    />
+                                    <span className="text-sm">{sector.name}</span>
+                                  </div>
+                                ) : (
+                                  <span className="text-sm text-muted-foreground">-</span>
+                                )}
+                              </td>
+                              <td className="p-4">
+                                <span className={cn(
+                                  "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
+                                  isExpense 
+                                    ? "bg-red-500/10 text-red-500" 
+                                    : "bg-emerald-500/10 text-emerald-500"
+                                )}>
+                                  {isExpense ? (
+                                    <TrendingDown className="h-3 w-3" />
+                                  ) : (
+                                    <TrendingUp className="h-3 w-3" />
+                                  )}
                                   {isExpense ? "Despesa" : "Receita"}
-                                </Badge>
+                                </span>
                               </td>
                               <td className="p-4">
-                                <span className={cn("text-sm font-medium", getStatusColor(t.status || "paid"))}>
+                                <span className={cn(
+                                  "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium",
+                                  t.status === "paid" && "bg-emerald-500/10 text-emerald-500",
+                                  t.status === "received" && "bg-emerald-500/10 text-emerald-500",
+                                  t.status === "pending" && "bg-amber-500/10 text-amber-500",
+                                  t.status === "to_receive" && "bg-blue-500/10 text-blue-500"
+                                )}>
                                   {getStatusLabel(t.status || "paid")}
                                 </span>
                               </td>
@@ -748,18 +785,18 @@ export default function Financas() {
                                 {format(parse(t.date, "yyyy-MM-dd", new Date()), "dd/MM/yyyy")}
                               </td>
                               <td className="p-4">
-                                <div className="flex gap-1 justify-end">
+                                <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                                   <button
                                     onClick={() => setEditingTransaction(t)}
-                                    className="p-2 hover:bg-secondary rounded"
+                                    className="p-2 hover:bg-secondary rounded-lg transition-colors"
                                   >
-                                    <Edit2 className="h-4 w-4" />
+                                    <Edit2 className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                                   </button>
                                   <button
                                     onClick={() => handleDeleteTransaction(t.id)}
-                                    className="p-2 hover:bg-secondary rounded text-destructive"
+                                    className="p-2 hover:bg-red-500/10 rounded-lg transition-colors"
                                   >
-                                    <Trash2 className="h-4 w-4" />
+                                    <Trash2 className="h-4 w-4 text-red-500" />
                                   </button>
                                 </div>
                               </td>
