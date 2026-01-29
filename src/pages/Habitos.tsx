@@ -10,7 +10,6 @@ import { ptBR } from 'date-fns/locale';
 export default function Habitos() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const monthKey = format(currentDate, 'yyyy-MM');
-  const DAY_COL_PX = 28;
   
   const {
     habits,
@@ -44,12 +43,12 @@ export default function Habitos() {
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-border/30 flex-shrink-0">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-semibold">Criador de Hábitos</h1>
+          <h1 className="text-xl font-semibold">Criador de Hábitos</h1>
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={goToPreviousMonth}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="text-base font-medium min-w-[160px] text-center capitalize">
+            <span className="text-sm font-medium min-w-[140px] text-center capitalize">
               {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
             </span>
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={goToNextMonth}>
@@ -66,36 +65,21 @@ export default function Habitos() {
       <div className="flex-1 overflow-y-auto">
         {/* Progress Chart */}
         <div className="px-6 py-5">
-          <div className="flex w-full">
-            {/* Left gutter matches HabitGrid left column */}
-            <div className="flex-shrink-0 w-72 pr-4">
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                Progresso do Mês
-              </h2>
-            </div>
-
-            {/* Scroll area aligns with the days columns */}
-            <div className="flex-1 overflow-x-auto">
-              <div className="w-max min-w-full">
-                <HabitProgressChart
-                  dailyScores={dailyScores}
-                  chartWidth={daysInMonth.length * DAY_COL_PX}
-                />
-              </div>
-            </div>
-          </div>
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+            Progresso do Mês
+          </h2>
+          <HabitProgressChart dailyScores={dailyScores} />
         </div>
 
         {/* Habits Grid */}
         <div className="px-6 py-5 border-t border-border/30">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
             Grade de Hábitos
           </h2>
           <HabitGrid
             habits={habits}
             daysInMonth={daysInMonth}
             monthKey={monthKey}
-            cellWidthPx={DAY_COL_PX}
             onToggleLog={toggleHabitLog}
             onCreateHabit={createHabit}
             onUpdateHabit={updateHabit}
