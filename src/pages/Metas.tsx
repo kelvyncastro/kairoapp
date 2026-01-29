@@ -14,6 +14,8 @@ import {
   User,
   MoreHorizontal,
   Eye,
+  CalendarIcon,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,10 +40,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, differenceInDays, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   Area,
@@ -65,6 +73,7 @@ interface Goal {
   unit_label: string;
   status: "ACTIVE" | "COMPLETED" | "PAUSED";
   created_at: string;
+  end_date: string;
 }
 
 interface ProgressEntry {
@@ -81,6 +90,7 @@ interface NewGoal {
   category: GoalCategory;
   target_value: number;
   unit_label: string;
+  end_date: Date | undefined;
 }
 
 const CATEGORY_CONFIG: Record<GoalCategory, { label: string; icon: React.ReactNode; color: string }> = {
@@ -112,6 +122,7 @@ export default function Metas() {
     category: "PERSONAL",
     target_value: 1,
     unit_label: "",
+    end_date: undefined,
   });
 
   const fetchGoals = useCallback(async (showLoading = true) => {
@@ -158,6 +169,10 @@ export default function Metas() {
   const handleCreateGoal = async () => {
     if (!user || !newGoal.title.trim()) return;
 
+    const endDate = newGoal.end_date 
+      ? format(newGoal.end_date, "yyyy-MM-dd")
+      : format(new Date(new Date().getFullYear() + 1, 11, 31), "yyyy-MM-dd");
+
     const { error } = await supabase.from("goals").insert({
       user_id: user.id,
       title: newGoal.title,
@@ -167,7 +182,7 @@ export default function Metas() {
       target_value: newGoal.target_value,
       unit_label: newGoal.unit_label,
       start_date: format(new Date(), "yyyy-MM-dd"),
-      end_date: format(new Date(new Date().getFullYear() + 1, 11, 31), "yyyy-MM-dd"),
+      end_date: endDate,
       current_value: 0,
       status: "ACTIVE",
     });
@@ -178,7 +193,7 @@ export default function Metas() {
     }
 
     toast({ title: "Meta criada com sucesso!" });
-    setNewGoal({ title: "", description: "", category: "PERSONAL", target_value: 1, unit_label: "" });
+    setNewGoal({ title: "", description: "", category: "PERSONAL", target_value: 1, unit_label: "", end_date: undefined });
     setDialogOpen(false);
     await fetchGoals(false);
   };
@@ -260,6 +275,7 @@ export default function Metas() {
         target_value: editingGoal.target_value,
         unit_label: editingGoal.unit_label,
         category: editingGoal.category,
+        end_date: editingGoal.end_date,
       })
       .eq("id", editingGoal.id);
 
@@ -375,6 +391,7 @@ export default function Metas() {
             const isCompleted = goal.status === "COMPLETED" || goal.current_value >= goal.target_value;
             const categoryConfig = CATEGORY_CONFIG[goal.category] || CATEGORY_CONFIG.PERSONAL;
             const chartData = getProgressChartData(goal.id);
+            const daysRemaining = goal.end_date ? differenceInDays(parseISO(goal.end_date), new Date()) : null;
 
             return (
               <div
@@ -401,6 +418,17 @@ export default function Metas() {
                       {isCompleted && (
                         <span className="cave-badge-success text-xs">
                           ✓ Alcançada
+                        </span>
+                      )}
+                      {!isCompleted && daysRemaining !== null && (
+                        <span className={cn(
+                          "flex items-center gap-1 text-xs px-2 py-0.5 rounded",
+                          daysRemaining <= 7 ? "bg-red-500/20 text-red-400" :
+                          daysRemaining <= 30 ? "bg-amber-500/20 text-amber-400" :
+                          "bg-muted text-muted-foreground"
+                        )}>
+                          <Clock className="h-3 w-3" />
+                          {daysRemaining <= 0 ? "Vencida" : `${daysRemaining}d restantes`}
                         </span>
                       )}
                     </div>
@@ -592,6 +620,33 @@ export default function Metas() {
                 />
               </div>
             </div>
+            <div className="space-y-2">
+              <Label>Data limite (opcional)</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !newGoal.end_date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {newGoal.end_date ? format(newGoal.end_date, "PPP", { locale: ptBR }) : "Selecionar data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={newGoal.end_date}
+                    onSelect={(date) => setNewGoal({ ...newGoal, end_date: date })}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
@@ -717,6 +772,37 @@ export default function Metas() {
                     onChange={(e) => setEditingGoal({ ...editingGoal, unit_label: e.target.value })}
                   />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Data limite</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !editingGoal.end_date && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {editingGoal.end_date 
+                        ? format(parseISO(editingGoal.end_date), "PPP", { locale: ptBR }) 
+                        : "Selecionar data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={editingGoal.end_date ? parseISO(editingGoal.end_date) : undefined}
+                      onSelect={(date) => setEditingGoal({ 
+                        ...editingGoal, 
+                        end_date: date ? format(date, "yyyy-MM-dd") : editingGoal.end_date 
+                      })}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
           )}
