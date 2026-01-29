@@ -36,7 +36,8 @@ const HabitProgressChart = React.memo(function HabitProgressChart({ dailyScores 
             axisLine={false}
             tickLine={false}
             tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
-            interval="preserveStartEnd"
+            interval={0}
+            tickCount={chartData.length}
           />
           <YAxis
             domain={[0, 100]}
