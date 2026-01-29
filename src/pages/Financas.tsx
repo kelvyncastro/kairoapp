@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -441,15 +442,16 @@ export default function Financas() {
           <p className="text-sm text-muted-foreground">Controle é liberdade.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setChatOpen(true)}
-            className="relative"
-            title="Chat Financeiro"
-          >
-            <MessageCircle className="h-4 w-4" />
-          </Button>
+          <Link to="/chat-financeiro">
+            <Button
+              variant="outline"
+              size="icon"
+              className="relative"
+              title="Chat Financeiro"
+            >
+              <MessageCircle className="h-4 w-4" />
+            </Button>
+          </Link>
           <Dialog open={addTransactionOpen} onOpenChange={setAddTransactionOpen}>
             <DialogTrigger asChild>
               <Button>

@@ -1,0 +1,394 @@
+import { useState, useRef, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Send, MessageCircle, Loader2, Sparkles, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import { Link } from "react-router-dom";
+import batmanLogo from "@/assets/batman-logo.jpg";
+
+interface Message {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: Date;
+}
+
+interface Sector {
+  id: string;
+  name: string;
+}
+
+// Floating particle component
+function FloatingParticle({ delay, duration, size, startX, startY }: {
+  delay: number;
+  duration: number;
+  size: number;
+  startX: number;
+  startY: number;
+}) {
+  return (
+    <motion.div
+      className="absolute rounded-full bg-gradient-to-br from-zinc-400/20 to-zinc-600/10"
+      style={{
+        width: size,
+        height: size,
+        left: `${startX}%`,
+        bottom: `${startY}%`,
+      }}
+      initial={{ opacity: 0, y: 0, scale: 0 }}
+      animate={{
+        opacity: [0, 0.6, 0.4, 0],
+        y: [-20, -150, -300, -450],
+        scale: [0.5, 1, 0.8, 0.3],
+        x: [0, Math.random() * 60 - 30, Math.random() * 80 - 40],
+      }}
+      transition={{
+        duration,
+        delay,
+        repeat: Infinity,
+        ease: "easeOut",
+      }}
+    />
+  );
+}
+
+// Glowing orb component
+function GlowingOrb({ x, y, size, color, delay }: {
+  x: number;
+  y: number;
+  size: number;
+  color: string;
+  delay: number;
+}) {
+  return (
+    <motion.div
+      className="absolute rounded-full blur-2xl"
+      style={{
+        width: size,
+        height: size,
+        left: `${x}%`,
+        top: `${y}%`,
+        background: color,
+      }}
+      animate={{
+        opacity: [0.1, 0.3, 0.1],
+        scale: [1, 1.2, 1],
+      }}
+      transition={{
+        duration: 6,
+        delay,
+        repeat: Infinity,
+        ease: "easeInOut",
+      }}
+    />
+  );
+}
+
+export default function ChatFinanceiro() {
+  const { user } = useAuth();
+  const [sectors, setSectors] = useState<Sector[]>([]);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: "welcome",
+      role: "assistant",
+      content: "Olá! Sou seu assistente financeiro. Me conte sobre suas transações de forma natural.\n\n**Exemplos:**\n• \"Gastei R$200 no mercado\"\n• \"Recebi R$5000 de salário\"\n• \"Paguei R$80 de uber\"",
+      timestamp: new Date(),
+    },
+  ]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch sectors
+  const fetchSectors = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("finance_sectors")
+      .select("id, name")
+      .eq("user_id", user.id);
+    if (data) setSectors(data);
+  }, [user]);
+
+  useEffect(() => {
+    fetchSectors();
+  }, [fetchSectors]);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const sendMessage = async () => {
+    if (!input.trim() || isLoading || !user) return;
+
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      content: input.trim(),
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("finance-chat", {
+        body: {
+          message: userMessage.content,
+          userId: user.id,
+          sectors: sectors,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      const assistantMessage: Message = {
+        id: `assistant-${Date.now()}`,
+        role: "assistant",
+        content: data.message,
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+
+      if (data.success) {
+        toast.success("Transação registrada!");
+      }
+    } catch (error: any) {
+      console.error("Chat error:", error);
+      const errorMessage: Message = {
+        id: `error-${Date.now()}`,
+        role: "assistant",
+        content: "Desculpe, ocorreu um erro. Tente novamente.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+      toast.error("Erro ao processar mensagem");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  // Generate particles
+  const particles = Array.from({ length: 20 }, (_, i) => ({
+    id: i,
+    delay: i * 0.5,
+    duration: 8 + Math.random() * 6,
+    size: 4 + Math.random() * 8,
+    startX: Math.random() * 100,
+    startY: Math.random() * 30 - 10,
+  }));
+
+  return (
+    <div className="h-[calc(100vh-4rem)] -m-6 relative overflow-hidden bg-background">
+      {/* Dynamic Background */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Base gradient */}
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-zinc-900/50 to-background" />
+        
+        {/* Animated mesh gradient */}
+        <motion.div
+          className="absolute inset-0"
+          animate={{
+            background: [
+              "radial-gradient(ellipse 80% 50% at 20% 40%, rgba(39,39,42,0.4) 0%, transparent 50%), radial-gradient(ellipse 60% 40% at 80% 60%, rgba(24,24,27,0.3) 0%, transparent 50%)",
+              "radial-gradient(ellipse 60% 40% at 30% 60%, rgba(39,39,42,0.4) 0%, transparent 50%), radial-gradient(ellipse 80% 50% at 70% 40%, rgba(24,24,27,0.3) 0%, transparent 50%)",
+              "radial-gradient(ellipse 80% 50% at 20% 40%, rgba(39,39,42,0.4) 0%, transparent 50%), radial-gradient(ellipse 60% 40% at 80% 60%, rgba(24,24,27,0.3) 0%, transparent 50%)",
+            ],
+          }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+        />
+        
+        {/* Glowing orbs */}
+        <GlowingOrb x={10} y={20} size={300} color="rgba(39,39,42,0.3)" delay={0} />
+        <GlowingOrb x={70} y={60} size={400} color="rgba(24,24,27,0.25)" delay={2} />
+        <GlowingOrb x={40} y={80} size={250} color="rgba(63,63,70,0.2)" delay={4} />
+        
+        {/* Floating particles */}
+        {particles.map((p) => (
+          <FloatingParticle key={p.id} {...p} />
+        ))}
+        
+        {/* Subtle grid overlay */}
+        <div 
+          className="absolute inset-0 opacity-[0.02]"
+          style={{
+            backgroundImage: `
+              linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: '60px 60px',
+          }}
+        />
+        
+        {/* Vignette effect */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)]" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 h-full flex flex-col max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border/20">
+          <div className="flex items-center gap-4">
+            <Link to="/financas">
+              <Button variant="ghost" size="icon" className="hover:bg-zinc-800/50">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div className="flex items-center gap-3">
+              <Avatar className="h-10 w-10 border-2 border-zinc-700/50">
+                <AvatarImage src={batmanLogo} alt="Assistant" />
+                <AvatarFallback className="bg-zinc-800">
+                  <MessageCircle className="h-5 w-5 text-zinc-400" />
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="font-bold text-lg">Chat Financeiro</h1>
+                  <Sparkles className="h-4 w-4 text-zinc-500" />
+                </div>
+                <p className="text-xs text-muted-foreground">Registre transações por texto</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Messages */}
+        <ScrollArea className="flex-1 px-6 py-4" ref={scrollRef}>
+          <div className="space-y-4 pb-4">
+            <AnimatePresence mode="popLayout">
+              {messages.map((message) => (
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                  className={`flex gap-3 ${
+                    message.role === "user" ? "flex-row-reverse" : ""
+                  }`}
+                >
+                  {message.role === "assistant" && (
+                    <Avatar className="h-8 w-8 border border-zinc-700/50 flex-shrink-0">
+                      <AvatarImage src={batmanLogo} alt="Assistant" />
+                      <AvatarFallback className="bg-zinc-800">
+                        <MessageCircle className="h-4 w-4 text-zinc-400" />
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                  <motion.div
+                    whileHover={{ scale: 1.01 }}
+                    className={`rounded-2xl px-4 py-3 max-w-[80%] backdrop-blur-sm ${
+                      message.role === "user"
+                        ? "bg-zinc-700/60 text-foreground border border-zinc-600/30"
+                        : "bg-zinc-800/40 text-foreground border border-zinc-700/30"
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                      {message.content.split("**").map((part, i) =>
+                        i % 2 === 1 ? (
+                          <strong key={i} className="font-semibold text-zinc-200">
+                            {part}
+                          </strong>
+                        ) : (
+                          part
+                        )
+                      )}
+                    </p>
+                  </motion.div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            
+            {isLoading && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex gap-3"
+              >
+                <Avatar className="h-8 w-8 border border-zinc-700/50 flex-shrink-0">
+                  <AvatarImage src={batmanLogo} alt="Assistant" />
+                  <AvatarFallback className="bg-zinc-800">
+                    <MessageCircle className="h-4 w-4 text-zinc-400" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="bg-zinc-800/40 rounded-2xl px-4 py-3 border border-zinc-700/30 backdrop-blur-sm">
+                  <div className="flex items-center gap-2">
+                    <motion.div
+                      className="flex gap-1"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      {[0, 1, 2].map((i) => (
+                        <motion.div
+                          key={i}
+                          className="w-2 h-2 rounded-full bg-zinc-500"
+                          animate={{ y: [0, -6, 0] }}
+                          transition={{
+                            duration: 0.6,
+                            repeat: Infinity,
+                            delay: i * 0.15,
+                          }}
+                        />
+                      ))}
+                    </motion.div>
+                    <span className="text-sm text-zinc-400 ml-1">Processando</span>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </ScrollArea>
+
+        {/* Input */}
+        <div className="px-6 py-4 border-t border-border/20">
+          <div className="flex gap-3">
+            <Input
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Ex: Gastei R$50 no mercado..."
+              className="flex-1 bg-zinc-800/30 border-zinc-700/40 text-foreground placeholder:text-zinc-500 focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600/50 h-12 rounded-xl backdrop-blur-sm"
+              disabled={isLoading}
+            />
+            <Button
+              onClick={sendMessage}
+              disabled={!input.trim() || isLoading}
+              className="bg-zinc-700/80 hover:bg-zinc-600 text-foreground px-5 h-12 rounded-xl backdrop-blur-sm border border-zinc-600/30"
+            >
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
