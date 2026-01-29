@@ -30,6 +30,17 @@ export function useGoogleCalendar(options: UseGoogleCalendarOptions = {}) {
         return;
       }
 
+      // Check if user has Google provider token
+      const providerToken = session.provider_token;
+      
+      if (!providerToken) {
+        // User logged in with email, not Google - needs to connect Google
+        setNeedsConnection(true);
+        setEvents([]);
+        setLoading(false);
+        return;
+      }
+
       const now = timeMin || new Date();
       const endDate = timeMax || new Date(now.getTime() + daysAhead * 24 * 60 * 60 * 1000);
 
@@ -37,6 +48,7 @@ export function useGoogleCalendar(options: UseGoogleCalendarOptions = {}) {
         body: {
           timeMin: now.toISOString(),
           timeMax: endDate.toISOString(),
+          providerToken: providerToken,
         },
       });
 
