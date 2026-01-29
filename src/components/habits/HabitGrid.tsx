@@ -239,18 +239,17 @@ const HabitGrid = React.memo(function HabitGrid({
                       <button
                         type="button"
                         onClick={() => {
-                          if (status !== 'future' && status !== 'not_planned') {
+                          if (status !== 'future') {
                             onToggleLog(habit.id, day);
                           }
                         }}
-                        disabled={status === 'future' || status === 'not_planned'}
+                        disabled={status === 'future'}
                         className={cn(
                           'w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-150',
                           status === 'done' && 'bg-green-500 hover:bg-green-600',
-                          status === 'not_done' && 'border-2 border-muted-foreground/30 hover:border-green-500/60 hover:bg-muted/30',
+                          (status === 'not_done' || status === 'not_planned') && 'border-2 border-muted-foreground/30 hover:border-green-500/60 hover:bg-muted/30',
                           status === 'pending' && 'border-2 border-destructive hover:bg-destructive/10',
-                          status === 'future' && 'border border-muted-foreground/15 opacity-30 cursor-not-allowed',
-                          status === 'not_planned' && 'opacity-0 cursor-default pointer-events-none'
+                          status === 'future' && 'border border-muted-foreground/15 opacity-30 cursor-not-allowed'
                         )}
                       >
                         {status === 'done' && <Check className="h-4 w-4 text-white" />}
