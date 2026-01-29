@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -91,128 +91,172 @@ export default function Dashboard() {
     }
   };
 
-  useEffect(() => {
-    async function fetchStats() {
-      if (!user) return;
+  const fetchStats = useCallback(async () => {
+    if (!user) return;
 
-      const today = format(new Date(), "yyyy-MM-dd");
-      const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
-      const monthEnd = format(endOfMonth(new Date()), "yyyy-MM-dd");
+    const today = format(new Date(), "yyyy-MM-dd");
+    const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
+    const monthEnd = format(endOfMonth(new Date()), "yyyy-MM-dd");
 
-      // Fetch all data in parallel
-      const [
-        todayTasksRes,
-        totalTasksRes,
-        settingsRes,
-        consistencyRes,
-        goalsRes,
-        habitsRes,
-        habitLogsRes,
-        transactionsRes,
-      ] = await Promise.all([
-        supabase.from("daily_tasks").select("*").eq("user_id", user.id).eq("date", today),
-        supabase.from("daily_tasks").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("completed", true),
-        supabase.from("user_settings").select("created_at").eq("user_id", user.id).maybeSingle(),
-        supabase.from("consistency_days").select("*").eq("user_id", user.id).order("date", { ascending: false }).limit(60),
-        supabase.from("goals").select("*").eq("user_id", user.id).eq("status", "ACTIVE"),
-        supabase.from("habits").select("*").eq("user_id", user.id).eq("active", true),
-        supabase.from("habit_logs").select("*, habits!inner(user_id)").eq("habits.user_id", user.id).eq("date", today),
-        supabase.from("finance_transactions").select("*").eq("user_id", user.id).gte("date", monthStart).lte("date", monthEnd),
-      ]);
+    // Fetch all data in parallel
+    const [
+      todayTasksRes,
+      totalTasksRes,
+      settingsRes,
+      consistencyRes,
+      goalsRes,
+      habitsRes,
+      habitLogsRes,
+      transactionsRes,
+    ] = await Promise.all([
+      supabase.from("daily_tasks").select("*").eq("user_id", user.id).eq("date", today),
+      supabase.from("daily_tasks").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("completed", true),
+      supabase.from("user_settings").select("created_at").eq("user_id", user.id).maybeSingle(),
+      supabase.from("consistency_days").select("*").eq("user_id", user.id).order("date", { ascending: false }).limit(60),
+      supabase.from("goals").select("*").eq("user_id", user.id).eq("status", "ACTIVE"),
+      supabase.from("habits").select("*").eq("user_id", user.id).eq("active", true),
+      supabase.from("habit_logs").select("*, habits!inner(user_id)").eq("habits.user_id", user.id).eq("date", today),
+      supabase.from("finance_transactions").select("*").eq("user_id", user.id).gte("date", monthStart).lte("date", monthEnd),
+    ]);
 
-      // Process tasks
-      const todayTasks = todayTasksRes.data || [];
-      const completed = todayTasks.filter((t) => t.completed).length;
-      const total = todayTasks.length;
-      const pending = todayTasks
-        .filter((t) => !t.completed)
-        .slice(0, 5)
-        .map((t) => ({ id: t.id, title: t.title, priority: t.priority || 2 }));
+    // Process tasks
+    const todayTasks = todayTasksRes.data || [];
+    const completed = todayTasks.filter((t) => t.completed).length;
+    const total = todayTasks.length;
+    const pending = todayTasks
+      .filter((t) => !t.completed)
+      .slice(0, 5)
+      .map((t) => ({ id: t.id, title: t.title, priority: t.priority || 2 }));
 
-      // Days in app
-      let daysInApp = 1;
-      if (settingsRes.data?.created_at) {
-        daysInApp = Math.max(1, differenceInDays(new Date(), new Date(settingsRes.data.created_at)) + 1);
-      }
-
-      // Streak calculation
-      const consistencyDays = consistencyRes.data || [];
-      let currentStreak = 0;
-      const todayStart = startOfDay(new Date());
-      for (let i = 0; i <= 60; i++) {
-        const checkDate = format(subDays(todayStart, i), "yyyy-MM-dd");
-        const dayData = consistencyDays.find((d) => d.date === checkDate);
-        if (dayData?.is_active) {
-          currentStreak++;
-        } else if (i > 0) {
-          break;
-        }
-      }
-
-      // Last 30 days
-      const last30Days = [];
-      for (let i = 29; i >= 0; i--) {
-        const date = format(subDays(todayStart, i), "yyyy-MM-dd");
-        const dayData = consistencyDays.find((d) => d.date === date);
-        last30Days.push({ date, isActive: dayData?.is_active || false });
-      }
-
-      // Goals
-      const goals = goalsRes.data || [];
-      const goalsCompleted = goals.filter((g) => g.current_value >= g.target_value).length;
-      const activeGoals = goals.slice(0, 3).map((g) => ({
-        id: g.id,
-        title: g.title,
-        current: g.current_value,
-        target: g.target_value,
-        unit: g.unit_label || "",
-        category: g.category || "PERSONAL",
-      }));
-
-      // Habits
-      const habits = habitsRes.data || [];
-      const habitLogs = habitLogsRes.data || [];
-      const dayOfWeek = format(new Date(), "EEE").toLowerCase();
-      const todayHabits = habits.filter((h) => {
-        const freq = h.frequency as string[];
-        return freq.includes(dayOfWeek);
-      });
-      const completedHabitsToday = habitLogs.filter((l) => l.status === "done").length;
-
-      // Habits monthly rate (simplified)
-      const daysInMonth = new Date().getDate();
-      const expectedLogs = habits.length * daysInMonth;
-      const monthlyRate = expectedLogs > 0 ? Math.round((completedHabitsToday * daysInMonth / expectedLogs) * 100) : 0;
-
-      // Finances
-      const transactions = transactionsRes.data || [];
-      const income = transactions.filter((t) => t.value > 0).reduce((sum, t) => sum + t.value, 0);
-      const expense = transactions.filter((t) => t.value < 0).reduce((sum, t) => sum + Math.abs(t.value), 0);
-
-      setStats({
-        tasksCompletedToday: completed,
-        tasksTotalToday: total,
-        tasksTotal: totalTasksRes.count || 0,
-        daysInApp,
-        currentStreak,
-        goalsActive: goals.length,
-        goalsCompleted,
-        todayProgress: total > 0 ? Math.round((completed / total) * 100) : 0,
-        pendingTasks: pending,
-        last30Days,
-        habitsCompletedToday: completedHabitsToday,
-        habitsTotalToday: todayHabits.length,
-        habitsMonthlyRate: monthlyRate,
-        financeBalance: income - expense,
-        financeIncome: income,
-        financeExpense: expense,
-        activeGoals,
-      });
-      setLoading(false);
+    // Days in app
+    let daysInApp = 1;
+    if (settingsRes.data?.created_at) {
+      daysInApp = Math.max(1, differenceInDays(new Date(), new Date(settingsRes.data.created_at)) + 1);
     }
 
-    fetchStats();
+    // Streak calculation
+    const consistencyDays = consistencyRes.data || [];
+    let currentStreak = 0;
+    const todayStart = startOfDay(new Date());
+    for (let i = 0; i <= 60; i++) {
+      const checkDate = format(subDays(todayStart, i), "yyyy-MM-dd");
+      const dayData = consistencyDays.find((d) => d.date === checkDate);
+      if (dayData?.is_active) {
+        currentStreak++;
+      } else if (i > 0) {
+        break;
+      }
+    }
+
+    // Last 30 days
+    const last30Days = [];
+    for (let i = 29; i >= 0; i--) {
+      const date = format(subDays(todayStart, i), "yyyy-MM-dd");
+      const dayData = consistencyDays.find((d) => d.date === date);
+      last30Days.push({ date, isActive: dayData?.is_active || false });
+    }
+
+    // Goals
+    const goals = goalsRes.data || [];
+    const goalsCompleted = goals.filter((g) => g.current_value >= g.target_value).length;
+    const activeGoals = goals.slice(0, 3).map((g) => ({
+      id: g.id,
+      title: g.title,
+      current: g.current_value,
+      target: g.target_value,
+      unit: g.unit_label || "",
+      category: g.category || "PERSONAL",
+    }));
+
+    // Habits
+    const habits = habitsRes.data || [];
+    const habitLogs = habitLogsRes.data || [];
+    const dayOfWeek = format(new Date(), "EEE").toLowerCase();
+    const todayHabits = habits.filter((h) => {
+      const freq = h.frequency as string[];
+      return freq.includes(dayOfWeek);
+    });
+    const completedHabitsToday = habitLogs.filter((l) => l.status === "done").length;
+
+    // Habits monthly rate (simplified)
+    const daysInMonth = new Date().getDate();
+    const expectedLogs = habits.length * daysInMonth;
+    const monthlyRate = expectedLogs > 0 ? Math.round((completedHabitsToday * daysInMonth / expectedLogs) * 100) : 0;
+
+    // Finances
+    const transactions = transactionsRes.data || [];
+    const income = transactions.filter((t) => t.value > 0).reduce((sum, t) => sum + t.value, 0);
+    const expense = transactions.filter((t) => t.value < 0).reduce((sum, t) => sum + Math.abs(t.value), 0);
+
+    setStats({
+      tasksCompletedToday: completed,
+      tasksTotalToday: total,
+      tasksTotal: totalTasksRes.count || 0,
+      daysInApp,
+      currentStreak,
+      goalsActive: goals.length,
+      goalsCompleted,
+      todayProgress: total > 0 ? Math.round((completed / total) * 100) : 0,
+      pendingTasks: pending,
+      last30Days,
+      habitsCompletedToday: completedHabitsToday,
+      habitsTotalToday: todayHabits.length,
+      habitsMonthlyRate: monthlyRate,
+      financeBalance: income - expense,
+      financeIncome: income,
+      financeExpense: expense,
+      activeGoals,
+    });
+    setLoading(false);
   }, [user]);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  // Real-time subscriptions for all relevant tables
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('dashboard-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'daily_tasks', filter: `user_id=eq.${user.id}` },
+        () => fetchStats()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'consistency_days', filter: `user_id=eq.${user.id}` },
+        () => fetchStats()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'goals', filter: `user_id=eq.${user.id}` },
+        () => fetchStats()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'habits', filter: `user_id=eq.${user.id}` },
+        () => fetchStats()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'habit_logs' },
+        () => fetchStats()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'finance_transactions', filter: `user_id=eq.${user.id}` },
+        () => fetchStats()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, fetchStats]);
 
   if (loading) {
     return (
