@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Plus, Search, LayoutList, LayoutGrid } from 'lucide-react';
+import { LayoutList, LayoutGrid } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTaskData } from '@/hooks/useTaskData';
@@ -176,17 +176,6 @@ export default function Rotina() {
 
           <div className="h-4 w-px bg-border/50" />
 
-          {/* Search */}
-          <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input
-              placeholder="Buscar tarefas..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 pl-8 text-sm bg-muted/30 border-0"
-            />
-          </div>
-
           {/* Advanced Filters */}
           <TaskFiltersAdvanced
             statuses={statuses}
@@ -199,12 +188,6 @@ export default function Rotina() {
           />
 
           <div className="flex-1" />
-
-          {/* New task */}
-          <Button size="sm" className="h-8" onClick={() => handleCreateTask()}>
-            <Plus className="h-4 w-4 mr-1.5" />
-            Nova Tarefa
-          </Button>
         </div>
 
         {/* Task view */}
