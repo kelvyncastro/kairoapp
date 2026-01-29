@@ -107,7 +107,7 @@ const sectorColors = [
 // Ícones mais relevantes para finanças
 const sectorIcons = [
   "wallet", "credit-card", "banknote", "coins", "piggy-bank", "chart-line", "chart-bar",
-  "shopping-bag", "shopping-cart", "car", "plane", "utensils", "coffee", "pizza",
+  "shopping-bag", "shirt", "car", "plane", "utensils", "coffee", "pizza",
   "home", "building", "briefcase", "graduation-cap", "book", "gamepad", "tv",
   "smartphone", "laptop", "headphones", "music", "heart", "gift", "star",
   "dumbbell", "trophy", "medal", "gem", "diamond", "receipt", "tag",
