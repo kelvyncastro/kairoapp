@@ -42,18 +42,16 @@ serve(async (req) => {
       );
     }
 
-    // Get the user's Google OAuth provider token
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    
-    if (sessionError || !session) {
-      return new Response(
-        JSON.stringify({ error: "No active session" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    // Parse request body for date range and provider token
+    const body = await req.json().catch(() => ({}));
+    const { 
+      timeMin = new Date().toISOString(),
+      timeMax = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
+      maxResults = 50,
+      providerToken,
+    } = body;
 
-    const providerToken = session.provider_token;
-    
+    // Check if provider token was sent from client
     if (!providerToken) {
       return new Response(
         JSON.stringify({ 
@@ -64,14 +62,6 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    // Parse request body for date range
-    const body = await req.json().catch(() => ({}));
-    const { 
-      timeMin = new Date().toISOString(),
-      timeMax = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
-      maxResults = 50,
-    } = body;
 
     // Fetch events from Google Calendar API
     const calendarUrl = new URL("https://www.googleapis.com/calendar/v3/calendars/primary/events");
