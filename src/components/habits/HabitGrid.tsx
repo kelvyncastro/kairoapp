@@ -24,6 +24,12 @@ interface HabitGridProps {
   getLogStatus: (habit: HabitWithLogs, date: Date) => 'done' | 'not_done' | 'pending' | 'future' | 'not_planned';
 }
 
+// Calculate how many times a habit was completed in the current month
+const getMonthlyCompletionCount = (habit: HabitWithLogs, daysInMonth: Date[]): number => {
+  const monthDates = new Set(daysInMonth.map(d => format(d, 'yyyy-MM-dd')));
+  return habit.logs.filter(log => log.status === 'done' && monthDates.has(log.date)).length;
+};
+
 const HabitGrid = React.memo(function HabitGrid({
   habits,
   daysInMonth,
@@ -126,10 +132,16 @@ const HabitGrid = React.memo(function HabitGrid({
               ) : (
                 <>
                   <div className="flex-1 min-w-0 pr-2">
-                    <p className="text-sm font-medium truncate">{habit.name}</p>
-                    <p className="text-xs text-destructive font-semibold">
-                      {getHabitAdherence(habit)}%
-                    </p>
+                    <p className="text-sm font-medium truncate text-foreground">{habit.name}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-muted-foreground">
+                        {getMonthlyCompletionCount(habit, daysInMonth)}x
+                      </span>
+                      <span className="text-xs text-muted-foreground">•</span>
+                      <span className="text-xs font-medium text-chart-2">
+                        {getHabitAdherence(habit)}%
+                      </span>
+                    </div>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
