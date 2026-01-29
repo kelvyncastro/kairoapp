@@ -9,6 +9,7 @@ import { ptBR } from 'date-fns/locale';
 
 export default function Habitos() {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const monthKey = format(currentDate, 'yyyy-MM');
   
   const {
     habits,
@@ -78,6 +79,7 @@ export default function Habitos() {
           <HabitGrid
             habits={habits}
             daysInMonth={daysInMonth}
+            monthKey={monthKey}
             onToggleLog={toggleHabitLog}
             onCreateHabit={createHabit}
             onUpdateHabit={updateHabit}

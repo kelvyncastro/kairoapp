@@ -24,6 +24,10 @@ export function useHabits(currentDate: Date) {
   const monthEnd = endOfMonth(currentDate);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
+  // Use string boundaries as dependencies (primitives are stable by value) to avoid infinite fetch loops.
+  const monthStartStr = format(monthStart, 'yyyy-MM-dd');
+  const monthEndStr = format(monthEnd, 'yyyy-MM-dd');
+
   // Check if a habit is planned for a specific day
   const isHabitPlannedForDay = useCallback((habit: Habit, date: Date): boolean => {
     const habitStartDate = parseISO(habit.start_date);
@@ -56,8 +60,8 @@ export function useHabits(currentDate: Date) {
       const { data: logsData, error: logsError } = await supabase
         .from('habit_logs')
         .select('*')
-        .gte('date', format(monthStart, 'yyyy-MM-dd'))
-        .lte('date', format(monthEnd, 'yyyy-MM-dd'));
+        .gte('date', monthStartStr)
+        .lte('date', monthEndStr);
 
       if (logsError) throw logsError;
 
@@ -75,7 +79,7 @@ export function useHabits(currentDate: Date) {
     } finally {
       setLoading(false);
     }
-  }, [user, monthStart, monthEnd]);
+  }, [user, monthStartStr, monthEndStr]);
 
   useEffect(() => {
     fetchHabits();
