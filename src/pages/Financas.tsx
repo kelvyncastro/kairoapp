@@ -11,6 +11,7 @@ import {
   Edit2,
   ChevronLeft,
   ChevronRight,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,11 +36,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, subMonths, addMonths, eachDayOfInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { FolderIconRenderer } from "@/components/tasks/FolderIconRenderer";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Sector {
   id: string;
   name: string;
   color_label: string;
+  icon: string;
 }
 
 interface Transaction {
@@ -59,13 +63,53 @@ interface NewTransaction {
   description: string;
 }
 
-const grayColors = [
-  "#3a3a3a",
-  "#4a4a4a",
-  "#5a5a5a",
-  "#6a6a6a",
-  "#7a7a7a",
-  "#8a8a8a",
+interface NewSector {
+  name: string;
+  color_label: string;
+  icon: string;
+}
+
+// Mesmas cores usadas na Rotina
+const sectorColors = [
+  "#ef4444", // red
+  "#f97316", // orange
+  "#f59e0b", // amber
+  "#eab308", // yellow
+  "#84cc16", // lime
+  "#22c55e", // green
+  "#10b981", // emerald
+  "#14b8a6", // teal
+  "#06b6d4", // cyan
+  "#0ea5e9", // sky
+  "#3b82f6", // blue
+  "#6366f1", // indigo
+  "#8b5cf6", // violet
+  "#a855f7", // purple
+  "#d946ef", // fuchsia
+  "#ec4899", // pink
+  "#f43f5e", // rose
+  "#6b7280", // gray
+];
+
+// Ícones mais relevantes para finanças
+const sectorIcons = [
+  "wallet", "credit-card", "banknote", "coins", "piggy-bank", "chart-line", "chart-bar",
+  "shopping-bag", "shopping-cart", "car", "plane", "utensils", "coffee", "pizza",
+  "home", "building", "briefcase", "graduation-cap", "book", "gamepad", "tv",
+  "smartphone", "laptop", "headphones", "music", "heart", "gift", "star",
+  "dumbbell", "trophy", "medal", "gem", "diamond", "receipt", "tag",
+];
+
+// Setores padrão
+const defaultSectors: { name: string; color_label: string; icon: string }[] = [
+  { name: "Mercado", color_label: "#22c55e", icon: "shopping-bag" },
+  { name: "Transporte", color_label: "#3b82f6", icon: "car" },
+  { name: "Cartão", color_label: "#6b7280", icon: "credit-card" },
+  { name: "Lazer e Entretenimento", color_label: "#a855f7", icon: "gamepad" },
+  { name: "Investimentos", color_label: "#10b981", icon: "chart-line" },
+  { name: "Vestuário", color_label: "#ec4899", icon: "shopping-bag" },
+  { name: "Educação", color_label: "#0ea5e9", icon: "graduation-cap" },
+  { name: "Alimentação", color_label: "#f97316", icon: "utensils" },
 ];
 
 export default function Financas() {
@@ -78,6 +122,7 @@ export default function Financas() {
   
   const [addTransactionOpen, setAddTransactionOpen] = useState(false);
   const [addSectorOpen, setAddSectorOpen] = useState(false);
+  const [editingSector, setEditingSector] = useState<Sector | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   
   const [newTransaction, setNewTransaction] = useState<NewTransaction>({
@@ -87,7 +132,27 @@ export default function Financas() {
     sector_id: "",
     description: "",
   });
-  const [newSectorName, setNewSectorName] = useState("");
+  
+  const [newSector, setNewSector] = useState<NewSector>({
+    name: "",
+    color_label: sectorColors[0],
+    icon: "wallet",
+  });
+
+  const createDefaultSectors = useCallback(async () => {
+    if (!user) return;
+    
+    const insertPromises = defaultSectors.map((sector) =>
+      supabase.from("finance_sectors").insert({
+        user_id: user.id,
+        name: sector.name,
+        color_label: sector.color_label,
+        icon: sector.icon,
+      })
+    );
+    
+    await Promise.all(insertPromises);
+  }, [user]);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
@@ -107,23 +172,33 @@ export default function Financas() {
         .order("date", { ascending: false }),
     ]);
 
-    setSectors((sectorsRes.data as Sector[]) || []);
+    const sectorsData = (sectorsRes.data as Sector[]) || [];
+    
+    // Se não houver setores, criar os padrões
+    if (sectorsData.length === 0) {
+      await createDefaultSectors();
+      const newSectorsRes = await supabase.from("finance_sectors").select("*").eq("user_id", user.id).order("name");
+      setSectors((newSectorsRes.data as Sector[]) || []);
+    } else {
+      setSectors(sectorsData);
+    }
+    
     setTransactions((transactionsRes.data as Transaction[]) || []);
     setLoading(false);
-  }, [user, currentMonth]);
+  }, [user, currentMonth, createDefaultSectors]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
   const handleAddSector = async () => {
-    if (!user || !newSectorName.trim()) return;
+    if (!user || !newSector.name.trim()) return;
 
-    const colorIndex = sectors.length % grayColors.length;
     const { error } = await supabase.from("finance_sectors").insert({
       user_id: user.id,
-      name: newSectorName,
-      color_label: grayColors[colorIndex],
+      name: newSector.name,
+      color_label: newSector.color_label,
+      icon: newSector.icon,
     });
 
     if (error) {
@@ -132,8 +207,30 @@ export default function Financas() {
     }
 
     toast({ title: "Setor criado" });
-    setNewSectorName("");
+    setNewSector({ name: "", color_label: sectorColors[0], icon: "wallet" });
     setAddSectorOpen(false);
+    fetchData();
+  };
+
+  const handleUpdateSector = async () => {
+    if (!editingSector) return;
+
+    const { error } = await supabase
+      .from("finance_sectors")
+      .update({
+        name: editingSector.name,
+        color_label: editingSector.color_label,
+        icon: editingSector.icon,
+      })
+      .eq("id", editingSector.id);
+
+    if (error) {
+      toast({ title: "Erro ao atualizar setor", variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Setor atualizado" });
+    setEditingSector(null);
     fetchData();
   };
 
@@ -313,7 +410,12 @@ export default function Financas() {
                   <SelectContent>
                     <SelectItem value="none">Sem setor</SelectItem>
                     {sectors.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                      <SelectItem key={s.id} value={s.id}>
+                        <div className="flex items-center gap-2">
+                          <FolderIconRenderer icon={s.icon || "wallet"} color={s.color_label} className="h-4 w-4" />
+                          {s.name}
+                        </div>
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -393,9 +495,10 @@ export default function Financas() {
 
         <div className="px-6 py-5 border-t border-border/30">
           <Tabs defaultValue="overview">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
               <TabsTrigger value="overview">Visão Geral</TabsTrigger>
               <TabsTrigger value="transactions">Transações</TabsTrigger>
+              <TabsTrigger value="sectors">Setores</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
@@ -478,9 +581,10 @@ export default function Financas() {
                         const percent = totalExpenses > 0 ? (sector.total / totalExpenses) * 100 : 0;
                         return (
                           <div key={sector.id} className="flex items-center gap-3">
-                            <div
-                              className="w-3 h-3 rounded-full shrink-0"
-                              style={{ backgroundColor: sector.color_label }}
+                            <FolderIconRenderer 
+                              icon={sector.icon || "wallet"} 
+                              color={sector.color_label} 
+                              className="h-4 w-4 shrink-0" 
                             />
                             <span className="text-sm flex-1">{sector.name}</span>
                             <span className="text-sm text-muted-foreground">
@@ -490,67 +594,6 @@ export default function Financas() {
                         );
                       })}
                     </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Sectors Management */}
-              <div className="cave-card p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold uppercase tracking-wider text-sm">Setores</h3>
-                  <Dialog open={addSectorOpen} onOpenChange={setAddSectorOpen}>
-                    <DialogTrigger asChild>
-                      <Button size="sm" variant="outline">
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Novo Setor</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <Label>Nome</Label>
-                          <Input
-                            placeholder="Ex: Mercado, Transporte..."
-                            value={newSectorName}
-                            onChange={(e) => setNewSectorName(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button onClick={handleAddSector} disabled={!newSectorName.trim()}>
-                          Criar
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-
-                {sectors.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    Nenhum setor criado
-                  </p>
-                ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {sectors.map((sector) => (
-                      <div
-                        key={sector.id}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-secondary group"
-                      >
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: sector.color_label }}
-                        />
-                        <span className="text-sm">{sector.name}</span>
-                        <button
-                          onClick={() => handleDeleteSector(sector.id)}
-                          className="opacity-0 group-hover:opacity-100 text-destructive transition-opacity"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))}
                   </div>
                 )}
               </div>
@@ -578,55 +621,192 @@ export default function Financas() {
                       </tr>
                     </thead>
                     <tbody>
-                      {transactions.map((t) => (
-                        <tr key={t.id} className="border-b border-border/50 hover:bg-secondary/30 group">
-                          <td className="p-4 text-sm text-muted-foreground">
-                            {format(new Date(t.date), "dd/MM")}
-                          </td>
-                          <td className="p-4 text-sm font-medium">{t.name}</td>
-                          <td className="p-4 text-sm">
-                            {t.sector_id ? (
-                              <span 
-                                className="px-2 py-0.5 rounded text-xs"
-                                style={{ 
-                                  backgroundColor: `${sectors.find(s => s.id === t.sector_id)?.color_label}20`,
-                                  color: sectors.find(s => s.id === t.sector_id)?.color_label
-                                }}
-                              >
-                                {sectors.find(s => s.id === t.sector_id)?.name}
-                              </span>
-                            ) : (
-                              <span className="text-muted-foreground">-</span>
-                            )}
-                          </td>
-                          <td className={cn(
-                            "p-4 text-sm font-medium text-right",
-                            t.value >= 0 ? "text-success" : "text-destructive"
-                          )}>
-                            {t.value >= 0 ? "+" : ""}R$ {Math.abs(t.value).toFixed(2)}
-                          </td>
-                          <td className="p-4">
-                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button
-                                onClick={() => setEditingTransaction(t)}
-                                className="p-1 hover:bg-secondary rounded"
-                              >
-                                <Edit2 className="h-3 w-3" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteTransaction(t.id)}
-                                className="p-1 hover:bg-secondary rounded text-destructive"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                      {transactions.map((t) => {
+                        const sector = sectors.find(s => s.id === t.sector_id);
+                        return (
+                          <tr key={t.id} className="border-b border-border/50 hover:bg-secondary/30 group">
+                            <td className="p-4 text-sm text-muted-foreground">
+                              {format(new Date(t.date), "dd/MM")}
+                            </td>
+                            <td className="p-4 text-sm font-medium">{t.name}</td>
+                            <td className="p-4 text-sm">
+                              {sector ? (
+                                <span className="flex items-center gap-2">
+                                  <FolderIconRenderer 
+                                    icon={sector.icon || "wallet"} 
+                                    color={sector.color_label} 
+                                    className="h-4 w-4" 
+                                  />
+                                  <span 
+                                    className="px-2 py-0.5 rounded text-xs"
+                                    style={{ 
+                                      backgroundColor: `${sector.color_label}20`,
+                                      color: sector.color_label
+                                    }}
+                                  >
+                                    {sector.name}
+                                  </span>
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </td>
+                            <td className={cn(
+                              "p-4 text-sm font-medium text-right",
+                              t.value >= 0 ? "text-success" : "text-destructive"
+                            )}>
+                              {t.value >= 0 ? "+" : ""}R$ {Math.abs(t.value).toFixed(2)}
+                            </td>
+                            <td className="p-4">
+                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                  onClick={() => setEditingTransaction(t)}
+                                  className="p-1 hover:bg-secondary rounded"
+                                >
+                                  <Edit2 className="h-3 w-3" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteTransaction(t.id)}
+                                  className="p-1 hover:bg-secondary rounded text-destructive"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
               )}
+            </TabsContent>
+
+            {/* Sectors Tab */}
+            <TabsContent value="sectors" className="space-y-6">
+              <div className="cave-card p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="font-bold uppercase tracking-wider text-sm">Gerenciar Setores</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Personalize seus setores para uma análise financeira mais precisa.
+                    </p>
+                  </div>
+                  <Dialog open={addSectorOpen} onOpenChange={setAddSectorOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Novo Setor
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Novo Setor</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label>Nome do Setor</Label>
+                          <Input
+                            placeholder="Ex: Alimentação, Transporte..."
+                            value={newSector.name}
+                            onChange={(e) => setNewSector({ ...newSector, name: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Cor do Setor</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {sectorColors.map((color) => (
+                              <button
+                                key={color}
+                                type="button"
+                                onClick={() => setNewSector({ ...newSector, color_label: color })}
+                                className={cn(
+                                  "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                                  newSector.color_label === color ? "ring-2 ring-offset-2 ring-offset-background ring-primary" : ""
+                                )}
+                                style={{ backgroundColor: color }}
+                              >
+                                {newSector.color_label === color && (
+                                  <Check className="h-4 w-4 text-white" />
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Ícone do Setor</Label>
+                          <ScrollArea className="h-32 rounded-md border p-2">
+                            <div className="flex flex-wrap gap-2">
+                              {sectorIcons.map((icon) => (
+                                <button
+                                  key={icon}
+                                  type="button"
+                                  onClick={() => setNewSector({ ...newSector, icon })}
+                                  className={cn(
+                                    "w-10 h-10 rounded-lg flex items-center justify-center transition-all border",
+                                    newSector.icon === icon 
+                                      ? "bg-primary/20 border-primary" 
+                                      : "bg-secondary/50 border-transparent hover:bg-secondary"
+                                  )}
+                                >
+                                  <FolderIconRenderer 
+                                    icon={icon} 
+                                    color={newSector.color_label}
+                                    className="h-5 w-5" 
+                                  />
+                                </button>
+                              ))}
+                            </div>
+                          </ScrollArea>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button onClick={handleAddSector} disabled={!newSector.name.trim()}>
+                          Criar Setor
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+
+                {sectors.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    Nenhum setor criado
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {sectors.map((sector) => (
+                      <div
+                        key={sector.id}
+                        className="flex items-center justify-between p-4 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <FolderIconRenderer 
+                            icon={sector.icon || "wallet"} 
+                            color={sector.color_label}
+                            className="h-5 w-5" 
+                          />
+                          <span className="font-medium">{sector.name}</span>
+                        </div>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => setEditingSector(sector)}
+                            className="p-2 hover:bg-secondary rounded"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSector(sector.id)}
+                            className="p-2 hover:bg-secondary rounded text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </TabsContent>
           </Tabs>
         </div>
@@ -670,7 +850,12 @@ export default function Financas() {
                   <SelectContent>
                     <SelectItem value="none">Sem setor</SelectItem>
                     {sectors.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                      <SelectItem key={s.id} value={s.id}>
+                        <div className="flex items-center gap-2">
+                          <FolderIconRenderer icon={s.icon || "wallet"} color={s.color_label} className="h-4 w-4" />
+                          {s.name}
+                        </div>
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -679,6 +864,79 @@ export default function Financas() {
           )}
           <DialogFooter>
             <Button onClick={handleUpdateTransaction}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Sector Dialog */}
+      <Dialog open={!!editingSector} onOpenChange={() => setEditingSector(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Setor</DialogTitle>
+          </DialogHeader>
+          {editingSector && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Nome do Setor</Label>
+                <Input
+                  placeholder="Ex: Alimentação, Transporte..."
+                  value={editingSector.name}
+                  onChange={(e) => setEditingSector({ ...editingSector, name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Cor do Setor</Label>
+                <div className="flex flex-wrap gap-2">
+                  {sectorColors.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setEditingSector({ ...editingSector, color_label: color })}
+                      className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                        editingSector.color_label === color ? "ring-2 ring-offset-2 ring-offset-background ring-primary" : ""
+                      )}
+                      style={{ backgroundColor: color }}
+                    >
+                      {editingSector.color_label === color && (
+                        <Check className="h-4 w-4 text-white" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Ícone do Setor</Label>
+                <ScrollArea className="h-32 rounded-md border p-2">
+                  <div className="flex flex-wrap gap-2">
+                    {sectorIcons.map((icon) => (
+                      <button
+                        key={icon}
+                        type="button"
+                        onClick={() => setEditingSector({ ...editingSector, icon })}
+                        className={cn(
+                          "w-10 h-10 rounded-lg flex items-center justify-center transition-all border",
+                          editingSector.icon === icon 
+                            ? "bg-primary/20 border-primary" 
+                            : "bg-secondary/50 border-transparent hover:bg-secondary"
+                        )}
+                      >
+                        <FolderIconRenderer 
+                          icon={icon} 
+                          color={editingSector.color_label}
+                          className="h-5 w-5" 
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={handleUpdateSector} disabled={!editingSector?.name.trim()}>
+              Salvar Setor
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
