@@ -13,9 +13,8 @@ import {
   List,
   LayoutGrid,
 } from "lucide-react";
-import { format, parseISO, isSameDay, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
+import { format, parseISO, isSameDay, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { cn } from "@/lib/utils";
 
 type ViewMode = "list" | "calendar";
 
@@ -36,7 +35,6 @@ export default function Agenda() {
     daysAhead: 30,
   });
 
-  // Group events by date
   const eventsByDate = useMemo(() => {
     const grouped: Record<string, typeof events> = {};
     
@@ -51,7 +49,6 @@ export default function Agenda() {
     return grouped;
   }, [events]);
 
-  // Events for selected date
   const selectedDateEvents = useMemo(() => {
     if (!selectedDate) return [];
     return events.filter((event) => 
@@ -59,7 +56,6 @@ export default function Agenda() {
     );
   }, [events, selectedDate]);
 
-  // Dates that have events (for calendar highlighting)
   const datesWithEvents = useMemo(() => {
     return new Set(Object.keys(eventsByDate));
   }, [eventsByDate]);
@@ -68,40 +64,29 @@ export default function Agenda() {
     refetch();
   };
 
-  const handlePreviousMonth = () => {
-    setCurrentMonth(subMonths(currentMonth, 1));
-  };
-
-  const handleNextMonth = () => {
-    setCurrentMonth(addMonths(currentMonth, 1));
-  };
-
   if (needsConnection || needsReconnection) {
     return (
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold">Agenda</h1>
-          <p className="text-muted-foreground">
-            Visualize seus eventos do Google Calendar
-          </p>
+      <div className="h-[calc(100vh-4rem)] flex flex-col -m-6 bg-background">
+        <div className="px-6 py-4 border-b border-border/30">
+          <h1 className="text-2xl font-bold">Agenda</h1>
+          <p className="text-sm text-muted-foreground">Visualize seus eventos do Google Calendar</p>
         </div>
-
-        <div className="cave-card">
-          <GoogleCalendarConnect onSuccess={handleRefresh} />
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="cave-card max-w-md w-full">
+            <GoogleCalendarConnect onSuccess={handleRefresh} />
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="h-[calc(100vh-4rem)] flex flex-col -m-6 bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-border/30 flex-shrink-0">
         <div>
-          <h1 className="text-2xl font-semibold">Agenda</h1>
-          <p className="text-muted-foreground">
-            Seus eventos do Google Calendar
-          </p>
+          <h1 className="text-2xl font-bold">Agenda</h1>
+          <p className="text-sm text-muted-foreground">Seus eventos do Google Calendar</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -142,107 +127,117 @@ export default function Agenda() {
         </div>
       </div>
 
-      {loading && events.length === 0 ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : error ? (
-        <div className="cave-card p-6 text-center">
-          <p className="text-destructive">{error}</p>
-          <Button onClick={handleRefresh} variant="outline" className="mt-4">
-            Tentar novamente
-          </Button>
-        </div>
-      ) : viewMode === "list" ? (
-        /* List View */
-        <div className="space-y-6">
-          {Object.entries(eventsByDate).length === 0 ? (
-            <div className="cave-card p-12 text-center">
-              <CalendarIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">
-                Nenhum evento nos próximos 30 dias
-              </p>
-            </div>
-          ) : (
-            Object.entries(eventsByDate)
-              .sort(([a], [b]) => a.localeCompare(b))
-              .map(([date, dayEvents]) => (
-                <div key={date}>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wide">
-                    {format(parseISO(date), "EEEE, d 'de' MMMM", { locale: ptBR })}
-                  </h3>
-                  <div className="space-y-2">
-                    {dayEvents.map((event) => (
-                      <CalendarEventCard key={event.id} event={event} />
-                    ))}
-                  </div>
-                </div>
-              ))
-          )}
-        </div>
-      ) : (
-        /* Calendar View */
-        <div className="grid gap-6 lg:grid-cols-[350px_1fr]">
-          {/* Calendar */}
-          <div className="cave-card p-4">
-            <div className="flex items-center justify-between mb-4">
-              <Button variant="ghost" size="icon" onClick={handlePreviousMonth}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <h3 className="font-medium">
-                {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
-              </h3>
-              <Button variant="ghost" size="icon" onClick={handleNextMonth}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              month={currentMonth}
-              onMonthChange={setCurrentMonth}
-              locale={ptBR}
-              className="rounded-md"
-              modifiers={{
-                hasEvents: (date) => datesWithEvents.has(format(date, "yyyy-MM-dd")),
-              }}
-              modifiersStyles={{
-                hasEvents: {
-                  fontWeight: "bold",
-                  textDecoration: "underline",
-                  textUnderlineOffset: "4px",
-                },
-              }}
-            />
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto">
+        {loading && events.length === 0 ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
-
-          {/* Selected Day Events */}
-          <div className="cave-card p-6">
-            <h3 className="font-semibold mb-4">
-              {selectedDate
-                ? format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })
-                : "Selecione uma data"}
-            </h3>
-
-            {selectedDateEvents.length === 0 ? (
-              <div className="flex flex-col items-center py-8 text-center">
-                <CalendarIcon className="h-8 w-8 text-muted-foreground mb-3" />
-                <p className="text-muted-foreground text-sm">
-                  Nenhum evento neste dia
+        ) : error ? (
+          <div className="px-6 py-5">
+            <div className="cave-card p-6 text-center">
+              <p className="text-destructive">{error}</p>
+              <Button onClick={handleRefresh} variant="outline" className="mt-4">
+                Tentar novamente
+              </Button>
+            </div>
+          </div>
+        ) : viewMode === "list" ? (
+          <div className="px-6 py-5">
+            <h2 className="text-xl font-bold text-foreground uppercase tracking-wider mb-4">
+              Próximos Eventos
+            </h2>
+            {Object.entries(eventsByDate).length === 0 ? (
+              <div className="cave-card p-12 text-center">
+                <CalendarIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
+                  Nenhum evento nos próximos 30 dias
                 </p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {selectedDateEvents.map((event) => (
-                  <CalendarEventCard key={event.id} event={event} />
-                ))}
+              <div className="space-y-6">
+                {Object.entries(eventsByDate)
+                  .sort(([a], [b]) => a.localeCompare(b))
+                  .map(([date, dayEvents]) => (
+                    <div key={date}>
+                      <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3">
+                        {format(parseISO(date), "EEEE, d 'de' MMMM", { locale: ptBR })}
+                      </h3>
+                      <div className="space-y-2">
+                        {dayEvents.map((event) => (
+                          <CalendarEventCard key={event.id} event={event} />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
               </div>
             )}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="px-6 py-5">
+            <div className="grid gap-6 lg:grid-cols-[350px_1fr]">
+              {/* Calendar */}
+              <div className="cave-card p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <h3 className="font-bold uppercase tracking-wider text-sm">
+                    {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
+                  </h3>
+                  <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  month={currentMonth}
+                  onMonthChange={setCurrentMonth}
+                  locale={ptBR}
+                  className="rounded-md"
+                  modifiers={{
+                    hasEvents: (date) => datesWithEvents.has(format(date, "yyyy-MM-dd")),
+                  }}
+                  modifiersStyles={{
+                    hasEvents: {
+                      fontWeight: "bold",
+                      textDecoration: "underline",
+                      textUnderlineOffset: "4px",
+                    },
+                  }}
+                />
+              </div>
+
+              {/* Selected Day Events */}
+              <div className="cave-card p-6">
+                <h3 className="font-bold uppercase tracking-wider text-sm mb-4">
+                  {selectedDate
+                    ? format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })
+                    : "Selecione uma data"}
+                </h3>
+
+                {selectedDateEvents.length === 0 ? (
+                  <div className="flex flex-col items-center py-8 text-center">
+                    <CalendarIcon className="h-8 w-8 text-muted-foreground mb-3" />
+                    <p className="text-muted-foreground text-sm">
+                      Nenhum evento neste dia
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {selectedDateEvents.map((event) => (
+                      <CalendarEventCard key={event.id} event={event} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

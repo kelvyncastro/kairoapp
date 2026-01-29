@@ -9,15 +9,12 @@ import {
   Square,
   Clock,
   Trash2,
-  Edit2,
-  ChevronRight,
   Check,
   Timer,
   TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
   DialogContent,
@@ -35,10 +32,8 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
 interface WorkoutPlan {
   id: string;
@@ -85,19 +80,16 @@ export default function Treino() {
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Active session state
   const [activeSession, setActiveSession] = useState<WorkoutSession | null>(null);
   const [sessionExercises, setSessionExercises] = useState<ExerciseEntry[]>([]);
   const [restTimer, setRestTimer] = useState<number | null>(null);
   const [restStartTime, setRestStartTime] = useState<number | null>(null);
   
-  // Dialogs
   const [newPlanOpen, setNewPlanOpen] = useState(false);
   const [newExerciseOpen, setNewExerciseOpen] = useState(false);
   const [startSessionOpen, setStartSessionOpen] = useState(false);
   const [addExerciseOpen, setAddExerciseOpen] = useState(false);
   
-  // Form state
   const [newPlan, setNewPlan] = useState({ name: "", description: "" });
   const [newExercise, setNewExercise] = useState({ name: "", muscle_group: "" });
   const [selectedPlanId, setSelectedPlanId] = useState<string>("");
@@ -123,7 +115,6 @@ export default function Treino() {
     fetchData();
   }, [fetchData]);
 
-  // Rest timer effect
   useEffect(() => {
     if (restTimer === null || restStartTime === null) return;
     
@@ -134,7 +125,6 @@ export default function Treino() {
       if (remaining === 0) {
         setRestTimer(null);
         setRestStartTime(null);
-        // Could add notification sound here
       }
     }, 1000);
 
@@ -225,7 +215,6 @@ export default function Treino() {
       return;
     }
 
-    // Add first set automatically
     const { data: setData } = await supabase
       .from("workout_sets")
       .insert({
@@ -320,7 +309,6 @@ export default function Treino() {
       )
     );
 
-    // Start rest timer (90 seconds default)
     setRestTimer(90);
     setRestStartTime(Date.now());
   };
@@ -328,7 +316,6 @@ export default function Treino() {
   const handleFinishSession = async () => {
     if (!activeSession) return;
 
-    // Calculate total volume
     let totalVolume = 0;
     sessionExercises.forEach((entry) => {
       entry.sets.forEach((set) => {
@@ -346,7 +333,6 @@ export default function Treino() {
       })
       .eq("id", activeSession.id);
 
-    // Update consistency
     const today = format(new Date(), "yyyy-MM-dd");
     await supabase.from("consistency_days").upsert(
       {
@@ -382,12 +368,12 @@ export default function Treino() {
   // Active Session View
   if (activeSession) {
     return (
-      <div className="space-y-6 animate-fade-in">
-        {/* Session Header */}
-        <div className="flex items-center justify-between">
+      <div className="h-[calc(100vh-4rem)] flex flex-col -m-6 bg-background">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border/30 flex-shrink-0">
           <div>
-            <h1 className="text-2xl font-semibold">Treino em Andamento</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold">Treino em Andamento</h1>
+            <p className="text-sm text-muted-foreground">
               Iniciado às {format(new Date(activeSession.datetime_start), "HH:mm")}
             </p>
           </div>
@@ -397,150 +383,165 @@ export default function Treino() {
           </Button>
         </div>
 
-        {/* Rest Timer */}
-        {restTimer !== null && (
-          <div className="cave-card p-4 flex items-center justify-between animate-pulse-subtle">
-            <div className="flex items-center gap-3">
-              <Timer className="h-5 w-5" />
-              <span>Descanso</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-2xl font-mono">{remainingRest}s</span>
-              <Button size="sm" variant="outline" onClick={() => { setRestTimer(null); setRestStartTime(null); }}>
-                Pular
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Exercises */}
-        <div className="space-y-4">
-          {sessionExercises.map((entry) => (
-            <div key={entry.id} className="cave-card p-4">
-              <h3 className="font-semibold mb-4">{entry.exercise_name}</h3>
-              
-              <div className="space-y-2">
-                {/* Header */}
-                <div className="grid grid-cols-12 gap-2 text-xs text-muted-foreground px-2">
-                  <div className="col-span-2">Série</div>
-                  <div className="col-span-3">Peso (kg)</div>
-                  <div className="col-span-3">Reps</div>
-                  <div className="col-span-4" />
-                </div>
-
-                {/* Sets */}
-                {entry.sets.map((set) => (
-                  <div
-                    key={set.id}
-                    className={cn(
-                      "grid grid-cols-12 gap-2 items-center p-2 rounded-md",
-                      set.completed ? "bg-success/10" : "bg-secondary/50"
-                    )}
-                  >
-                    <div className="col-span-2 text-sm font-medium">
-                      {set.set_number}
-                    </div>
-                    <div className="col-span-3">
-                      <Input
-                        type="number"
-                        value={set.weight_kg}
-                        onChange={(e) =>
-                          handleUpdateSet(entry.id, set.id, "weight_kg", Number(e.target.value))
-                        }
-                        disabled={set.completed}
-                        className="h-8 text-center"
-                      />
-                    </div>
-                    <div className="col-span-3">
-                      <Input
-                        type="number"
-                        value={set.reps}
-                        onChange={(e) =>
-                          handleUpdateSet(entry.id, set.id, "reps", Number(e.target.value))
-                        }
-                        disabled={set.completed}
-                        className="h-8 text-center"
-                      />
-                    </div>
-                    <div className="col-span-4 flex justify-end">
-                      {set.completed ? (
-                        <span className="text-success text-sm flex items-center gap-1">
-                          <Check className="h-4 w-4" /> Feito
-                        </span>
-                      ) : (
-                        <Button
-                          size="sm"
-                          onClick={() => handleCompleteSet(entry.id, set.id)}
-                          disabled={set.reps === 0}
-                        >
-                          <Check className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full mt-2"
-                  onClick={() => handleAddSet(entry.id)}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Série
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {/* Rest Timer */}
+          {restTimer !== null && (
+            <div className="cave-card p-4 flex items-center justify-between animate-pulse-subtle">
+              <div className="flex items-center gap-3">
+                <Timer className="h-5 w-5" />
+                <span className="font-bold uppercase tracking-wider text-sm">Descanso</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl font-mono">{remainingRest}s</span>
+                <Button size="sm" variant="outline" onClick={() => { setRestTimer(null); setRestStartTime(null); }}>
+                  Pular
                 </Button>
               </div>
             </div>
-          ))}
-        </div>
+          )}
 
-        {/* Add Exercise */}
-        <Dialog open={addExerciseOpen} onOpenChange={setAddExerciseOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="w-full">
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Exercício
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Adicionar Exercício</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <Select value={selectedExerciseId} onValueChange={setSelectedExerciseId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um exercício" />
-                </SelectTrigger>
-                <SelectContent>
-                  {exercises.map((ex) => (
-                    <SelectItem key={ex.id} value={ex.id}>
-                      {ex.name} {ex.muscle_group && `(${ex.muscle_group})`}
-                    </SelectItem>
+          {/* Exercises */}
+          <div className="space-y-4">
+            {sessionExercises.map((entry) => (
+              <div key={entry.id} className="cave-card p-5">
+                <h3 className="font-bold uppercase tracking-wider text-sm mb-4">{entry.exercise_name}</h3>
+                
+                <div className="space-y-2">
+                  <div className="grid grid-cols-12 gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground px-2">
+                    <div className="col-span-2">Série</div>
+                    <div className="col-span-3">Peso (kg)</div>
+                    <div className="col-span-3">Reps</div>
+                    <div className="col-span-4" />
+                  </div>
+
+                  {entry.sets.map((set) => (
+                    <div
+                      key={set.id}
+                      className={cn(
+                        "grid grid-cols-12 gap-2 items-center p-2 rounded-md",
+                        set.completed ? "bg-success/10" : "bg-secondary/50"
+                      )}
+                    >
+                      <div className="col-span-2 text-sm font-medium">
+                        {set.set_number}
+                      </div>
+                      <div className="col-span-3">
+                        <Input
+                          type="number"
+                          value={set.weight_kg}
+                          onChange={(e) =>
+                            handleUpdateSet(entry.id, set.id, "weight_kg", Number(e.target.value))
+                          }
+                          disabled={set.completed}
+                          className="h-8 text-center"
+                        />
+                      </div>
+                      <div className="col-span-3">
+                        <Input
+                          type="number"
+                          value={set.reps}
+                          onChange={(e) =>
+                            handleUpdateSet(entry.id, set.id, "reps", Number(e.target.value))
+                          }
+                          disabled={set.completed}
+                          className="h-8 text-center"
+                        />
+                      </div>
+                      <div className="col-span-4 flex justify-end">
+                        {set.completed ? (
+                          <span className="text-success text-sm flex items-center gap-1">
+                            <Check className="h-4 w-4" /> Feito
+                          </span>
+                        ) : (
+                          <Button
+                            size="sm"
+                            onClick={() => handleCompleteSet(entry.id, set.id)}
+                            disabled={set.reps === 0}
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <DialogFooter>
-              <Button onClick={handleAddExerciseToSession} disabled={!selectedExerciseId}>
-                Adicionar
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full mt-2"
+                    onClick={() => handleAddSet(entry.id)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Série
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Add Exercise */}
+          <Dialog open={addExerciseOpen} onOpenChange={setAddExerciseOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Exercício
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Adicionar Exercício</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <Select value={selectedExerciseId} onValueChange={setSelectedExerciseId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um exercício" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {exercises.map((ex) => (
+                      <SelectItem key={ex.id} value={ex.id}>
+                        {ex.name} {ex.muscle_group && `(${ex.muscle_group})`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <DialogFooter>
+                <Button onClick={handleAddExerciseToSession} disabled={!selectedExerciseId}>
+                  Adicionar
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
     );
   }
 
-  // Main View
+  if (loading) {
+    return (
+      <div className="h-[calc(100vh-4rem)] flex flex-col -m-6 bg-background">
+        <div className="px-6 py-4 border-b border-border/30">
+          <div className="h-8 w-48 bg-muted/30 rounded animate-pulse" />
+        </div>
+        <div className="flex-1 p-6">
+          <div className="grid gap-4 md:grid-cols-2 mb-6">
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="h-48 bg-muted/30 rounded-lg animate-pulse" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="h-[calc(100vh-4rem)] flex flex-col -m-6 bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-border/30 flex-shrink-0">
         <div>
-          <h1 className="text-2xl font-semibold">Treino</h1>
-          <p className="text-muted-foreground">
-            Força nasce da consistência.
-          </p>
+          <h1 className="text-2xl font-bold">Treino</h1>
+          <p className="text-sm text-muted-foreground">Força nasce da consistência.</p>
         </div>
 
         <Dialog open={startSessionOpen} onOpenChange={setStartSessionOpen}>
@@ -582,177 +583,189 @@ export default function Treino() {
         </Dialog>
       </div>
 
-      {/* Plans & Exercises */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Plans */}
-        <div className="cave-card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold">Planos de Treino</h2>
-            <Dialog open={newPlanOpen} onOpenChange={setNewPlanOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" variant="outline">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Novo Plano</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label>Nome</Label>
-                    <Input
-                      placeholder="Ex: Peito e Tríceps"
-                      value={newPlan.name}
-                      onChange={(e) => setNewPlan({ ...newPlan, name: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Descrição</Label>
-                    <Textarea
-                      placeholder="Detalhes do plano..."
-                      value={newPlan.description}
-                      onChange={(e) => setNewPlan({ ...newPlan, description: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button onClick={handleCreatePlan} disabled={!newPlan.name.trim()}>
-                    Criar
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          {plans.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Dumbbell className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Nenhum plano criado</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {plans.map((plan) => (
-                <div
-                  key={plan.id}
-                  className="flex items-center justify-between p-3 rounded-md bg-secondary/50 group"
-                >
-                  <div>
-                    <p className="font-medium">{plan.name}</p>
-                    {plan.description && (
-                      <p className="text-xs text-muted-foreground">{plan.description}</p>
-                    )}
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="opacity-0 group-hover:opacity-100 text-destructive"
-                    onClick={() => handleDeletePlan(plan.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Exercises */}
-        <div className="cave-card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold">Exercícios</h2>
-            <Dialog open={newExerciseOpen} onOpenChange={setNewExerciseOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" variant="outline">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Novo Exercício</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label>Nome</Label>
-                    <Input
-                      placeholder="Ex: Supino Reto"
-                      value={newExercise.name}
-                      onChange={(e) => setNewExercise({ ...newExercise, name: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Grupo Muscular</Label>
-                    <Input
-                      placeholder="Ex: Peito"
-                      value={newExercise.muscle_group}
-                      onChange={(e) => setNewExercise({ ...newExercise, muscle_group: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button onClick={handleCreateExercise} disabled={!newExercise.name.trim()}>
-                    Criar
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          {exercises.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Dumbbell className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Nenhum exercício cadastrado</p>
-            </div>
-          ) : (
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {exercises.map((ex) => (
-                <div
-                  key={ex.id}
-                  className="flex items-center justify-between p-3 rounded-md bg-secondary/50"
-                >
-                  <div>
-                    <p className="font-medium">{ex.name}</p>
-                    {ex.muscle_group && (
-                      <p className="text-xs text-muted-foreground">{ex.muscle_group}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Recent Sessions */}
-      <div className="cave-card p-6">
-        <h2 className="font-semibold mb-4">Histórico</h2>
-        {sessions.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">Nenhum treino registrado</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {sessions.map((session) => (
-              <div
-                key={session.id}
-                className="flex items-center justify-between p-3 rounded-md bg-secondary/50"
-              >
-                <div>
-                  <p className="font-medium">
-                    {format(new Date(session.datetime_start), "dd/MM/yyyy HH:mm")}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Volume: {session.total_volume.toFixed(0)} kg
-                  </p>
-                </div>
-                {session.total_volume > 0 && (
-                  <TrendingUp className="h-4 w-4 text-success" />
-                )}
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Plans & Exercises */}
+        <div className="px-6 py-5">
+          <h2 className="text-xl font-bold text-foreground uppercase tracking-wider mb-4">
+            Configuração
+          </h2>
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Plans */}
+            <div className="cave-card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold uppercase tracking-wider text-sm">Planos de Treino</h3>
+                <Dialog open={newPlanOpen} onOpenChange={setNewPlanOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" variant="outline">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Novo Plano</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label>Nome</Label>
+                        <Input
+                          placeholder="Ex: Peito e Tríceps"
+                          value={newPlan.name}
+                          onChange={(e) => setNewPlan({ ...newPlan, name: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Descrição</Label>
+                        <Textarea
+                          placeholder="Detalhes do plano..."
+                          value={newPlan.description}
+                          onChange={(e) => setNewPlan({ ...newPlan, description: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button onClick={handleCreatePlan} disabled={!newPlan.name.trim()}>
+                        Criar
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
-            ))}
+
+              {plans.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Dumbbell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Nenhum plano criado</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {plans.map((plan) => (
+                    <div
+                      key={plan.id}
+                      className="flex items-center justify-between p-3 rounded-md bg-secondary/50 group"
+                    >
+                      <div>
+                        <p className="font-medium">{plan.name}</p>
+                        {plan.description && (
+                          <p className="text-xs text-muted-foreground">{plan.description}</p>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="opacity-0 group-hover:opacity-100 text-destructive"
+                        onClick={() => handleDeletePlan(plan.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Exercises */}
+            <div className="cave-card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold uppercase tracking-wider text-sm">Exercícios</h3>
+                <Dialog open={newExerciseOpen} onOpenChange={setNewExerciseOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" variant="outline">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Novo Exercício</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label>Nome</Label>
+                        <Input
+                          placeholder="Ex: Supino Reto"
+                          value={newExercise.name}
+                          onChange={(e) => setNewExercise({ ...newExercise, name: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Grupo Muscular</Label>
+                        <Input
+                          placeholder="Ex: Peito"
+                          value={newExercise.muscle_group}
+                          onChange={(e) => setNewExercise({ ...newExercise, muscle_group: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button onClick={handleCreateExercise} disabled={!newExercise.name.trim()}>
+                        Criar
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              {exercises.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Dumbbell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Nenhum exercício cadastrado</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {exercises.map((ex) => (
+                    <div
+                      key={ex.id}
+                      className="flex items-center justify-between p-3 rounded-md bg-secondary/50"
+                    >
+                      <div>
+                        <p className="font-medium">{ex.name}</p>
+                        {ex.muscle_group && (
+                          <p className="text-xs text-muted-foreground">{ex.muscle_group}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        )}
+        </div>
+
+        {/* Recent Sessions */}
+        <div className="px-6 py-5 border-t border-border/30">
+          <h2 className="text-xl font-bold text-foreground uppercase tracking-wider mb-4">
+            Histórico
+          </h2>
+          <div className="cave-card p-6">
+            {sessions.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Nenhum treino registrado</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {sessions.map((session) => (
+                  <div
+                    key={session.id}
+                    className="flex items-center justify-between p-3 rounded-md bg-secondary/50"
+                  >
+                    <div>
+                      <p className="font-medium">
+                        {format(new Date(session.datetime_start), "dd/MM/yyyy HH:mm")}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Volume: {session.total_volume.toFixed(0)} kg
+                      </p>
+                    </div>
+                    {session.total_volume > 0 && (
+                      <TrendingUp className="h-4 w-4 text-success" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

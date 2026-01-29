@@ -121,75 +121,84 @@ export default function Ebook() {
   );
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-semibold">Ebook</h1>
-        <p className="text-muted-foreground">Conhecimento é poder.</p>
+    <div className="h-[calc(100vh-4rem)] flex flex-col -m-6 bg-background">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-border/30 flex-shrink-0">
+        <div>
+          <h1 className="text-2xl font-bold">Ebook</h1>
+          <p className="text-sm text-muted-foreground">Conhecimento é poder.</p>
+        </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-4">
-        {/* Sidebar */}
-        <div className="cave-card p-4 lg:col-span-1">
-          <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
+      {/* Content */}
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full grid gap-6 lg:grid-cols-4 p-6">
+          {/* Sidebar */}
+          <div className="cave-card p-4 lg:col-span-1 overflow-y-auto">
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
+              Capítulos
+            </h3>
+            <nav className="space-y-1">
+              {filteredChapters.map((chapter) => (
+                <button
+                  key={chapter.id}
+                  onClick={() => setActiveChapter(chapter.id)}
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
+                    activeChapter === chapter.id
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                  )}
+                >
+                  {chapter.title}
+                </button>
+              ))}
+            </nav>
           </div>
 
-          <nav className="space-y-1">
-            {filteredChapters.map((chapter) => (
-              <button
-                key={chapter.id}
-                onClick={() => setActiveChapter(chapter.id)}
-                className={cn(
-                  "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
-                  activeChapter === chapter.id
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                )}
-              >
-                {chapter.title}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Content */}
-        <div className="cave-card p-6 lg:col-span-3">
-          {currentChapter ? (
-            <article className="prose prose-invert prose-sm max-w-none">
-              {currentChapter.content.split("\n").map((line, i) => {
-                if (line.startsWith("# ")) {
-                  return <h1 key={i} className="text-2xl font-bold mb-4">{line.slice(2)}</h1>;
-                }
-                if (line.startsWith("## ")) {
-                  return <h2 key={i} className="text-xl font-semibold mt-6 mb-3">{line.slice(3)}</h2>;
-                }
-                if (line.startsWith("> ")) {
-                  return <blockquote key={i} className="border-l-2 border-primary pl-4 italic text-muted-foreground my-4">{line.slice(2)}</blockquote>;
-                }
-                if (line.startsWith("- ")) {
-                  return <li key={i} className="ml-4">{line.slice(2)}</li>;
-                }
-                if (line.match(/^\d+\./)) {
-                  return <li key={i} className="ml-4">{line}</li>;
-                }
-                if (line.trim() === "") {
-                  return <br key={i} />;
-                }
-                return <p key={i} className="my-2">{line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</p>;
-              })}
-            </article>
-          ) : (
-            <div className="text-center py-12">
-              <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Selecione um capítulo</p>
-            </div>
-          )}
+          {/* Content */}
+          <div className="cave-card p-6 lg:col-span-3 overflow-y-auto">
+            {currentChapter ? (
+              <article className="prose prose-invert prose-sm max-w-none">
+                {currentChapter.content.split("\n").map((line, i) => {
+                  if (line.startsWith("# ")) {
+                    return <h1 key={i} className="text-2xl font-bold mb-4">{line.slice(2)}</h1>;
+                  }
+                  if (line.startsWith("## ")) {
+                    return <h2 key={i} className="text-xl font-bold uppercase tracking-wider mt-6 mb-3">{line.slice(3)}</h2>;
+                  }
+                  if (line.startsWith("> ")) {
+                    return <blockquote key={i} className="border-l-2 border-primary pl-4 italic text-muted-foreground my-4">{line.slice(2)}</blockquote>;
+                  }
+                  if (line.startsWith("- ")) {
+                    return <li key={i} className="ml-4">{line.slice(2)}</li>;
+                  }
+                  if (line.match(/^\d+\./)) {
+                    return <li key={i} className="ml-4">{line}</li>;
+                  }
+                  if (line.trim() === "") {
+                    return <br key={i} />;
+                  }
+                  return <p key={i} className="my-2">{line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</p>;
+                })}
+              </article>
+            ) : (
+              <div className="text-center py-12">
+                <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">Selecione um capítulo</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
