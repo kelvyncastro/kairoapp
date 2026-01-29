@@ -9,6 +9,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Rotina from "./pages/Rotina";
+import Habitos from "./pages/Habitos";
 import Metas from "./pages/Metas";
 import Consistencia from "./pages/Consistencia";
 import Treino from "./pages/Treino";
@@ -39,6 +40,7 @@ const App = () => (
             >
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/rotina" element={<Rotina />} />
+              <Route path="/habitos" element={<Habitos />} />
               <Route path="/metas" element={<Metas />} />
               <Route path="/consistencia" element={<Consistencia />} />
               <Route path="/treino" element={<Treino />} />

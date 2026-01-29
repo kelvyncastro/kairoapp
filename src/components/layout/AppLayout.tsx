@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard,
   ListTodo,
+  CalendarCheck,
   Target,
   Flame,
   Dumbbell,
@@ -40,6 +41,7 @@ import {
 const navItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { path: "/rotina", label: "Rotina", icon: ListTodo },
+  { path: "/habitos", label: "Hábitos", icon: CalendarCheck },
   { path: "/metas", label: "Metas", icon: Target },
   { path: "/consistencia", label: "Consistência", icon: Flame },
   { path: "/treino", label: "Treino", icon: Dumbbell },
