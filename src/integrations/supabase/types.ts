@@ -342,6 +342,71 @@ export type Database = {
         }
         Relationships: []
       }
+      habit_logs: {
+        Row: {
+          created_at: string
+          date: string
+          habit_id: string
+          id: string
+          status: Database["public"]["Enums"]["habit_log_status"]
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          habit_id: string
+          id?: string
+          status?: Database["public"]["Enums"]["habit_log_status"]
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          habit_id?: string
+          id?: string
+          status?: Database["public"]["Enums"]["habit_log_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_logs_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "habits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      habits: {
+        Row: {
+          active: boolean
+          created_at: string
+          frequency: Json
+          id: string
+          name: string
+          start_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          frequency?: Json
+          id?: string
+          name: string
+          start_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          frequency?: Json
+          id?: string
+          name?: string
+          start_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       meals: {
         Row: {
           created_at: string | null
@@ -894,6 +959,7 @@ export type Database = {
       food_source: "PHOTO" | "TEXT" | "MANUAL"
       goal_status: "ACTIVE" | "COMPLETED" | "PAUSED"
       goal_type: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY"
+      habit_log_status: "done" | "not_done" | "skipped"
       workout_technique:
         | "NONE"
         | "DROP_SET"
@@ -1034,6 +1100,7 @@ export const Constants = {
       food_source: ["PHOTO", "TEXT", "MANUAL"],
       goal_status: ["ACTIVE", "COMPLETED", "PAUSED"],
       goal_type: ["DAILY", "WEEKLY", "MONTHLY", "YEARLY"],
+      habit_log_status: ["done", "not_done", "skipped"],
       workout_technique: [
         "NONE",
         "DROP_SET",
