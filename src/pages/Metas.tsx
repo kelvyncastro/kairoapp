@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import confetti from "canvas-confetti";
 import {
   Plus,
   Target,
@@ -242,6 +243,25 @@ export default function Metas() {
     }
 
     if (completed && goal.status !== "COMPLETED") {
+      // Dispara confetes de celebração
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
+      // Segunda explosão após um pequeno delay
+      setTimeout(() => {
+        confetti({
+          particleCount: 100,
+          spread: 100,
+          origin: { y: 0.5, x: 0.3 },
+        });
+        confetti({
+          particleCount: 100,
+          spread: 100,
+          origin: { y: 0.5, x: 0.7 },
+        });
+      }, 200);
       toast({ title: "🎯 Meta alcançada!", description: goal.title });
     } else {
       toast({ title: "Progresso registrado!" });
