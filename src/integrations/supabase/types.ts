@@ -180,6 +180,7 @@ export type Database = {
         Row: {
           color_label: string | null
           created_at: string | null
+          icon: string | null
           id: string
           name: string
           user_id: string
@@ -187,6 +188,7 @@ export type Database = {
         Insert: {
           color_label?: string | null
           created_at?: string | null
+          icon?: string | null
           id?: string
           name: string
           user_id: string
@@ -194,6 +196,7 @@ export type Database = {
         Update: {
           color_label?: string | null
           created_at?: string | null
+          icon?: string | null
           id?: string
           name?: string
           user_id?: string
