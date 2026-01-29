@@ -107,38 +107,38 @@ const sectorColors = [
   "#6b7280", // gray
 ];
 
-// Ícones mais relevantes para finanças - expandido
+// Ícones para setores financeiros
 const sectorIcons = [
-  // Finanças e dinheiro
-  "wallet", "credit-card", "banknote", "coins", "piggy-bank", "landmark", "building-2", "receipt", "receipt-text",
-  // Gráficos e análise
-  "chart-line", "chart-bar", "chart-pie", "trending-up", "trending-down", "percent", "calculator",
-  // Compras e varejo
-  "shopping-bag", "shopping-cart", "store", "tag", "tags", "package", "gift", "boxes",
-  // Casa e moradia
-  "home", "house", "building", "warehouse", "sofa", "bed", "bath", "lamp", "plug", "lightbulb", "thermometer", "droplet", "flame",
+  // Finanças
+  "wallet", "credit-card", "banknote", "coins", "piggy-bank", "landmark", "receipt",
+  // Gráficos
+  "chart-line", "chart-bar", "trending-up", "calculator",
+  // Compras
+  "shopping-bag", "shopping-cart", "store", "tag", "package", "gift",
+  // Casa
+  "home", "building", "sofa", "lightbulb", "droplet", "flame",
   // Transporte
-  "car", "bus", "train", "plane", "bike", "fuel", "map-pin", "navigation",
+  "car", "bus", "plane", "bike", "fuel",
   // Alimentação
-  "utensils", "coffee", "pizza", "apple", "beef", "wine", "beer", "cookie", "ice-cream", "salad", "sandwich", "soup",
-  // Vestuário e beleza
-  "shirt", "watch", "glasses", "gem", "diamond", "sparkles", "scissors",
-  // Educação e trabalho
-  "graduation-cap", "book", "book-open", "notebook", "pen", "pencil", "briefcase", "file-text",
+  "utensils", "coffee", "pizza", "wine", "beer",
+  // Vestuário
+  "shirt", "watch", "glasses", "gem", "scissors",
+  // Educação
+  "graduation-cap", "book", "pencil", "briefcase",
   // Tecnologia
-  "smartphone", "laptop", "monitor", "tablet", "headphones", "camera", "printer", "wifi", "globe",
+  "smartphone", "laptop", "headphones", "camera", "wifi", "globe",
   // Entretenimento
-  "gamepad", "tv", "music", "music-2", "film", "clapperboard", "ticket", "dice-1", "puzzle",
-  // Saúde e fitness
-  "heart", "heart-pulse", "activity", "dumbbell", "apple", "pill", "stethoscope", "syringe", "bandage",
-  // Esportes e conquistas
-  "trophy", "medal", "award", "crown", "star", "target", "flag",
-  // Pets e natureza
-  "dog", "cat", "fish", "bird", "tree", "flower", "sun", "moon", "cloud",
-  // Família e social
-  "baby", "users", "user", "hand-heart", "handshake", "smile",
-  // Outros úteis
-  "wrench", "hammer", "paint-bucket", "brush", "key", "lock", "shield", "umbrella", "calendar", "clock", "alarm-clock", "bell",
+  "gamepad", "tv", "music", "film", "ticket",
+  // Saúde
+  "heart", "dumbbell", "pill",
+  // Conquistas
+  "trophy", "medal", "crown", "star", "target",
+  // Natureza
+  "dog", "cat", "tree", "sun",
+  // Social
+  "baby", "users", "smile",
+  // Outros
+  "wrench", "key", "shield", "umbrella", "calendar", "clock", "bell",
 ];
 
 // Setores padrão
