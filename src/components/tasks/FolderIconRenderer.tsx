@@ -93,6 +93,7 @@ import {
   Coins,
   Banknote,
   Receipt,
+  Shirt,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -192,6 +193,7 @@ const iconMap: Record<string, LucideIcon> = {
   'coins': Coins,
   'banknote': Banknote,
   'receipt': Receipt,
+  'shirt': Shirt,
 };
 
 interface FolderIconRendererProps {
