@@ -455,6 +455,73 @@ export type Database = {
         }
         Relationships: []
       }
+      task_checklist_items: {
+        Row: {
+          checklist_id: string
+          completed: boolean
+          created_at: string
+          id: string
+          order_index: number
+          title: string
+        }
+        Insert: {
+          checklist_id: string
+          completed?: boolean
+          created_at?: string
+          id?: string
+          order_index?: number
+          title: string
+        }
+        Update: {
+          checklist_id?: string
+          completed?: boolean
+          created_at?: string
+          id?: string
+          order_index?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_checklist_items_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "task_checklists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_checklists: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          order_index: number
+          task_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string
+          order_index?: number
+          task_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          order_index?: number
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_checklists_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "daily_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_folders: {
         Row: {
           color: string | null
@@ -541,6 +608,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      task_subtasks: {
+        Row: {
+          completed: boolean
+          created_at: string
+          id: string
+          order_index: number
+          task_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          order_index?: number
+          task_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          order_index?: number
+          task_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_subtasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "daily_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
