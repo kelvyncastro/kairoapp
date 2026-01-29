@@ -88,11 +88,12 @@
 /* Glow effect */
 .fire-glow {
   position: absolute;
-  bottom: -20%;
+  /* Sobe o brilho para acompanhar melhor o alinhamento do ícone com o número */
+  bottom: -6%;
   left: 50%;
   transform: translateX(-50%);
   width: 150%;
-  height: 60%;
+  height: 70%;
   background: radial-gradient(
     ellipse at center bottom,
     rgba(255, 100, 0, 0.4) 0%,
