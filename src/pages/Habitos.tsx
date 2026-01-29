@@ -43,7 +43,7 @@ export default function Habitos() {
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-border/30 flex-shrink-0">
         <div className="flex items-center gap-4">
-          <h1 className="text-xl font-semibold">Criador de Hábitos</h1>
+          <h1 className="text-2xl font-bold">Criador de Hábitos</h1>
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={goToPreviousMonth}>
               <ChevronLeft className="h-4 w-4" />
@@ -65,7 +65,7 @@ export default function Habitos() {
       <div className="flex-1 overflow-y-auto">
         {/* Progress Chart */}
         <div className="px-6 py-5">
-          <h2 className="text-lg font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+          <h2 className="text-xl font-bold text-foreground uppercase tracking-wider mb-4">
             Progresso do Mês
           </h2>
           <HabitProgressChart dailyScores={dailyScores} />
@@ -73,7 +73,7 @@ export default function Habitos() {
 
         {/* Habits Grid */}
         <div className="px-6 py-5 border-t border-border/30">
-          <h2 className="text-lg font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+          <h2 className="text-xl font-bold text-foreground uppercase tracking-wider mb-4">
             Grade de Hábitos
           </h2>
           <HabitGrid
