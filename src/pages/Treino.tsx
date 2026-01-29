@@ -188,7 +188,7 @@ export default function Treino() {
       .from("workout_sessions")
       .insert({
         user_id: user.id,
-        plan_id: selectedPlanId || null,
+        plan_id: selectedPlanId && selectedPlanId !== "none" ? selectedPlanId : null,
       })
       .select()
       .single();
@@ -562,7 +562,7 @@ export default function Treino() {
                     <SelectValue placeholder="Selecione um plano" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Sem plano</SelectItem>
+                    <SelectItem value="none">Sem plano</SelectItem>
                     {plans.map((plan) => (
                       <SelectItem key={plan.id} value={plan.id}>
                         {plan.name}
