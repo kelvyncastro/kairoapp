@@ -254,20 +254,20 @@ export function useHabits(currentDate: Date) {
         return { day: day.getDate(), score: 0 };
       }
 
+      const dateStr = format(day, 'yyyy-MM-dd');
+      const dayOfWeek = getDay(day);
+      const dayKey = Object.entries(DAY_MAP).find(([, val]) => val === dayOfWeek)?.[0];
+
       let planned = 0;
       let done = 0;
 
-      const dateStr = format(day, 'yyyy-MM-dd');
-
       for (const habit of habits) {
-        const log = habit.logs.find((l) => l.date === dateStr);
-
-        // Se o usuário marcou (log existe), esse dia precisa contar no score
-        // mesmo que não estivesse "planejado" (ex.: hábito criado depois).
-        const countsForThisDay = isHabitPlannedForDay(habit, day) || Boolean(log);
-        if (!countsForThisDay) continue;
+        // Conta o hábito se o dia da semana está na frequência (ignora start_date para o gráfico)
+        const matchesFrequency = dayKey ? habit.frequency.includes(dayKey) : false;
+        if (!matchesFrequency) continue;
 
         planned++;
+        const log = habit.logs.find((l) => l.date === dateStr);
         if (log?.status === 'done') done++;
       }
 
@@ -276,7 +276,7 @@ export function useHabits(currentDate: Date) {
         score: planned > 0 ? Math.round((done / planned) * 100) : 0,
       };
     });
-  }, [daysInMonth, habits, isHabitPlannedForDay]);
+  }, [daysInMonth, habits]);
 
   // Get log status for a specific habit and day
   const getLogStatus = useCallback(
