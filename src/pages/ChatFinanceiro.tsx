@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, MessageCircle, Loader2, Sparkles, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -192,15 +192,15 @@ export default function ChatFinanceiro() {
     }
   };
 
-  // Generate particles
-  const particles = Array.from({ length: 20 }, (_, i) => ({
+  // Generate particles - memoized to prevent recreation on every render
+  const particles = useMemo(() => Array.from({ length: 20 }, (_, i) => ({
     id: i,
     delay: i * 0.5,
-    duration: 8 + Math.random() * 6,
-    size: 4 + Math.random() * 8,
-    startX: Math.random() * 100,
-    startY: Math.random() * 30 - 10,
-  }));
+    duration: 8 + (i % 3) * 2 + 4,
+    size: 4 + (i % 5) * 2,
+    startX: (i * 17) % 100,
+    startY: (i * 7) % 30 - 10,
+  })), []);
 
   return (
     <div className="h-[calc(100vh-4rem)] -m-6 relative overflow-hidden bg-background">
