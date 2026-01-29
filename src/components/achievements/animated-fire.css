@@ -1,32 +1,29 @@
 .fire-container {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  /* Subir levemente o ícone para alinhar visualmente com o número */
-  transform: translateY(-8px);
+  margin-left: 4px;
 }
 
 .fire {
   position: relative;
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .fire-flame {
   position: absolute;
-  bottom: 0;
+  top: 5%;
   border-radius: 50% 50% 20% 20%;
-  transform-origin: bottom center;
+  transform-origin: center top;
 }
 
 /* Main central flame */
 .fire-flame-main {
   width: 50%;
-  height: 80%;
+  height: 70%;
+  left: 25%;
   background: linear-gradient(
     to top,
     #ff4500 0%,
@@ -42,7 +39,7 @@
 /* Left flame */
 .fire-flame-left {
   width: 35%;
-  height: 60%;
+  height: 50%;
   left: 10%;
   background: linear-gradient(
     to top,
@@ -58,7 +55,7 @@
 /* Right flame */
 .fire-flame-right {
   width: 35%;
-  height: 55%;
+  height: 45%;
   right: 10%;
   background: linear-gradient(
     to top,
@@ -74,7 +71,8 @@
 /* Inner bright flame */
 .fire-flame-inner {
   width: 25%;
-  height: 50%;
+  height: 40%;
+  left: 37.5%;
   background: linear-gradient(
     to top,
     #ffd700 0%,
@@ -88,13 +86,13 @@
 /* Glow effect */
 .fire-glow {
   position: absolute;
-  bottom: -20%;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   width: 150%;
-  height: 60%;
+  height: 100%;
   background: radial-gradient(
-    ellipse at center bottom,
+    ellipse at center,
     rgba(255, 100, 0, 0.4) 0%,
     rgba(255, 100, 0, 0.1) 50%,
     transparent 70%
@@ -106,44 +104,44 @@
 /* Animations */
 @keyframes flame-main {
   0% {
-    height: 75%;
+    height: 65%;
     transform: scaleX(1) rotate(-1deg);
   }
   100% {
-    height: 85%;
+    height: 75%;
     transform: scaleX(0.95) rotate(1deg);
   }
 }
 
 @keyframes flame-left {
   0% {
-    height: 55%;
+    height: 45%;
     transform: rotate(-8deg) scaleX(0.9);
   }
   100% {
-    height: 65%;
+    height: 55%;
     transform: rotate(-3deg) scaleX(1);
   }
 }
 
 @keyframes flame-right {
   0% {
-    height: 50%;
+    height: 40%;
     transform: rotate(8deg) scaleX(0.9);
   }
   100% {
-    height: 60%;
+    height: 50%;
     transform: rotate(3deg) scaleX(1);
   }
 }
 
 @keyframes flame-inner {
   0% {
-    height: 45%;
+    height: 35%;
     opacity: 0.9;
   }
   100% {
-    height: 55%;
+    height: 45%;
     opacity: 1;
   }
 }
@@ -151,11 +149,11 @@
 @keyframes glow {
   0% {
     opacity: 0.5;
-    transform: translateX(-50%) scale(0.9);
+    transform: translate(-50%, -50%) scale(0.9);
   }
   100% {
     opacity: 0.8;
-    transform: translateX(-50%) scale(1.1);
+    transform: translate(-50%, -50%) scale(1.1);
   }
 }
 
@@ -167,18 +165,18 @@
 
 .fire-dying .fire-flame-main {
   animation-duration: 1s;
-  height: 50% !important;
+  height: 40% !important;
 }
 
 .fire-dying .fire-flame-left,
 .fire-dying .fire-flame-right {
   animation-duration: 1.2s;
-  height: 35% !important;
+  height: 30% !important;
 }
 
 .fire-dying .fire-flame-inner {
   animation-duration: 0.8s;
-  height: 25% !important;
+  height: 20% !important;
 }
 
 .fire-dying .fire-glow {
@@ -235,25 +233,25 @@
 
 .fire-inferno .fire-flame-main {
   animation-duration: 0.15s;
-  height: 90% !important;
+  height: 80% !important;
 }
 
 .fire-inferno .fire-flame-left,
 .fire-inferno .fire-flame-right {
   animation-duration: 0.18s;
-  height: 70% !important;
+  height: 60% !important;
 }
 
 .fire-inferno .fire-flame-inner {
   animation-duration: 0.12s;
-  height: 60% !important;
+  height: 50% !important;
 }
 
 .fire-inferno .fire-glow {
   opacity: 1;
   width: 250%;
   background: radial-gradient(
-    ellipse at center bottom,
+    ellipse at center,
     rgba(255, 200, 0, 0.5) 0%,
     rgba(255, 100, 0, 0.3) 40%,
     transparent 70%
