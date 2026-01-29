@@ -13,6 +13,7 @@ import {
   Heart,
   User,
   MoreHorizontal,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +51,7 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
+import { GoalDetailModal } from "@/components/goals/GoalDetailModal";
 
 type GoalCategory = "FINANCIAL" | "FITNESS" | "HEALTH" | "PERSONAL" | string;
 
@@ -102,7 +104,8 @@ export default function Metas() {
   const [progressValue, setProgressValue] = useState("");
   const [progressNote, setProgressNote] = useState("");
   const [activeCategory, setActiveCategory] = useState<GoalCategory | "ALL">("ALL");
-
+  const [detailGoal, setDetailGoal] = useState<Goal | null>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [newGoal, setNewGoal] = useState<NewGoal>({
     title: "",
     description: "",
@@ -277,6 +280,11 @@ export default function Metas() {
     setProgressDialogOpen(true);
   };
 
+  const openDetailModal = (goal: Goal) => {
+    setDetailGoal(goal);
+    setDetailModalOpen(true);
+  };
+
   const filteredGoals = activeCategory === "ALL" 
     ? goals 
     : goals.filter((g) => g.category === activeCategory);
@@ -364,9 +372,10 @@ export default function Metas() {
               <div
                 key={goal.id}
                 className={cn(
-                  "cave-card p-6 group",
+                  "cave-card p-6 group cursor-pointer",
                   isCompleted && "border-success/30"
                 )}
+                onClick={() => openDetailModal(goal)}
               >
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
@@ -401,11 +410,16 @@ export default function Metas() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => openDetailModal(goal)}>
+                        <Eye className="h-4 w-4 mr-2" />
+                        Ver Detalhes
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setEditingGoal(goal)}>
                         <Edit2 className="h-4 w-4 mr-2" />
                         Editar
@@ -491,7 +505,10 @@ export default function Metas() {
                       variant="outline"
                       size="sm"
                       className="w-full mt-2"
-                      onClick={() => openProgressDialog(goal.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openProgressDialog(goal.id);
+                      }}
                     >
                       <TrendingUp className="h-4 w-4 mr-2" />
                       Atualizar Progresso
@@ -705,6 +722,15 @@ export default function Metas() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Goal Detail Modal */}
+      <GoalDetailModal
+        goal={detailGoal}
+        progressHistory={detailGoal ? progressHistory[detailGoal.id] || [] : []}
+        open={detailModalOpen}
+        onOpenChange={setDetailModalOpen}
+        onRefresh={fetchGoals}
+      />
     </div>
   );
 }
