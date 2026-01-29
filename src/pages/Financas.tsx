@@ -124,7 +124,7 @@ const sectorIcons = [
   // Vestuário e beleza
   "shirt", "watch", "glasses", "gem", "diamond", "sparkles", "scissors",
   // Educação e trabalho
-  "graduation-cap", "book", "book-open", "notebook", "pen", "pencil", "briefcase", "folder", "file-text",
+  "graduation-cap", "book", "book-open", "notebook", "pen", "pencil", "briefcase", "file-text",
   // Tecnologia
   "smartphone", "laptop", "monitor", "tablet", "headphones", "camera", "printer", "wifi", "globe",
   // Entretenimento
