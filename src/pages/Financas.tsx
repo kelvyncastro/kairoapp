@@ -252,9 +252,13 @@ export default function Financas() {
   const handleAddTransaction = async () => {
     if (!user || !newTransaction.name.trim()) return;
 
-    const value = newTransaction.type === "expense" 
-      ? -Math.abs(newTransaction.value)
-      : Math.abs(newTransaction.value);
+    const isIncome = newTransaction.type === "income";
+    const value = isIncome 
+      ? Math.abs(newTransaction.value)
+      : -Math.abs(newTransaction.value);
+
+    // Receitas sempre têm status "received"
+    const status = isIncome ? "received" : newTransaction.status;
 
     const { error } = await supabase.from("finance_transactions").insert({
       user_id: user.id,
@@ -263,7 +267,7 @@ export default function Financas() {
       value,
       sector_id: newTransaction.sector_id || null,
       description: newTransaction.description || null,
-      status: newTransaction.status,
+      status,
     });
 
     if (error) {
@@ -331,9 +335,10 @@ export default function Financas() {
   const expenses = transactions.filter((t) => t.value < 0).reduce((sum, t) => sum + t.value, 0);
   const balance = income + expenses;
 
+  // Apenas despesas no gráfico de setores (receitas excluídas)
   const expensesBySector = sectors.map((sector) => {
     const total = transactions
-      .filter((t) => t.sector_id === sector.id && t.value < 0)
+      .filter((t) => t.sector_id === sector.id && t.value < 0 && t.status !== "received")
       .reduce((sum, t) => sum + Math.abs(t.value), 0);
     return { ...sector, total };
   }).filter((s) => s.total > 0);
@@ -379,6 +384,7 @@ export default function Financas() {
       case "paid": return "Pago";
       case "pending": return "A pagar";
       case "to_receive": return "A receber";
+      case "received": return "Recebido";
       default: return "Pago";
     }
   };
@@ -388,6 +394,7 @@ export default function Financas() {
       case "paid": return "text-success";
       case "pending": return "text-amber-500";
       case "to_receive": return "text-blue-500";
+      case "received": return "text-success";
       default: return "text-success";
     }
   };
