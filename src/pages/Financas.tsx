@@ -107,13 +107,38 @@ const sectorColors = [
   "#6b7280", // gray
 ];
 
-// Ícones mais relevantes para finanças
+// Ícones mais relevantes para finanças - expandido
 const sectorIcons = [
-  "wallet", "credit-card", "banknote", "coins", "piggy-bank", "chart-line", "chart-bar",
-  "shopping-bag", "shirt", "car", "plane", "utensils", "coffee", "pizza",
-  "home", "building", "briefcase", "graduation-cap", "book", "gamepad", "tv",
-  "smartphone", "laptop", "headphones", "music", "heart", "gift", "star",
-  "dumbbell", "trophy", "medal", "gem", "diamond", "receipt", "tag",
+  // Finanças e dinheiro
+  "wallet", "credit-card", "banknote", "coins", "piggy-bank", "landmark", "building-2", "receipt", "receipt-text",
+  // Gráficos e análise
+  "chart-line", "chart-bar", "chart-pie", "trending-up", "trending-down", "percent", "calculator",
+  // Compras e varejo
+  "shopping-bag", "shopping-cart", "store", "tag", "tags", "package", "gift", "boxes",
+  // Casa e moradia
+  "home", "house", "building", "warehouse", "sofa", "bed", "bath", "lamp", "plug", "lightbulb", "thermometer", "droplet", "flame",
+  // Transporte
+  "car", "bus", "train", "plane", "bike", "fuel", "map-pin", "navigation",
+  // Alimentação
+  "utensils", "coffee", "pizza", "apple", "beef", "wine", "beer", "cookie", "ice-cream", "salad", "sandwich", "soup",
+  // Vestuário e beleza
+  "shirt", "watch", "glasses", "gem", "diamond", "sparkles", "scissors",
+  // Educação e trabalho
+  "graduation-cap", "book", "book-open", "notebook", "pen", "pencil", "briefcase", "folder", "file-text",
+  // Tecnologia
+  "smartphone", "laptop", "monitor", "tablet", "headphones", "camera", "printer", "wifi", "globe",
+  // Entretenimento
+  "gamepad", "tv", "music", "music-2", "film", "clapperboard", "ticket", "dice-1", "puzzle",
+  // Saúde e fitness
+  "heart", "heart-pulse", "activity", "dumbbell", "apple", "pill", "stethoscope", "syringe", "bandage",
+  // Esportes e conquistas
+  "trophy", "medal", "award", "crown", "star", "target", "flag",
+  // Pets e natureza
+  "dog", "cat", "fish", "bird", "tree", "flower", "sun", "moon", "cloud",
+  // Família e social
+  "baby", "users", "user", "hand-heart", "handshake", "smile",
+  // Outros úteis
+  "wrench", "hammer", "paint-bucket", "brush", "key", "lock", "shield", "umbrella", "calendar", "clock", "alarm-clock", "bell",
 ];
 
 // Setores padrão
