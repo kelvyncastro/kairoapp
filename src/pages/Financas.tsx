@@ -39,6 +39,7 @@ import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, subMonths, addMonths, eachDayOfInterval, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { FolderIconRenderer } from "@/components/tasks/FolderIconRenderer";
+import { ExpensesBySectorChart } from "@/components/finance/ExpensesBySectorChart";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -637,79 +638,11 @@ export default function Financas() {
                 </div>
               </div>
 
-              {/* By Sector - Pie Chart */}
-              <div className="cave-card p-6">
-                <h3 className="font-bold uppercase tracking-wider text-sm mb-4">Gastos por Setor</h3>
-                {expensesBySector.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    Nenhum gasto categorizado
-                  </p>
-                ) : (
-                  <div className="flex flex-col md:flex-row items-center gap-6">
-                    {/* Pie Chart */}
-                    <div className="w-48 h-48 relative">
-                      <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                        {(() => {
-                          let cumulativePercent = 0;
-                          return expensesBySector.map((sector) => {
-                            const percent = totalExpenses > 0 ? (sector.total / totalExpenses) * 100 : 0;
-                            const startPercent = cumulativePercent;
-                            cumulativePercent += percent;
-                            
-                            const startAngle = (startPercent / 100) * 360;
-                            const endAngle = (cumulativePercent / 100) * 360;
-                            const largeArcFlag = percent > 50 ? 1 : 0;
-                            
-                            const startX = 50 + 40 * Math.cos((startAngle * Math.PI) / 180);
-                            const startY = 50 + 40 * Math.sin((startAngle * Math.PI) / 180);
-                            const endX = 50 + 40 * Math.cos((endAngle * Math.PI) / 180);
-                            const endY = 50 + 40 * Math.sin((endAngle * Math.PI) / 180);
-                            
-                            const pathD = percent === 100
-                              ? `M 50 10 A 40 40 0 1 1 49.99 10 Z`
-                              : `M 50 50 L ${startX} ${startY} A 40 40 0 ${largeArcFlag} 1 ${endX} ${endY} Z`;
-                            
-                            return (
-                              <path
-                                key={sector.id}
-                                d={pathD}
-                                fill={sector.color_label}
-                                className="hover:opacity-80 transition-opacity cursor-pointer"
-                              />
-                            );
-                          });
-                        })()}
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-center">
-                          <p className="text-lg font-bold">R$ {totalExpenses.toFixed(0)}</p>
-                          <p className="text-xs text-muted-foreground">Total</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Legend */}
-                    <div className="flex-1 space-y-2">
-                      {expensesBySector.map((sector) => {
-                        const percent = totalExpenses > 0 ? (sector.total / totalExpenses) * 100 : 0;
-                        return (
-                          <div key={sector.id} className="flex items-center gap-3">
-                            <FolderIconRenderer 
-                              icon={sector.icon || "wallet"} 
-                              color={sector.color_label} 
-                              className="h-4 w-4 shrink-0" 
-                            />
-                            <span className="text-sm flex-1">{sector.name}</span>
-                            <span className="text-sm text-muted-foreground">
-                              R$ {sector.total.toFixed(2)} ({percent.toFixed(0)}%)
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
+              {/* By Sector - Pie Chart Redesigned */}
+              <ExpensesBySectorChart 
+                sectors={sectors}
+                transactions={transactions}
+              />
             </TabsContent>
 
             <TabsContent value="transactions" className="space-y-4">
