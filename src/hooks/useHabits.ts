@@ -220,7 +220,7 @@ export function useHabits(currentDate: Date) {
     }
   };
 
-  // Calculate habit adherence percentage
+  // Calculate habit adherence percentage for the entire month
   const getHabitAdherence = useCallback((habit: HabitWithLogs): number => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -229,8 +229,14 @@ export function useHabits(currentDate: Date) {
     let done = 0;
 
     for (const day of daysInMonth) {
+      // Skip future days
       if (isAfter(day, today)) continue;
-      if (!isHabitPlannedForDay(habit, day)) continue;
+
+      // Check frequency only (ignore start_date for monthly calculation)
+      const dayOfWeek = getDay(day);
+      const dayKey = Object.entries(DAY_MAP).find(([, val]) => val === dayOfWeek)?.[0];
+      const matchesFrequency = dayKey ? habit.frequency.includes(dayKey) : false;
+      if (!matchesFrequency) continue;
 
       planned++;
       const dateStr = format(day, 'yyyy-MM-dd');
@@ -241,7 +247,7 @@ export function useHabits(currentDate: Date) {
     }
 
     return planned > 0 ? Math.round((done / planned) * 100) : 0;
-  }, [daysInMonth, isHabitPlannedForDay]);
+  }, [daysInMonth]);
 
   // Calculate daily score for the chart - returns all days in the month (as useMemo for reactivity)
   const dailyScores = useMemo((): { day: number; score: number }[] => {
