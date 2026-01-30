@@ -61,6 +61,8 @@ export type Database = {
           start_date: string | null
           status_id: string | null
           time_estimate_minutes: number | null
+          time_spent_seconds: number | null
+          timer_started_at: string | null
           title: string
           updated_at: string | null
           user_id: string
@@ -81,6 +83,8 @@ export type Database = {
           start_date?: string | null
           status_id?: string | null
           time_estimate_minutes?: number | null
+          time_spent_seconds?: number | null
+          timer_started_at?: string | null
           title: string
           updated_at?: string | null
           user_id: string
@@ -101,6 +105,8 @@ export type Database = {
           start_date?: string | null
           status_id?: string | null
           time_estimate_minutes?: number | null
+          time_spent_seconds?: number | null
+          timer_started_at?: string | null
           title?: string
           updated_at?: string | null
           user_id?: string

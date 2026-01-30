@@ -73,6 +73,8 @@ export interface Task {
   start_date: string | null;
   due_date: string | null;
   time_estimate_minutes: number | null;
+  time_spent_seconds: number;
+  timer_started_at: string | null;
   labels: string[];
   created_at: string;
   updated_at: string;
