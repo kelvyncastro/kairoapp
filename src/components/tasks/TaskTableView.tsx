@@ -44,6 +44,7 @@ import { ptBR } from 'date-fns/locale';
 import { FolderIconRenderer } from './FolderIconRenderer';
 import { TaskDetailModal } from './TaskDetailModal';
 import { TaskProgressIndicator } from './TaskProgressIndicator';
+import { TaskTimer } from './TaskTimer';
 
 // Column configuration
 interface ColumnConfig {
@@ -70,6 +71,7 @@ const DEFAULT_COLUMNS: ColumnConfig[] = [
   { id: 'due_date', label: 'Vencimento', visible: true, width: 110, minWidth: 100, sortable: true },
   { id: 'priority', label: 'Prioridade', visible: true, width: 100, minWidth: 90, sortable: true },
   { id: 'time_estimate', label: 'Tempo', visible: true, width: 90, minWidth: 80, sortable: true },
+  { id: 'timer', label: 'Cronômetro', visible: true, width: 120, minWidth: 100, sortable: true },
 ];
 
 interface TaskTableViewProps {
@@ -169,6 +171,9 @@ export function TaskTableView({
           break;
         case 'time_estimate':
           comparison = (a.time_estimate_minutes || 0) - (b.time_estimate_minutes || 0);
+          break;
+        case 'timer':
+          comparison = (a.time_spent_seconds || 0) - (b.time_spent_seconds || 0);
           break;
       }
 
@@ -946,6 +951,16 @@ function TaskTable({
           <EditableTimeEstimate
             value={task.time_estimate_minutes}
             onChange={(v) => onUpdateTask(task.id, { time_estimate_minutes: v })}
+          />
+        );
+
+      case 'timer':
+        return (
+          <TaskTimer
+            taskId={task.id}
+            timeSpentSeconds={task.time_spent_seconds || 0}
+            timerStartedAt={task.timer_started_at}
+            onUpdate={(updates) => onUpdateTask(task.id, updates)}
           />
         );
       
