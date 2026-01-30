@@ -13,6 +13,9 @@ import {
   TrendingDown,
   CalendarCheck,
   Wallet,
+  ChevronDown,
+  ChevronRight,
+  Folder,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -21,6 +24,8 @@ import { format, differenceInDays, startOfDay, subDays, startOfMonth, endOfMonth
 import { ptBR } from "date-fns/locale";
 import { CalendarWidget } from "@/components/calendar/CalendarWidget";
 import { AnimatedFire } from "@/components/achievements/AnimatedFire";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { PendingTasksByFolder } from "@/components/dashboard/PendingTasksByFolder";
 
 interface DashboardStats {
   tasksCompletedToday: number;
@@ -31,7 +36,12 @@ interface DashboardStats {
   goalsActive: number;
   goalsCompleted: number;
   todayProgress: number;
-  pendingTasks: Array<{ id: string; title: string; priority: number; folder_id: string | null; folder_name: string | null; folder_color: string | null }>;
+  pendingTasksByFolder: Array<{
+    folderId: string | null;
+    folderName: string;
+    folderColor: string | null;
+    tasks: Array<{ id: string; title: string; priority: number }>;
+  }>;
   last30Days: Array<{ date: string; isActive: boolean }>;
   habitsCompletedToday: number;
   habitsTotalToday: number;
@@ -60,7 +70,7 @@ export default function Dashboard() {
     goalsActive: 0,
     goalsCompleted: 0,
     todayProgress: 0,
-    pendingTasks: [],
+    pendingTasksByFolder: [],
     last30Days: [],
     habitsCompletedToday: 0,
     habitsTotalToday: 0,
@@ -121,19 +131,38 @@ export default function Dashboard() {
     const todayTasks = todayTasksRes.data || [];
     const completed = todayTasks.filter((t) => t.completed).length;
     const total = todayTasks.length;
-    const pending = todayTasks
-      .filter((t) => !t.completed)
-      .map((t) => {
-        const folder = t.folder_id ? foldersMap.get(t.folder_id) : null;
-        return {
-          id: t.id,
-          title: t.title,
-          priority: t.priority || 2,
-          folder_id: t.folder_id,
-          folder_name: folder?.name || null,
-          folder_color: folder?.color || null,
-        };
+    
+    // Group pending tasks by folder
+    const pendingTasks = todayTasks.filter((t) => !t.completed);
+    const tasksByFolderMap = new Map<string | null, { 
+      folderId: string | null; 
+      folderName: string; 
+      folderColor: string | null; 
+      tasks: Array<{ id: string; title: string; priority: number }> 
+    }>();
+    
+    pendingTasks.forEach((t) => {
+      const folderId = t.folder_id || null;
+      const folder = folderId ? foldersMap.get(folderId) : null;
+      const key = folderId || 'no-folder';
+      
+      if (!tasksByFolderMap.has(key)) {
+        tasksByFolderMap.set(key, {
+          folderId,
+          folderName: folder?.name || 'Sem pasta',
+          folderColor: folder?.color || null,
+          tasks: [],
+        });
+      }
+      
+      tasksByFolderMap.get(key)!.tasks.push({
+        id: t.id,
+        title: t.title,
+        priority: t.priority || 2,
       });
+    });
+    
+    const pendingTasksByFolder = Array.from(tasksByFolderMap.values());
 
     let daysInApp = 1;
     if (settingsRes.data?.created_at) {
@@ -197,7 +226,7 @@ export default function Dashboard() {
       goalsActive: goals.length,
       goalsCompleted,
       todayProgress: total > 0 ? Math.round((completed / total) * 100) : 0,
-      pendingTasks: pending,
+      pendingTasksByFolder,
       last30Days,
       habitsCompletedToday: completedHabitsToday,
       habitsTotalToday: todayHabits.length,
@@ -330,58 +359,10 @@ export default function Dashboard() {
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Column 1: Rotina + Consistência */}
             <div className="space-y-6">
-              {/* Pending Tasks */}
-              <div className="cave-card p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold uppercase tracking-wider text-sm">Rotina de Hoje</h3>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">{stats.pendingTasks.length} pendentes</span>
-                    <Link to="/rotina" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-                      Ver tudo <ArrowRight className="h-3 w-3" />
-                    </Link>
-                  </div>
-                </div>
-
-                {stats.pendingTasks.length > 0 ? (
-                  <div className="max-h-[200px] overflow-y-auto pr-1 -mr-1">
-                    <ul className="space-y-2">
-                      {stats.pendingTasks.map((task) => (
-                        <li
-                          key={task.id}
-                          className="flex items-center gap-3 text-sm py-2 px-3 rounded-md bg-secondary/50"
-                        >
-                          <div
-                            className={cn(
-                              "w-2 h-2 rounded-full shrink-0",
-                              task.priority === 3 ? "bg-destructive" : 
-                              task.priority === 2 ? "bg-warning" : 
-                              task.priority === 1 ? "bg-primary" : "bg-muted-foreground"
-                            )}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <span className="truncate block">{task.title}</span>
-                            {task.folder_name && (
-                              <span 
-                                className="text-xs truncate block mt-0.5 opacity-70"
-                                style={{ color: task.folder_color || 'inherit' }}
-                              >
-                                {task.folder_name}
-                              </span>
-                            )}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : (
-                  <div className="text-center py-6">
-                    <p className="text-sm text-muted-foreground mb-3">Tudo feito! 🎉</p>
-                    <Button asChild size="sm" variant="outline">
-                      <Link to="/rotina">Criar tarefa</Link>
-                    </Button>
-                  </div>
-                )}
-              </div>
+              {/* Pending Tasks - Grouped by Folder */}
+              <PendingTasksByFolder 
+                pendingTasksByFolder={stats.pendingTasksByFolder} 
+              />
 
               {/* Consistency Grid */}
               <div className="cave-card p-5">
