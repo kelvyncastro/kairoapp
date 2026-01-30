@@ -1,6 +1,5 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronDown, ChevronRight, Folder, ArrowRight } from "lucide-react";
+import { Folder, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -17,21 +16,7 @@ interface PendingTasksByFolderProps {
 }
 
 export function PendingTasksByFolder({ pendingTasksByFolder }: PendingTasksByFolderProps) {
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
-
   const totalPending = pendingTasksByFolder.reduce((sum, f) => sum + f.tasks.length, 0);
-
-  const toggleFolder = (folderId: string) => {
-    setExpandedFolders((prev) => {
-      const next = new Set(prev);
-      if (next.has(folderId)) {
-        next.delete(folderId);
-      } else {
-        next.add(folderId);
-      }
-      return next;
-    });
-  };
 
   return (
     <div className="cave-card p-5">
@@ -47,23 +32,14 @@ export function PendingTasksByFolder({ pendingTasksByFolder }: PendingTasksByFol
 
       {pendingTasksByFolder.length > 0 ? (
         <ScrollArea className="max-h-[240px]">
-          <div className="space-y-1 pr-2">
+          <div className="space-y-3 pr-2">
             {pendingTasksByFolder.map((folder) => {
               const key = folder.folderId || "no-folder";
-              const isExpanded = expandedFolders.has(key);
 
               return (
                 <div key={key}>
                   {/* Folder Header */}
-                  <button
-                    onClick={() => toggleFolder(key)}
-                    className="flex items-center gap-2 w-full py-2 px-2 rounded-md hover:bg-secondary/50 transition-colors text-left"
-                  >
-                    {isExpanded ? (
-                      <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                    )}
+                  <div className="flex items-center gap-2 py-1 px-1">
                     <Folder
                       className="h-4 w-4 shrink-0"
                       style={{ color: folder.folderColor || "currentColor" }}
@@ -77,33 +53,31 @@ export function PendingTasksByFolder({ pendingTasksByFolder }: PendingTasksByFol
                     <span className="text-xs text-muted-foreground shrink-0">
                       {folder.tasks.length}
                     </span>
-                  </button>
+                  </div>
 
                   {/* Tasks List */}
-                  {isExpanded && (
-                    <ul className="ml-6 space-y-1 mt-1 mb-2">
-                      {folder.tasks.map((task) => (
-                        <li
-                          key={task.id}
-                          className="flex items-center gap-2 text-sm py-1.5 px-2 rounded-md bg-secondary/30"
-                        >
-                          <div
-                            className={cn(
-                              "w-2 h-2 rounded-full shrink-0",
-                              task.priority === 3
-                                ? "bg-destructive"
-                                : task.priority === 2
-                                ? "bg-warning"
-                                : task.priority === 1
-                                ? "bg-primary"
-                                : "bg-muted-foreground"
-                            )}
-                          />
-                          <span className="truncate">{task.title}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  <ul className="ml-5 space-y-1 mt-1">
+                    {folder.tasks.map((task) => (
+                      <li
+                        key={task.id}
+                        className="flex items-center gap-2 text-sm py-1.5 px-2 rounded-md bg-secondary/30"
+                      >
+                        <div
+                          className={cn(
+                            "w-2 h-2 rounded-full shrink-0",
+                            task.priority === 3
+                              ? "bg-destructive"
+                              : task.priority === 2
+                              ? "bg-warning"
+                              : task.priority === 1
+                              ? "bg-primary"
+                              : "bg-muted-foreground"
+                          )}
+                        />
+                        <span className="truncate">{task.title}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               );
             })}
