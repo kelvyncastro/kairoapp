@@ -31,7 +31,7 @@ interface DashboardStats {
   goalsActive: number;
   goalsCompleted: number;
   todayProgress: number;
-  pendingTasks: Array<{ id: string; title: string; priority: number }>;
+  pendingTasks: Array<{ id: string; title: string; priority: number; folder_id: string | null; folder_name: string | null; folder_color: string | null }>;
   last30Days: Array<{ date: string; isActive: boolean }>;
   habitsCompletedToday: number;
   habitsTotalToday: number;
@@ -102,6 +102,7 @@ export default function Dashboard() {
       habitsRes,
       habitLogsRes,
       transactionsRes,
+      foldersRes,
     ] = await Promise.all([
       supabase.from("daily_tasks").select("*").eq("user_id", user.id).or(`date.eq.${today},due_date.eq.${today}`),
       supabase.from("daily_tasks").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("completed", true),
@@ -111,15 +112,28 @@ export default function Dashboard() {
       supabase.from("habits").select("*").eq("user_id", user.id).eq("active", true),
       supabase.from("habit_logs").select("*, habits!inner(user_id)").eq("habits.user_id", user.id).eq("date", today),
       supabase.from("finance_transactions").select("*").eq("user_id", user.id).gte("date", monthStart).lte("date", monthEnd),
+      supabase.from("task_folders").select("id, name, color").eq("user_id", user.id),
     ]);
+
+    const folders = foldersRes.data || [];
+    const foldersMap = new Map(folders.map(f => [f.id, { name: f.name, color: f.color }]));
 
     const todayTasks = todayTasksRes.data || [];
     const completed = todayTasks.filter((t) => t.completed).length;
     const total = todayTasks.length;
     const pending = todayTasks
       .filter((t) => !t.completed)
-      .slice(0, 5)
-      .map((t) => ({ id: t.id, title: t.title, priority: t.priority || 2 }));
+      .map((t) => {
+        const folder = t.folder_id ? foldersMap.get(t.folder_id) : null;
+        return {
+          id: t.id,
+          title: t.title,
+          priority: t.priority || 2,
+          folder_id: t.folder_id,
+          folder_name: folder?.name || null,
+          folder_color: folder?.color || null,
+        };
+      });
 
     let daysInApp = 1;
     if (settingsRes.data?.created_at) {
@@ -320,30 +334,45 @@ export default function Dashboard() {
               <div className="cave-card p-5">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold uppercase tracking-wider text-sm">Rotina de Hoje</h3>
-                  <Link to="/rotina" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-                    Ver tudo <ArrowRight className="h-3 w-3" />
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">{stats.pendingTasks.length} pendentes</span>
+                    <Link to="/rotina" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                      Ver tudo <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </div>
                 </div>
 
                 {stats.pendingTasks.length > 0 ? (
-                  <ul className="space-y-2">
-                    {stats.pendingTasks.map((task) => (
-                      <li
-                        key={task.id}
-                        className="flex items-center gap-3 text-sm py-2 px-3 rounded-md bg-secondary/50"
-                      >
-                        <div
-                          className={cn(
-                            "w-2 h-2 rounded-full shrink-0",
-                            task.priority === 3 ? "bg-destructive" : 
-                            task.priority === 2 ? "bg-warning" : 
-                            task.priority === 1 ? "bg-primary" : "bg-muted-foreground"
-                          )}
-                        />
-                        <span className="truncate">{task.title}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="max-h-[200px] overflow-y-auto pr-1 -mr-1">
+                    <ul className="space-y-2">
+                      {stats.pendingTasks.map((task) => (
+                        <li
+                          key={task.id}
+                          className="flex items-center gap-3 text-sm py-2 px-3 rounded-md bg-secondary/50"
+                        >
+                          <div
+                            className={cn(
+                              "w-2 h-2 rounded-full shrink-0",
+                              task.priority === 3 ? "bg-destructive" : 
+                              task.priority === 2 ? "bg-warning" : 
+                              task.priority === 1 ? "bg-primary" : "bg-muted-foreground"
+                            )}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <span className="truncate block">{task.title}</span>
+                            {task.folder_name && (
+                              <span 
+                                className="text-xs truncate block mt-0.5 opacity-70"
+                                style={{ color: task.folder_color || 'inherit' }}
+                              >
+                                {task.folder_name}
+                              </span>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ) : (
                   <div className="text-center py-6">
                     <p className="text-sm text-muted-foreground mb-3">Tudo feito! 🎉</p>
