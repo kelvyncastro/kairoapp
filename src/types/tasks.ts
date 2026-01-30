@@ -116,9 +116,8 @@ export interface TaskFilters {
 export const DEFAULT_STATUSES = [
   { name: 'Não iniciada', color: '#6b7280', order: 0 },
   { name: 'Em progresso', color: '#f59e0b', order: 1 },
-  { name: 'Empecilho', color: '#ef4444', order: 2 },
-  { name: 'Finalizada', color: '#8b5cf6', order: 3 },
-  { name: 'Concluída', color: '#22c55e', order: 4 },
+  { name: 'Empecilho/Não concluída', color: '#ef4444', order: 2 },
+  { name: 'Concluída', color: '#22c55e', order: 3 },
 ];
 
 // Icon options for folders

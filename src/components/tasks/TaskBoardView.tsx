@@ -1,14 +1,17 @@
-import { Plus, MoreHorizontal, Edit2, Trash2, Calendar, Clock } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, MoreHorizontal, Edit2, Trash2, Calendar, Clock, X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { Task, TaskStatus, TaskFolder } from '@/types/tasks';
+import { Task, TaskStatus, TaskFolder, COLOR_PALETTE } from '@/types/tasks';
 import { format, isToday, isTomorrow, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -22,6 +25,9 @@ interface TaskBoardViewProps {
   onDeleteTask: (id: string) => void;
   onEditTask: (task: Task) => void;
   onCreateTask: (statusId?: string) => void;
+  onCreateStatus?: (status: Partial<TaskStatus>) => Promise<TaskStatus | null>;
+  onUpdateStatus?: (id: string, updates: Partial<TaskStatus>) => Promise<boolean>;
+  onDeleteStatus?: (id: string) => Promise<boolean>;
 }
 
 export function TaskBoardView({
@@ -32,7 +38,12 @@ export function TaskBoardView({
   onDeleteTask,
   onEditTask,
   onCreateTask,
+  onCreateStatus,
+  onUpdateStatus,
+  onDeleteStatus,
 }: TaskBoardViewProps) {
+  const [isAddingStatus, setIsAddingStatus] = useState(false);
+  const [newStatusName, setNewStatusName] = useState('');
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return null;
     const date = parseISO(dateStr);
@@ -50,18 +61,29 @@ export function TaskBoardView({
     }
   };
 
+  // Sort statuses to ensure "Não iniciada" comes first
+  const sortedStatuses = [...statuses].sort((a, b) => {
+    // "Não iniciada" always first
+    const aIsNaoIniciada = a.name.toLowerCase().includes('não iniciada');
+    const bIsNaoIniciada = b.name.toLowerCase().includes('não iniciada');
+    if (aIsNaoIniciada && !bIsNaoIniciada) return -1;
+    if (!aIsNaoIniciada && bIsNaoIniciada) return 1;
+    // Then sort by order
+    return (a.order ?? 999) - (b.order ?? 999);
+  });
+
   // Group tasks by status
-  const tasksByStatus = statuses.reduce((acc, status) => {
+  const tasksByStatus = sortedStatuses.reduce((acc, status) => {
     acc[status.id] = tasks.filter(t => t.status_id === status.id);
     return acc;
   }, {} as Record<string, Task[]>);
 
-  // Tasks without status go to first column
+  // Tasks without status go to first column (Não iniciada)
   const noStatusTasks = tasks.filter(t => !t.status_id);
-  if (noStatusTasks.length > 0 && statuses.length > 0) {
-    tasksByStatus[statuses[0].id] = [
+  if (noStatusTasks.length > 0 && sortedStatuses.length > 0) {
+    tasksByStatus[sortedStatuses[0].id] = [
       ...noStatusTasks,
-      ...(tasksByStatus[statuses[0].id] || []),
+      ...(tasksByStatus[sortedStatuses[0].id] || []),
     ];
   }
 
@@ -81,16 +103,30 @@ export function TaskBoardView({
     }
   };
 
+  const handleAddStatus = async () => {
+    if (!newStatusName.trim() || !onCreateStatus) return;
+    
+    const randomColor = COLOR_PALETTE[Math.floor(Math.random() * COLOR_PALETTE.length)];
+    await onCreateStatus({
+      name: newStatusName.trim(),
+      color: randomColor,
+      order: statuses.length,
+    });
+    
+    setNewStatusName('');
+    setIsAddingStatus(false);
+  };
+
   return (
     <div className="flex-1 overflow-x-auto p-4">
       <div className="flex gap-4 min-h-full">
-        {statuses.map((status) => {
+        {sortedStatuses.map((status) => {
           const columnTasks = tasksByStatus[status.id] || [];
 
           return (
             <div
               key={status.id}
-              className="flex flex-col w-72 shrink-0"
+              className="flex flex-col w-72 shrink-0 group/column"
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, status.id)}
             >
@@ -106,6 +142,30 @@ export function TaskBoardView({
                   {status.name.toUpperCase()}
                 </span>
                 <span className="text-xs text-muted-foreground">{columnTasks.length}</span>
+                
+                {/* Status options menu */}
+                {onDeleteStatus && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="h-5 w-5 ml-auto opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity"
+                      >
+                        <MoreHorizontal className="h-3.5 w-3.5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-popover">
+                      <DropdownMenuItem 
+                        className="text-destructive"
+                        onClick={() => onDeleteStatus(status.id)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5 mr-2" />
+                        Excluir status
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
 
               {/* Add task button */}
@@ -210,14 +270,55 @@ export function TaskBoardView({
         })}
 
         {/* Add column button */}
-        <div className="w-72 shrink-0">
-          <button
-            className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Adicionar grupo</span>
-          </button>
-        </div>
+        {onCreateStatus && (
+          <div className="w-72 shrink-0">
+            {isAddingStatus ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  value={newStatusName}
+                  onChange={(e) => setNewStatusName(e.target.value)}
+                  placeholder="Nome do status..."
+                  className="h-8 text-sm"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleAddStatus();
+                    if (e.key === 'Escape') {
+                      setIsAddingStatus(false);
+                      setNewStatusName('');
+                    }
+                  }}
+                />
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 shrink-0"
+                  onClick={handleAddStatus}
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 shrink-0"
+                  onClick={() => {
+                    setIsAddingStatus(false);
+                    setNewStatusName('');
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setIsAddingStatus(true)}
+                className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Adicionar status</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
