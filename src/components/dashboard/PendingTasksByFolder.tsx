@@ -31,8 +31,8 @@ export function PendingTasksByFolder({ pendingTasksByFolder }: PendingTasksByFol
       </div>
 
       {pendingTasksByFolder.length > 0 ? (
-        <ScrollArea className="max-h-[240px]">
-          <div className="space-y-3 pr-2">
+        <div className="h-[240px] overflow-y-auto pr-1">
+          <div className="space-y-3">
             {pendingTasksByFolder.map((folder) => {
               const key = folder.folderId || "no-folder";
 
@@ -82,7 +82,7 @@ export function PendingTasksByFolder({ pendingTasksByFolder }: PendingTasksByFol
               );
             })}
           </div>
-        </ScrollArea>
+        </div>
       ) : (
         <div className="text-center py-6">
           <p className="text-sm text-muted-foreground mb-3">Tudo feito! 🎉</p>
