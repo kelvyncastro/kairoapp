@@ -26,6 +26,9 @@ export default function Rotina() {
     createFolder,
     updateFolder,
     deleteFolder,
+    createStatus,
+    updateStatus,
+    deleteStatus,
   } = useTaskData();
 
   const { savedFilters, saveFilter, deleteFilter } = useSavedFilters();
@@ -221,6 +224,9 @@ export default function Rotina() {
             onDeleteTask={handleDeleteTask}
             onEditTask={handleEditTask}
             onCreateTask={handleCreateTask}
+            onCreateStatus={createStatus}
+            onUpdateStatus={updateStatus}
+            onDeleteStatus={deleteStatus}
           />
         )}
       </div>
