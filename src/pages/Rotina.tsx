@@ -212,6 +212,7 @@ export default function Rotina() {
             onEditTask={handleEditTask}
             onCreateTask={() => handleCreateTask()}
             onQuickCreateTask={handleQuickCreateTask}
+            onCreateStatus={createStatus}
           />
         ) : (
           <TaskBoardView

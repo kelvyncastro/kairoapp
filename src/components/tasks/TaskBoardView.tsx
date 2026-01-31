@@ -61,14 +61,21 @@ export function TaskBoardView({
     }
   };
 
-  // Sort statuses to ensure "Não iniciada" comes first
+  // Define the desired order for statuses
+  const getStatusPriority = (name: string): number => {
+    const lowerName = name.toLowerCase().trim();
+    if (lowerName === 'não iniciada') return 0;
+    if (lowerName.includes('empecilho') || lowerName.includes('não concluída')) return 1;
+    if (lowerName === 'em progresso') return 2;
+    if (lowerName === 'concluída') return 3;
+    return 999; // Custom statuses go at the end
+  };
+
   const sortedStatuses = [...statuses].sort((a, b) => {
-    // "Não iniciada" always first
-    const aIsNaoIniciada = a.name.toLowerCase().includes('não iniciada');
-    const bIsNaoIniciada = b.name.toLowerCase().includes('não iniciada');
-    if (aIsNaoIniciada && !bIsNaoIniciada) return -1;
-    if (!aIsNaoIniciada && bIsNaoIniciada) return 1;
-    // Then sort by order
+    const priorityA = getStatusPriority(a.name);
+    const priorityB = getStatusPriority(b.name);
+    if (priorityA !== priorityB) return priorityA - priorityB;
+    // For custom statuses with same priority, sort by order
     return (a.order ?? 999) - (b.order ?? 999);
   });
 
@@ -103,17 +110,19 @@ export function TaskBoardView({
     }
   };
 
+  const [selectedColor, setSelectedColor] = useState(COLOR_PALETTE[0]);
+
   const handleAddStatus = async () => {
     if (!newStatusName.trim() || !onCreateStatus) return;
     
-    const randomColor = COLOR_PALETTE[Math.floor(Math.random() * COLOR_PALETTE.length)];
     await onCreateStatus({
       name: newStatusName.trim(),
-      color: randomColor,
+      color: selectedColor,
       order: statuses.length,
     });
     
     setNewStatusName('');
+    setSelectedColor(COLOR_PALETTE[0]);
     setIsAddingStatus(false);
   };
 
@@ -273,7 +282,7 @@ export function TaskBoardView({
         {onCreateStatus && (
           <div className="w-72 shrink-0">
             {isAddingStatus ? (
-              <div className="flex items-center gap-2">
+              <div className="space-y-3 p-3 bg-card border border-border/30 rounded-lg">
                 <Input
                   value={newStatusName}
                   onChange={(e) => setNewStatusName(e.target.value)}
@@ -285,28 +294,59 @@ export function TaskBoardView({
                     if (e.key === 'Escape') {
                       setIsAddingStatus(false);
                       setNewStatusName('');
+                      setSelectedColor(COLOR_PALETTE[0]);
                     }
                   }}
                 />
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 shrink-0"
-                  onClick={handleAddStatus}
-                >
-                  <Check className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 shrink-0"
-                  onClick={() => {
-                    setIsAddingStatus(false);
-                    setNewStatusName('');
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+                
+                {/* Color picker */}
+                <div>
+                  <div className="text-xs text-muted-foreground mb-2">Cor do status</div>
+                  <div className="grid grid-cols-6 gap-1.5">
+                    {COLOR_PALETTE.map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        className={`w-6 h-6 rounded-full transition-all duration-150 flex items-center justify-center ${
+                          selectedColor === color 
+                            ? "ring-2 ring-offset-2 ring-offset-card ring-primary scale-110" 
+                            : "hover:scale-110"
+                        }`}
+                        style={{ backgroundColor: color }}
+                        onClick={() => setSelectedColor(color)}
+                      >
+                        {selectedColor === color && (
+                          <Check className="h-3 w-3 text-white" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex-1 h-8 text-xs"
+                    onClick={() => {
+                      setIsAddingStatus(false);
+                      setNewStatusName('');
+                      setSelectedColor(COLOR_PALETTE[0]);
+                    }}
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    Cancelar
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="flex-1 h-8 text-xs"
+                    onClick={handleAddStatus}
+                    disabled={!newStatusName.trim()}
+                  >
+                    <Check className="h-3 w-3 mr-1" />
+                    Criar
+                  </Button>
+                </div>
               </div>
             ) : (
               <button

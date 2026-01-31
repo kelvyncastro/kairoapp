@@ -45,6 +45,7 @@ import { FolderIconRenderer } from './FolderIconRenderer';
 import { TaskDetailModal } from './TaskDetailModal';
 import { TaskProgressIndicator } from './TaskProgressIndicator';
 import { TaskTimer } from './TaskTimer';
+import { StatusSelectWithCreate } from './StatusSelectWithCreate';
 
 // Column configuration
 interface ColumnConfig {
@@ -85,6 +86,7 @@ interface TaskTableViewProps {
   onEditTask: (task: Task) => void;
   onCreateTask: () => void;
   onQuickCreateTask: (title: string, folderId?: string | null, statusId?: string) => void;
+  onCreateStatus?: (status: Partial<TaskStatus>) => Promise<TaskStatus | null>;
 }
 
 export function TaskTableView({
@@ -98,6 +100,7 @@ export function TaskTableView({
   onEditTask,
   onCreateTask,
   onQuickCreateTask,
+  onCreateStatus,
 }: TaskTableViewProps) {
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
   const [columns, setColumns] = useState<ColumnConfig[]>(DEFAULT_COLUMNS);
@@ -372,6 +375,7 @@ export function TaskTableView({
                 sortState={sortState}
                 onColumnSort={handleColumnSort}
                 onOpenTaskDetail={handleOpenTaskDetail}
+                onCreateStatus={onCreateStatus}
               />
             )}
           </div>
@@ -415,15 +419,16 @@ export function TaskTableView({
               handleStatusChange={handleStatusChange}
               handlePriorityChange={handlePriorityChange}
               onColumnResize={handleColumnResize}
-                onColumnDragStart={handleColumnDragStart}
-                onColumnDragOver={handleColumnDragOver}
-                onColumnDragEnd={handleColumnDragEnd}
-                draggedColumn={draggedColumn}
-                sortState={sortState}
-                onColumnSort={handleColumnSort}
-                onOpenTaskDetail={handleOpenTaskDetail}
-              />
-            )}
+              onColumnDragStart={handleColumnDragStart}
+              onColumnDragOver={handleColumnDragOver}
+              onColumnDragEnd={handleColumnDragEnd}
+              draggedColumn={draggedColumn}
+              sortState={sortState}
+              onColumnSort={handleColumnSort}
+              onOpenTaskDetail={handleOpenTaskDetail}
+              onCreateStatus={onCreateStatus}
+            />
+          )}
           </div>
         )}
 
@@ -466,6 +471,7 @@ interface TaskTableProps {
   sortState: SortState;
   onColumnSort: (columnId: string) => void;
   onOpenTaskDetail: (task: Task) => void;
+  onCreateStatus?: (status: Partial<TaskStatus>) => Promise<TaskStatus | null>;
 }
 
 interface InlineAddTaskProps {
@@ -823,6 +829,7 @@ function TaskTable({
   sortState,
   onColumnSort,
   onOpenTaskDetail,
+  onCreateStatus,
 }: TaskTableProps) {
   // Sort icon component
   const SortIcon = ({ columnId }: { columnId: string }) => {
@@ -861,39 +868,13 @@ function TaskTable({
         );
       
       case 'status':
-        const statusInfo = getStatusInfo(task.status_id);
         return (
-          <Select
-            value={task.status_id || ''}
-            onValueChange={(value) => handleStatusChange(task.id, value)}
-          >
-            <SelectTrigger className="h-7 text-xs border-0 bg-transparent hover:bg-muted/50 p-0">
-              <span
-                className="px-2 py-0.5 rounded text-xs font-medium"
-                style={{ 
-                  backgroundColor: `${statusInfo.color}30`,
-                  color: statusInfo.color 
-                }}
-              >
-                {statusInfo.name}
-              </span>
-            </SelectTrigger>
-            <SelectContent className="bg-popover">
-              {statuses.map((s) => (
-                <SelectItem key={s.id} value={s.id}>
-                  <span
-                    className="px-2 py-0.5 rounded text-xs"
-                    style={{ 
-                      backgroundColor: `${s.color}30`,
-                      color: s.color 
-                    }}
-                  >
-                    {s.name}
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <StatusSelectWithCreate
+            statuses={statuses}
+            value={task.status_id}
+            onChange={(statusId) => handleStatusChange(task.id, statusId)}
+            onCreateStatus={onCreateStatus}
+          />
         );
       
       case 'start_date':
