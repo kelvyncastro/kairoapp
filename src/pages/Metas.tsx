@@ -62,7 +62,7 @@ import {
   Tooltip,
 } from "recharts";
 import { GoalDetailModal } from "@/components/goals/GoalDetailModal";
-import { GoalCategorySidebar, GoalCategory as SidebarCategory } from "@/components/goals/GoalCategorySidebar";
+import { COLOR_PALETTE } from "@/types/tasks";
 
 type GoalCategoryType = "FINANCIAL" | "FITNESS" | "HEALTH" | "PERSONAL" | string;
 
@@ -109,7 +109,7 @@ export default function Metas() {
   const { user } = useAuth();
   const { toast } = useToast();
   const {
-    categories,
+    categories: customCategories,
     createCategory,
     updateCategory,
     deleteCategory,
@@ -125,10 +125,16 @@ export default function Metas() {
   const [progressMode, setProgressMode] = useState<"absolute" | "increment">("increment");
   const [progressValue, setProgressValue] = useState("");
   const [progressNote, setProgressNote] = useState("");
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<GoalCategoryType | "ALL">("ALL");
   const [detailGoal, setDetailGoal] = useState<Goal | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
+  
+  // New category dialog state
+  const [newCategoryDialogOpen, setNewCategoryDialogOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryColor, setNewCategoryColor] = useState("#6366f1");
+  const [editingCategory, setEditingCategory] = useState<{ id: string; name: string; color: string } | null>(null);
+  
   const [newGoal, setNewGoal] = useState<NewGoal>({
     title: "",
     description: "",
@@ -138,13 +144,6 @@ export default function Metas() {
     unit_label: "",
     end_date: undefined,
   });
-
-  // Calculate goal counts by category
-  const goalCounts = goals.reduce((acc, goal) => {
-    const catId = goal.category_id || 'uncategorized';
-    acc[catId] = (acc[catId] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
 
   const fetchGoals = useCallback(async (showLoading = true) => {
     if (!user) return;
@@ -342,12 +341,10 @@ export default function Metas() {
     setDetailModalOpen(true);
   };
 
-  // Filter goals based on selected category from sidebar or active category filter
-  const filteredGoals = selectedCategoryId 
-    ? goals.filter((g) => g.category_id === selectedCategoryId)
-    : activeCategory === "ALL" 
-      ? goals 
-      : goals.filter((g) => g.category === activeCategory);
+  // Filter goals based on active category filter
+  const filteredGoals = activeCategory === "ALL" 
+    ? goals 
+    : goals.filter((g) => g.category === activeCategory);
 
   const getProgressChartData = (goalId: string) => {
     const history = [...(progressHistory[goalId] || [])].sort(
@@ -365,59 +362,143 @@ export default function Metas() {
     });
   };
 
+  // Combine default categories with custom categories
+  const allCategories = [
+    ...Object.entries(CATEGORY_CONFIG).map(([key, val]) => ({
+      id: key,
+      name: val.label,
+      color: val.color,
+      icon: val.icon,
+      isDefault: true,
+    })),
+    ...customCategories.map((cat) => ({
+      id: cat.id,
+      name: cat.name,
+      color: cat.color,
+      icon: <Target className="h-4 w-4" />,
+      isDefault: false,
+    })),
+  ];
+
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    
+    await createCategory({
+      name: newCategoryName,
+      color: newCategoryColor,
+      icon: "target",
+    });
+    
+    setNewCategoryDialogOpen(false);
+    setNewCategoryName("");
+    setNewCategoryColor("#6366f1");
+  };
+
+  const handleEditCategory = async () => {
+    if (!editingCategory || !editingCategory.name.trim()) return;
+    
+    await updateCategory(editingCategory.id, {
+      name: editingCategory.name,
+      color: editingCategory.color,
+    });
+    
+    setEditingCategory(null);
+  };
+
+  const handleDeleteCategoryClick = async (catId: string) => {
+    if (confirm("Excluir esta categoria?")) {
+      await deleteCategory(catId);
+      if (activeCategory === catId) {
+        setActiveCategory("ALL");
+      }
+    }
+  };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)]">
-      {/* Sidebar */}
-      <GoalCategorySidebar
-        categories={categories}
-        selectedCategoryId={selectedCategoryId}
-        onSelectCategory={setSelectedCategoryId}
-        onCreateCategory={createCategory}
-        onUpdateCategory={updateCategory}
-        onDeleteCategory={deleteCategory}
-        goalCounts={goalCounts}
-      />
-
-      {/* Main Content */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Metas</h1>
-            <p className="text-muted-foreground">
-              Defina objetivos e acompanhe seu progresso
-            </p>
-          </div>
-
-          <Button onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Meta
-          </Button>
+    <div className="min-h-[calc(100vh-4rem)] p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Metas</h1>
+          <p className="text-muted-foreground">
+            Defina objetivos e acompanhe seu progresso
+          </p>
         </div>
 
-        {/* Category filters */}
-        <div className="flex gap-2 flex-wrap">
-          <Button
-            variant={activeCategory === "ALL" ? "default" : "outline"}
-            size="sm"
-            onClick={() => { setActiveCategory("ALL"); setSelectedCategoryId(null); }}
-          >
-            Todas
-          </Button>
-          {(Object.keys(CATEGORY_CONFIG) as GoalCategoryType[]).map((cat) => (
+        <Button onClick={() => setDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Nova Meta
+        </Button>
+      </div>
+
+      {/* Category filters with + button */}
+      <div className="flex gap-2 flex-wrap items-center">
+        <Button
+          variant={activeCategory === "ALL" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setActiveCategory("ALL")}
+        >
+          Todas
+        </Button>
+        {allCategories.map((cat) => (
+          <div key={cat.id} className="relative group">
             <Button
-              key={cat}
-              variant={activeCategory === cat ? "default" : "outline"}
+              variant={activeCategory === cat.id ? "default" : "outline"}
               size="sm"
-              onClick={() => { setActiveCategory(cat); setSelectedCategoryId(null); }}
+              onClick={() => setActiveCategory(cat.id)}
               className="gap-2"
+              style={activeCategory !== cat.id ? { 
+                borderColor: cat.color,
+                color: cat.color 
+              } : undefined}
             >
-              {CATEGORY_CONFIG[cat].icon}
-              {CATEGORY_CONFIG[cat].label}
+              <span style={{ color: activeCategory === cat.id ? undefined : cat.color }}>
+                {cat.icon}
+              </span>
+              {cat.name}
             </Button>
-          ))}
-        </div>
+            {!cat.isDefault && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="absolute -top-1 -right-1 p-0.5 bg-background border border-border rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreHorizontal className="h-3 w-3" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setEditingCategory({ 
+                    id: cat.id, 
+                    name: cat.name, 
+                    color: cat.color 
+                  })}>
+                    <Edit2 className="h-3.5 w-3.5 mr-2" />
+                    Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="text-destructive"
+                    onClick={() => handleDeleteCategoryClick(cat.id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5 mr-2" />
+                    Excluir
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+        ))}
+        
+        {/* Add category button */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setNewCategoryDialogOpen(true)}
+          className="gap-1 border-dashed"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
 
       {/* Goals grid */}
       {loading ? (
@@ -884,7 +965,95 @@ export default function Metas() {
         onOpenChange={setDetailModalOpen}
         onRefresh={() => fetchGoals(false)}
       />
-      </div>
+
+      {/* New Category Dialog */}
+      <Dialog open={newCategoryDialogOpen} onOpenChange={setNewCategoryDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Nova Área</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div>
+              <Label className="mb-1.5 block">Nome</Label>
+              <Input
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                placeholder="Nome da área"
+                autoFocus
+              />
+            </div>
+            <div>
+              <Label className="mb-1.5 block">Cor</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {COLOR_PALETTE.map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => setNewCategoryColor(color)}
+                    className={cn(
+                      "w-6 h-6 rounded-full transition-transform hover:scale-110",
+                      newCategoryColor === color && "ring-2 ring-offset-2 ring-offset-background ring-white"
+                    )}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setNewCategoryDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleCreateCategory} disabled={!newCategoryName.trim()}>
+                Criar
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Category Dialog */}
+      <Dialog open={!!editingCategory} onOpenChange={(open) => !open && setEditingCategory(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Área</DialogTitle>
+          </DialogHeader>
+          {editingCategory && (
+            <div className="space-y-4 pt-2">
+              <div>
+                <Label className="mb-1.5 block">Nome</Label>
+                <Input
+                  value={editingCategory.name}
+                  onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
+                  placeholder="Nome da área"
+                />
+              </div>
+              <div>
+                <Label className="mb-1.5 block">Cor</Label>
+                <div className="flex flex-wrap gap-1.5">
+                  {COLOR_PALETTE.map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setEditingCategory({ ...editingCategory, color })}
+                      className={cn(
+                        "w-6 h-6 rounded-full transition-transform hover:scale-110",
+                        editingCategory.color === color && "ring-2 ring-offset-2 ring-offset-background ring-white"
+                      )}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setEditingCategory(null)}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleEditCategory} disabled={!editingCategory.name.trim()}>
+                  Salvar
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
