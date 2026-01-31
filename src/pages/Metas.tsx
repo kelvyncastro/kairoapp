@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useGoalCategories } from "@/hooks/useGoalCategories";
 import confetti from "canvas-confetti";
 import {
   Plus,
@@ -61,14 +62,16 @@ import {
   Tooltip,
 } from "recharts";
 import { GoalDetailModal } from "@/components/goals/GoalDetailModal";
+import { GoalCategorySidebar, GoalCategory as SidebarCategory } from "@/components/goals/GoalCategorySidebar";
 
-type GoalCategory = "FINANCIAL" | "FITNESS" | "HEALTH" | "PERSONAL" | string;
+type GoalCategoryType = "FINANCIAL" | "FITNESS" | "HEALTH" | "PERSONAL" | string;
 
 interface Goal {
   id: string;
   title: string;
   description: string | null;
-  category: GoalCategory;
+  category: GoalCategoryType;
+  category_id: string | null;
   target_value: number;
   current_value: number;
   unit_label: string;
@@ -88,13 +91,14 @@ interface ProgressEntry {
 interface NewGoal {
   title: string;
   description: string;
-  category: GoalCategory;
+  category: GoalCategoryType;
+  category_id: string | null;
   target_value: number;
   unit_label: string;
   end_date: Date | undefined;
 }
 
-const CATEGORY_CONFIG: Record<GoalCategory, { label: string; icon: React.ReactNode; color: string }> = {
+const CATEGORY_CONFIG: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   FINANCIAL: { label: "Financeira", icon: <DollarSign className="h-4 w-4" />, color: "#22c55e" },
   FITNESS: { label: "Fitness", icon: <Dumbbell className="h-4 w-4" />, color: "#f59e0b" },
   HEALTH: { label: "Saúde", icon: <Heart className="h-4 w-4" />, color: "#ef4444" },
@@ -104,6 +108,13 @@ const CATEGORY_CONFIG: Record<GoalCategory, { label: string; icon: React.ReactNo
 export default function Metas() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const {
+    categories,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+  } = useGoalCategories();
+  
   const [goals, setGoals] = useState<Goal[]>([]);
   const [progressHistory, setProgressHistory] = useState<Record<string, ProgressEntry[]>>({});
   const [loading, setLoading] = useState(true);
@@ -114,17 +125,26 @@ export default function Metas() {
   const [progressMode, setProgressMode] = useState<"absolute" | "increment">("increment");
   const [progressValue, setProgressValue] = useState("");
   const [progressNote, setProgressNote] = useState("");
-  const [activeCategory, setActiveCategory] = useState<GoalCategory | "ALL">("ALL");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<GoalCategoryType | "ALL">("ALL");
   const [detailGoal, setDetailGoal] = useState<Goal | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [newGoal, setNewGoal] = useState<NewGoal>({
     title: "",
     description: "",
     category: "PERSONAL",
+    category_id: null,
     target_value: 1,
     unit_label: "",
     end_date: undefined,
   });
+
+  // Calculate goal counts by category
+  const goalCounts = goals.reduce((acc, goal) => {
+    const catId = goal.category_id || 'uncategorized';
+    acc[catId] = (acc[catId] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
   const fetchGoals = useCallback(async (showLoading = true) => {
     if (!user) return;
@@ -194,7 +214,7 @@ export default function Metas() {
     }
 
     toast({ title: "Meta criada com sucesso!" });
-    setNewGoal({ title: "", description: "", category: "PERSONAL", target_value: 1, unit_label: "", end_date: undefined });
+    setNewGoal({ title: "", description: "", category: "PERSONAL", category_id: null, target_value: 1, unit_label: "", end_date: undefined });
     setDialogOpen(false);
     await fetchGoals(false);
   };
@@ -322,9 +342,12 @@ export default function Metas() {
     setDetailModalOpen(true);
   };
 
-  const filteredGoals = activeCategory === "ALL" 
-    ? goals 
-    : goals.filter((g) => g.category === activeCategory);
+  // Filter goals based on selected category from sidebar or active category filter
+  const filteredGoals = selectedCategoryId 
+    ? goals.filter((g) => g.category_id === selectedCategoryId)
+    : activeCategory === "ALL" 
+      ? goals 
+      : goals.filter((g) => g.category === activeCategory);
 
   const getProgressChartData = (goalId: string) => {
     const history = [...(progressHistory[goalId] || [])].sort(
@@ -342,45 +365,59 @@ export default function Metas() {
     });
   };
 
+
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Metas</h1>
-          <p className="text-muted-foreground">
-            Defina objetivos e acompanhe seu progresso
-          </p>
+    <div className="flex h-[calc(100vh-4rem)]">
+      {/* Sidebar */}
+      <GoalCategorySidebar
+        categories={categories}
+        selectedCategoryId={selectedCategoryId}
+        onSelectCategory={setSelectedCategoryId}
+        onCreateCategory={createCategory}
+        onUpdateCategory={updateCategory}
+        onDeleteCategory={deleteCategory}
+        goalCounts={goalCounts}
+      />
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Metas</h1>
+            <p className="text-muted-foreground">
+              Defina objetivos e acompanhe seu progresso
+            </p>
+          </div>
+
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Meta
+          </Button>
         </div>
 
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Meta
-        </Button>
-      </div>
-
-      {/* Category filters */}
-      <div className="flex gap-2 flex-wrap">
-        <Button
-          variant={activeCategory === "ALL" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setActiveCategory("ALL")}
-        >
-          Todas
-        </Button>
-        {(Object.keys(CATEGORY_CONFIG) as GoalCategory[]).map((cat) => (
+        {/* Category filters */}
+        <div className="flex gap-2 flex-wrap">
           <Button
-            key={cat}
-            variant={activeCategory === cat ? "default" : "outline"}
+            variant={activeCategory === "ALL" ? "default" : "outline"}
             size="sm"
-            onClick={() => setActiveCategory(cat)}
-            className="gap-2"
+            onClick={() => { setActiveCategory("ALL"); setSelectedCategoryId(null); }}
           >
-            {CATEGORY_CONFIG[cat].icon}
-            {CATEGORY_CONFIG[cat].label}
+            Todas
           </Button>
-        ))}
-      </div>
+          {(Object.keys(CATEGORY_CONFIG) as GoalCategoryType[]).map((cat) => (
+            <Button
+              key={cat}
+              variant={activeCategory === cat ? "default" : "outline"}
+              size="sm"
+              onClick={() => { setActiveCategory(cat); setSelectedCategoryId(null); }}
+              className="gap-2"
+            >
+              {CATEGORY_CONFIG[cat].icon}
+              {CATEGORY_CONFIG[cat].label}
+            </Button>
+          ))}
+        </div>
 
       {/* Goals grid */}
       {loading ? (
@@ -604,13 +641,13 @@ export default function Metas() {
               <Label>Categoria</Label>
               <Select
                 value={newGoal.category}
-                onValueChange={(v) => setNewGoal({ ...newGoal, category: v as GoalCategory })}
+                onValueChange={(v) => setNewGoal({ ...newGoal, category: v as GoalCategoryType })}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {(Object.keys(CATEGORY_CONFIG) as GoalCategory[]).map((cat) => (
+                  {(Object.keys(CATEGORY_CONFIG) as GoalCategoryType[]).map((cat) => (
                     <SelectItem key={cat} value={cat}>
                       <div className="flex items-center gap-2">
                         {CATEGORY_CONFIG[cat].icon}
@@ -759,13 +796,13 @@ export default function Metas() {
                 <Label>Categoria</Label>
                 <Select
                   value={editingGoal.category}
-                  onValueChange={(v) => setEditingGoal({ ...editingGoal, category: v as GoalCategory })}
+                  onValueChange={(v) => setEditingGoal({ ...editingGoal, category: v as GoalCategoryType })}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {(Object.keys(CATEGORY_CONFIG) as GoalCategory[]).map((cat) => (
+                    {(Object.keys(CATEGORY_CONFIG) as GoalCategoryType[]).map((cat) => (
                       <SelectItem key={cat} value={cat}>
                         <div className="flex items-center gap-2">
                           {CATEGORY_CONFIG[cat].icon}
@@ -847,6 +884,7 @@ export default function Metas() {
         onOpenChange={setDetailModalOpen}
         onRefresh={() => fetchGoals(false)}
       />
+      </div>
     </div>
   );
 }
