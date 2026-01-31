@@ -9,6 +9,10 @@ import {
   TrendingUp,
   Trash2,
   Edit2,
+  DollarSign,
+  Dumbbell,
+  Heart,
+  User,
   MoreHorizontal,
   Eye,
   CalendarIcon,
@@ -57,14 +61,14 @@ import {
   Tooltip,
 } from "recharts";
 import { GoalDetailModal } from "@/components/goals/GoalDetailModal";
-import { GoalCategorySidebar, GoalCategory } from "@/components/goals/GoalCategorySidebar";
+
+type GoalCategory = "FINANCIAL" | "FITNESS" | "HEALTH" | "PERSONAL" | string;
 
 interface Goal {
   id: string;
   title: string;
   description: string | null;
-  category: string;
-  category_id: string | null;
+  category: GoalCategory;
   target_value: number;
   current_value: number;
   unit_label: string;
@@ -84,17 +88,23 @@ interface ProgressEntry {
 interface NewGoal {
   title: string;
   description: string;
-  category_id: string | null;
+  category: GoalCategory;
   target_value: number;
   unit_label: string;
   end_date: Date | undefined;
 }
 
+const CATEGORY_CONFIG: Record<GoalCategory, { label: string; icon: React.ReactNode; color: string }> = {
+  FINANCIAL: { label: "Financeira", icon: <DollarSign className="h-4 w-4" />, color: "#22c55e" },
+  FITNESS: { label: "Fitness", icon: <Dumbbell className="h-4 w-4" />, color: "#f59e0b" },
+  HEALTH: { label: "Saúde", icon: <Heart className="h-4 w-4" />, color: "#ef4444" },
+  PERSONAL: { label: "Pessoal", icon: <User className="h-4 w-4" />, color: "#8b5cf6" },
+};
+
 export default function Metas() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [goals, setGoals] = useState<Goal[]>([]);
-  const [categories, setCategories] = useState<GoalCategory[]>([]);
   const [progressHistory, setProgressHistory] = useState<Record<string, ProgressEntry[]>>({});
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -104,36 +114,17 @@ export default function Metas() {
   const [progressMode, setProgressMode] = useState<"absolute" | "increment">("increment");
   const [progressValue, setProgressValue] = useState("");
   const [progressNote, setProgressNote] = useState("");
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<GoalCategory | "ALL">("ALL");
   const [detailGoal, setDetailGoal] = useState<Goal | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [newGoal, setNewGoal] = useState<NewGoal>({
     title: "",
     description: "",
-    category_id: null,
+    category: "PERSONAL",
     target_value: 1,
     unit_label: "",
     end_date: undefined,
   });
-
-  const fetchCategories = useCallback(async () => {
-    if (!user) return;
-    const { data, error } = await supabase
-      .from("goal_categories")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("order", { ascending: true });
-
-    if (!error && data) {
-      setCategories(data.map(c => ({
-        id: c.id,
-        name: c.name,
-        color: c.color || '#6366f1',
-        icon: c.icon || 'target',
-        isDefault: c.is_default || false,
-      })));
-    }
-  }, [user]);
 
   const fetchGoals = useCallback(async (showLoading = true) => {
     if (!user) return;
@@ -174,90 +165,7 @@ export default function Metas() {
 
   useEffect(() => {
     fetchGoals();
-    fetchCategories();
-  }, [fetchGoals, fetchCategories]);
-
-  const handleCreateCategory = async (category: Partial<GoalCategory>): Promise<GoalCategory | null> => {
-    if (!user) return null;
-    const { data, error } = await supabase
-      .from("goal_categories")
-      .insert({
-        user_id: user.id,
-        name: category.name || "Nova categoria",
-        color: category.color || "#6366f1",
-        icon: category.icon || "target",
-      })
-      .select()
-      .single();
-
-    if (error) {
-      toast({ title: "Erro ao criar categoria", variant: "destructive" });
-      return null;
-    }
-
-    toast({ title: "Categoria criada!" });
-    await fetchCategories();
-    return {
-      id: data.id,
-      name: data.name,
-      color: data.color || '#6366f1',
-      icon: data.icon || 'target',
-      isDefault: data.is_default || false,
-    };
-  };
-
-  const handleUpdateCategory = async (id: string, updates: Partial<GoalCategory>): Promise<boolean> => {
-    const { error } = await supabase
-      .from("goal_categories")
-      .update({
-        name: updates.name,
-        color: updates.color,
-        icon: updates.icon,
-      })
-      .eq("id", id);
-
-    if (error) {
-      toast({ title: "Erro ao atualizar categoria", variant: "destructive" });
-      return false;
-    }
-
-    toast({ title: "Categoria atualizada!" });
-    await fetchCategories();
-    return true;
-  };
-
-  const handleDeleteCategory = async (id: string): Promise<boolean> => {
-    const { error } = await supabase
-      .from("goal_categories")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-      toast({ title: "Erro ao excluir categoria", variant: "destructive" });
-      return false;
-    }
-
-    toast({ title: "Categoria excluída!" });
-    await fetchCategories();
-    return true;
-  };
-
-  const goalCounts: Record<string, number> = {};
-  goals.forEach(goal => {
-    if (goal.category_id) {
-      goalCounts[goal.category_id] = (goalCounts[goal.category_id] || 0) + 1;
-    }
-  });
-
-  const getCategoryConfig = (goal: Goal) => {
-    if (goal.category_id) {
-      const cat = categories.find(c => c.id === goal.category_id);
-      if (cat) {
-        return { label: cat.name, color: cat.color, icon: <Target className="h-4 w-4" /> };
-      }
-    }
-    return { label: "Sem categoria", color: "#6366f1", icon: <Target className="h-4 w-4" /> };
-  };
+  }, [fetchGoals]);
 
   const handleCreateGoal = async () => {
     if (!user || !newGoal.title.trim()) return;
@@ -271,7 +179,7 @@ export default function Metas() {
       title: newGoal.title,
       description: newGoal.description || null,
       type: "YEARLY", // Keep for compatibility
-      category_id: newGoal.category_id,
+      category: newGoal.category,
       target_value: newGoal.target_value,
       unit_label: newGoal.unit_label,
       start_date: format(new Date(), "yyyy-MM-dd"),
@@ -286,7 +194,7 @@ export default function Metas() {
     }
 
     toast({ title: "Meta criada com sucesso!" });
-    setNewGoal({ title: "", description: "", category_id: null, target_value: 1, unit_label: "", end_date: undefined });
+    setNewGoal({ title: "", description: "", category: "PERSONAL", target_value: 1, unit_label: "", end_date: undefined });
     setDialogOpen(false);
     await fetchGoals(false);
   };
@@ -386,7 +294,7 @@ export default function Metas() {
         description: editingGoal.description,
         target_value: editingGoal.target_value,
         unit_label: editingGoal.unit_label,
-        category_id: editingGoal.category_id,
+        category: editingGoal.category,
         end_date: editingGoal.end_date,
       })
       .eq("id", editingGoal.id);
@@ -414,9 +322,9 @@ export default function Metas() {
     setDetailModalOpen(true);
   };
 
-  const filteredGoals = selectedCategoryId === null 
+  const filteredGoals = activeCategory === "ALL" 
     ? goals 
-    : goals.filter((g) => g.category_id === selectedCategoryId);
+    : goals.filter((g) => g.category === activeCategory);
 
   const getProgressChartData = (goalId: string) => {
     const history = [...(progressHistory[goalId] || [])].sort(
@@ -435,34 +343,44 @@ export default function Metas() {
   };
 
   return (
-    <div className="flex h-full">
-      {/* Sidebar */}
-      <GoalCategorySidebar
-        categories={categories}
-        selectedCategoryId={selectedCategoryId}
-        onSelectCategory={setSelectedCategoryId}
-        onCreateCategory={handleCreateCategory}
-        onUpdateCategory={handleUpdateCategory}
-        onDeleteCategory={handleDeleteCategory}
-        goalCounts={goalCounts}
-      />
-
-      {/* Main content */}
-      <div className="flex-1 p-6 space-y-6 animate-fade-in overflow-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Metas</h1>
-            <p className="text-muted-foreground">
-              Defina objetivos e acompanhe seu progresso
-            </p>
-          </div>
-
-          <Button onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Meta
-          </Button>
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Metas</h1>
+          <p className="text-muted-foreground">
+            Defina objetivos e acompanhe seu progresso
+          </p>
         </div>
+
+        <Button onClick={() => setDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Nova Meta
+        </Button>
+      </div>
+
+      {/* Category filters */}
+      <div className="flex gap-2 flex-wrap">
+        <Button
+          variant={activeCategory === "ALL" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setActiveCategory("ALL")}
+        >
+          Todas
+        </Button>
+        {(Object.keys(CATEGORY_CONFIG) as GoalCategory[]).map((cat) => (
+          <Button
+            key={cat}
+            variant={activeCategory === cat ? "default" : "outline"}
+            size="sm"
+            onClick={() => setActiveCategory(cat)}
+            className="gap-2"
+          >
+            {CATEGORY_CONFIG[cat].icon}
+            {CATEGORY_CONFIG[cat].label}
+          </Button>
+        ))}
+      </div>
 
       {/* Goals grid */}
       {loading ? (
@@ -491,7 +409,7 @@ export default function Metas() {
           {filteredGoals.map((goal) => {
             const progress = Math.min(100, Math.round((goal.current_value / goal.target_value) * 100));
             const isCompleted = goal.status === "COMPLETED" || goal.current_value >= goal.target_value;
-            const categoryConfig = getCategoryConfig(goal);
+            const categoryConfig = CATEGORY_CONFIG[goal.category] || CATEGORY_CONFIG.PERSONAL;
             const chartData = getProgressChartData(goal.id);
             const daysRemaining = goal.end_date ? differenceInDays(parseISO(goal.end_date), new Date()) : null;
 
@@ -685,19 +603,18 @@ export default function Metas() {
             <div className="space-y-2">
               <Label>Categoria</Label>
               <Select
-                value={newGoal.category_id || "none"}
-                onValueChange={(v) => setNewGoal({ ...newGoal, category_id: v === "none" ? null : v })}
+                value={newGoal.category}
+                onValueChange={(v) => setNewGoal({ ...newGoal, category: v as GoalCategory })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma categoria" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Sem categoria</SelectItem>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
+                  {(Object.keys(CATEGORY_CONFIG) as GoalCategory[]).map((cat) => (
+                    <SelectItem key={cat} value={cat}>
                       <div className="flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }} />
-                        {cat.name}
+                        {CATEGORY_CONFIG[cat].icon}
+                        {CATEGORY_CONFIG[cat].label}
                       </div>
                     </SelectItem>
                   ))}
@@ -841,19 +758,18 @@ export default function Metas() {
               <div className="space-y-2">
                 <Label>Categoria</Label>
                 <Select
-                  value={editingGoal.category_id || "none"}
-                  onValueChange={(v) => setEditingGoal({ ...editingGoal, category_id: v === "none" ? null : v })}
+                  value={editingGoal.category}
+                  onValueChange={(v) => setEditingGoal({ ...editingGoal, category: v as GoalCategory })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma categoria" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Sem categoria</SelectItem>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
+                    {(Object.keys(CATEGORY_CONFIG) as GoalCategory[]).map((cat) => (
+                      <SelectItem key={cat} value={cat}>
                         <div className="flex items-center gap-2">
-                          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }} />
-                          {cat.name}
+                          {CATEGORY_CONFIG[cat].icon}
+                          {CATEGORY_CONFIG[cat].label}
                         </div>
                       </SelectItem>
                     ))}
@@ -931,7 +847,6 @@ export default function Metas() {
         onOpenChange={setDetailModalOpen}
         onRefresh={() => fetchGoals(false)}
       />
-      </div>
     </div>
   );
 }
