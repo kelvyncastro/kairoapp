@@ -306,42 +306,6 @@ export type Database = {
           },
         ]
       }
-      goal_categories: {
-        Row: {
-          color: string | null
-          created_at: string | null
-          icon: string | null
-          id: string
-          is_default: boolean | null
-          name: string
-          order: number | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          color?: string | null
-          created_at?: string | null
-          icon?: string | null
-          id?: string
-          is_default?: boolean | null
-          name: string
-          order?: number | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          color?: string | null
-          created_at?: string | null
-          icon?: string | null
-          id?: string
-          is_default?: boolean | null
-          name?: string
-          order?: number | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       goal_progress_history: {
         Row: {
           created_at: string
@@ -377,7 +341,6 @@ export type Database = {
       goals: {
         Row: {
           category: string | null
-          category_id: string | null
           created_at: string | null
           current_value: number
           description: string | null
@@ -394,7 +357,6 @@ export type Database = {
         }
         Insert: {
           category?: string | null
-          category_id?: string | null
           created_at?: string | null
           current_value?: number
           description?: string | null
@@ -411,7 +373,6 @@ export type Database = {
         }
         Update: {
           category?: string | null
-          category_id?: string | null
           created_at?: string | null
           current_value?: number
           description?: string | null
@@ -426,15 +387,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "goals_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "goal_categories"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       habit_logs: {
         Row: {
