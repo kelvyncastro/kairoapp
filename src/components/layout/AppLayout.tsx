@@ -96,7 +96,7 @@ export default function AppLayout() {
               />
             </div>
             {!collapsed && (
-              <span className="font-semibold text-sidebar-primary">Kairo</span>
+              <span className="text-xl font-bold tracking-wide text-foreground">Kairo</span>
             )}
           </Link>
         </div>
