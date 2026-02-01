@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
-import batmanLogo from "@/assets/batman-logo.jpg";
+import chatAssistant from "@/assets/chat-assistant.png";
 
 interface Message {
   id: string;
@@ -260,7 +260,7 @@ export default function ChatFinanceiro() {
             </Link>
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10 border-2 border-border/50">
-                <AvatarImage src={batmanLogo} alt="Assistant" />
+                <AvatarImage src={chatAssistant} alt="Assistant" />
                 <AvatarFallback className="bg-secondary">
                   <MessageCircle className="h-5 w-5 text-muted-foreground" />
                 </AvatarFallback>
@@ -293,7 +293,7 @@ export default function ChatFinanceiro() {
                 >
                   {message.role === "assistant" && (
                     <Avatar className="h-8 w-8 border border-border/50 flex-shrink-0">
-                      <AvatarImage src={batmanLogo} alt="Assistant" />
+                      <AvatarImage src={chatAssistant} alt="Assistant" />
                       <AvatarFallback className="bg-secondary">
                         <MessageCircle className="h-4 w-4 text-muted-foreground" />
                       </AvatarFallback>
@@ -330,7 +330,7 @@ export default function ChatFinanceiro() {
                 className="flex gap-3"
               >
                 <Avatar className="h-8 w-8 border border-border/50 flex-shrink-0">
-                  <AvatarImage src={batmanLogo} alt="Assistant" />
+                  <AvatarImage src={chatAssistant} alt="Assistant" />
                   <AvatarFallback className="bg-secondary">
                     <MessageCircle className="h-4 w-4 text-muted-foreground" />
                   </AvatarFallback>
