@@ -162,6 +162,12 @@ export function useHabits(currentDate: Date) {
       return;
     }
 
+    // Don't allow toggling past dates - only today can be modified
+    if (isBefore(targetDate, today)) {
+      toast.error('Não é possível alterar dias anteriores');
+      return;
+    }
+
     const dateStr = format(date, 'yyyy-MM-dd');
     const habit = habits.find((h) => h.id === habitId);
     if (!habit) return;
