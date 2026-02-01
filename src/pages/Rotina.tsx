@@ -154,7 +154,7 @@ export default function Rotina() {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border/30">
           <div>
-            <h1 className="text-2xl font-bold">Rotina</h1>
+            <h1 className="text-2xl font-bold">Tarefas</h1>
             <p className="text-sm text-muted-foreground">Suas tarefas e projetos</p>
           </div>
         </div>

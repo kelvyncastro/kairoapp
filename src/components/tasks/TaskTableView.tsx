@@ -39,7 +39,7 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Task, TaskStatus, TaskFolder } from '@/types/tasks';
-import { format, isToday, isTomorrow, parseISO } from 'date-fns';
+import { format, isToday, isTomorrow, parseISO, isBefore, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { FolderIconRenderer } from './FolderIconRenderer';
 import { TaskDetailModal } from './TaskDetailModal';
@@ -868,12 +868,19 @@ function TaskTable({
         );
       
       case 'status':
+        // Check if task is overdue: has due date, not completed, and due date is before today
+        const dueDate = task.due_date || task.date;
+        const isTaskOverdue = dueDate && 
+          !task.completed && 
+          isBefore(parseISO(dueDate), startOfDay(new Date()));
+        
         return (
           <StatusSelectWithCreate
             statuses={statuses}
             value={task.status_id}
             onChange={(statusId) => handleStatusChange(task.id, statusId)}
             onCreateStatus={onCreateStatus}
+            isOverdue={isTaskOverdue}
           />
         );
       
