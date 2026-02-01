@@ -78,21 +78,21 @@ export function StatusSelectWithCreate({
         }
       }}
     >
-      <SelectTrigger className={cn("h-7 text-xs border-0 bg-transparent hover:bg-muted/50 p-0", className)}>
+      <SelectTrigger className={cn("h-7 text-xs border-0 bg-transparent hover:bg-muted/50 p-0 flex items-center", className)}>
         {isOverdue && !isCompleted ? (
           <span
-            className="px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1"
+            className="px-2 py-0.5 rounded text-xs font-medium inline-flex items-center gap-1 whitespace-nowrap"
             style={{ 
               backgroundColor: `${OVERDUE_COLOR}30`,
               color: OVERDUE_COLOR
             }}
           >
-            <AlertTriangle className="h-3 w-3" />
-            Atrasada
+            <AlertTriangle className="h-3 w-3 shrink-0" />
+            <span>Atrasada</span>
           </span>
         ) : (
           <span
-            className="px-2 py-0.5 rounded text-xs font-medium"
+            className="px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap"
             style={{ 
               backgroundColor: statusInfo ? `${statusInfo.color}30` : '#6b728030',
               color: statusInfo?.color || '#6b7280'
