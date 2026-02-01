@@ -149,7 +149,6 @@ export default function ChatFinanceiro() {
       const { data, error } = await supabase.functions.invoke("finance-chat", {
         body: {
           message: userMessage.content,
-          userId: user.id,
           sectors: sectors,
         },
       });
