@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserProfile } from "@/contexts/UserProfileContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
   CheckCircle2,
@@ -61,6 +62,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { getDisplayName } = useUserProfile();
   const [stats, setStats] = useState<DashboardStats>({
     tasksCompletedToday: 0,
     tasksTotalToday: 0,
@@ -283,7 +285,7 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-border/30 flex-shrink-0">
         <div>
-          <h1 className="text-2xl font-bold">{getGreeting()}, Bruce.</h1>
+          <h1 className="text-2xl font-bold">{getGreeting()}, {getDisplayName()}.</h1>
           <p className="text-sm text-muted-foreground">
             {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
           </p>

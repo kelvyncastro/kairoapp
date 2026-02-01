@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Outlet, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserProfile } from "@/contexts/UserProfileContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import {
   LayoutDashboard,
@@ -19,15 +20,15 @@ import {
   Plus,
   Search,
   LogOut,
-  User,
   Calendar,
   Construction,
   MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import batmanLogo from "@/assets/batman-logo.jpg";
+import kairoLogo from "@/assets/kairo-logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -68,6 +69,7 @@ export default function AppLayout() {
   const [devMenuOpen, setDevMenuOpen] = useState(true);
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const { profile, getInitials, getDisplayName } = useUserProfile();
   const { isAdmin } = useIsAdmin();
 
   const handleSignOut = async () => {
@@ -86,15 +88,15 @@ export default function AppLayout() {
         {/* Logo */}
         <div className="flex h-14 items-center border-b border-sidebar-border px-4">
           <Link to="/dashboard" className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full overflow-hidden">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden">
               <img
-                src={batmanLogo}
-                alt="BWP"
+                src={kairoLogo}
+                alt="Kairo"
                 className="w-full h-full object-cover"
               />
             </div>
             {!collapsed && (
-              <span className="font-semibold text-sidebar-primary">BWP</span>
+              <span className="font-semibold text-sidebar-primary">Kairo</span>
             )}
           </Link>
         </div>
@@ -272,13 +274,18 @@ export default function AppLayout() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
-                  <User className="h-4 w-4" />
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={profile?.avatar_url || undefined} />
+                    <AvatarFallback className="text-xs bg-secondary">
+                      {getInitials()}
+                    </AvatarFallback>
+                  </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{user?.email}</p>
-                  <p className="text-xs text-muted-foreground">Modo Caverna</p>
+                  <p className="text-sm font-medium">{getDisplayName()}</p>
+                  <p className="text-xs text-muted-foreground">{user?.email}</p>
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
