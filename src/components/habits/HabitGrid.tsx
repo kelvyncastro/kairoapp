@@ -138,14 +138,14 @@ const HabitGrid = React.memo(function HabitGrid({
                 />
               ) : (
                 <>
-                  <div className="flex-1 min-w-0 pr-2">
-                    <p className="text-lg font-semibold truncate text-foreground">{habit.name}</p>
+                <div className="flex-1 min-w-0 pr-2">
+                    <p className="text-sm font-medium truncate text-foreground/90">{habit.name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-xs text-muted-foreground">
                         {getMonthlyCompletionCount(habit, daysInMonth)}x
                       </span>
-                      <span className="text-sm text-muted-foreground">•</span>
-                      <span className="text-sm font-semibold text-success">
+                      <span className="text-xs text-muted-foreground">•</span>
+                      <span className="text-xs font-medium text-success">
                         {getHabitAdherence(habit)}%
                       </span>
                     </div>
