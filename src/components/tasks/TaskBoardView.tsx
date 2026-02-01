@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, MoreHorizontal, Edit2, Trash2, Calendar, Clock, X, Check } from 'lucide-react';
+import { Plus, MoreHorizontal, Edit2, Trash2, Calendar, Clock, X, Check, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -12,8 +12,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { Task, TaskStatus, TaskFolder, COLOR_PALETTE } from '@/types/tasks';
-import { format, isToday, isTomorrow, parseISO } from 'date-fns';
+import { format, isToday, isTomorrow, parseISO, isBefore, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+
+// Virtual "Atrasada" status color
+const OVERDUE_COLOR = '#dc2626';
 
 interface TaskBoardViewProps {
   tasks: Task[];
@@ -247,6 +250,30 @@ export function TaskBoardView({
 
                       {/* Task metadata */}
                       <div className="flex items-center gap-2 flex-wrap">
+                        {/* Overdue indicator */}
+                        {(() => {
+                          const dueDateStr = task.due_date || task.date;
+                          const isOverdue = dueDateStr && 
+                            !task.completed && 
+                            isBefore(parseISO(dueDateStr), startOfDay(new Date()));
+                          
+                          if (isOverdue) {
+                            return (
+                              <span
+                                className="text-xs px-1.5 py-0.5 rounded flex items-center gap-1"
+                                style={{ 
+                                  backgroundColor: `${OVERDUE_COLOR}30`,
+                                  color: OVERDUE_COLOR
+                                }}
+                              >
+                                <AlertTriangle className="h-3 w-3" />
+                                Atrasada
+                              </span>
+                            );
+                          }
+                          return null;
+                        })()}
+                        
                         {dueDate && (
                           <span className="text-xs text-muted-foreground flex items-center gap-1">
                             <Calendar className="h-3 w-3" />

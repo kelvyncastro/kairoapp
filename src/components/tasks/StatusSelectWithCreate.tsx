@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Check, X } from 'lucide-react';
+import { Plus, Check, X, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -15,6 +15,10 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { TaskStatus, COLOR_PALETTE } from '@/types/tasks';
+import { isBefore, parseISO, startOfDay } from 'date-fns';
+
+// Virtual "Atrasada" status color
+const OVERDUE_COLOR = '#dc2626';
 
 interface StatusSelectWithCreateProps {
   statuses: TaskStatus[];
@@ -22,6 +26,7 @@ interface StatusSelectWithCreateProps {
   onChange: (statusId: string) => void;
   onCreateStatus?: (status: Partial<TaskStatus>) => Promise<TaskStatus | null>;
   className?: string;
+  isOverdue?: boolean; // Whether the task is overdue
 }
 
 export function StatusSelectWithCreate({
@@ -30,6 +35,7 @@ export function StatusSelectWithCreate({
   onChange,
   onCreateStatus,
   className,
+  isOverdue = false,
 }: StatusSelectWithCreateProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [newStatusName, setNewStatusName] = useState('');
@@ -38,6 +44,10 @@ export function StatusSelectWithCreate({
   const statusInfo = value 
     ? statuses.find(s => s.id === value) 
     : null;
+
+  // Check if the current status is "Concluída" (completed)
+  const isCompleted = statusInfo?.name.toLowerCase().includes('concluída') || 
+                      statusInfo?.name.toLowerCase().includes('concluida');
 
   const handleCreateStatus = async () => {
     if (!newStatusName.trim() || !onCreateStatus) return;
@@ -69,15 +79,28 @@ export function StatusSelectWithCreate({
       }}
     >
       <SelectTrigger className={cn("h-7 text-xs border-0 bg-transparent hover:bg-muted/50 p-0", className)}>
-        <span
-          className="px-2 py-0.5 rounded text-xs font-medium"
-          style={{ 
-            backgroundColor: statusInfo ? `${statusInfo.color}30` : '#6b728030',
-            color: statusInfo?.color || '#6b7280'
-          }}
-        >
-          {statusInfo?.name || 'Sem status'}
-        </span>
+        {isOverdue && !isCompleted ? (
+          <span
+            className="px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1"
+            style={{ 
+              backgroundColor: `${OVERDUE_COLOR}30`,
+              color: OVERDUE_COLOR
+            }}
+          >
+            <AlertTriangle className="h-3 w-3" />
+            Atrasada
+          </span>
+        ) : (
+          <span
+            className="px-2 py-0.5 rounded text-xs font-medium"
+            style={{ 
+              backgroundColor: statusInfo ? `${statusInfo.color}30` : '#6b728030',
+              color: statusInfo?.color || '#6b7280'
+            }}
+          >
+            {statusInfo?.name || 'Sem status'}
+          </span>
+        )}
       </SelectTrigger>
       <SelectContent className="bg-popover">
         {statuses.map((s) => (
