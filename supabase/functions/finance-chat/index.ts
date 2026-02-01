@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 serve(async (req) => {
@@ -12,13 +12,60 @@ serve(async (req) => {
   }
 
   try {
-    const { message, userId, sectors } = await req.json();
-    
-    if (!message || !userId) {
+    // Validate Authorization header and extract user from JWT
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: "Mensagem ou usuário não fornecidos." 
+          message: "Não autorizado. Faça login novamente." 
+        }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    
+    // Create client with user's auth context
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // Validate the JWT and get user claims
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+    
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: "Sessão inválida. Faça login novamente." 
+        }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Extract user_id from validated JWT claims (not from client request)
+    const userId = claimsData.claims.sub;
+    
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: "Usuário não identificado." 
+        }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { message, sectors } = await req.json();
+    
+    if (!message) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: "Mensagem não fornecida." 
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -134,8 +181,7 @@ Responda APENAS em JSON válido no formato:
       );
     }
 
-    // Create Supabase client
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    // Create Supabase client with service role for insert (RLS will validate via user_id)
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
