@@ -23,7 +23,7 @@ interface Sector {
   name: string;
 }
 
-// Floating particle component
+// Floating particle component - uses theme-aware colors
 function FloatingParticle({ delay, duration, size, startX, startY }: {
   delay: number;
   duration: number;
@@ -33,7 +33,7 @@ function FloatingParticle({ delay, duration, size, startX, startY }: {
 }) {
   return (
     <motion.div
-      className="absolute rounded-full bg-gradient-to-br from-zinc-400/20 to-zinc-600/10"
+      className="absolute rounded-full bg-gradient-to-br from-muted-foreground/20 to-muted/10"
       style={{
         width: size,
         height: size,
@@ -206,26 +206,26 @@ export default function ChatFinanceiro() {
     <div className="h-[calc(100vh-4rem)] -m-6 relative overflow-hidden bg-background">
       {/* Dynamic Background */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Base gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-zinc-900/50 to-background" />
+        {/* Base gradient - uses theme background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/50 to-background" />
         
-        {/* Animated mesh gradient */}
+        {/* Animated mesh gradient - uses theme-aware colors */}
         <motion.div
           className="absolute inset-0"
           animate={{
             background: [
-              "radial-gradient(ellipse 80% 50% at 20% 40%, rgba(39,39,42,0.4) 0%, transparent 50%), radial-gradient(ellipse 60% 40% at 80% 60%, rgba(24,24,27,0.3) 0%, transparent 50%)",
-              "radial-gradient(ellipse 60% 40% at 30% 60%, rgba(39,39,42,0.4) 0%, transparent 50%), radial-gradient(ellipse 80% 50% at 70% 40%, rgba(24,24,27,0.3) 0%, transparent 50%)",
-              "radial-gradient(ellipse 80% 50% at 20% 40%, rgba(39,39,42,0.4) 0%, transparent 50%), radial-gradient(ellipse 60% 40% at 80% 60%, rgba(24,24,27,0.3) 0%, transparent 50%)",
+              "radial-gradient(ellipse 80% 50% at 20% 40%, hsl(var(--muted) / 0.4) 0%, transparent 50%), radial-gradient(ellipse 60% 40% at 80% 60%, hsl(var(--secondary) / 0.3) 0%, transparent 50%)",
+              "radial-gradient(ellipse 60% 40% at 30% 60%, hsl(var(--muted) / 0.4) 0%, transparent 50%), radial-gradient(ellipse 80% 50% at 70% 40%, hsl(var(--secondary) / 0.3) 0%, transparent 50%)",
+              "radial-gradient(ellipse 80% 50% at 20% 40%, hsl(var(--muted) / 0.4) 0%, transparent 50%), radial-gradient(ellipse 60% 40% at 80% 60%, hsl(var(--secondary) / 0.3) 0%, transparent 50%)",
             ],
           }}
           transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
         />
         
-        {/* Glowing orbs */}
-        <GlowingOrb x={10} y={20} size={300} color="rgba(39,39,42,0.3)" delay={0} />
-        <GlowingOrb x={70} y={60} size={400} color="rgba(24,24,27,0.25)" delay={2} />
-        <GlowingOrb x={40} y={80} size={250} color="rgba(63,63,70,0.2)" delay={4} />
+        {/* Glowing orbs - use theme colors */}
+        <GlowingOrb x={10} y={20} size={300} color="hsl(var(--muted) / 0.3)" delay={0} />
+        <GlowingOrb x={70} y={60} size={400} color="hsl(var(--secondary) / 0.25)" delay={2} />
+        <GlowingOrb x={40} y={80} size={250} color="hsl(var(--accent) / 0.2)" delay={4} />
         
         {/* Floating particles */}
         {particles.map((p) => (
@@ -237,15 +237,15 @@ export default function ChatFinanceiro() {
           className="absolute inset-0 opacity-[0.02]"
           style={{
             backgroundImage: `
-              linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),
-              linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)
+              linear-gradient(to right, hsl(var(--foreground) / 0.1) 1px, transparent 1px),
+              linear-gradient(to bottom, hsl(var(--foreground) / 0.1) 1px, transparent 1px)
             `,
             backgroundSize: '60px 60px',
           }}
         />
         
         {/* Vignette effect */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,hsl(var(--background)/0.4)_100%)]" />
       </div>
 
       {/* Content */}
@@ -254,21 +254,21 @@ export default function ChatFinanceiro() {
         <div className="flex items-center justify-between px-6 py-4 border-b border-border/20">
           <div className="flex items-center gap-4">
             <Link to="/financas">
-              <Button variant="ghost" size="icon" className="hover:bg-zinc-800/50">
+              <Button variant="ghost" size="icon" className="hover:bg-accent/50">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
             <div className="flex items-center gap-3">
-              <Avatar className="h-10 w-10 border-2 border-zinc-700/50">
+              <Avatar className="h-10 w-10 border-2 border-border/50">
                 <AvatarImage src={batmanLogo} alt="Assistant" />
-                <AvatarFallback className="bg-zinc-800">
-                  <MessageCircle className="h-5 w-5 text-zinc-400" />
+                <AvatarFallback className="bg-secondary">
+                  <MessageCircle className="h-5 w-5 text-muted-foreground" />
                 </AvatarFallback>
               </Avatar>
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="font-bold text-lg">Chat Financeiro</h1>
-                  <Sparkles className="h-4 w-4 text-zinc-500" />
+                  <Sparkles className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <p className="text-xs text-muted-foreground">Registre transações por texto</p>
               </div>
@@ -292,10 +292,10 @@ export default function ChatFinanceiro() {
                   }`}
                 >
                   {message.role === "assistant" && (
-                    <Avatar className="h-8 w-8 border border-zinc-700/50 flex-shrink-0">
+                    <Avatar className="h-8 w-8 border border-border/50 flex-shrink-0">
                       <AvatarImage src={batmanLogo} alt="Assistant" />
-                      <AvatarFallback className="bg-zinc-800">
-                        <MessageCircle className="h-4 w-4 text-zinc-400" />
+                      <AvatarFallback className="bg-secondary">
+                        <MessageCircle className="h-4 w-4 text-muted-foreground" />
                       </AvatarFallback>
                     </Avatar>
                   )}
@@ -303,14 +303,14 @@ export default function ChatFinanceiro() {
                     whileHover={{ scale: 1.01 }}
                     className={`rounded-2xl px-4 py-3 max-w-[80%] backdrop-blur-sm ${
                       message.role === "user"
-                        ? "bg-zinc-700/60 text-foreground border border-zinc-600/30"
-                        : "bg-zinc-800/40 text-foreground border border-zinc-700/30"
+                        ? "bg-accent/60 text-foreground border border-border/30"
+                        : "bg-secondary/40 text-foreground border border-border/30"
                     }`}
                   >
                     <p className="text-sm whitespace-pre-wrap leading-relaxed">
                       {message.content.split("**").map((part, i) =>
                         i % 2 === 1 ? (
-                          <strong key={i} className="font-semibold text-zinc-200">
+                          <strong key={i} className="font-semibold text-foreground">
                             {part}
                           </strong>
                         ) : (
@@ -329,13 +329,13 @@ export default function ChatFinanceiro() {
                 animate={{ opacity: 1, y: 0 }}
                 className="flex gap-3"
               >
-                <Avatar className="h-8 w-8 border border-zinc-700/50 flex-shrink-0">
+                <Avatar className="h-8 w-8 border border-border/50 flex-shrink-0">
                   <AvatarImage src={batmanLogo} alt="Assistant" />
-                  <AvatarFallback className="bg-zinc-800">
-                    <MessageCircle className="h-4 w-4 text-zinc-400" />
+                  <AvatarFallback className="bg-secondary">
+                    <MessageCircle className="h-4 w-4 text-muted-foreground" />
                   </AvatarFallback>
                 </Avatar>
-                <div className="bg-zinc-800/40 rounded-2xl px-4 py-3 border border-zinc-700/30 backdrop-blur-sm">
+                <div className="bg-secondary/40 rounded-2xl px-4 py-3 border border-border/30 backdrop-blur-sm">
                   <div className="flex items-center gap-2">
                     <motion.div
                       className="flex gap-1"
@@ -345,7 +345,7 @@ export default function ChatFinanceiro() {
                       {[0, 1, 2].map((i) => (
                         <motion.div
                           key={i}
-                          className="w-2 h-2 rounded-full bg-zinc-500"
+                          className="w-2 h-2 rounded-full bg-muted-foreground"
                           animate={{ y: [0, -6, 0] }}
                           transition={{
                             duration: 0.6,
@@ -355,7 +355,7 @@ export default function ChatFinanceiro() {
                         />
                       ))}
                     </motion.div>
-                    <span className="text-sm text-zinc-400 ml-1">Processando</span>
+                    <span className="text-sm text-muted-foreground ml-1">Processando</span>
                   </div>
                 </div>
               </motion.div>
@@ -372,13 +372,13 @@ export default function ChatFinanceiro() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ex: Gastei R$50 no mercado..."
-              className="flex-1 bg-zinc-800/30 border-zinc-700/40 text-foreground placeholder:text-zinc-500 focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600/50 h-12 rounded-xl backdrop-blur-sm"
+              className="flex-1 bg-secondary/30 border-border/40 text-foreground placeholder:text-muted-foreground focus:border-border focus:ring-1 focus:ring-ring/50 h-12 rounded-xl backdrop-blur-sm"
               disabled={isLoading}
             />
             <Button
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
-              className="bg-zinc-700/80 hover:bg-zinc-600 text-foreground px-5 h-12 rounded-xl backdrop-blur-sm border border-zinc-600/30"
+              className="bg-accent/80 hover:bg-accent text-foreground px-5 h-12 rounded-xl backdrop-blur-sm border border-border/30"
             >
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
