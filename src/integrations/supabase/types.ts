@@ -806,6 +806,45 @@ export type Database = {
           },
         ]
       }
+      user_profiles: {
+        Row: {
+          app_theme: string
+          avatar_url: string | null
+          birth_date: string | null
+          created_at: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          onboarding_completed: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          app_theme?: string
+          avatar_url?: string | null
+          birth_date?: string | null
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          onboarding_completed?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          app_theme?: string
+          avatar_url?: string | null
+          birth_date?: string | null
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          onboarding_completed?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
