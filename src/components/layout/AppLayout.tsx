@@ -17,8 +17,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  Plus,
-  Search,
   LogOut,
   Calendar,
   Construction,
@@ -27,7 +25,6 @@ import {
 import { cn } from "@/lib/utils";
 import kairoLogo from "@/assets/kairo-logo.png";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -36,13 +33,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 
 const mainNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -64,8 +54,6 @@ const devNavItems = [
 
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [devMenuOpen, setDevMenuOpen] = useState(true);
   const location = useLocation();
   const { user, signOut } = useAuth();
@@ -193,83 +181,8 @@ export default function AppLayout() {
         )}
       >
         {/* Topbar */}
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6">
-          {/* Search */}
-          <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="gap-2 text-muted-foreground">
-                <Search className="h-4 w-4" />
-                <span className="hidden sm:inline">Buscar...</span>
-                <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-                  ⌘K
-                </kbd>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Busca Rápida</DialogTitle>
-              </DialogHeader>
-              <Input
-                placeholder="Buscar tarefas, metas, exercícios..."
-                className="mt-2"
-                autoFocus
-              />
-              <div className="py-6 text-center text-sm text-muted-foreground">
-                Digite para buscar em todas as áreas
-              </div>
-            </DialogContent>
-          </Dialog>
-
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-end border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6">
           <div className="flex items-center gap-2">
-            {/* Quick Add */}
-            <Dialog open={quickAddOpen} onOpenChange={setQuickAddOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  <span className="hidden sm:inline">Criar</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Criar Rápido</DialogTitle>
-                </DialogHeader>
-                <div className="grid grid-cols-2 gap-3 pt-4">
-                  <Link
-                    to="/rotina"
-                    onClick={() => setQuickAddOpen(false)}
-                    className="flex flex-col items-center gap-2 p-4 rounded-lg border border-border hover:bg-accent transition-colors"
-                  >
-                    <ListTodo className="h-6 w-6" />
-                    <span className="text-sm">Tarefa</span>
-                  </Link>
-                  <Link
-                    to="/metas"
-                    onClick={() => setQuickAddOpen(false)}
-                    className="flex flex-col items-center gap-2 p-4 rounded-lg border border-border hover:bg-accent transition-colors"
-                  >
-                    <Target className="h-6 w-6" />
-                    <span className="text-sm">Meta</span>
-                  </Link>
-                  <Link
-                    to="/treino"
-                    onClick={() => setQuickAddOpen(false)}
-                    className="flex flex-col items-center gap-2 p-4 rounded-lg border border-border hover:bg-accent transition-colors"
-                  >
-                    <Dumbbell className="h-6 w-6" />
-                    <span className="text-sm">Treino</span>
-                  </Link>
-                  <Link
-                    to="/financas"
-                    onClick={() => setQuickAddOpen(false)}
-                    className="flex flex-col items-center gap-2 p-4 rounded-lg border border-border hover:bg-accent transition-colors"
-                  >
-                    <Wallet className="h-6 w-6" />
-                    <span className="text-sm">Transação</span>
-                  </Link>
-                </div>
-              </DialogContent>
-            </Dialog>
-
             {/* Profile */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
