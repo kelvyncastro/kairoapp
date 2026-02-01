@@ -71,7 +71,7 @@ export default function Auth() {
             Kairo App
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Modo Caverna. Sem desculpas.
+            Domine seu tempo. Conquiste seus objetivos.
           </p>
         </div>
 
