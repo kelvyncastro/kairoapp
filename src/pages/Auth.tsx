@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Eye, EyeOff } from "lucide-react";
-import batmanLogo from "@/assets/batman-logo.jpg";
+import kairoLogo from "@/assets/kairo-logo.png";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -62,13 +62,13 @@ export default function Auth() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full overflow-hidden border-2 border-border mb-4">
             <img
-              src={batmanLogo}
-              alt="Bruce Wayne Projects"
+              src={kairoLogo}
+              alt="Kairo App"
               className="w-full h-full object-cover"
             />
           </div>
           <h1 className="text-2xl font-semibold tracking-tight">
-            Bruce Wayne Projects
+            Kairo App
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Modo Caverna. Sem desculpas.
