@@ -78,29 +78,37 @@ export function StatusSelectWithCreate({
         }
       }}
     >
-      <SelectTrigger className={cn("h-7 text-xs border-0 bg-transparent hover:bg-muted/50 p-0 flex items-center", className)}>
-        {isOverdue && !isCompleted ? (
-          <span
-            className="px-2 py-0.5 rounded text-xs font-medium inline-flex items-center gap-1 whitespace-nowrap"
-            style={{ 
-              backgroundColor: `${OVERDUE_COLOR}30`,
-              color: OVERDUE_COLOR
-            }}
-          >
-            <AlertTriangle className="h-3 w-3 shrink-0" />
-            <span>Atrasada</span>
-          </span>
-        ) : (
-          <span
-            className="px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap"
-            style={{ 
-              backgroundColor: statusInfo ? `${statusInfo.color}30` : '#6b728030',
-              color: statusInfo?.color || '#6b7280'
-            }}
-          >
-            {statusInfo?.name || 'Sem status'}
-          </span>
-        )}
+      <SelectTrigger className={cn("h-7 text-xs border-0 bg-transparent hover:bg-muted/50 p-0", className)}>
+        {/*
+          IMPORTANT:
+          O SelectTrigger base aplica `[&>span]:line-clamp-1`.
+          Se renderizarmos um <span> como filho direto, isso pode quebrar o layout (ícone em cima, texto embaixo).
+          Por isso usamos um <div> como filho direto.
+        */}
+        <div className="flex items-center min-w-0">
+          {isOverdue && !isCompleted ? (
+            <div
+              className="px-2 py-0.5 rounded text-xs font-medium inline-flex items-center gap-1 whitespace-nowrap"
+              style={{
+                backgroundColor: `${OVERDUE_COLOR}30`,
+                color: OVERDUE_COLOR,
+              }}
+            >
+              <AlertTriangle className="h-3 w-3 shrink-0" />
+              <span>Atrasada</span>
+            </div>
+          ) : (
+            <div
+              className="px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap"
+              style={{
+                backgroundColor: statusInfo ? `${statusInfo.color}30` : '#6b728030',
+                color: statusInfo?.color || '#6b7280',
+              }}
+            >
+              {statusInfo?.name || 'Sem status'}
+            </div>
+          )}
+        </div>
       </SelectTrigger>
       <SelectContent className="bg-popover">
         {statuses.map((s) => (
