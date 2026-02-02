@@ -266,7 +266,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="h-[calc(100vh-4rem)] flex flex-col -m-6 bg-background">
+      <div className="h-full flex flex-col -m-4 md:-m-6 bg-background overflow-hidden">
         <div className="px-6 py-4 border-b border-border/30">
           <div className="h-8 w-48 bg-muted/30 rounded animate-pulse" />
         </div>
@@ -282,7 +282,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col -m-4 md:-m-6 bg-background">
+    <div className="h-full flex flex-col -m-4 md:-m-6 bg-background overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-border/30 flex-shrink-0">
         <div>
@@ -294,7 +294,7 @@ export default function Dashboard() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {/* Stats Cards */}
         <div className="px-4 md:px-6 py-4 md:py-5">
           <h2 className="text-lg md:text-xl font-bold text-foreground uppercase tracking-wider mb-3 md:mb-4">

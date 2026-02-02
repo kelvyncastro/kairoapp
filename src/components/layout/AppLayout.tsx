@@ -151,7 +151,7 @@ export default function AppLayout() {
   );
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
+    <div className="flex h-screen w-full bg-background overflow-hidden">
       {/* Desktop Sidebar */}
       <aside
         className={cn(
@@ -199,12 +199,12 @@ export default function AppLayout() {
       {/* Main Content */}
       <main
         className={cn(
-          "flex-1 transition-all duration-300 pb-16 md:pb-0",
+          "flex-1 flex flex-col min-w-0 transition-all duration-300 pb-16 md:pb-0 overflow-hidden",
           collapsed ? "md:ml-16" : "md:ml-60"
         )}
       >
         {/* Topbar */}
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6">
+        <header className="flex-shrink-0 sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6">
           {/* Left: Menu + Logo (mobile) */}
           <div className="flex items-center gap-2 md:hidden">
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -276,7 +276,7 @@ export default function AppLayout() {
         </header>
 
         {/* Page Content */}
-        <div className="p-4 md:p-6">
+        <div className="flex-1 min-h-0 min-w-0 overflow-hidden p-4 md:p-6">
           <Outlet />
         </div>
       </main>

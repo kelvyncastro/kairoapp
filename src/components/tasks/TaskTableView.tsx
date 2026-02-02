@@ -316,8 +316,8 @@ export function TaskTableView({
         </DropdownMenu>
       </div>
 
-      {/* Scrollable task list */}
-      <div className="flex-1 overflow-y-auto">
+      {/* Scrollable task list (scroll só aqui, inclusive horizontal) */}
+      <div className="flex-1 overflow-auto">
       {/* Folder sections */}
       {foldersToShow.map((folder) => {
         const folderTasks = groupedTasks[folder.id] || [];

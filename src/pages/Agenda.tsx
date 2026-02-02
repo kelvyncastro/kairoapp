@@ -66,7 +66,7 @@ export default function Agenda() {
 
   if (needsConnection || needsReconnection) {
     return (
-      <div className="h-[calc(100vh-4rem)] flex flex-col -m-6 bg-background">
+      <div className="h-full flex flex-col -m-4 md:-m-6 bg-background overflow-hidden">
         <div className="px-6 py-4 border-b border-border/30">
           <h1 className="text-2xl font-bold">Agenda</h1>
           <p className="text-sm text-muted-foreground">Visualize seus eventos do Google Calendar</p>
@@ -81,7 +81,7 @@ export default function Agenda() {
   }
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col -m-6 bg-background">
+    <div className="h-full flex flex-col -m-4 md:-m-6 bg-background overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-border/30 flex-shrink-0">
         <div>

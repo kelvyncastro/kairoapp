@@ -128,7 +128,7 @@ export default function Rotina() {
 
   if (loading) {
     return (
-      <div className="flex h-[calc(100vh-4rem)] -m-4 md:-m-6">
+      <div className="flex h-full -m-4 md:-m-6 overflow-hidden">
         <div className="w-56 border-r border-border/30 bg-background animate-pulse hidden md:block" />
         <div className="flex-1 flex flex-col">
           <div className="px-4 md:px-6 py-4 border-b border-border/30">
@@ -147,7 +147,7 @@ export default function Rotina() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] -m-4 md:-m-6">
+    <div className="flex h-full -m-4 md:-m-6 overflow-hidden">
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
         <TaskSidebar
