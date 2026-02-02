@@ -656,11 +656,13 @@ function EditableSchedule({
   task,
   displayValue,
   placeholder,
+  calendarMode,
   onUpdate,
 }: {
   task: Task;
   displayValue: string | null;
   placeholder: string;
+  calendarMode: "start" | "due";
   onUpdate: (updates: Partial<Task>) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -692,6 +694,7 @@ function EditableSchedule({
           dueDate={task.due_date || task.date}
           isRecurring={task.is_recurring}
           recurringRule={task.recurring_rule}
+          calendarMode={calendarMode}
           onChange={(updates) => onUpdate(updates)}
           onAfterSelectDate={() => setOpen(false)}
         />
@@ -947,6 +950,7 @@ function TaskTable({
             task={task}
             displayValue={task.start_date}
             placeholder="Início"
+            calendarMode="start"
             onUpdate={(updates) => onUpdateTask(task.id, updates)}
           />
         );
@@ -957,6 +961,7 @@ function TaskTable({
             task={task}
             displayValue={task.due_date || task.date}
             placeholder="Vencimento"
+            calendarMode="due"
             onUpdate={(updates) => onUpdateTask(task.id, updates)}
           />
         );
