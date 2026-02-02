@@ -183,7 +183,8 @@ export default function ChatFinanceiro() {
 
       setMessages((prev) => [...prev, assistantMessage]);
 
-      if (data.success) {
+      // Only show success toast for transaction registrations, not queries
+      if (data.success && !data.isQuery) {
         toast.success("Transação registrada!");
       }
     } catch (error: any) {
