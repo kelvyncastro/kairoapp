@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { LayoutList, LayoutGrid } from 'lucide-react';
+import { LayoutList, LayoutGrid, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTaskData } from '@/hooks/useTaskData';
 import { useSavedFilters } from '@/hooks/useSavedFilters';
@@ -10,6 +10,7 @@ import { TaskDialog } from '@/components/tasks/TaskDialog';
 import { TaskFiltersAdvanced, FilterCondition, SavedFilter } from '@/components/tasks/TaskFiltersAdvanced';
 import { applyFilters } from '@/utils/filterTasks';
 import { Task, ViewMode } from '@/types/tasks';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 export default function Rotina() {
   const {
@@ -39,6 +40,7 @@ export default function Rotina() {
   const [defaultStatusId, setDefaultStatusId] = useState<string | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [advancedFilters, setAdvancedFilters] = useState<FilterCondition[]>([]);
+  const [folderSheetOpen, setFolderSheetOpen] = useState(false);
 
   const taskCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -68,6 +70,8 @@ export default function Rotina() {
 
     return result;
   }, [tasks, selectedFolderId, searchQuery, advancedFilters]);
+
+  const selectedFolder = folders.find(f => f.id === selectedFolderId);
 
   const handleCreateTask = (statusId?: string) => {
     setEditingTask(null);
@@ -116,15 +120,20 @@ export default function Rotina() {
     setAdvancedFilters(saved.filters);
   };
 
+  const handleSelectFolder = (id: string | null) => {
+    setSelectedFolderId(id);
+    setFolderSheetOpen(false);
+  };
+
   if (loading) {
     return (
-      <div className="flex h-[calc(100vh-4rem)] -m-6">
-        <div className="w-56 border-r border-border/30 bg-background animate-pulse" />
+      <div className="flex h-[calc(100vh-4rem)] -m-4 md:-m-6">
+        <div className="w-56 border-r border-border/30 bg-background animate-pulse hidden md:block" />
         <div className="flex-1 flex flex-col">
-          <div className="px-6 py-4 border-b border-border/30">
+          <div className="px-4 md:px-6 py-4 border-b border-border/30">
             <div className="h-8 w-48 bg-muted/30 rounded animate-pulse" />
           </div>
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4 md:p-6">
             <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
                 <div key={i} className="h-12 bg-muted/30 rounded animate-pulse" />
@@ -137,40 +146,67 @@ export default function Rotina() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] -m-6">
-      {/* Sidebar */}
-      <TaskSidebar
-        folders={folders}
-        selectedFolderId={selectedFolderId}
-        onSelectFolder={setSelectedFolderId}
-        onCreateFolder={createFolder}
-        onUpdateFolder={updateFolder}
-        onDeleteFolder={deleteFolder}
-        taskCounts={taskCounts}
-      />
+    <div className="flex h-[calc(100vh-4rem)] -m-4 md:-m-6">
+      {/* Desktop Sidebar */}
+      <div className="hidden md:block">
+        <TaskSidebar
+          folders={folders}
+          selectedFolderId={selectedFolderId}
+          onSelectFolder={setSelectedFolderId}
+          onCreateFolder={createFolder}
+          onUpdateFolder={updateFolder}
+          onDeleteFolder={deleteFolder}
+          taskCounts={taskCounts}
+        />
+      </div>
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden bg-background">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border/30">
-          <div>
-            <h1 className="text-2xl font-bold">Tarefas</h1>
-            <p className="text-sm text-muted-foreground">Suas tarefas e projetos</p>
+        <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-border/30">
+          <div className="flex items-center gap-3">
+            {/* Mobile folder button */}
+            <Sheet open={folderSheetOpen} onOpenChange={setFolderSheetOpen}>
+              <SheetTrigger asChild className="md:hidden">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <FolderOpen className="h-4 w-4" />
+                  <span className="max-w-24 truncate">
+                    {selectedFolder?.name || 'Todas'}
+                  </span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-72 p-0">
+                <TaskSidebar
+                  folders={folders}
+                  selectedFolderId={selectedFolderId}
+                  onSelectFolder={handleSelectFolder}
+                  onCreateFolder={createFolder}
+                  onUpdateFolder={updateFolder}
+                  onDeleteFolder={deleteFolder}
+                  taskCounts={taskCounts}
+                />
+              </SheetContent>
+            </Sheet>
+            
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold">Tarefas</h1>
+              <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Suas tarefas e projetos</p>
+            </div>
           </div>
         </div>
 
         {/* Toolbar */}
-        <div className="flex items-center gap-3 px-6 py-3 border-b border-border/30">
+        <div className="flex items-center gap-2 md:gap-3 px-4 md:px-6 py-2 md:py-3 border-b border-border/30 overflow-x-auto">
           {/* View mode */}
-          <div className="flex items-center gap-1 bg-muted/30 rounded-md p-0.5">
+          <div className="flex items-center gap-1 bg-muted/30 rounded-md p-0.5 shrink-0">
             <Button 
               variant={viewMode === 'list' ? 'secondary' : 'ghost'} 
               size="sm"
               className="h-7 px-2"
               onClick={() => setViewMode('list')}
             >
-              <LayoutList className="h-4 w-4 mr-1.5" />
-              Lista
+              <LayoutList className="h-4 w-4 md:mr-1.5" />
+              <span className="hidden md:inline">Lista</span>
             </Button>
             <Button 
               variant={viewMode === 'board' ? 'secondary' : 'ghost'} 
@@ -178,12 +214,12 @@ export default function Rotina() {
               className="h-7 px-2"
               onClick={() => setViewMode('board')}
             >
-              <LayoutGrid className="h-4 w-4 mr-1.5" />
-              Quadro
+              <LayoutGrid className="h-4 w-4 md:mr-1.5" />
+              <span className="hidden md:inline">Quadro</span>
             </Button>
           </div>
 
-          <div className="h-4 w-px bg-border/50" />
+          <div className="h-4 w-px bg-border/50 shrink-0 hidden sm:block" />
 
           {/* Advanced Filters */}
           <TaskFiltersAdvanced
