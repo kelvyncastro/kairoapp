@@ -409,7 +409,7 @@ export default function Landing() {
       </section>
 
       {/* Mockups Section */}
-      <section id="mockups" className="relative z-10 py-24 px-4 sm:px-6 lg:px-8 bg-secondary/10 backdrop-blur-sm">
+      <section id="mockups" className="relative z-10 py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -426,22 +426,33 @@ export default function Landing() {
             </p>
           </motion.div>
 
-          <div className="grid lg:grid-cols-2 gap-8 items-center">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* iPad 1 */}
             <motion.div
               initial={{ opacity: 0, x: -40 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
-              whileHover={{ scale: 1.02, rotate: 1 }}
+              whileHover={{ scale: 1.03 }}
               className="flex justify-center"
             >
               <div className="relative">
-                <div className="absolute -inset-4 bg-gradient-to-br from-primary/10 to-transparent rounded-3xl blur-xl" />
+                {/* Glow effect around mockup */}
+                <motion.div 
+                  className="absolute -inset-1 rounded-2xl opacity-60"
+                  style={{
+                    background: "linear-gradient(135deg, hsl(var(--primary) / 0.4), hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.4))",
+                    filter: "blur(20px)",
+                  }}
+                  animate={{
+                    opacity: [0.4, 0.7, 0.4],
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                />
                 <img 
                   src={mockupIpad} 
                   alt="Kairo no iPad - Dashboard" 
-                  className="relative rounded-2xl shadow-2xl w-full max-w-lg"
+                  className="relative rounded-2xl w-full max-w-2xl"
                 />
               </div>
             </motion.div>
@@ -452,15 +463,26 @@ export default function Landing() {
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               viewport={{ once: true }}
-              whileHover={{ scale: 1.02, rotate: -1 }}
+              whileHover={{ scale: 1.03 }}
               className="flex justify-center"
             >
               <div className="relative">
-                <div className="absolute -inset-4 bg-gradient-to-br from-primary/10 to-transparent rounded-3xl blur-xl" />
+                {/* Glow effect around mockup */}
+                <motion.div 
+                  className="absolute -inset-1 rounded-2xl opacity-60"
+                  style={{
+                    background: "linear-gradient(225deg, hsl(var(--primary) / 0.4), hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.4))",
+                    filter: "blur(20px)",
+                  }}
+                  animate={{
+                    opacity: [0.4, 0.7, 0.4],
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+                />
                 <img 
                   src={mockupIpad2} 
                   alt="Kairo no iPad - Hábitos" 
-                  className="relative rounded-2xl shadow-2xl w-full max-w-lg"
+                  className="relative rounded-2xl w-full max-w-2xl"
                 />
               </div>
             </motion.div>
