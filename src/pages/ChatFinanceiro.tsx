@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
 import chatAssistant from "@/assets/chat-assistant.png";
 
 interface Message {
@@ -312,17 +313,28 @@ export default function ChatFinanceiro() {
                         : "bg-secondary/40 text-foreground border border-border/30"
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap leading-relaxed">
-                      {message.content.split("**").map((part, i) =>
-                        i % 2 === 1 ? (
-                          <strong key={i} className="font-semibold text-foreground">
-                            {part}
-                          </strong>
-                        ) : (
-                          part
-                        )
-                      )}
-                    </p>
+                    <div className="text-sm leading-relaxed prose prose-sm prose-invert max-w-none">
+                      <ReactMarkdown
+                        components={{
+                          h1: ({ children }) => <h1 className="text-base font-bold text-foreground mb-2 mt-2">{children}</h1>,
+                          h2: ({ children }) => <h2 className="text-sm font-semibold text-foreground mt-3 mb-1">{children}</h2>,
+                          h3: ({ children }) => <h3 className="text-sm font-medium text-foreground mt-2 mb-1">{children}</h3>,
+                          p: ({ children }) => <p className="text-sm text-foreground/90 mb-2">{children}</p>,
+                          ul: ({ children }) => <ul className="space-y-0.5 mb-2 ml-1">{children}</ul>,
+                          ol: ({ children }) => <ol className="space-y-0.5 mb-2 list-decimal list-inside">{children}</ol>,
+                          li: ({ children }) => (
+                            <li className="text-sm text-foreground/90 flex items-start gap-1">
+                              <span className="text-primary">•</span>
+                              <span className="flex-1">{children}</span>
+                            </li>
+                          ),
+                          strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+                          em: ({ children }) => <em className="text-primary not-italic">{children}</em>,
+                        }}
+                      >
+                        {message.content.replace(/<[^>]*>/g, '')}
+                      </ReactMarkdown>
+                    </div>
                   </motion.div>
                 </motion.div>
               ))}
