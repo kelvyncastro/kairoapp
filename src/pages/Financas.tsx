@@ -748,24 +748,70 @@ export default function Financas() {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsContent value="overview" className="space-y-3 md:space-y-4 mt-0">
               {/* Daily Chart */}
-              <div className="cave-card p-3 md:p-4">
-                <h3 className="font-bold uppercase tracking-wider text-[10px] md:text-xs mb-2 md:mb-3">Gastos Diários</h3>
-                <div className="flex items-end gap-[1px] md:gap-1 h-16 md:h-24">
-                  {dailyExpenses.map((day) => (
-                    <div
-                      key={day.date}
-                      className="flex-1 flex flex-col items-center group min-w-0"
-                    >
+              <div className="cave-card p-4 md:p-6">
+                <h3 className="font-bold text-sm md:text-base mb-3 md:mb-4">Gastos Diários</h3>
+                <div className="flex items-end gap-[2px] md:gap-1 h-28 md:h-40">
+                  {dailyExpenses.map((day, index) => {
+                    const heightPercent = maxDaily > 0 ? (day.total / maxDaily) * 100 : 0;
+                    const isToday = day.date === format(new Date(), "yyyy-MM-dd");
+                    
+                    return (
                       <div
-                        className="w-full bg-primary/70 rounded-t transition-all hover:bg-primary"
-                        style={{ height: `${(day.total / maxDaily) * 100}%`, minHeight: day.total > 0 ? "2px" : "0" }}
-                        title={`R$ ${day.total.toFixed(2)}`}
-                      />
-                      <span className="text-[6px] md:text-[8px] text-muted-foreground mt-0.5">
-                        {Number(day.day) % 10 === 0 || Number(day.day) === 1 ? day.day : ""}
-                      </span>
-                    </div>
-                  ))}
+                        key={day.date}
+                        className="flex-1 flex flex-col items-center group relative min-w-0"
+                      >
+                        {/* Tooltip */}
+                        <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                          <div className="bg-popover border border-border rounded-lg shadow-lg px-3 py-2 whitespace-nowrap">
+                            <p className="text-xs font-medium">{format(new Date(day.date), "dd 'de' MMM", { locale: ptBR })}</p>
+                            <p className="text-sm font-bold text-destructive">
+                              R$ {day.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* Bar */}
+                        <div
+                          className={cn(
+                            "w-full rounded-t transition-all cursor-pointer",
+                            isToday 
+                              ? "bg-primary hover:bg-primary/80" 
+                              : day.total > 0 
+                                ? "bg-destructive/60 hover:bg-destructive/80" 
+                                : "bg-muted/30"
+                          )}
+                          style={{ 
+                            height: `${Math.max(heightPercent, day.total > 0 ? 4 : 1)}%`,
+                            minHeight: day.total > 0 ? "4px" : "2px"
+                          }}
+                        />
+                        
+                        {/* Day label */}
+                        <span className={cn(
+                          "text-[8px] md:text-[10px] mt-1",
+                          isToday ? "text-primary font-bold" : "text-muted-foreground"
+                        )}>
+                          {Number(day.day) % 5 === 0 || Number(day.day) === 1 ? day.day : ""}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {/* Summary */}
+                <div className="flex items-center justify-between mt-4 pt-3 border-t border-border/30">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Média diária</p>
+                    <p className="text-sm font-semibold">
+                      R$ {(totalExpenses / daysInMonth.length).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Maior gasto</p>
+                    <p className="text-sm font-semibold text-destructive">
+                      R$ {maxDaily.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
                 </div>
               </div>
 
