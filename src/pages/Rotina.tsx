@@ -236,21 +236,6 @@ export default function Rotina() {
             </Button>
           </div>
 
-          <div className="h-4 w-px bg-border/50 shrink-0 hidden sm:block" />
-
-          {/* Advanced Filters */}
-          <TaskFiltersAdvanced
-            statuses={statuses}
-            filters={advancedFilters}
-            onFiltersChange={setAdvancedFilters}
-            savedFilters={savedFilters}
-            onSaveFilter={saveFilter}
-            onDeleteSavedFilter={deleteFilter}
-            onLoadSavedFilter={handleLoadSavedFilter}
-          />
-
-          <div className="h-4 w-px bg-border/50 shrink-0 hidden sm:block" />
-
           {/* Show/Hide Completed Toggle */}
           <Button
             variant={showCompleted ? 'secondary' : 'ghost'}
@@ -263,15 +248,26 @@ export default function Rotina() {
             ) : (
               <Archive className="h-4 w-4" />
             )}
-            <span className="hidden sm:inline">
-              {showCompleted ? 'Ocultar' : 'Concluídas'}
-            </span>
+            <span className="hidden sm:inline">Fechados</span>
             {completedTasksCount > 0 && (
               <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full">
                 {completedTasksCount}
               </span>
             )}
           </Button>
+
+          <div className="h-4 w-px bg-border/50 shrink-0 hidden sm:block" />
+
+          {/* Advanced Filters */}
+          <TaskFiltersAdvanced
+            statuses={statuses}
+            filters={advancedFilters}
+            onFiltersChange={setAdvancedFilters}
+            savedFilters={savedFilters}
+            onSaveFilter={saveFilter}
+            onDeleteSavedFilter={deleteFilter}
+            onLoadSavedFilter={handleLoadSavedFilter}
+          />
 
           <div className="flex-1" />
         </div>
