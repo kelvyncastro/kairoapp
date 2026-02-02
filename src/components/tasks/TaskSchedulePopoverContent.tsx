@@ -67,6 +67,13 @@ interface TaskSchedulePopoverContentProps {
   dueDate: string | null;
   isRecurring: boolean;
   recurringRule: string | null;
+  /**
+   * Which calendar(s) should be shown.
+   * - start: only start date calendar + recurrence
+   * - due: only due date calendar + recurrence
+   * - both: show both calendars (default)
+   */
+  calendarMode?: "start" | "due" | "both";
   onChange: (updates: TaskScheduleUpdates) => void;
   onAfterSelectDate?: () => void;
 }
@@ -139,6 +146,7 @@ export function TaskSchedulePopoverContent({
   dueDate,
   isRecurring,
   recurringRule,
+  calendarMode = "both",
   onChange,
   onAfterSelectDate,
 }: TaskSchedulePopoverContentProps) {
@@ -146,15 +154,25 @@ export function TaskSchedulePopoverContent({
   const selectedDue = dueDate ? parseDateString(dueDate) : undefined;
 
   const currentRule = recurringRule || "DAILY";
-  
+
+  const showStart = calendarMode === "both" || calendarMode === "start";
+  const showDue = calendarMode === "both" || calendarMode === "due";
+
+  // Base date to compute recurrence highlights (prefer start, fallback to due)
+  const baseRecurrenceDate = selectedStart || selectedDue;
+
   // Track visible month for calculating recurrence highlights
-  const displayMonth = selectedStart || selectedDue || new Date();
+  const displayMonth =
+    (calendarMode === "start" ? selectedStart : calendarMode === "due" ? selectedDue : undefined) ||
+    selectedStart ||
+    selectedDue ||
+    new Date();
   
   // Calculate recurrence dates for highlighting
   const recurrenceDates = useMemo(() => {
-    if (!isRecurring || !selectedStart) return [];
-    return getRecurrenceDates(selectedStart, currentRule, displayMonth);
-  }, [isRecurring, selectedStart, currentRule, displayMonth]);
+    if (!isRecurring || !baseRecurrenceDate) return [];
+    return getRecurrenceDates(baseRecurrenceDate, currentRule, displayMonth);
+  }, [isRecurring, baseRecurrenceDate, currentRule, displayMonth]);
 
   const setStartDate = (date: Date | undefined) => {
     const v = date ? formatDateString(date) : null;
@@ -180,61 +198,65 @@ export function TaskSchedulePopoverContent({
     <div className="p-3 space-y-4">
       {/* Datas (separadas visualmente) */}
       <div className="space-y-4">
-        <section className="rounded-lg border bg-card p-3 space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <Label className="text-xs">Data de início</Label>
-            {startDate && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 px-2 text-xs"
-                onClick={() => {
-                  onChange({ start_date: null });
-                  onAfterSelectDate?.();
-                }}
-              >
-                <X className="h-3 w-3 mr-1" /> Limpar
-              </Button>
-            )}
-          </div>
-          <Calendar
-            mode="single"
-            selected={selectedStart}
-            onSelect={setStartDate}
-            locale={ptBR}
-            className="pointer-events-auto"
-            modifiers={modifiers}
-            modifiersStyles={modifiersStyles}
-          />
-        </section>
+        {showStart && (
+          <section className="rounded-lg border bg-card p-3 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <Label className="text-xs">Data de início</Label>
+              {startDate && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs"
+                  onClick={() => {
+                    onChange({ start_date: null });
+                    onAfterSelectDate?.();
+                  }}
+                >
+                  <X className="h-3 w-3 mr-1" /> Limpar
+                </Button>
+              )}
+            </div>
+            <Calendar
+              mode="single"
+              selected={selectedStart}
+              onSelect={setStartDate}
+              locale={ptBR}
+              className="pointer-events-auto"
+              modifiers={modifiers}
+              modifiersStyles={modifiersStyles}
+            />
+          </section>
+        )}
 
-        <section className="rounded-lg border bg-card p-3 space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <Label className="text-xs">Data de vencimento</Label>
-            {dueDate && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 px-2 text-xs"
-                onClick={() => {
-                  onChange({ due_date: null });
-                  onAfterSelectDate?.();
-                }}
-              >
-                <X className="h-3 w-3 mr-1" /> Limpar
-              </Button>
-            )}
-          </div>
-          <Calendar
-            mode="single"
-            selected={selectedDue}
-            onSelect={setDueDate}
-            locale={ptBR}
-            className="pointer-events-auto"
-            modifiers={modifiers}
-            modifiersStyles={modifiersStyles}
-          />
-        </section>
+        {showDue && (
+          <section className="rounded-lg border bg-card p-3 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <Label className="text-xs">Data de vencimento</Label>
+              {dueDate && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs"
+                  onClick={() => {
+                    onChange({ due_date: null });
+                    onAfterSelectDate?.();
+                  }}
+                >
+                  <X className="h-3 w-3 mr-1" /> Limpar
+                </Button>
+              )}
+            </div>
+            <Calendar
+              mode="single"
+              selected={selectedDue}
+              onSelect={setDueDate}
+              locale={ptBR}
+              className="pointer-events-auto"
+              modifiers={modifiers}
+              modifiersStyles={modifiersStyles}
+            />
+          </section>
+        )}
       </div>
 
       <div className="border-t pt-3 space-y-3">

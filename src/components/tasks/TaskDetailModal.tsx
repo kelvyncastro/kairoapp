@@ -362,6 +362,7 @@ export function TaskDetailModal({
                       dueDate={task.due_date}
                       isRecurring={task.is_recurring}
                       recurringRule={task.recurring_rule}
+                      calendarMode="start"
                       onChange={(updates) => onUpdateTask(task.id, updates)}
                     />
                   </PopoverContent>
@@ -379,6 +380,7 @@ export function TaskDetailModal({
                       dueDate={task.due_date}
                       isRecurring={task.is_recurring}
                       recurringRule={task.recurring_rule}
+                      calendarMode="due"
                       onChange={(updates) => onUpdateTask(task.id, updates)}
                     />
                   </PopoverContent>
