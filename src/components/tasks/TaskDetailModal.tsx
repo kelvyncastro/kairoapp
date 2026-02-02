@@ -17,7 +17,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import { RichTextDisplay } from '@/components/ui/rich-text-display';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import {
@@ -446,24 +447,19 @@ export function TaskDetailModal({
               <span>Descrição</span>
             </div>
             {isEditingDescription ? (
-              <Textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+              <RichTextEditor
+                content={description}
+                onChange={setDescription}
                 onBlur={handleDescriptionSave}
-                placeholder="Adicione uma descrição detalhada..."
-                className="min-h-[120px] bg-muted/20 border-border/30 text-sm"
+                placeholder="Adicione uma descrição detalhada... (use - ou * para criar listas, selecione texto para formatação)"
                 autoFocus
               />
             ) : (
-              <div
-                className={cn(
-                  "min-h-[80px] p-4 rounded-lg cursor-pointer bg-muted/20 border border-border/30 text-sm leading-relaxed transition-colors hover:bg-muted/30",
-                  !description && "text-muted-foreground italic"
-                )}
+              <RichTextDisplay
+                content={description}
                 onClick={() => setIsEditingDescription(true)}
-              >
-                {description || 'Clique para adicionar uma descrição...'}
-              </div>
+                placeholder="Clique para adicionar uma descrição..."
+              />
             )}
           </div>
 
