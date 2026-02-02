@@ -287,6 +287,10 @@ export default function Metas() {
   const handleSaveEdit = async () => {
     if (!editingGoal) return;
 
+    // Recalculate status based on current progress vs new target
+    const isCompleted = editingGoal.current_value >= editingGoal.target_value;
+    const newStatus = isCompleted ? "COMPLETED" : "ACTIVE";
+
     const { error } = await supabase
       .from("goals")
       .update({
@@ -296,6 +300,7 @@ export default function Metas() {
         unit_label: editingGoal.unit_label,
         category: editingGoal.category,
         end_date: editingGoal.end_date,
+        status: newStatus,
       })
       .eq("id", editingGoal.id);
 
