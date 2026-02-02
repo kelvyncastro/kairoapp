@@ -16,9 +16,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import kairoLogo from "@/assets/kairo-logo.png";
-import mockupMacbook from "@/assets/mockup-macbook.jpg";
-import mockupIphone from "@/assets/mockup-iphone.jpg";
-import mockupIpad from "@/assets/mockup-ipad.jpg";
+import mockupMacbook from "@/assets/mockup-macbook.png";
+import mockupIpad from "@/assets/mockup-ipad.png";
+import mockupIpad2 from "@/assets/mockup-ipad-2.png";
 
 const features = [
   {
@@ -129,10 +129,6 @@ export default function Landing() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border mb-6">
-              <Zap className="h-4 w-4 text-warning" />
-              <span className="text-sm text-muted-foreground">Novo: Chat Financeiro com IA</span>
-            </div>
             
             <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-6">
               Domine seu tempo.
@@ -259,8 +255,8 @@ export default function Landing() {
             </p>
           </motion.div>
 
-          <div className="grid lg:grid-cols-3 gap-8 items-center">
-            {/* iPhone */}
+          <div className="grid lg:grid-cols-2 gap-8 items-center">
+            {/* iPad 1 */}
             <motion.div
               initial={{ opacity: 0, x: -40 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -271,27 +267,27 @@ export default function Landing() {
               <div className="relative">
                 <div className="absolute -inset-4 bg-gradient-to-br from-foreground/5 to-transparent rounded-3xl blur-xl" />
                 <img 
-                  src={mockupIphone} 
-                  alt="Kairo no iPhone" 
-                  className="relative rounded-2xl shadow-2xl max-h-[500px] w-auto"
+                  src={mockupIpad} 
+                  alt="Kairo no iPad - Dashboard" 
+                  className="relative rounded-2xl shadow-2xl w-full max-w-lg"
                 />
               </div>
             </motion.div>
 
-            {/* iPad */}
+            {/* iPad 2 */}
             <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, x: 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               viewport={{ once: true }}
-              className="lg:col-span-2"
+              className="flex justify-center"
             >
               <div className="relative">
                 <div className="absolute -inset-4 bg-gradient-to-br from-foreground/5 to-transparent rounded-3xl blur-xl" />
                 <img 
-                  src={mockupIpad} 
-                  alt="Kairo no iPad" 
-                  className="relative rounded-2xl shadow-2xl w-full"
+                  src={mockupIpad2} 
+                  alt="Kairo no iPad - Hábitos" 
+                  className="relative rounded-2xl shadow-2xl w-full max-w-lg"
                 />
               </div>
             </motion.div>
