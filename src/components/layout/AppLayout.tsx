@@ -37,7 +37,6 @@ import {
 const mainNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { path: "/rotina", label: "Tarefas", icon: ListTodo },
-  { path: "/agenda", label: "Agenda", icon: Calendar },
   { path: "/habitos", label: "Hábitos", icon: CalendarCheck },
   { path: "/metas", label: "Metas", icon: Target },
   { path: "/consistencia", label: "Consistência", icon: Flame },
@@ -47,6 +46,7 @@ const mainNavItems = [
 ];
 
 const devNavItems = [
+  { path: "/agenda", label: "Agenda", icon: Calendar },
   { path: "/treino", label: "Treino", icon: Dumbbell },
   { path: "/dieta", label: "Dieta", icon: UtensilsCrossed },
   { path: "/ebook", label: "Ebook", icon: BookOpen },
