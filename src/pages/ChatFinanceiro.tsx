@@ -96,7 +96,7 @@ export default function ChatFinanceiro() {
     {
       id: "welcome",
       role: "assistant",
-      content: "Olá! Sou seu assistente financeiro. Me conte sobre suas transações de forma natural.\n\n**Exemplos:**\n• \"Gastei R$200 no mercado\"\n• \"Recebi R$5000 de salário\"\n• \"Paguei R$80 de uber\"",
+      content: "Olá! Sou seu assistente financeiro inteligente. Posso **registrar transações** e **analisar suas finanças**.\n\n**Registrar:**\n• \"Gastei R$200 no mercado\"\n• \"Recebi R$5000 de salário\"\n\n**Consultar:**\n• \"Quanto gastei esse mês?\"\n• \"Quanto gastei de mercado em janeiro?\"\n• \"Me dá um relatório completo\"\n• \"Quais meus maiores gastos?\"",
       timestamp: new Date(),
     },
   ]);
@@ -146,10 +146,16 @@ export default function ChatFinanceiro() {
     setIsLoading(true);
 
     try {
+      // Build conversation history for context (exclude welcome message)
+      const conversationHistory = messages
+        .filter(m => m.id !== "welcome")
+        .map(m => ({ role: m.role, content: m.content }));
+
       const { data, error } = await supabase.functions.invoke("finance-chat", {
         body: {
           message: userMessage.content,
           sectors: sectors,
+          conversationHistory: conversationHistory,
         },
       });
 
