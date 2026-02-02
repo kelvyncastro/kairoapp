@@ -853,11 +853,6 @@ function TaskTable({
     }
     return <ArrowDown className="h-3 w-3 text-primary" />;
   };
-  const isTaskCompleted = useCallback((task: Task) => {
-    const status = statuses.find(s => s.id === task.status_id);
-    return status?.name.toLowerCase().includes('conclu') ?? false;
-  }, [statuses]);
-
   const renderCell = (task: Task, columnId: string) => {
     switch (columnId) {
       case 'title':
@@ -872,7 +867,6 @@ function TaskTable({
             <TaskProgressIndicator 
               taskId={task.id} 
               refreshKey={progressRefresh[task.id] ?? 0} 
-              isCompleted={isTaskCompleted(task)}
             />
           </div>
         );

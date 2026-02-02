@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { ListChecks, Check } from 'lucide-react';
+import { ListChecks } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TaskProgressIndicatorProps {
   taskId: string;
   refreshKey?: number;
   className?: string;
-  isCompleted?: boolean; // Whether the task status is "Concluída"
 }
 
-export function TaskProgressIndicator({ taskId, refreshKey, className, isCompleted }: TaskProgressIndicatorProps) {
+export function TaskProgressIndicator({ taskId, refreshKey, className }: TaskProgressIndicatorProps) {
   const [total, setTotal] = useState(0);
   const [completed, setCompleted] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -51,21 +50,6 @@ export function TaskProgressIndicator({ taskId, refreshKey, className, isComplet
 
     fetchCounts();
   }, [taskId, refreshKey]);
-
-  // When task is completed and has no items, show a single check
-  if (isCompleted && total === 0 && !loading) {
-    return (
-      <div
-        className={cn(
-          "flex items-center gap-1 text-xs px-1.5 py-0.5 rounded",
-          "bg-primary/15 text-primary",
-          className
-        )}
-      >
-        <Check className="h-3 w-3" />
-      </div>
-    );
-  }
 
   if (loading || total === 0) return null;
 
