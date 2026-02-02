@@ -456,7 +456,7 @@ export default function Landing() {
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
               whileHover={{ scale: 1.02 }}
-              className="relative lg:scale-110"
+              className="relative lg:scale-125 lg:translate-x-4"
             >
               <img 
                 src={mockupIpad} 
