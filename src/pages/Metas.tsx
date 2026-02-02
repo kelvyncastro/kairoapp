@@ -282,6 +282,19 @@ export default function Metas() {
   const createDefaultCategories = async () => {
     if (!user) return;
 
+    // Double-check: don't create if already exists (prevent duplicates)
+    const { data: existing } = await supabase
+      .from("goal_categories")
+      .select("id")
+      .eq("user_id", user.id)
+      .limit(1);
+
+    if (existing && existing.length > 0) {
+      // Already has categories, just refetch
+      await fetchCategories();
+      return;
+    }
+
     const defaultCats = [
       { name: "Financeira", icon: "dollar-sign", color: "#22c55e", order: 0 },
       { name: "Fitness", icon: "dumbbell", color: "#f59e0b", order: 1 },
