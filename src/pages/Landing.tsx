@@ -436,25 +436,22 @@ export default function Landing() {
               whileHover={{ scale: 1.03 }}
               className="flex justify-center"
             >
-              <div className="relative">
-                {/* Glow effect around mockup */}
-                <motion.div 
-                  className="absolute -inset-1 rounded-2xl opacity-60"
-                  style={{
-                    background: "linear-gradient(135deg, hsl(var(--primary) / 0.4), hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.4))",
-                    filter: "blur(20px)",
-                  }}
-                  animate={{
-                    opacity: [0.4, 0.7, 0.4],
-                  }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                />
-                <img 
-                  src={mockupIpad} 
-                  alt="Kairo no iPad - Dashboard" 
-                  className="relative rounded-2xl w-full max-w-2xl"
-                />
-              </div>
+              <motion.img 
+                src={mockupIpad} 
+                alt="Kairo no iPad - Dashboard" 
+                className="rounded-2xl w-full max-w-2xl"
+                style={{
+                  boxShadow: "0 0 30px 2px hsl(var(--primary) / 0.3), 0 0 60px 4px hsl(var(--primary) / 0.15)",
+                }}
+                animate={{
+                  boxShadow: [
+                    "0 0 30px 2px hsl(var(--primary) / 0.2), 0 0 60px 4px hsl(var(--primary) / 0.1)",
+                    "0 0 40px 4px hsl(var(--primary) / 0.4), 0 0 80px 8px hsl(var(--primary) / 0.2)",
+                    "0 0 30px 2px hsl(var(--primary) / 0.2), 0 0 60px 4px hsl(var(--primary) / 0.1)",
+                  ],
+                }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              />
             </motion.div>
 
             {/* iPad 2 */}
@@ -466,25 +463,22 @@ export default function Landing() {
               whileHover={{ scale: 1.03 }}
               className="flex justify-center"
             >
-              <div className="relative">
-                {/* Glow effect around mockup */}
-                <motion.div 
-                  className="absolute -inset-1 rounded-2xl opacity-60"
-                  style={{
-                    background: "linear-gradient(225deg, hsl(var(--primary) / 0.4), hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.4))",
-                    filter: "blur(20px)",
-                  }}
-                  animate={{
-                    opacity: [0.4, 0.7, 0.4],
-                  }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-                />
-                <img 
-                  src={mockupIpad2} 
-                  alt="Kairo no iPad - Hábitos" 
-                  className="relative rounded-2xl w-full max-w-2xl"
-                />
-              </div>
+              <motion.img 
+                src={mockupIpad2} 
+                alt="Kairo no iPad - Hábitos" 
+                className="rounded-2xl w-full max-w-2xl"
+                style={{
+                  boxShadow: "0 0 30px 2px hsl(var(--primary) / 0.3), 0 0 60px 4px hsl(var(--primary) / 0.15)",
+                }}
+                animate={{
+                  boxShadow: [
+                    "0 0 30px 2px hsl(var(--primary) / 0.2), 0 0 60px 4px hsl(var(--primary) / 0.1)",
+                    "0 0 40px 4px hsl(var(--primary) / 0.4), 0 0 80px 8px hsl(var(--primary) / 0.2)",
+                    "0 0 30px 2px hsl(var(--primary) / 0.2), 0 0 60px 4px hsl(var(--primary) / 0.1)",
+                  ],
+                }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+              />
             </motion.div>
           </div>
         </div>
