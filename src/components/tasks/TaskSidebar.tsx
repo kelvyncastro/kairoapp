@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { 
   ChevronDown, 
   ChevronRight, 
@@ -10,7 +9,6 @@ import {
   Edit2,
   Trash2,
 } from 'lucide-react';
-import kairoLogo from '@/assets/kairo-logo.png';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -118,23 +116,13 @@ export function TaskSidebar({
           "border-r border-border/30 bg-background flex flex-col h-full transition-all duration-300",
           collapsed ? "w-14" : "w-56"
         )}>
-          {/* Logo Header */}
-          <div className={cn(
-            "flex h-14 items-center border-b border-border/30 px-3",
-            collapsed ? "justify-center px-2" : "gap-3"
-          )}>
-            <Link to="/dashboard" className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden shrink-0">
-                <img
-                  src={kairoLogo}
-                  alt="Kairo"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              {!collapsed && (
-                <span className="text-xl font-bold tracking-wide text-foreground">Kairo</span>
-              )}
-            </Link>
+          {/* Header */}
+          <div className={cn("p-3 border-b border-border/30", collapsed && "px-2")}>
+            {!collapsed && (
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Tarefas
+              </span>
+            )}
           </div>
 
           {/* Content */}
