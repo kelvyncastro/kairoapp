@@ -347,8 +347,17 @@ export function TaskDialog({
                 </SelectTrigger>
                 <SelectContent className="bg-popover">
                   <SelectItem value="DAILY">Todo dia</SelectItem>
-                  <SelectItem value="WEEKDAYS">Dias úteis</SelectItem>
-                  <SelectItem value="WEEKENDS">Fins de semana</SelectItem>
+                  <SelectItem value="WEEKDAYS">Dias úteis (Seg-Sex)</SelectItem>
+                  <SelectItem value="WEEKENDS">Fins de semana (Sáb-Dom)</SelectItem>
+                  <SelectItem value="WEEKLY_MONDAY">Toda segunda-feira</SelectItem>
+                  <SelectItem value="WEEKLY_TUESDAY">Toda terça-feira</SelectItem>
+                  <SelectItem value="WEEKLY_WEDNESDAY">Toda quarta-feira</SelectItem>
+                  <SelectItem value="WEEKLY_THURSDAY">Toda quinta-feira</SelectItem>
+                  <SelectItem value="WEEKLY_FRIDAY">Toda sexta-feira</SelectItem>
+                  <SelectItem value="WEEKLY_SATURDAY">Todo sábado</SelectItem>
+                  <SelectItem value="WEEKLY_SUNDAY">Todo domingo</SelectItem>
+                  <SelectItem value="BIWEEKLY">A cada 2 semanas</SelectItem>
+                  <SelectItem value="MONTHLY">Todo mês</SelectItem>
                 </SelectContent>
               </Select>
             </div>
