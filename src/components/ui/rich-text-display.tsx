@@ -13,7 +13,9 @@ export function RichTextDisplay({
   onClick,
   placeholder = 'Clique para adicionar uma descrição...',
 }: RichTextDisplayProps) {
-  const isEmpty = !content || content === '<p></p>' || content.trim() === '';
+  // Check if content is empty - handles TipTap's empty paragraph with classes
+  const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '').trim();
+  const isEmpty = !content || content.trim() === '' || stripHtml(content) === '';
 
   return (
     <div
