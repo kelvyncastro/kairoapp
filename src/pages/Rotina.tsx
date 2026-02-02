@@ -11,6 +11,8 @@ import { TaskFiltersAdvanced, FilterCondition, SavedFilter } from '@/components/
 import { applyFilters } from '@/utils/filterTasks';
 import { Task, ViewMode } from '@/types/tasks';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { MonthSelector } from '@/components/tasks/MonthSelector';
+import { startOfMonth, endOfMonth, parseISO, isWithinInterval, isBefore, isAfter } from 'date-fns';
 
 export default function Rotina() {
   const {
@@ -43,6 +45,7 @@ export default function Rotina() {
   const [folderSheetOpen, setFolderSheetOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<Date | null>(null);
 
   const taskCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -53,12 +56,48 @@ export default function Rotina() {
     return counts;
   }, [tasks, folders]);
 
+  // Helper function to check if a task falls within a month
+  const taskInMonth = (task: Task, monthDate: Date): boolean => {
+    const monthStart = startOfMonth(monthDate);
+    const monthEnd = endOfMonth(monthDate);
+
+    const taskStart = task.start_date ? parseISO(task.start_date) : null;
+    const taskEnd = task.due_date ? parseISO(task.due_date) : (task.date ? parseISO(task.date) : null);
+
+    // Task has no dates - don't show in month filter
+    if (!taskStart && !taskEnd) return false;
+
+    // Task starts in this month
+    if (taskStart && isWithinInterval(taskStart, { start: monthStart, end: monthEnd })) {
+      return true;
+    }
+
+    // Task ends in this month
+    if (taskEnd && isWithinInterval(taskEnd, { start: monthStart, end: monthEnd })) {
+      return true;
+    }
+
+    // Task spans across this month (starts before, ends after)
+    if (taskStart && taskEnd) {
+      if (isBefore(taskStart, monthStart) && isAfter(taskEnd, monthEnd)) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
   const filteredTasks = useMemo(() => {
     let result = tasks;
 
     // Filter by completed status (archive completed tasks by default)
     if (!showCompleted) {
       result = result.filter(t => !t.completed);
+    }
+
+    // Filter by selected month
+    if (selectedMonth) {
+      result = result.filter(t => taskInMonth(t, selectedMonth));
     }
 
     if (selectedFolderId) {
@@ -76,7 +115,7 @@ export default function Rotina() {
     result = applyFilters(result, advancedFilters);
 
     return result;
-  }, [tasks, selectedFolderId, searchQuery, advancedFilters, showCompleted]);
+  }, [tasks, selectedFolderId, searchQuery, advancedFilters, showCompleted, selectedMonth]);
 
   const completedTasksCount = useMemo(() => {
     let result = tasks.filter(t => t.completed);
@@ -235,6 +274,14 @@ export default function Rotina() {
               <span className="hidden md:inline">Quadro</span>
             </Button>
           </div>
+
+          <div className="h-4 w-px bg-border/50 shrink-0 hidden sm:block" />
+
+          {/* Month Selector */}
+          <MonthSelector
+            selectedDate={selectedMonth}
+            onDateChange={setSelectedMonth}
+          />
 
           <div className="h-4 w-px bg-border/50 shrink-0 hidden sm:block" />
 
