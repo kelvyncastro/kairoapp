@@ -178,9 +178,25 @@ export function TaskSchedulePopoverContent({
 
   return (
     <div className="p-3 space-y-4">
-      <div className="flex gap-4">
-        <div className="space-y-2">
-          <Label className="text-xs">Data de início</Label>
+      {/* Datas (separadas visualmente) */}
+      <div className="space-y-4">
+        <section className="rounded-lg border bg-card p-3 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <Label className="text-xs">Data de início</Label>
+            {startDate && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs"
+                onClick={() => {
+                  onChange({ start_date: null });
+                  onAfterSelectDate?.();
+                }}
+              >
+                <X className="h-3 w-3 mr-1" /> Limpar
+              </Button>
+            )}
+          </div>
           <Calendar
             mode="single"
             selected={selectedStart}
@@ -190,23 +206,25 @@ export function TaskSchedulePopoverContent({
             modifiers={modifiers}
             modifiersStyles={modifiersStyles}
           />
-          {startDate && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full text-xs"
-              onClick={() => {
-                onChange({ start_date: null });
-                onAfterSelectDate?.();
-              }}
-            >
-              <X className="h-3 w-3 mr-1" /> Limpar início
-            </Button>
-          )}
-        </div>
+        </section>
 
-        <div className="space-y-2">
-          <Label className="text-xs">Data de vencimento</Label>
+        <section className="rounded-lg border bg-card p-3 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <Label className="text-xs">Data de vencimento</Label>
+            {dueDate && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs"
+                onClick={() => {
+                  onChange({ due_date: null });
+                  onAfterSelectDate?.();
+                }}
+              >
+                <X className="h-3 w-3 mr-1" /> Limpar
+              </Button>
+            )}
+          </div>
           <Calendar
             mode="single"
             selected={selectedDue}
@@ -216,20 +234,7 @@ export function TaskSchedulePopoverContent({
             modifiers={modifiers}
             modifiersStyles={modifiersStyles}
           />
-          {dueDate && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full text-xs"
-              onClick={() => {
-                onChange({ due_date: null });
-                onAfterSelectDate?.();
-              }}
-            >
-              <X className="h-3 w-3 mr-1" /> Limpar vencimento
-            </Button>
-          )}
-        </div>
+        </section>
       </div>
 
       <div className="border-t pt-3 space-y-3">
