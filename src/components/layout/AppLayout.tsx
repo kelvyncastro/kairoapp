@@ -82,7 +82,7 @@ export default function AppLayout() {
   };
 
   const NavContent = ({ mobile = false }: { mobile?: boolean }) => (
-    <nav className={cn("flex-1 space-y-1 p-2 overflow-y-auto", mobile && "pt-4")}>
+    <nav className={cn("flex-1 space-y-1 p-3 overflow-y-auto", mobile && "pt-4")}>
       {mainNavItems.map((item) => {
         const isActive = location.pathname === item.path;
         return (
@@ -90,15 +90,21 @@ export default function AppLayout() {
             key={item.path}
             to={item.path}
             className={cn(
-              "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors",
+              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200",
               isActive
-                ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                ? "bg-primary/10 text-primary shadow-sm border border-primary/20"
                 : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-              mobile && "py-3"
+              mobile && "py-3",
+              !mobile && collapsed && "justify-center px-2"
             )}
           >
-            <item.icon className="h-4 w-4 shrink-0" />
-            {(mobile || !collapsed) && <span>{item.label}</span>}
+            <item.icon className={cn(
+              "h-4 w-4 shrink-0 transition-transform",
+              isActive && "scale-110"
+            )} />
+            {(mobile || !collapsed) && (
+              <span className={cn("font-medium", isActive && "text-primary")}>{item.label}</span>
+            )}
           </Link>
         );
       })}
@@ -109,21 +115,24 @@ export default function AppLayout() {
           <button
             onClick={() => setDevMenuOpen(!devMenuOpen)}
             className={cn(
-              "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors text-muted-foreground hover:bg-sidebar-accent",
-              !mobile && collapsed && "justify-center"
+              "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 text-muted-foreground hover:bg-sidebar-accent",
+              !mobile && collapsed && "justify-center px-2"
             )}
           >
             <Construction className="h-4 w-4 shrink-0" />
             {(mobile || !collapsed) && (
               <>
-                <span className="flex-1 text-left">Em desenvolvimento</span>
-                <ChevronDown className={cn("h-4 w-4 transition-transform", devMenuOpen && "rotate-180")} />
+                <span className="flex-1 text-left font-medium">Em desenvolvimento</span>
+                <ChevronDown className={cn(
+                  "h-4 w-4 transition-transform duration-200",
+                  devMenuOpen && "rotate-180"
+                )} />
               </>
             )}
           </button>
           
           {devMenuOpen && (
-            <div className={cn("mt-1 space-y-1", (mobile || !collapsed) && "ml-2")}>
+            <div className={cn("mt-1 space-y-1", (mobile || !collapsed) && "ml-3 border-l-2 border-border/50 pl-2")}>
               {devNavItems.map((item) => {
                 const isActive = location.pathname === item.path;
                 return (
@@ -131,11 +140,12 @@ export default function AppLayout() {
                     key={item.path}
                     to={item.path}
                     className={cn(
-                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200",
                       isActive
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        ? "bg-muted/60 text-foreground"
                         : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                      mobile && "py-2.5"
+                      mobile && "py-2.5",
+                      !mobile && collapsed && "justify-center px-2"
                     )}
                   >
                     <item.icon className="h-4 w-4 shrink-0" />
@@ -155,23 +165,29 @@ export default function AppLayout() {
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out hidden md:block",
+          "fixed left-0 top-0 z-40 h-screen bg-gradient-to-b from-sidebar to-sidebar/95 border-r border-sidebar-border transition-all duration-300 ease-in-out hidden md:flex md:flex-col",
           collapsed ? "w-16" : "w-60"
         )}
       >
         {/* Logo */}
-        <div className="flex h-14 items-center border-b border-sidebar-border px-4">
-          <Link to="/dashboard" className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden">
+        <div className={cn(
+          "flex h-14 items-center border-b border-sidebar-border transition-all duration-300",
+          collapsed ? "justify-center px-2" : "px-4"
+        )}>
+          <Link to="/dashboard" className="flex items-center gap-3 group">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden ring-2 ring-sidebar-border group-hover:ring-primary/50 transition-all shadow-sm">
               <img
                 src={kairoLogo}
                 alt="Kairo"
                 className="w-full h-full object-cover"
               />
             </div>
-            {!collapsed && (
-              <span className="text-xl font-bold tracking-wide text-foreground">Kairo</span>
-            )}
+            <span className={cn(
+              "text-xl font-bold tracking-wide text-foreground transition-all duration-300 overflow-hidden whitespace-nowrap",
+              collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+            )}>
+              Kairo
+            </span>
           </Link>
         </div>
 
@@ -179,19 +195,26 @@ export default function AppLayout() {
         <NavContent />
 
         {/* Collapse Toggle */}
-        <div className="absolute bottom-4 left-0 right-0 px-2">
+        <div className="p-3 border-t border-sidebar-border">
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="flex w-full items-center justify-center gap-2 rounded-md px-3 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-          >
-            {collapsed ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <>
-                <ChevronLeft className="h-4 w-4" />
-                <span>Recolher</span>
-              </>
+            className={cn(
+              "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-all duration-200 group",
+              collapsed && "justify-center px-2"
             )}
+          >
+            <div className={cn(
+              "transition-transform duration-300 ease-in-out",
+              collapsed ? "rotate-180" : "rotate-0"
+            )}>
+              <ChevronLeft className="h-4 w-4 group-hover:scale-110 transition-transform" />
+            </div>
+            <span className={cn(
+              "transition-all duration-300 overflow-hidden whitespace-nowrap",
+              collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+            )}>
+              Recolher
+            </span>
           </button>
         </div>
       </aside>

@@ -115,7 +115,7 @@ export function TaskSidebar({
     <TooltipProvider delayDuration={0}>
       <>
         <div className={cn(
-          "border-r border-border/30 bg-background flex flex-col h-full transition-all duration-300",
+          "border-r border-border/30 bg-gradient-to-b from-background to-muted/20 flex flex-col h-full transition-all duration-300 ease-in-out",
           collapsed ? "w-14" : "w-56"
         )}>
           {/* Logo Header */}
@@ -123,8 +123,8 @@ export function TaskSidebar({
             "flex h-14 items-center border-b border-border/30",
             collapsed ? "justify-center px-2" : "px-4"
           )}>
-            <Link to="/dashboard" className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden shrink-0">
+            <Link to="/dashboard" className="flex items-center gap-3 group">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl overflow-hidden shrink-0 ring-2 ring-border/50 group-hover:ring-primary/50 transition-all shadow-sm">
                 <img
                   src={kairoLogo}
                   alt="Kairo"
@@ -138,177 +138,221 @@ export function TaskSidebar({
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto py-1">
+          <div className="flex-1 overflow-y-auto py-3 px-2">
             {/* All tasks */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   onClick={() => onSelectFolder(null)}
                   className={cn(
-                    "w-full flex items-center gap-2 px-3 py-1.5 text-sm transition-colors",
+                    "w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all duration-200",
                     collapsed && "justify-center px-2",
                     selectedFolderId === null 
-                      ? "bg-muted/50 text-foreground" 
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                      ? "bg-primary/10 text-primary shadow-sm border border-primary/20" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   )}
                 >
-                  <ListTodo className="h-4 w-4 shrink-0" />
+                  <ListTodo className={cn(
+                    "h-4 w-4 shrink-0 transition-transform",
+                    selectedFolderId === null && "scale-110"
+                  )} />
                   {!collapsed && (
                     <>
-                      <span className="flex-1 text-left">Todas as tarefas</span>
-                      <span className="text-xs text-muted-foreground">{totalTasks}</span>
+                      <span className="flex-1 text-left font-medium">Todas as tarefas</span>
+                      <span className={cn(
+                        "text-xs px-1.5 py-0.5 rounded-full",
+                        selectedFolderId === null 
+                          ? "bg-primary/20 text-primary" 
+                          : "bg-muted text-muted-foreground"
+                      )}>
+                        {totalTasks}
+                      </span>
                     </>
                   )}
                 </button>
               </TooltipTrigger>
               {collapsed && (
-                <TooltipContent side="right">
+                <TooltipContent side="right" className="font-medium">
                   <p>Todas as tarefas ({totalTasks})</p>
                 </TooltipContent>
               )}
             </Tooltip>
 
-          {/* Folders section */}
-          <div className="mt-2">
-            {!collapsed && (
-              <button
-                onClick={() => setExpanded(!expanded)}
-                className="w-full flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground"
-              >
-                {expanded ? (
-                  <ChevronDown className="h-3 w-3" />
-                ) : (
-                  <ChevronRight className="h-3 w-3" />
-                )}
-                <span>Pastas</span>
+            {/* Folders section */}
+            <div className="mt-4">
+              {!collapsed && (
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCreateFolder();
-                  }}
-                  className="ml-auto p-0.5 hover:bg-muted rounded"
+                  onClick={() => setExpanded(!expanded)}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest hover:text-foreground transition-colors"
                 >
-                  <Plus className="h-3 w-3" />
+                  <ChevronDown className={cn(
+                    "h-3 w-3 transition-transform duration-200",
+                    !expanded && "-rotate-90"
+                  )} />
+                  <span>Pastas</span>
+                  <div className="flex-1" />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCreateFolder();
+                    }}
+                    className="p-1 hover:bg-muted rounded-md transition-colors"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </button>
                 </button>
-              </button>
-            )}
+              )}
 
-            {(expanded || collapsed) && (
-              <div className={cn("space-y-0.5", !collapsed && "mt-1")}>
-                {folders.map((folder) => (
-                  <Tooltip key={folder.id}>
-                    <TooltipTrigger asChild>
-                      <div
-                        className={cn(
-                          "group flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer transition-colors",
-                          collapsed && "justify-center px-2",
-                          selectedFolderId === folder.id
-                            ? "bg-muted/50 text-foreground"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
-                        )}
-                        onClick={() => onSelectFolder(folder.id)}
+              {(expanded || collapsed) && (
+                <div className={cn(
+                  "space-y-1 transition-all duration-200",
+                  !collapsed && "mt-1"
+                )}>
+                  {folders.map((folder) => (
+                    <Tooltip key={folder.id}>
+                      <TooltipTrigger asChild>
+                        <div
+                          className={cn(
+                            "group flex items-center gap-3 px-3 py-2 text-sm cursor-pointer rounded-lg transition-all duration-200",
+                            collapsed && "justify-center px-2",
+                            selectedFolderId === folder.id
+                              ? "bg-muted/80 text-foreground shadow-sm"
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                          )}
+                          onClick={() => onSelectFolder(folder.id)}
+                        >
+                          <div className={cn(
+                            "flex items-center justify-center rounded-md p-1 transition-transform",
+                            selectedFolderId === folder.id && "scale-110"
+                          )}>
+                            <FolderIconRenderer 
+                              icon={folder.icon} 
+                              color={folder.color}
+                              className="h-4 w-4 shrink-0"
+                            />
+                          </div>
+                          {!collapsed && (
+                            <>
+                              <span className="flex-1 truncate font-medium">{folder.name}</span>
+                              <span className={cn(
+                                "text-xs px-1.5 py-0.5 rounded-full transition-opacity",
+                                selectedFolderId === folder.id 
+                                  ? "bg-foreground/10" 
+                                  : "bg-muted opacity-0 group-hover:opacity-100"
+                              )}>
+                                {taskCounts[folder.id] || 0}
+                              </span>
+                              
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <button
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="p-1 opacity-0 group-hover:opacity-100 hover:bg-muted rounded-md transition-all"
+                                  >
+                                    <MoreHorizontal className="h-3.5 w-3.5" />
+                                  </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-36 bg-popover">
+                                  <DropdownMenuItem onClick={() => handleEditFolder(folder)}>
+                                    <Edit2 className="h-3.5 w-3.5 mr-2" />
+                                    Editar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    className="text-destructive focus:text-destructive"
+                                    onClick={() => handleDeleteFolder(folder)}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5 mr-2" />
+                                    Excluir
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </>
+                          )}
+                        </div>
+                      </TooltipTrigger>
+                      {collapsed && (
+                        <TooltipContent side="right" className="font-medium">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-2 h-2 rounded-full" 
+                              style={{ backgroundColor: folder.color }} 
+                            />
+                            <span>{folder.name}</span>
+                            <span className="text-muted-foreground">({taskCounts[folder.id] || 0})</span>
+                          </div>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  ))}
+
+                  {folders.length === 0 && !collapsed && (
+                    <div className="px-3 py-4 text-center">
+                      <p className="text-xs text-muted-foreground">Nenhuma pasta criada</p>
+                      <button
+                        onClick={handleCreateFolder}
+                        className="text-xs text-primary hover:underline mt-1"
                       >
-                        <FolderIconRenderer 
-                          icon={folder.icon} 
-                          color={folder.color}
-                          className="h-4 w-4 shrink-0"
-                        />
-                        {!collapsed && (
-                          <>
-                            <span className="flex-1 truncate">{folder.name}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {taskCounts[folder.id] || 0}
-                            </span>
-                            
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <button
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="p-0.5 opacity-0 group-hover:opacity-100 hover:bg-muted rounded transition-opacity"
-                                >
-                                  <MoreHorizontal className="h-3.5 w-3.5" />
-                                </button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-32 bg-popover">
-                                <DropdownMenuItem onClick={() => handleEditFolder(folder)}>
-                                  <Edit2 className="h-3.5 w-3.5 mr-2" />
-                                  Editar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  className="text-destructive"
-                                  onClick={() => handleDeleteFolder(folder)}
-                                >
-                                  <Trash2 className="h-3.5 w-3.5 mr-2" />
-                                  Excluir
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </>
-                        )}
-                      </div>
-                    </TooltipTrigger>
-                    {collapsed && (
-                      <TooltipContent side="right">
-                        <p>{folder.name} ({taskCounts[folder.id] || 0})</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                ))}
+                        Criar primeira pasta
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
 
-                {folders.length === 0 && !collapsed && (
-                  <p className="px-3 py-2 text-xs text-muted-foreground">
-                    Nenhuma pasta criada
-                  </p>
+          {/* Bottom buttons */}
+          <div className="p-2 border-t border-border/30 space-y-1">
+            {/* Add folder button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleCreateFolder}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200 group",
+                    collapsed && "justify-center px-2"
+                  )}
+                >
+                  <Plus className="h-4 w-4 shrink-0 group-hover:scale-110 transition-transform" />
+                  {!collapsed && <span>Nova pasta</span>}
+                </button>
+              </TooltipTrigger>
+              {collapsed && (
+                <TooltipContent side="right" className="font-medium">
+                  <p>Nova pasta</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+
+            {/* Collapse toggle */}
+            {onCollapsedChange && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => onCollapsedChange(!collapsed)}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200 group",
+                      collapsed && "justify-center px-2"
+                    )}
+                  >
+                    <div className={cn(
+                      "transition-transform duration-300",
+                      collapsed ? "rotate-180" : "rotate-0"
+                    )}>
+                      <ChevronLeft className="h-4 w-4 shrink-0" />
+                    </div>
+                    {!collapsed && <span>Recolher</span>}
+                  </button>
+                </TooltipTrigger>
+                {collapsed && (
+                  <TooltipContent side="right" className="font-medium">
+                    <p>Expandir</p>
+                  </TooltipContent>
                 )}
-              </div>
+              </Tooltip>
             )}
           </div>
         </div>
-
-        {/* Bottom buttons */}
-        <div className="p-2 border-t border-border/30 space-y-1">
-          {/* Add folder button */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={handleCreateFolder}
-                className={cn(
-                  "w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/30 rounded transition-colors",
-                  collapsed && "justify-center px-2"
-                )}
-              >
-                <Plus className="h-4 w-4 shrink-0" />
-                {!collapsed && <span>Nova pasta</span>}
-              </button>
-            </TooltipTrigger>
-            {collapsed && (
-              <TooltipContent side="right">
-                <p>Nova pasta</p>
-              </TooltipContent>
-            )}
-          </Tooltip>
-
-          {/* Collapse toggle */}
-          {onCollapsedChange && (
-            <button
-              onClick={() => onCollapsedChange(!collapsed)}
-              className={cn(
-                "w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/30 rounded transition-colors",
-                collapsed && "justify-center px-2"
-              )}
-            >
-              {collapsed ? (
-                <ChevronRight className="h-4 w-4 shrink-0" />
-              ) : (
-                <>
-                  <ChevronLeft className="h-4 w-4 shrink-0" />
-                  <span>Recolher</span>
-                </>
-              )}
-            </button>
-          )}
-        </div>
-      </div>
 
       {/* Folder dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
