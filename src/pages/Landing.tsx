@@ -238,8 +238,8 @@ export default function Landing() {
               <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
                 Recursos
               </a>
-              <a href="#mockups" className="text-muted-foreground hover:text-foreground transition-colors">
-                Demonstração
+              <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
+                Preços
               </a>
               <a href="#testimonials" className="text-muted-foreground hover:text-foreground transition-colors">
                 Depoimentos
@@ -258,7 +258,7 @@ export default function Landing() {
               </Link>
               <Link to="/auth">
                 <Button className="bg-foreground text-background hover:bg-foreground/90">
-                  Começar Grátis
+                  Começar Agora
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
@@ -312,17 +312,17 @@ export default function Landing() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              <Link to="/auth">
+              <a href="#pricing">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   <Button size="lg" className="bg-foreground text-background hover:bg-foreground/90 h-12 px-8 text-base shadow-xl shadow-foreground/10">
-                    Começar Gratuitamente
+                    Ver Planos
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </motion.div>
-              </Link>
+              </a>
               <a href="#mockups">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
@@ -582,15 +582,126 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section id="pricing" className="relative z-10 py-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+              Escolha seu plano
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Acesso total a todas as funcionalidades do Kairo
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Monthly Plan */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -5, scale: 1.02 }}
+              className="relative p-8 rounded-2xl border border-border/50 bg-background/60 backdrop-blur-xl overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5" />
+              <div className="relative z-10">
+                <div className="text-sm font-medium text-muted-foreground mb-2">Mensal</div>
+                <div className="flex items-baseline gap-1 mb-4">
+                  <span className="text-4xl font-bold">R$39,90</span>
+                  <span className="text-muted-foreground">/mês</span>
+                </div>
+                <p className="text-muted-foreground mb-6">Pague mês a mês, cancele quando quiser</p>
+                <ul className="space-y-3 mb-8">
+                  {["Acesso total a todas as funcionalidades", "Sincronização em tempo real", "Suporte prioritário", "Atualizações contínuas"].map((item, i) => (
+                    <motion.li 
+                      key={i} 
+                      className="flex items-center gap-3"
+                      initial={{ opacity: 0, x: -10 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                    >
+                      <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
+                      <span className="text-sm">{item}</span>
+                    </motion.li>
+                  ))}
+                </ul>
+                <Link to="/auth" className="block">
+                  <Button variant="outline" className="w-full h-12 backdrop-blur-sm bg-background/50">
+                    Começar Agora
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+
+            {/* Annual Plan */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -5, scale: 1.02 }}
+              className="relative p-8 rounded-2xl border border-primary/30 bg-background/60 backdrop-blur-xl overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/10" />
+              <motion.div 
+                className="absolute -top-1 -right-1 bg-foreground text-background text-xs font-semibold px-3 py-1 rounded-bl-lg rounded-tr-xl"
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                Mais Popular
+              </motion.div>
+              <div className="relative z-10">
+                <div className="text-sm font-medium text-muted-foreground mb-2">Anual</div>
+                <div className="flex items-baseline gap-1 mb-1">
+                  <span className="text-4xl font-bold">R$397,90</span>
+                  <span className="text-muted-foreground">/ano</span>
+                </div>
+                <p className="text-success text-sm font-medium mb-4">Economia de R$81 por ano</p>
+                <p className="text-muted-foreground mb-6">Melhor custo-benefício para você</p>
+                <ul className="space-y-3 mb-8">
+                  {["Tudo do plano mensal", "2 meses grátis", "Prioridade em novos recursos", "Suporte VIP"].map((item, i) => (
+                    <motion.li 
+                      key={i} 
+                      className="flex items-center gap-3"
+                      initial={{ opacity: 0, x: -10 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                    >
+                      <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
+                      <span className="text-sm">{item}</span>
+                    </motion.li>
+                  ))}
+                </ul>
+                <Link to="/auth" className="block">
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button className="w-full h-12 bg-foreground text-background hover:bg-foreground/90">
+                      Começar Agora
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </motion.div>
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
-      <section className="relative z-10 py-24 px-4 sm:px-6 lg:px-8">
+      <section className="relative z-10 py-24 px-4 sm:px-6 lg:px-8 bg-secondary/10 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
-            className="text-center p-8 sm:p-12 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm relative overflow-hidden"
+            className="text-center p-8 sm:p-12 rounded-2xl border border-border/50 bg-background/60 backdrop-blur-xl relative overflow-hidden"
           >
             {/* CTA background glow */}
             <motion.div
@@ -608,25 +719,18 @@ export default function Landing() {
               <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
                 Junte-se a milhares de usuários que já estão conquistando seus objetivos com o Kairo.
               </p>
-              <Link to="/auth">
+              <a href="#pricing">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.98 }}
                   className="inline-block"
                 >
                   <Button size="lg" className="bg-foreground text-background hover:bg-foreground/90 h-12 px-8 text-base shadow-xl shadow-foreground/10">
-                    Criar Conta Gratuita
+                    Ver Planos
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </motion.div>
-              </Link>
-              <motion.p 
-                className="text-sm text-muted-foreground mt-4"
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 3, repeat: Infinity }}
-              >
-                Sem cartão de crédito. Comece em segundos.
-              </motion.p>
+              </a>
             </div>
           </motion.div>
         </div>
