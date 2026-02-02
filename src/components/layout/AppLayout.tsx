@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Outlet, useLocation, Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/contexts/UserProfileContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -14,15 +15,14 @@ import {
   Wallet,
   BookOpen,
   Settings,
-  ChevronLeft,
-  ChevronRight,
   ChevronDown,
   LogOut,
   Calendar,
   Construction,
   MessageSquare,
   Menu,
-  X,
+  PanelLeftClose,
+  PanelLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import kairoLogo from "@/assets/kairo-logo.png";
@@ -36,6 +36,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const mainNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -82,259 +88,399 @@ export default function AppLayout() {
   };
 
   const NavContent = ({ mobile = false }: { mobile?: boolean }) => (
-    <nav className={cn("flex-1 space-y-1 p-3 overflow-y-auto", mobile && "pt-4")}>
-      {mainNavItems.map((item) => {
+    <nav className={cn("flex-1 space-y-1.5 p-3 overflow-y-auto", mobile && "pt-4")}>
+      {/* Section label */}
+      <AnimatePresence mode="wait">
+        {(mobile || !collapsed) && (
+          <motion.p
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            className="px-3 mb-3 text-[10px] font-bold text-muted-foreground/60 uppercase tracking-[0.2em]"
+          >
+            Menu principal
+          </motion.p>
+        )}
+      </AnimatePresence>
+
+      {mainNavItems.map((item, index) => {
         const isActive = location.pathname === item.path;
         return (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={cn(
-              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200",
-              isActive
-                ? "bg-primary/10 text-primary shadow-sm border border-primary/20"
-                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-              mobile && "py-3",
-              !mobile && collapsed && "justify-center px-2"
+          <Tooltip key={item.path}>
+            <TooltipTrigger asChild>
+              <Link
+                to={item.path}
+                className={cn(
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 relative overflow-hidden group",
+                  isActive
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                  mobile && "py-3",
+                  !mobile && collapsed && "justify-center px-2"
+                )}
+              >
+                <motion.div
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
+                  <item.icon className={cn(
+                    "h-4 w-4 shrink-0 transition-all relative z-10",
+                    isActive && "drop-shadow-sm"
+                  )} />
+                </motion.div>
+                <AnimatePresence mode="wait">
+                  {(mobile || !collapsed) && (
+                    <motion.span
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: 'auto' }}
+                      exit={{ opacity: 0, width: 0 }}
+                      className={cn(
+                        "font-semibold whitespace-nowrap overflow-hidden relative z-10",
+                        isActive && "text-primary-foreground"
+                      )}
+                    >
+                      {item.label}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </Link>
+            </TooltipTrigger>
+            {!mobile && collapsed && (
+              <TooltipContent side="right" sideOffset={8} className="font-medium bg-popover border shadow-lg">
+                <p>{item.label}</p>
+              </TooltipContent>
             )}
-          >
-            <item.icon className={cn(
-              "h-4 w-4 shrink-0 transition-transform",
-              isActive && "scale-110"
-            )} />
-            {(mobile || !collapsed) && (
-              <span className={cn("font-medium", isActive && "text-primary")}>{item.label}</span>
-            )}
-          </Link>
+          </Tooltip>
         );
       })}
 
       {/* Em Desenvolvimento - Admin Only */}
       {isAdmin && (
         <div className="pt-4">
-          <button
-            onClick={() => setDevMenuOpen(!devMenuOpen)}
-            className={cn(
-              "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 text-muted-foreground hover:bg-sidebar-accent",
-              !mobile && collapsed && "justify-center px-2"
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <motion.button
+                onClick={() => setDevMenuOpen(!devMenuOpen)}
+                whileHover={{ scale: 1.02 }}
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 text-muted-foreground hover:bg-sidebar-accent",
+                  !mobile && collapsed && "justify-center px-2"
+                )}
+              >
+                <Construction className="h-4 w-4 shrink-0" />
+                <AnimatePresence mode="wait">
+                  {(mobile || !collapsed) && (
+                    <motion.div
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: 'auto' }}
+                      exit={{ opacity: 0, width: 0 }}
+                      className="flex items-center gap-2 flex-1 overflow-hidden"
+                    >
+                      <span className="flex-1 text-left font-medium whitespace-nowrap">Em desenvolvimento</span>
+                      <motion.div
+                        animate={{ rotate: devMenuOpen ? 180 : 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+            </TooltipTrigger>
+            {!mobile && collapsed && (
+              <TooltipContent side="right" sideOffset={8} className="font-medium bg-popover border shadow-lg">
+                <p>Em desenvolvimento</p>
+              </TooltipContent>
             )}
-          >
-            <Construction className="h-4 w-4 shrink-0" />
-            {(mobile || !collapsed) && (
-              <>
-                <span className="flex-1 text-left font-medium">Em desenvolvimento</span>
-                <ChevronDown className={cn(
-                  "h-4 w-4 transition-transform duration-200",
-                  devMenuOpen && "rotate-180"
-                )} />
-              </>
-            )}
-          </button>
+          </Tooltip>
           
-          {devMenuOpen && (
-            <div className={cn("mt-1 space-y-1", (mobile || !collapsed) && "ml-3 border-l-2 border-border/50 pl-2")}>
-              {devNavItems.map((item) => {
-                const isActive = location.pathname === item.path;
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200",
-                      isActive
-                        ? "bg-muted/60 text-foreground"
-                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                      mobile && "py-2.5",
-                      !mobile && collapsed && "justify-center px-2"
-                    )}
-                  >
-                    <item.icon className="h-4 w-4 shrink-0" />
-                    {(mobile || !collapsed) && <span>{item.label}</span>}
-                  </Link>
-                );
-              })}
-            </div>
-          )}
+          <AnimatePresence>
+            {devMenuOpen && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className={cn("mt-1 space-y-1 overflow-hidden", (mobile || !collapsed) && "ml-3 border-l-2 border-primary/20 pl-2")}
+              >
+                {devNavItems.map((item, index) => {
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <Tooltip key={item.path}>
+                      <TooltipTrigger asChild>
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                        >
+                          <Link
+                            to={item.path}
+                            className={cn(
+                              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200",
+                              isActive
+                                ? "bg-muted/60 text-foreground"
+                                : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                              mobile && "py-2.5",
+                              !mobile && collapsed && "justify-center px-2"
+                            )}
+                          >
+                            <item.icon className="h-4 w-4 shrink-0" />
+                            <AnimatePresence mode="wait">
+                              {(mobile || !collapsed) && (
+                                <motion.span
+                                  initial={{ opacity: 0, width: 0 }}
+                                  animate={{ opacity: 1, width: 'auto' }}
+                                  exit={{ opacity: 0, width: 0 }}
+                                  className="whitespace-nowrap overflow-hidden"
+                                >
+                                  {item.label}
+                                </motion.span>
+                              )}
+                            </AnimatePresence>
+                          </Link>
+                        </motion.div>
+                      </TooltipTrigger>
+                      {!mobile && collapsed && (
+                        <TooltipContent side="right" sideOffset={8} className="font-medium bg-popover border shadow-lg">
+                          <p>{item.label}</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  );
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
     </nav>
   );
 
   return (
-    <div className="flex h-screen w-full bg-background overflow-hidden">
-      {/* Desktop Sidebar */}
-      <aside
-        className={cn(
-          "fixed left-0 top-0 z-40 h-screen bg-gradient-to-b from-sidebar to-sidebar/95 border-r border-sidebar-border transition-all duration-300 ease-in-out hidden md:flex md:flex-col",
-          collapsed ? "w-16" : "w-60"
-        )}
-      >
-        {/* Logo */}
-        <div className={cn(
-          "flex h-14 items-center border-b border-sidebar-border transition-all duration-300",
-          collapsed ? "justify-center px-2" : "px-4"
-        )}>
-          <Link to="/dashboard" className="flex items-center gap-3 group">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden ring-2 ring-sidebar-border group-hover:ring-primary/50 transition-all shadow-sm">
-              <img
-                src={kairoLogo}
-                alt="Kairo"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <span className={cn(
-              "text-xl font-bold tracking-wide text-foreground transition-all duration-300 overflow-hidden whitespace-nowrap",
-              collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-            )}>
-              Kairo
-            </span>
-          </Link>
-        </div>
+    <TooltipProvider delayDuration={0}>
+      <div className="flex h-screen w-full bg-background overflow-hidden">
+        {/* Desktop Sidebar */}
+        <motion.aside
+          className="fixed left-0 top-0 z-40 h-screen bg-gradient-to-b from-sidebar via-sidebar to-sidebar/95 border-r border-sidebar-border hidden md:flex md:flex-col overflow-hidden"
+          animate={{ width: collapsed ? 64 : 240 }}
+          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+        >
+          {/* Decorative gradient line */}
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
 
-        {/* Navigation */}
-        <NavContent />
-
-        {/* Collapse Toggle */}
-        <div className="p-3 border-t border-sidebar-border">
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className={cn(
-              "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-all duration-200 group",
-              collapsed && "justify-center px-2"
-            )}
-          >
-            <div className={cn(
-              "transition-transform duration-300 ease-in-out",
-              collapsed ? "rotate-180" : "rotate-0"
-            )}>
-              <ChevronLeft className="h-4 w-4 group-hover:scale-110 transition-transform" />
-            </div>
-            <span className={cn(
-              "transition-all duration-300 overflow-hidden whitespace-nowrap",
-              collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-            )}>
-              Recolher
-            </span>
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main
-        className={cn(
-          "flex-1 flex flex-col min-w-0 transition-all duration-300 pb-16 md:pb-0 overflow-hidden",
-          collapsed ? "md:ml-16" : "md:ml-60"
-        )}
-      >
-        {/* Topbar */}
-        <header className="flex-shrink-0 sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6">
-          {/* Left: Menu + Logo (mobile) */}
-          <div className="flex items-center gap-2 md:hidden">
-            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-72 p-0 bg-sidebar border-sidebar-border">
-                {/* Mobile Logo */}
-                <div className="flex h-14 items-center border-b border-sidebar-border px-4">
-                  <Link to="/dashboard" className="flex items-center gap-3" onClick={() => setMobileMenuOpen(false)}>
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden">
-                      <img
-                        src={kairoLogo}
-                        alt="Kairo"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <span className="text-xl font-bold tracking-wide text-foreground">Kairo</span>
-                  </Link>
-                </div>
-                <NavContent mobile />
-              </SheetContent>
-            </Sheet>
-
-            <Link to="/dashboard" className="flex items-center gap-2">
-              <img src={kairoLogo} alt="Kairo" className="h-7 w-7 rounded-lg" />
-              <span className="font-bold text-lg">Kairo</span>
+          {/* Logo */}
+          <div className={cn(
+            "flex h-14 items-center border-b border-sidebar-border transition-all duration-300",
+            collapsed ? "justify-center px-2" : "px-4"
+          )}>
+            <Link to="/dashboard" className="flex items-center gap-3 group">
+              <motion.div 
+                className="flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden ring-2 ring-sidebar-border group-hover:ring-primary/50 transition-all shadow-sm"
+                whileHover={{ scale: 1.05, rotate: 5 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
+                <img
+                  src={kairoLogo}
+                  alt="Kairo"
+                  className="w-full h-full object-cover"
+                />
+              </motion.div>
+              <AnimatePresence mode="wait">
+                {!collapsed && (
+                  <motion.span
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                    className="text-xl font-bold tracking-wide text-foreground whitespace-nowrap overflow-hidden"
+                  >
+                    Kairo
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </Link>
           </div>
 
-          {/* Spacer for desktop */}
-          <div className="hidden md:block" />
+          {/* Navigation */}
+          <NavContent />
 
-          <div className="flex items-center gap-2">
-            {/* Profile */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={profile?.avatar_url || undefined} />
-                    <AvatarFallback className="text-xs bg-secondary">
-                      {getInitials()}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{getDisplayName()}</p>
-                  <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/configuracoes">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Configurações
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sair
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          {/* Collapse Toggle */}
+          <div className="p-3 border-t border-sidebar-border bg-gradient-to-t from-muted/30 to-transparent">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <motion.button
+                  onClick={() => setCollapsed(!collapsed)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={cn(
+                    "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-all duration-200",
+                    collapsed && "justify-center px-2"
+                  )}
+                >
+                  <motion.div
+                    animate={{ rotate: collapsed ? 180 : 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                  >
+                    {collapsed ? (
+                      <PanelLeft className="h-4 w-4" />
+                    ) : (
+                      <PanelLeftClose className="h-4 w-4" />
+                    )}
+                  </motion.div>
+                  <AnimatePresence mode="wait">
+                    {!collapsed && (
+                      <motion.span
+                        initial={{ opacity: 0, width: 0 }}
+                        animate={{ opacity: 1, width: 'auto' }}
+                        exit={{ opacity: 0, width: 0 }}
+                        className="font-medium whitespace-nowrap overflow-hidden"
+                      >
+                        Recolher painel
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </motion.button>
+              </TooltipTrigger>
+              {collapsed && (
+                <TooltipContent side="right" sideOffset={8} className="font-medium bg-popover border shadow-lg">
+                  <p>Expandir painel</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
           </div>
-        </header>
+        </motion.aside>
 
-        {/* Page Content */}
-        <div className="flex-1 min-h-0 min-w-0 overflow-hidden p-4 md:p-6">
-          <Outlet />
-        </div>
-      </main>
+        {/* Main Content */}
+        <main
+          className={cn(
+            "flex-1 flex flex-col min-w-0 transition-all duration-300 pb-16 md:pb-0 overflow-hidden",
+            collapsed ? "md:ml-16" : "md:ml-60"
+          )}
+        >
+          {/* Topbar */}
+          <header className="flex-shrink-0 sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6">
+            {/* Left: Menu + Logo (mobile) */}
+            <div className="flex items-center gap-2 md:hidden">
+              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-72 p-0 bg-sidebar border-sidebar-border">
+                  {/* Mobile Logo */}
+                  <div className="flex h-14 items-center border-b border-sidebar-border px-4">
+                    <Link to="/dashboard" className="flex items-center gap-3" onClick={() => setMobileMenuOpen(false)}>
+                      <div className="flex h-8 w-8 items-center justify-center rounded-xl overflow-hidden ring-2 ring-sidebar-border">
+                        <img
+                          src={kairoLogo}
+                          alt="Kairo"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <span className="text-xl font-bold tracking-wide text-foreground">Kairo</span>
+                    </Link>
+                  </div>
+                  <NavContent mobile />
+                </SheetContent>
+              </Sheet>
 
-      {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-sidebar border-t border-sidebar-border md:hidden safe-area-bottom">
-        <div className="flex items-center justify-around h-16">
-          {bottomNavItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  "flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors",
-                  isActive
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <item.icon className={cn("h-5 w-5", isActive && "text-primary")} />
-                <span className="text-[10px] font-medium">{item.label}</span>
+              <Link to="/dashboard" className="flex items-center gap-2">
+                <img src={kairoLogo} alt="Kairo" className="h-7 w-7 rounded-xl" />
+                <span className="font-bold text-lg">Kairo</span>
               </Link>
-            );
-          })}
-          {/* More menu */}
-          <button
-            onClick={() => setMobileMenuOpen(true)}
-            className="flex flex-col items-center justify-center gap-1 flex-1 h-full text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Menu className="h-5 w-5" />
-            <span className="text-[10px] font-medium">Mais</span>
-          </button>
-        </div>
-      </nav>
-    </div>
+            </div>
+
+            {/* Spacer for desktop */}
+            <div className="hidden md:block" />
+
+            <div className="flex items-center gap-2">
+              {/* Profile */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <Avatar className="h-8 w-8 ring-2 ring-border">
+                      <AvatarImage src={profile?.avatar_url || undefined} />
+                      <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
+                        {getInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 bg-popover border shadow-xl">
+                  <div className="px-3 py-2">
+                    <p className="text-sm font-semibold">{getDisplayName()}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild className="gap-2">
+                    <Link to="/configuracoes">
+                      <Settings className="h-4 w-4" />
+                      Configurações
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive gap-2">
+                    <LogOut className="h-4 w-4" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </header>
+
+          {/* Page Content */}
+          <div className="flex-1 min-h-0 min-w-0 overflow-hidden p-4 md:p-6">
+            <Outlet />
+          </div>
+        </main>
+
+        {/* Mobile Bottom Navigation */}
+        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-sidebar/95 backdrop-blur border-t border-sidebar-border md:hidden safe-area-bottom">
+          <div className="flex items-center justify-around h-16">
+            {bottomNavItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all duration-200",
+                    isActive
+                      ? "text-primary"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <motion.div
+                    whileTap={{ scale: 0.9 }}
+                    className={cn(
+                      "p-1.5 rounded-xl transition-colors",
+                      isActive && "bg-primary/10"
+                    )}
+                  >
+                    <item.icon className={cn("h-5 w-5", isActive && "text-primary")} />
+                  </motion.div>
+                  <span className={cn(
+                    "text-[10px] font-medium",
+                    isActive && "text-primary"
+                  )}>
+                    {item.label}
+                  </span>
+                </Link>
+              );
+            })}
+            {/* More menu */}
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="flex flex-col items-center justify-center gap-1 flex-1 h-full text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <motion.div whileTap={{ scale: 0.9 }} className="p-1.5">
+                <Menu className="h-5 w-5" />
+              </motion.div>
+              <span className="text-[10px] font-medium">Mais</span>
+            </button>
+          </div>
+        </nav>
+      </div>
+    </TooltipProvider>
   );
 }
