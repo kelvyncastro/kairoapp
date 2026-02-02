@@ -1,11 +1,14 @@
 import * as React from 'react';
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface HabitProgressChartProps {
   dailyScores: { day: number; score: number }[];
 }
 
 const HabitProgressChart = React.memo(function HabitProgressChart({ dailyScores }: HabitProgressChartProps) {
+  const isMobile = useIsMobile();
+  
   const chartData = React.useMemo(() => {
     return dailyScores.map(({ day, score }) => ({
       day,
@@ -35,8 +38,8 @@ const HabitProgressChart = React.memo(function HabitProgressChart({ dailyScores 
             dataKey="day"
             axisLine={false}
             tickLine={false}
-            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-            interval={0}
+            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: isMobile ? 10 : 12 }}
+            interval={isMobile ? 2 : 0}
             tickCount={chartData.length}
           />
           <YAxis
