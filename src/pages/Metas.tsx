@@ -610,7 +610,7 @@ export default function Metas() {
   };
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col -m-4 md:-m-6 bg-background">
+    <div className="h-full flex flex-col -m-4 md:-m-6 bg-background overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-border/30 flex-shrink-0">
         <div>

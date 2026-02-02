@@ -158,7 +158,7 @@ export default function Consistencia() {
 
   if (loading) {
     return (
-      <div className="h-[calc(100vh-4rem)] flex flex-col -m-6 bg-background">
+      <div className="h-full flex flex-col -m-4 md:-m-6 bg-background overflow-hidden">
         <div className="px-6 py-4 border-b border-border/30">
           <div className="h-8 w-48 bg-muted/30 rounded animate-pulse" />
         </div>
@@ -174,7 +174,7 @@ export default function Consistencia() {
   }
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col -m-4 md:-m-6 bg-background overflow-hidden">
+    <div className="h-full flex flex-col -m-4 md:-m-6 bg-background overflow-hidden">
       {/* Header - Fixed */}
       <div className="flex items-center justify-between px-4 md:px-6 py-2 md:py-3 border-b border-border/30 flex-shrink-0">
         <div>

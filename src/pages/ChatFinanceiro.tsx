@@ -202,7 +202,7 @@ export default function ChatFinanceiro() {
   })), []);
 
   return (
-    <div className="h-[calc(100vh-4rem)] -m-4 md:-m-6 relative overflow-hidden bg-background">
+    <div className="h-full -m-4 md:-m-6 relative overflow-hidden bg-background">
       {/* Dynamic Background */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Base gradient - uses theme background */}
