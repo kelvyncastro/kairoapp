@@ -149,7 +149,7 @@ export default function Rotina() {
   return (
     <div className="flex h-full -m-4 md:-m-6 overflow-hidden">
       {/* Desktop Sidebar */}
-      <div className="hidden md:block">
+      <div className="hidden md:flex h-full">
         <TaskSidebar
           folders={folders}
           selectedFolderId={selectedFolderId}
