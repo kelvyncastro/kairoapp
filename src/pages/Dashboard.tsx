@@ -23,7 +23,8 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { format, differenceInDays, startOfDay, subDays, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarWidget } from "@/components/calendar/CalendarWidget";
+// CalendarWidget temporariamente desativado
+// import { CalendarWidget } from "@/components/calendar/CalendarWidget";
 import { AnimatedFire } from "@/components/achievements/AnimatedFire";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PendingTasksByFolder } from "@/components/dashboard/PendingTasksByFolder";
@@ -489,8 +490,8 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Column 3: Agenda */}
-            <div className="cave-card p-5">
+            {/* Column 3: Agenda - Temporariamente desativado */}
+            {/* <div className="cave-card p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold uppercase tracking-wider text-sm">Agenda</h3>
                 <Link to="/agenda" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
@@ -498,7 +499,7 @@ export default function Dashboard() {
                 </Link>
               </div>
               <CalendarWidget />
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
