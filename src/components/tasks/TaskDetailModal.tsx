@@ -777,13 +777,26 @@ export function TaskDetailModal({
               );
             })}
 
-            <button
-              onClick={handleAddChecklist}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <Plus className="h-4 w-4" />
-              Adicionar checklist
-            </button>
+            <div className="flex items-center gap-2">
+              <Plus className="h-4 w-4 text-muted-foreground" />
+              <Input
+                value={newChecklistName}
+                onChange={(e) => setNewChecklistName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddChecklist()}
+                placeholder="Adicionar checklist (Enter para criar)"
+                className="h-8 bg-transparent border-0 focus-visible:ring-0 px-0 text-sm"
+              />
+              {newChecklistName.trim() && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-primary"
+                  onClick={handleAddChecklist}
+                >
+                  <Check className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 
