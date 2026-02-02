@@ -87,6 +87,8 @@ interface TaskTableViewProps {
   onCreateTask: () => void;
   onQuickCreateTask: (title: string, folderId?: string | null, statusId?: string) => void;
   onCreateStatus?: (status: Partial<TaskStatus>) => Promise<TaskStatus | null>;
+  onUpdateStatus?: (id: string, updates: Partial<TaskStatus>) => Promise<boolean>;
+  onDeleteStatus?: (id: string) => Promise<boolean>;
 }
 
 export function TaskTableView({
@@ -101,6 +103,8 @@ export function TaskTableView({
   onCreateTask,
   onQuickCreateTask,
   onCreateStatus,
+  onUpdateStatus,
+  onDeleteStatus,
 }: TaskTableViewProps) {
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
   const [columns, setColumns] = useState<ColumnConfig[]>(DEFAULT_COLUMNS);
@@ -376,6 +380,8 @@ export function TaskTableView({
                 onColumnSort={handleColumnSort}
                 onOpenTaskDetail={handleOpenTaskDetail}
                 onCreateStatus={onCreateStatus}
+                onUpdateStatus={onUpdateStatus ? async (id, u) => { await onUpdateStatus(id, u); } : undefined}
+                onDeleteStatus={onDeleteStatus ? async (id) => { await onDeleteStatus(id); } : undefined}
               />
             )}
           </div>
@@ -427,6 +433,8 @@ export function TaskTableView({
               onColumnSort={handleColumnSort}
               onOpenTaskDetail={handleOpenTaskDetail}
               onCreateStatus={onCreateStatus}
+              onUpdateStatus={onUpdateStatus ? async (id, u) => { await onUpdateStatus(id, u); } : undefined}
+              onDeleteStatus={onDeleteStatus ? async (id) => { await onDeleteStatus(id); } : undefined}
             />
           )}
           </div>
@@ -472,6 +480,8 @@ interface TaskTableProps {
   onColumnSort: (columnId: string) => void;
   onOpenTaskDetail: (task: Task) => void;
   onCreateStatus?: (status: Partial<TaskStatus>) => Promise<TaskStatus | null>;
+  onUpdateStatus?: (id: string, updates: Partial<TaskStatus>) => Promise<void>;
+  onDeleteStatus?: (id: string) => Promise<void>;
 }
 
 interface InlineAddTaskProps {
@@ -830,6 +840,8 @@ function TaskTable({
   onColumnSort,
   onOpenTaskDetail,
   onCreateStatus,
+  onUpdateStatus,
+  onDeleteStatus,
 }: TaskTableProps) {
   // Sort icon component
   const SortIcon = ({ columnId }: { columnId: string }) => {
@@ -880,6 +892,8 @@ function TaskTable({
             value={task.status_id}
             onChange={(statusId) => handleStatusChange(task.id, statusId)}
             onCreateStatus={onCreateStatus}
+            onUpdateStatus={onUpdateStatus}
+            onDeleteStatus={onDeleteStatus}
             isOverdue={isTaskOverdue}
           />
         );

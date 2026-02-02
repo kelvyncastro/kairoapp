@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, MoreHorizontal, Edit2, Trash2, Calendar, Clock, X, Check, AlertTriangle } from 'lucide-react';
+import { Plus, MoreHorizontal, Edit2, Trash2, Calendar, Clock, X, Check, AlertTriangle, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -47,6 +47,10 @@ export function TaskBoardView({
 }: TaskBoardViewProps) {
   const [isAddingStatus, setIsAddingStatus] = useState(false);
   const [newStatusName, setNewStatusName] = useState('');
+  const [editingStatusId, setEditingStatusId] = useState<string | null>(null);
+  const [editStatusName, setEditStatusName] = useState('');
+  const [editStatusColor, setEditStatusColor] = useState(COLOR_PALETTE[0]);
+
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return null;
     const date = parseISO(dateStr);
@@ -129,11 +133,37 @@ export function TaskBoardView({
     setIsAddingStatus(false);
   };
 
+  const handleStartEditStatus = (status: TaskStatus) => {
+    setEditingStatusId(status.id);
+    setEditStatusName(status.name);
+    setEditStatusColor(status.color);
+  };
+
+  const handleSaveEditStatus = async () => {
+    if (!editingStatusId || !editStatusName.trim() || !onUpdateStatus) return;
+    
+    await onUpdateStatus(editingStatusId, {
+      name: editStatusName.trim(),
+      color: editStatusColor,
+    });
+    
+    setEditingStatusId(null);
+    setEditStatusName('');
+    setEditStatusColor(COLOR_PALETTE[0]);
+  };
+
+  const handleCancelEditStatus = () => {
+    setEditingStatusId(null);
+    setEditStatusName('');
+    setEditStatusColor(COLOR_PALETTE[0]);
+  };
+
   return (
     <div className="flex-1 overflow-x-auto p-4">
       <div className="flex gap-4 min-h-full">
         {sortedStatuses.map((status) => {
           const columnTasks = tasksByStatus[status.id] || [];
+          const isEditing = editingStatusId === status.id;
 
           return (
             <div
@@ -143,42 +173,112 @@ export function TaskBoardView({
               onDrop={(e) => handleDrop(e, status.id)}
             >
               {/* Column header */}
-              <div className="flex items-center gap-2 mb-3 px-1">
-                <span
-                  className="text-xs font-semibold px-2.5 py-1 rounded"
-                  style={{ 
-                    backgroundColor: `${status.color}30`,
-                    color: status.color 
-                  }}
-                >
-                  {status.name.toUpperCase()}
-                </span>
-                <span className="text-xs text-muted-foreground">{columnTasks.length}</span>
-                
-                {/* Status options menu */}
-                {onDeleteStatus && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        className="h-5 w-5 ml-auto opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity"
-                      >
-                        <MoreHorizontal className="h-3.5 w-3.5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-popover">
-                      <DropdownMenuItem 
-                        className="text-destructive"
-                        onClick={() => onDeleteStatus(status.id)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5 mr-2" />
-                        Excluir status
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-              </div>
+              {isEditing ? (
+                <div className="space-y-3 p-3 mb-3 bg-card border border-border/30 rounded-lg">
+                  <Input
+                    value={editStatusName}
+                    onChange={(e) => setEditStatusName(e.target.value)}
+                    placeholder="Nome do status..."
+                    className="h-8 text-sm"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSaveEditStatus();
+                      if (e.key === 'Escape') handleCancelEditStatus();
+                    }}
+                  />
+                  
+                  {/* Color picker */}
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-2">Cor do status</div>
+                    <div className="grid grid-cols-6 gap-1.5">
+                      {COLOR_PALETTE.map((color) => (
+                        <button
+                          key={color}
+                          type="button"
+                          className={`w-6 h-6 rounded-full transition-all duration-150 flex items-center justify-center ${
+                            editStatusColor === color 
+                              ? "ring-2 ring-offset-2 ring-offset-card ring-primary scale-110" 
+                              : "hover:scale-110"
+                          }`}
+                          style={{ backgroundColor: color }}
+                          onClick={() => setEditStatusColor(color)}
+                        >
+                          {editStatusColor === color && (
+                            <Check className="h-3 w-3 text-white" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex-1 h-8 text-xs"
+                      onClick={handleCancelEditStatus}
+                    >
+                      <X className="h-3 w-3 mr-1" />
+                      Cancelar
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="flex-1 h-8 text-xs"
+                      onClick={handleSaveEditStatus}
+                      disabled={!editStatusName.trim()}
+                    >
+                      <Check className="h-3 w-3 mr-1" />
+                      Salvar
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 mb-3 px-1">
+                  <span
+                    className="text-xs font-semibold px-2.5 py-1 rounded"
+                    style={{ 
+                      backgroundColor: `${status.color}30`,
+                      color: status.color 
+                    }}
+                  >
+                    {status.name.toUpperCase()}
+                  </span>
+                  <span className="text-xs text-muted-foreground">{columnTasks.length}</span>
+                  
+                  {/* Status options menu */}
+                  {(onUpdateStatus || onDeleteStatus) && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          className="h-5 w-5 ml-auto opacity-0 group-hover/column:opacity-100 hover:opacity-100 transition-opacity"
+                        >
+                          <MoreHorizontal className="h-3.5 w-3.5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-popover">
+                        {onUpdateStatus && (
+                          <DropdownMenuItem onClick={() => handleStartEditStatus(status)}>
+                            <Pencil className="h-3.5 w-3.5 mr-2" />
+                            Editar status
+                          </DropdownMenuItem>
+                        )}
+                        {onUpdateStatus && onDeleteStatus && <DropdownMenuSeparator />}
+                        {onDeleteStatus && statuses.length > 1 && (
+                          <DropdownMenuItem 
+                            className="text-destructive"
+                            onClick={() => onDeleteStatus(status.id)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5 mr-2" />
+                            Excluir status
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
+              )}
 
               {/* Add task button */}
               <button
