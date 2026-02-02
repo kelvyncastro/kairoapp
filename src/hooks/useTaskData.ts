@@ -196,9 +196,21 @@ export function useTaskData() {
   };
 
   const updateTask = async (id: string, updates: Partial<Task>): Promise<boolean> => {
+    // If status_id is being updated, sync the completed field
+    let finalUpdates = { ...updates };
+    
+    if (updates.status_id !== undefined) {
+      const newStatus = statuses.find(s => s.id === updates.status_id);
+      const isCompletedStatus = newStatus?.name.toLowerCase().includes('conclu') ?? false;
+      
+      // Sync completed field with status
+      finalUpdates.completed = isCompletedStatus;
+      finalUpdates.completed_at = isCompletedStatus ? new Date().toISOString() : null;
+    }
+
     const { error } = await supabase
       .from('daily_tasks')
-      .update(updates)
+      .update(finalUpdates)
       .eq('id', id);
 
     if (error) {
@@ -206,7 +218,7 @@ export function useTaskData() {
       return false;
     }
 
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, ...finalUpdates } : t));
     return true;
   };
 
