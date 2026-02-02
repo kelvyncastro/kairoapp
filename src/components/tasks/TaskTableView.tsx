@@ -912,13 +912,20 @@ function TaskTable({
         );
 
       case 'description':
+        // Extract plain text from HTML description
+        const getPlainText = (html: string | null) => {
+          if (!html) return '';
+          const text = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+          return text;
+        };
+        const plainDescription = getPlainText(task.description);
         return (
           <span 
             className="text-xs text-muted-foreground truncate cursor-pointer hover:text-foreground transition-colors"
             onClick={() => onOpenTaskDetail(task)}
-            title={task.description || 'Sem descrição'}
+            title={plainDescription || 'Sem descrição'}
           >
-            {task.description || '—'}
+            {plainDescription || '—'}
           </span>
         );
       
