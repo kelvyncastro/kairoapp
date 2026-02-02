@@ -10,6 +10,9 @@ import {
   Trash2,
   ChevronDown,
   ChevronRight,
+  Pencil,
+  Check,
+  X,
   FileText,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -86,6 +89,12 @@ export function TaskDetailModal({
   const [newChecklistName, setNewChecklistName] = useState('');
   const [newItemInputs, setNewItemInputs] = useState<Record<string, string>>({});
   const [expandedChecklists, setExpandedChecklists] = useState<Record<string, boolean>>({});
+  const [editingSubtaskId, setEditingSubtaskId] = useState<string | null>(null);
+  const [editingSubtaskTitle, setEditingSubtaskTitle] = useState('');
+  const [editingChecklistItemId, setEditingChecklistItemId] = useState<string | null>(null);
+  const [editingChecklistItemTitle, setEditingChecklistItemTitle] = useState('');
+  const [editingChecklistId, setEditingChecklistId] = useState<string | null>(null);
+  const [editingChecklistName, setEditingChecklistName] = useState('');
 
   const {
     subtasks,
@@ -93,11 +102,14 @@ export function TaskDetailModal({
     loading,
     fetchDetails,
     createSubtask,
+    updateSubtask,
     toggleSubtask,
     deleteSubtask,
     createChecklist,
+    updateChecklist,
     deleteChecklist,
     createChecklistItem,
+    updateChecklistItem,
     toggleChecklistItem,
     deleteChecklistItem,
     totalItems,
@@ -173,6 +185,64 @@ export function TaskDetailModal({
 
   const toggleChecklistExpand = (id: string) => {
     setExpandedChecklists(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  // Edit handlers
+  const handleEditSubtask = (subtask: { id: string; title: string }) => {
+    setEditingSubtaskId(subtask.id);
+    setEditingSubtaskTitle(subtask.title);
+  };
+
+  const handleSaveSubtaskEdit = async () => {
+    if (editingSubtaskId && editingSubtaskTitle.trim()) {
+      await updateSubtask(editingSubtaskId, { title: editingSubtaskTitle.trim() });
+      notifyDetailsChanged();
+    }
+    setEditingSubtaskId(null);
+    setEditingSubtaskTitle('');
+  };
+
+  const handleCancelSubtaskEdit = () => {
+    setEditingSubtaskId(null);
+    setEditingSubtaskTitle('');
+  };
+
+  const handleEditChecklistItem = (item: { id: string; title: string }) => {
+    setEditingChecklistItemId(item.id);
+    setEditingChecklistItemTitle(item.title);
+  };
+
+  const handleSaveChecklistItemEdit = async () => {
+    if (editingChecklistItemId && editingChecklistItemTitle.trim()) {
+      await updateChecklistItem(editingChecklistItemId, { title: editingChecklistItemTitle.trim() });
+      notifyDetailsChanged();
+    }
+    setEditingChecklistItemId(null);
+    setEditingChecklistItemTitle('');
+  };
+
+  const handleCancelChecklistItemEdit = () => {
+    setEditingChecklistItemId(null);
+    setEditingChecklistItemTitle('');
+  };
+
+  const handleEditChecklist = (checklist: { id: string; name: string }) => {
+    setEditingChecklistId(checklist.id);
+    setEditingChecklistName(checklist.name);
+  };
+
+  const handleSaveChecklistEdit = async () => {
+    if (editingChecklistId && editingChecklistName.trim()) {
+      await updateChecklist(editingChecklistId, { name: editingChecklistName.trim() });
+      notifyDetailsChanged();
+    }
+    setEditingChecklistId(null);
+    setEditingChecklistName('');
+  };
+
+  const handleCancelChecklistEdit = () => {
+    setEditingChecklistId(null);
+    setEditingChecklistName('');
   };
 
   const getStatusInfo = (statusId: string | null) => {
@@ -433,23 +503,67 @@ export function TaskDetailModal({
                     notifyDetailsChanged();
                   }}
                 />
-                <span className={cn(
-                  "flex-1",
-                  subtask.completed && "line-through text-muted-foreground"
-                )}>
-                  {subtask.title}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                  onClick={async () => {
-                    await deleteSubtask(subtask.id);
-                    notifyDetailsChanged();
-                  }}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
+                {editingSubtaskId === subtask.id ? (
+                  <div className="flex-1 flex items-center gap-2">
+                    <Input
+                      value={editingSubtaskTitle}
+                      onChange={(e) => setEditingSubtaskTitle(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSaveSubtaskEdit();
+                        if (e.key === 'Escape') handleCancelSubtaskEdit();
+                      }}
+                      className="h-7 text-sm"
+                      autoFocus
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-primary"
+                      onClick={handleSaveSubtaskEdit}
+                    >
+                      <Check className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={handleCancelSubtaskEdit}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <span
+                      className={cn(
+                        "flex-1 cursor-pointer",
+                        subtask.completed && "line-through text-muted-foreground"
+                      )}
+                      onClick={() => handleEditSubtask(subtask)}
+                    >
+                      {subtask.title}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                      onClick={() => handleEditSubtask(subtask)}
+                    >
+                      <Pencil className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                      onClick={async () => {
+                        await deleteSubtask(subtask.id);
+                        notifyDetailsChanged();
+                      }}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </>
+                )}
               </div>
             ))}
 
@@ -484,7 +598,7 @@ export function TaskDetailModal({
               const isExpanded = expandedChecklists[checklist.id] !== false;
 
               return (
-                <div key={checklist.id} className="space-y-2 border border-border/30 rounded-lg p-3">
+                <div key={checklist.id} className="space-y-2 border border-border/30 rounded-lg p-3 group">
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => toggleChecklistExpand(checklist.id)}
@@ -496,21 +610,67 @@ export function TaskDetailModal({
                         <ChevronRight className="h-4 w-4" />
                       )}
                     </button>
-                    <span className="font-medium flex-1">{checklist.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {itemsCompleted} de {itemsTotal}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={async () => {
-                        await deleteChecklist(checklist.id);
-                        notifyDetailsChanged();
-                      }}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                    {editingChecklistId === checklist.id ? (
+                      <div className="flex-1 flex items-center gap-2">
+                        <Input
+                          value={editingChecklistName}
+                          onChange={(e) => setEditingChecklistName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSaveChecklistEdit();
+                            if (e.key === 'Escape') handleCancelChecklistEdit();
+                          }}
+                          className="h-7 text-sm font-medium"
+                          autoFocus
+                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-primary"
+                          onClick={handleSaveChecklistEdit}
+                        >
+                          <Check className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={handleCancelChecklistEdit}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <span
+                          className="font-medium flex-1 cursor-pointer hover:text-primary transition-colors"
+                          onClick={() => handleEditChecklist(checklist)}
+                        >
+                          {checklist.name}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {itemsCompleted} de {itemsTotal}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                          onClick={() => handleEditChecklist(checklist)}
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={async () => {
+                            await deleteChecklist(checklist.id);
+                            notifyDetailsChanged();
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </>
+                    )}
                   </div>
 
                   {isExpanded && (
@@ -534,23 +694,67 @@ export function TaskDetailModal({
                               notifyDetailsChanged();
                             }}
                           />
-                          <span className={cn(
-                            "flex-1 text-sm",
-                            item.completed && "line-through text-muted-foreground"
-                          )}>
-                            {item.title}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-5 w-5 opacity-0 group-hover:opacity-100"
-                            onClick={async () => {
-                              await deleteChecklistItem(item.id);
-                              notifyDetailsChanged();
-                            }}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
+                          {editingChecklistItemId === item.id ? (
+                            <div className="flex-1 flex items-center gap-2">
+                              <Input
+                                value={editingChecklistItemTitle}
+                                onChange={(e) => setEditingChecklistItemTitle(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleSaveChecklistItemEdit();
+                                  if (e.key === 'Escape') handleCancelChecklistItemEdit();
+                                }}
+                                className="h-6 text-sm"
+                                autoFocus
+                              />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-5 w-5 text-primary"
+                                onClick={handleSaveChecklistItemEdit}
+                              >
+                                <Check className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-5 w-5"
+                                onClick={handleCancelChecklistItemEdit}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <>
+                              <span
+                                className={cn(
+                                  "flex-1 text-sm cursor-pointer",
+                                  item.completed && "line-through text-muted-foreground"
+                                )}
+                                onClick={() => handleEditChecklistItem(item)}
+                              >
+                                {item.title}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-5 w-5 opacity-0 group-hover:opacity-100"
+                                onClick={() => handleEditChecklistItem(item)}
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-5 w-5 opacity-0 group-hover:opacity-100"
+                                onClick={async () => {
+                                  await deleteChecklistItem(item.id);
+                                  notifyDetailsChanged();
+                                }}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </>
+                          )}
                         </div>
                       ))}
 
