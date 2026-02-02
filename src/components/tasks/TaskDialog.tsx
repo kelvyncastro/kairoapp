@@ -41,6 +41,24 @@ interface TaskDialogProps {
   defaultFolderId?: string | null;
 }
 
+const getRecurrenceLabel = (rule: string): string => {
+  const labels: Record<string, string> = {
+    DAILY: 'Todo dia',
+    WEEKDAYS: 'Dias úteis',
+    WEEKENDS: 'Fins de semana',
+    WEEKLY_MONDAY: 'Segundas',
+    WEEKLY_TUESDAY: 'Terças',
+    WEEKLY_WEDNESDAY: 'Quartas',
+    WEEKLY_THURSDAY: 'Quintas',
+    WEEKLY_FRIDAY: 'Sextas',
+    WEEKLY_SATURDAY: 'Sábados',
+    WEEKLY_SUNDAY: 'Domingos',
+    BIWEEKLY: 'A cada 2 semanas',
+    MONTHLY: 'Mensal',
+  };
+  return labels[rule] || rule;
+};
+
 export function TaskDialog({
   open,
   onOpenChange,
@@ -254,10 +272,10 @@ export function TaskDialog({
             </div>
 
             {/* Due date */}
-            <div className="space-y-2">
+            <div className="space-y-2 col-span-2">
               <Label className="flex items-center gap-2">
                 <CalendarIcon className="h-3.5 w-3.5" />
-                Data de vencimento
+                Datas e Recorrência
               </Label>
               <Popover>
                 <PopoverTrigger asChild>
@@ -265,103 +283,126 @@ export function TaskDialog({
                     variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal",
-                      !formData.due_date && "text-muted-foreground"
+                      !formData.due_date && !formData.start_date && "text-muted-foreground"
                     )}
                   >
-                    {formData.due_date 
-                      ? format(new Date(formData.due_date), "d 'de' MMM", { locale: ptBR })
-                      : "Selecione"
-                    }
+                    <div className="flex flex-col items-start gap-0.5">
+                      <span className="text-xs text-muted-foreground">
+                        {formData.start_date 
+                          ? `Início: ${format(new Date(formData.start_date), "d 'de' MMM", { locale: ptBR })}`
+                          : "Início: -"
+                        }
+                        {" → "}
+                        {formData.due_date 
+                          ? `Venc: ${format(new Date(formData.due_date), "d 'de' MMM", { locale: ptBR })}`
+                          : "Venc: -"
+                        }
+                      </span>
+                      {formData.is_recurring && (
+                        <span className="text-xs text-primary">
+                          🔄 {getRecurrenceLabel(formData.recurring_rule)}
+                        </span>
+                      )}
+                    </div>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 bg-popover" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.due_date ? new Date(formData.due_date) : undefined}
-                    onSelect={(date) => setFormData({ 
-                      ...formData, 
-                      due_date: date ? format(date, 'yyyy-MM-dd') : null 
-                    })}
-                    locale={ptBR}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {/* Start date */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <CalendarIcon className="h-3.5 w-3.5" />
-                Data de início
-              </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !formData.start_date && "text-muted-foreground"
-                    )}
-                  >
-                    {formData.start_date 
-                      ? format(new Date(formData.start_date), "d 'de' MMM", { locale: ptBR })
-                      : "Selecione"
-                    }
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-popover" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.start_date ? new Date(formData.start_date) : undefined}
-                    onSelect={(date) => setFormData({ 
-                      ...formData, 
-                      start_date: date ? format(date, 'yyyy-MM-dd') : null 
-                    })}
-                    locale={ptBR}
-                  />
+                  <div className="p-3 space-y-4">
+                    {/* Dates row */}
+                    <div className="flex gap-4">
+                      {/* Start date */}
+                      <div className="space-y-2">
+                        <Label className="text-xs">Data de início</Label>
+                        <Calendar
+                          mode="single"
+                          selected={formData.start_date ? new Date(formData.start_date) : undefined}
+                          onSelect={(date) => setFormData({ 
+                            ...formData, 
+                            start_date: date ? format(date, 'yyyy-MM-dd') : null 
+                          })}
+                          locale={ptBR}
+                          className="pointer-events-auto"
+                        />
+                        {formData.start_date && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="w-full text-xs"
+                            onClick={() => setFormData({ ...formData, start_date: null })}
+                          >
+                            <X className="h-3 w-3 mr-1" /> Limpar início
+                          </Button>
+                        )}
+                      </div>
+                      
+                      {/* Due date */}
+                      <div className="space-y-2">
+                        <Label className="text-xs">Data de vencimento</Label>
+                        <Calendar
+                          mode="single"
+                          selected={formData.due_date ? new Date(formData.due_date) : undefined}
+                          onSelect={(date) => setFormData({ 
+                            ...formData, 
+                            due_date: date ? format(date, 'yyyy-MM-dd') : null 
+                          })}
+                          locale={ptBR}
+                          className="pointer-events-auto"
+                        />
+                        {formData.due_date && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="w-full text-xs"
+                            onClick={() => setFormData({ ...formData, due_date: null })}
+                          >
+                            <X className="h-3 w-3 mr-1" /> Limpar vencimento
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Recurrence section */}
+                    <div className="border-t pt-3 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="flex items-center gap-2 text-sm">
+                          🔄 Tarefa recorrente
+                        </Label>
+                        <Switch
+                          checked={formData.is_recurring}
+                          onCheckedChange={(v) => setFormData({ ...formData, is_recurring: v })}
+                        />
+                      </div>
+                      
+                      {formData.is_recurring && (
+                        <Select
+                          value={formData.recurring_rule}
+                          onValueChange={(v) => setFormData({ ...formData, recurring_rule: v })}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Selecione a recorrência" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover">
+                            <SelectItem value="DAILY">Todo dia</SelectItem>
+                            <SelectItem value="WEEKDAYS">Dias úteis (Seg-Sex)</SelectItem>
+                            <SelectItem value="WEEKENDS">Fins de semana (Sáb-Dom)</SelectItem>
+                            <SelectItem value="WEEKLY_MONDAY">Toda segunda-feira</SelectItem>
+                            <SelectItem value="WEEKLY_TUESDAY">Toda terça-feira</SelectItem>
+                            <SelectItem value="WEEKLY_WEDNESDAY">Toda quarta-feira</SelectItem>
+                            <SelectItem value="WEEKLY_THURSDAY">Toda quinta-feira</SelectItem>
+                            <SelectItem value="WEEKLY_FRIDAY">Toda sexta-feira</SelectItem>
+                            <SelectItem value="WEEKLY_SATURDAY">Todo sábado</SelectItem>
+                            <SelectItem value="WEEKLY_SUNDAY">Todo domingo</SelectItem>
+                            <SelectItem value="BIWEEKLY">A cada 2 semanas</SelectItem>
+                            <SelectItem value="MONTHLY">Todo mês</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  </div>
                 </PopoverContent>
               </Popover>
             </div>
           </div>
-
-          {/* Recurrence */}
-          <div className="flex items-center justify-between py-2">
-            <Label className="flex items-center gap-2">
-              🔄 Tarefa recorrente
-            </Label>
-            <Switch
-              checked={formData.is_recurring}
-              onCheckedChange={(v) => setFormData({ ...formData, is_recurring: v })}
-            />
-          </div>
-
-          {formData.is_recurring && (
-            <div className="space-y-2">
-              <Label>Repetir</Label>
-              <Select
-                value={formData.recurring_rule}
-                onValueChange={(v) => setFormData({ ...formData, recurring_rule: v })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-popover">
-                  <SelectItem value="DAILY">Todo dia</SelectItem>
-                  <SelectItem value="WEEKDAYS">Dias úteis (Seg-Sex)</SelectItem>
-                  <SelectItem value="WEEKENDS">Fins de semana (Sáb-Dom)</SelectItem>
-                  <SelectItem value="WEEKLY_MONDAY">Toda segunda-feira</SelectItem>
-                  <SelectItem value="WEEKLY_TUESDAY">Toda terça-feira</SelectItem>
-                  <SelectItem value="WEEKLY_WEDNESDAY">Toda quarta-feira</SelectItem>
-                  <SelectItem value="WEEKLY_THURSDAY">Toda quinta-feira</SelectItem>
-                  <SelectItem value="WEEKLY_FRIDAY">Toda sexta-feira</SelectItem>
-                  <SelectItem value="WEEKLY_SATURDAY">Todo sábado</SelectItem>
-                  <SelectItem value="WEEKLY_SUNDAY">Todo domingo</SelectItem>
-                  <SelectItem value="BIWEEKLY">A cada 2 semanas</SelectItem>
-                  <SelectItem value="MONTHLY">Todo mês</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
         </div>
 
         <DialogFooter>
