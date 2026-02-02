@@ -59,7 +59,7 @@ serve(async (req) => {
       );
     }
 
-    const { message, sectors } = await req.json();
+    const { message, sectors, conversationHistory } = await req.json();
     
     if (!message) {
       return new Response(
@@ -76,38 +76,152 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY não configurada");
     }
 
+    // Create Supabase client with service role for queries
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Fetch user's financial data for context
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1;
+    
+    // Get all transactions for the user (last 12 months for context)
+    const oneYearAgo = new Date(currentDate);
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    
+    const { data: transactions } = await supabase
+      .from("finance_transactions")
+      .select("*")
+      .eq("user_id", userId)
+      .gte("date", oneYearAgo.toISOString().split("T")[0])
+      .order("date", { ascending: false });
+
+    // Get all sectors
+    const { data: userSectors } = await supabase
+      .from("finance_sectors")
+      .select("*")
+      .eq("user_id", userId);
+
+    // Build financial summary by month
+    const monthlyData: Record<string, { income: number; expenses: number; bySector: Record<string, number> }> = {};
+    
+    transactions?.forEach((t: any) => {
+      const date = new Date(t.date);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      if (!monthlyData[monthKey]) {
+        monthlyData[monthKey] = { income: 0, expenses: 0, bySector: {} };
+      }
+      
+      if (t.value > 0) {
+        monthlyData[monthKey].income += t.value;
+      } else {
+        monthlyData[monthKey].expenses += Math.abs(t.value);
+        
+        // Track by sector
+        const sector = userSectors?.find((s: any) => s.id === t.sector_id);
+        const sectorName = sector?.name || "Sem categoria";
+        monthlyData[monthKey].bySector[sectorName] = (monthlyData[monthKey].bySector[sectorName] || 0) + Math.abs(t.value);
+      }
+    });
+
     // Build sectors context for AI
-    const sectorsContext = sectors?.length > 0 
-      ? `Setores disponíveis do usuário: ${sectors.map((s: any) => `"${s.name}" (id: ${s.id})`).join(", ")}`
+    const sectorsContext = userSectors && userSectors.length > 0 
+      ? `Setores disponíveis: ${userSectors.map((s: any) => `"${s.name}" (id: ${s.id})`).join(", ")}`
       : "O usuário não tem setores cadastrados ainda.";
 
-    const systemPrompt = `Você é um assistente financeiro que extrai informações de transações a partir de mensagens em linguagem natural.
+    // Build financial data context
+    const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+    
+    let financialContext = "DADOS FINANCEIROS DO USUÁRIO:\n\n";
+    
+    // Sort months and build summary
+    const sortedMonths = Object.keys(monthlyData).sort().reverse().slice(0, 12);
+    
+    sortedMonths.forEach(monthKey => {
+      const [year, month] = monthKey.split('-');
+      const monthName = monthNames[parseInt(month) - 1];
+      const data = monthlyData[monthKey];
+      const balance = data.income - data.expenses;
+      
+      financialContext += `📅 ${monthName}/${year}:\n`;
+      financialContext += `  • Receitas: R$${data.income.toFixed(2)}\n`;
+      financialContext += `  • Despesas: R$${data.expenses.toFixed(2)}\n`;
+      financialContext += `  • Saldo: R$${balance.toFixed(2)}\n`;
+      
+      if (Object.keys(data.bySector).length > 0) {
+        financialContext += `  • Gastos por categoria:\n`;
+        Object.entries(data.bySector)
+          .sort((a, b) => b[1] - a[1])
+          .forEach(([sector, value]) => {
+            financialContext += `    - ${sector}: R$${value.toFixed(2)}\n`;
+          });
+      }
+      financialContext += "\n";
+    });
+
+    // Recent transactions (last 20)
+    if (transactions && transactions.length > 0) {
+      financialContext += "TRANSAÇÕES RECENTES (últimas 20):\n";
+      transactions.slice(0, 20).forEach((t: any) => {
+        const sector = userSectors?.find((s: any) => s.id === t.sector_id);
+        const sectorName = sector ? ` [${sector.name}]` : "";
+        const type = t.value > 0 ? "💰" : "💸";
+        financialContext += `${type} ${t.date}: ${t.name} - R$${Math.abs(t.value).toFixed(2)}${sectorName}\n`;
+      });
+    }
+
+    const systemPrompt = `Você é um assistente financeiro pessoal inteligente e amigável. Você tem DUAS funções principais:
+
+1. REGISTRAR TRANSAÇÕES: Quando o usuário mencionar um gasto ou receita
+2. CONSULTAR E ANALISAR: Quando o usuário perguntar sobre suas finanças
 
 ${sectorsContext}
 
-Sua tarefa é analisar a mensagem do usuário e extrair:
-1. O valor da transação (sempre positivo, sem símbolos)
-2. O tipo: "expense" (gasto/despesa) ou "income" (ganho/receita)
-3. Uma descrição curta da transação
-4. O ID do setor mais adequado da lista acima (se houver setores disponíveis)
+${financialContext}
 
-REGRAS IMPORTANTES:
-- Palavras como "gastei", "paguei", "comprei", "despesa" indicam EXPENSE
-- Palavras como "recebi", "ganhei", "entrou", "salário", "vendi" indicam INCOME
-- Se não conseguir determinar o valor ou tipo, retorne success: false
-- Procure o setor mais semanticamente similar. Ex: "mercado" casa com "Mercado", "uber" casa com "Transporte"
-- Se nenhum setor for adequado, use null para sector_id
+DATA ATUAL: ${currentDate.toLocaleDateString('pt-BR')} (${monthNames[currentMonth - 1]}/${currentYear})
 
-Responda APENAS em JSON válido no formato:
-{
-  "success": true/false,
-  "value": número ou null,
-  "type": "expense" ou "income" ou null,
-  "description": "descrição curta" ou null,
-  "sector_id": "uuid do setor" ou null,
-  "sector_name": "nome do setor escolhido" ou null,
-  "error_message": "mensagem de erro se success=false" ou null
-}`;
+INSTRUÇÕES:
+
+Para REGISTRAR transações (ex: "gastei 50 no mercado", "recebi 3000 de salário"):
+- Extraia valor, tipo (expense/income), descrição e setor
+- Responda com JSON: {"action": "register", "success": true, "value": número, "type": "expense/income", "description": "...", "sector_id": "uuid ou null", "sector_name": "nome ou null"}
+
+Para CONSULTAS e ANÁLISES (ex: "quanto gastei?", "como estão minhas finanças?", "gastos de mercado em janeiro"):
+- Use os dados financeiros acima para responder
+- Seja específico com números e períodos
+- Formate valores em R$ brasileiro
+- Se perguntar sobre um mês específico, use os dados daquele mês
+- Responda com JSON: {"action": "query", "response": "sua resposta em texto formatado com markdown"}
+
+REGRAS:
+- Palavras como "gastei", "paguei", "comprei" = expense
+- Palavras como "recebi", "ganhei", "salário" = income
+- Para consultas, use markdown para formatar (negrito, listas, etc)
+- Sempre responda em português brasileiro
+- Se não tiver dados para responder, informe educadamente
+- Para relatórios completos, inclua: receitas, despesas, saldo, maiores gastos por categoria
+
+Responda APENAS em JSON válido.`;
+
+    // Build messages array with conversation history
+    const messages: Array<{role: string, content: string}> = [
+      { role: "system", content: systemPrompt }
+    ];
+
+    // Add conversation history (last 10 messages for context)
+    if (conversationHistory && Array.isArray(conversationHistory)) {
+      const recentHistory = conversationHistory.slice(-10);
+      recentHistory.forEach((msg: any) => {
+        if (msg.role === "user" || msg.role === "assistant") {
+          messages.push({ role: msg.role, content: msg.content });
+        }
+      });
+    }
+
+    // Add current message
+    messages.push({ role: "user", content: message });
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -117,11 +231,8 @@ Responda APENAS em JSON válido no formato:
       },
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: message }
-        ],
-        temperature: 0.1,
+        messages,
+        temperature: 0.3,
       }),
     });
 
@@ -157,7 +268,6 @@ Responda APENAS em JSON válido no formato:
     // Parse AI response
     let parsed;
     try {
-      // Remove markdown code blocks if present
       const cleanContent = aiContent.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
       parsed = JSON.parse(cleanContent);
     } catch (e) {
@@ -165,73 +275,83 @@ Responda APENAS em JSON válido no formato:
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: "Não consegui entender sua mensagem. Tente algo como:\n• \"Gastei R$50 com mercado\"\n• \"Recebi R$3000 de salário\"\n• \"Paguei R$150 de luz\"" 
+          message: "Não consegui processar sua mensagem. Tente reformular." 
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    if (!parsed.success || !parsed.value || !parsed.type) {
+    // Handle query action
+    if (parsed.action === "query") {
       return new Response(
         JSON.stringify({ 
-          success: false, 
-          message: parsed.error_message || "Não consegui entender sua mensagem. Tente algo como:\n• \"Gastei R$50 com mercado\"\n• \"Recebi R$3000 de salário\"\n• \"Paguei R$150 de luz\"" 
+          success: true, 
+          message: parsed.response,
+          isQuery: true
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Create Supabase client with service role for insert (RLS will validate via user_id)
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Handle register action
+    if (parsed.action === "register" && parsed.success && parsed.value && parsed.type) {
+      // Calculate final value (negative for expenses, positive for income)
+      const finalValue = parsed.type === "expense" ? -Math.abs(parsed.value) : Math.abs(parsed.value);
+      
+      // Determine status based on type
+      const status = parsed.type === "income" ? "received" : "paid";
 
-    // Calculate final value (negative for expenses, positive for income)
-    const finalValue = parsed.type === "expense" ? -Math.abs(parsed.value) : Math.abs(parsed.value);
-    
-    // Determine status based on type
-    const status = parsed.type === "income" ? "received" : "paid";
+      // Insert transaction
+      const { data: transaction, error: insertError } = await supabase
+        .from("finance_transactions")
+        .insert({
+          user_id: userId,
+          name: parsed.description || "Transação via chat",
+          value: finalValue,
+          date: new Date().toISOString().split("T")[0],
+          sector_id: parsed.sector_id || null,
+          status: status,
+        })
+        .select()
+        .single();
 
-    // Insert transaction
-    const { data: transaction, error: insertError } = await supabase
-      .from("finance_transactions")
-      .insert({
-        user_id: userId,
-        name: parsed.description || "Transação via chat",
-        value: finalValue,
-        date: new Date().toISOString().split("T")[0],
-        sector_id: parsed.sector_id || null,
-        status: status,
-      })
-      .select()
-      .single();
+      if (insertError) {
+        console.error("Insert error:", insertError);
+        throw new Error("Falha ao salvar transação");
+      }
 
-    if (insertError) {
-      console.error("Insert error:", insertError);
-      throw new Error("Falha ao salvar transação");
+      // Build success message
+      const formattedValue = Math.abs(parsed.value).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      });
+      
+      const typeLabel = parsed.type === "expense" ? "💸 Despesa" : "💰 Receita";
+      const sectorLabel = parsed.sector_name ? ` em **${parsed.sector_name}**` : "";
+      
+      const successMessage = `${typeLabel} registrada!\n\n**${parsed.description}**\n${formattedValue}${sectorLabel}`;
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: successMessage,
+          transaction: {
+            id: transaction.id,
+            value: finalValue,
+            description: parsed.description,
+            sector: parsed.sector_name,
+            type: parsed.type,
+          }
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // Build success message
-    const formattedValue = Math.abs(parsed.value).toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    });
-    
-    const typeLabel = parsed.type === "expense" ? "💸 Despesa" : "💰 Receita";
-    const sectorLabel = parsed.sector_name ? ` em ${parsed.sector_name}` : "";
-    
-    const successMessage = `${typeLabel} registrada!\n\n**${parsed.description}**\n${formattedValue}${sectorLabel}`;
-
+    // Fallback for unrecognized actions
     return new Response(
       JSON.stringify({ 
-        success: true, 
-        message: successMessage,
-        transaction: {
-          id: transaction.id,
-          value: finalValue,
-          description: parsed.description,
-          sector: parsed.sector_name,
-          type: parsed.type,
-        }
+        success: false, 
+        message: parsed.error_message || parsed.response || "Não consegui entender sua mensagem. Tente algo como:\n• \"Gastei R$50 com mercado\"\n• \"Quanto gastei esse mês?\"\n• \"Como estão minhas finanças?\"" 
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
