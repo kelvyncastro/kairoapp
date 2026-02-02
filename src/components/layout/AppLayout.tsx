@@ -35,11 +35,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const mainNavItems = [
-  { path: "/consistencia", label: "Consistência", icon: Flame },
+  { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { path: "/rotina", label: "Tarefas", icon: ListTodo },
   { path: "/habitos", label: "Hábitos", icon: CalendarCheck },
   { path: "/metas", label: "Metas", icon: Target },
-  { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { path: "/consistencia", label: "Consistência", icon: Flame },
   { path: "/chat-financeiro", label: "Chat Financeiro", icon: MessageSquare },
   { path: "/financas", label: "Finanças", icon: Wallet },
   { path: "/configuracoes", label: "Configurações", icon: Settings },
