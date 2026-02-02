@@ -751,7 +751,11 @@ export default function Financas() {
               {/* Daily Chart - Similar to Habits */}
               <div className="cave-card p-3 md:p-4">
                 <h3 className="font-bold text-sm md:text-base mb-3 md:mb-4">Gastos Diários</h3>
-                <DailyExpensesChart dailyExpenses={dailyExpenses} />
+                <DailyExpensesChart 
+                  dailyExpenses={dailyExpenses} 
+                  transactions={transactions}
+                  sectors={sectors}
+                />
               </div>
 
               {/* By Sector - Pie Chart Redesigned */}
