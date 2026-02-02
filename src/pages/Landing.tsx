@@ -409,14 +409,14 @@ export default function Landing() {
       </section>
 
       {/* Mockups Section */}
-      <section id="mockups" className="relative z-10 py-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+      <section id="mockups" className="relative z-10 py-32 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1600px] mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-center mb-20"
           >
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
               Disponível em todos os dispositivos
@@ -426,60 +426,42 @@ export default function Landing() {
             </p>
           </motion.div>
 
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* iPad 1 */}
+          {/* Staggered mockup layout */}
+          <div className="relative flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-0">
+            {/* iPad 1 - Left, slightly up */}
             <motion.div
-              initial={{ opacity: 0, x: -40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
+              initial={{ opacity: 0, y: 60 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7 }}
               viewport={{ once: true }}
-              whileHover={{ scale: 1.03 }}
-              className="flex justify-center"
+              whileHover={{ scale: 1.02, y: -10 }}
+              className="lg:absolute lg:left-0 lg:top-1/2 lg:-translate-y-[60%] lg:z-10"
             >
-              <motion.img 
+              <img 
                 src={mockupIpad} 
                 alt="Kairo no iPad - Dashboard" 
-                className="rounded-2xl w-full max-w-2xl"
-                style={{
-                  boxShadow: "0 0 30px 2px hsl(var(--primary) / 0.3), 0 0 60px 4px hsl(var(--primary) / 0.15)",
-                }}
-                animate={{
-                  boxShadow: [
-                    "0 0 30px 2px hsl(var(--primary) / 0.2), 0 0 60px 4px hsl(var(--primary) / 0.1)",
-                    "0 0 40px 4px hsl(var(--primary) / 0.4), 0 0 80px 8px hsl(var(--primary) / 0.2)",
-                    "0 0 30px 2px hsl(var(--primary) / 0.2), 0 0 60px 4px hsl(var(--primary) / 0.1)",
-                  ],
-                }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="w-full max-w-[500px] lg:max-w-[600px] xl:max-w-[700px]"
               />
             </motion.div>
 
-            {/* iPad 2 */}
+            {/* iPad 2 - Right, slightly down */}
             <motion.div
-              initial={{ opacity: 0, x: 40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              initial={{ opacity: 0, y: 60 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
               viewport={{ once: true }}
-              whileHover={{ scale: 1.03 }}
-              className="flex justify-center"
+              whileHover={{ scale: 1.02, y: -10 }}
+              className="lg:absolute lg:right-0 lg:top-1/2 lg:-translate-y-[40%] lg:z-20"
             >
-              <motion.img 
+              <img 
                 src={mockupIpad2} 
                 alt="Kairo no iPad - Hábitos" 
-                className="rounded-2xl w-full max-w-2xl"
-                style={{
-                  boxShadow: "0 0 30px 2px hsl(var(--primary) / 0.3), 0 0 60px 4px hsl(var(--primary) / 0.15)",
-                }}
-                animate={{
-                  boxShadow: [
-                    "0 0 30px 2px hsl(var(--primary) / 0.2), 0 0 60px 4px hsl(var(--primary) / 0.1)",
-                    "0 0 40px 4px hsl(var(--primary) / 0.4), 0 0 80px 8px hsl(var(--primary) / 0.2)",
-                    "0 0 30px 2px hsl(var(--primary) / 0.2), 0 0 60px 4px hsl(var(--primary) / 0.1)",
-                  ],
-                }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+                className="w-full max-w-[500px] lg:max-w-[600px] xl:max-w-[700px]"
               />
             </motion.div>
+
+            {/* Spacer for desktop layout */}
+            <div className="hidden lg:block h-[500px] xl:h-[600px]" />
           </div>
         </div>
       </section>
