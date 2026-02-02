@@ -155,11 +155,16 @@ export function TaskTableView({
     });
   }, []);
 
-  // Sort tasks
+  // Sort tasks - completed tasks always at top
   const sortTasks = useCallback((tasksToSort: Task[]): Task[] => {
-    if (!sortState.column || !sortState.direction) return tasksToSort;
-
     return [...tasksToSort].sort((a, b) => {
+      // Completed tasks always come first
+      if (a.completed && !b.completed) return -1;
+      if (!a.completed && b.completed) return 1;
+
+      // If no sorting or both have same completed status, apply column sort
+      if (!sortState.column || !sortState.direction) return 0;
+
       let comparison = 0;
 
       switch (sortState.column) {
