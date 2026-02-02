@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +17,35 @@ import {
   Eye,
   CalendarIcon,
   Clock,
+  Star,
+  Trophy,
+  Rocket,
+  Lightbulb,
+  Book,
+  GraduationCap,
+  Briefcase,
+  Home,
+  Car,
+  Plane,
+  Music,
+  Camera,
+  Coffee,
+  ShoppingBag,
+  CreditCard,
+  PiggyBank,
+  BarChart3,
+  Calendar,
+  Bell,
+  Gamepad2,
+  Palette,
+  Gem,
+  Award,
+  Crown,
+  Zap,
+  Flame,
+  Leaf,
+  Mountain,
+  type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,7 +75,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -61,20 +90,28 @@ import {
   Tooltip,
 } from "recharts";
 import { GoalDetailModal } from "@/components/goals/GoalDetailModal";
-
-type GoalCategory = "FINANCIAL" | "FITNESS" | "HEALTH" | "PERSONAL" | string;
+import { CreateCategoryDialog } from "@/components/goals/CreateCategoryDialog";
 
 interface Goal {
   id: string;
   title: string;
   description: string | null;
-  category: GoalCategory;
+  category: string | null;
+  category_id: string | null;
   target_value: number;
   current_value: number;
   unit_label: string;
   status: "ACTIVE" | "COMPLETED" | "PAUSED";
   created_at: string;
   end_date: string;
+}
+
+interface GoalCategoryData {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  is_default?: boolean;
 }
 
 interface ProgressEntry {
@@ -88,23 +125,68 @@ interface ProgressEntry {
 interface NewGoal {
   title: string;
   description: string;
-  category: GoalCategory;
+  category_id: string;
   target_value: number;
   unit_label: string;
   end_date: Date | undefined;
 }
 
-const CATEGORY_CONFIG: Record<GoalCategory, { label: string; icon: React.ReactNode; color: string }> = {
-  FINANCIAL: { label: "Financeira", icon: <DollarSign className="h-4 w-4" />, color: "#22c55e" },
-  FITNESS: { label: "Fitness", icon: <Dumbbell className="h-4 w-4" />, color: "#f59e0b" },
-  HEALTH: { label: "Saúde", icon: <Heart className="h-4 w-4" />, color: "#ef4444" },
-  PERSONAL: { label: "Pessoal", icon: <User className="h-4 w-4" />, color: "#8b5cf6" },
+// Icon map for rendering category icons
+const ICON_MAP: Record<string, LucideIcon> = {
+  "dollar-sign": DollarSign,
+  "dumbbell": Dumbbell,
+  "heart": Heart,
+  "user": User,
+  "star": Star,
+  "target": Target,
+  "trophy": Trophy,
+  "rocket": Rocket,
+  "lightbulb": Lightbulb,
+  "book": Book,
+  "graduation-cap": GraduationCap,
+  "briefcase": Briefcase,
+  "home": Home,
+  "car": Car,
+  "plane": Plane,
+  "music": Music,
+  "camera": Camera,
+  "coffee": Coffee,
+  "shopping-bag": ShoppingBag,
+  "credit-card": CreditCard,
+  "piggy-bank": PiggyBank,
+  "chart-bar": BarChart3,
+  "calendar": Calendar,
+  "clock": Clock,
+  "bell": Bell,
+  "gamepad": Gamepad2,
+  "palette": Palette,
+  "gem": Gem,
+  "award": Award,
+  "crown": Crown,
+  "zap": Zap,
+  "flame": Flame,
+  "leaf": Leaf,
+  "mountain": Mountain,
 };
+
+// Default categories for fallback
+const DEFAULT_CATEGORIES: GoalCategoryData[] = [
+  { id: "FINANCIAL", name: "Financeira", icon: "dollar-sign", color: "#22c55e" },
+  { id: "FITNESS", name: "Fitness", icon: "dumbbell", color: "#f59e0b" },
+  { id: "HEALTH", name: "Saúde", icon: "heart", color: "#ef4444" },
+  { id: "PERSONAL", name: "Pessoal", icon: "user", color: "#8b5cf6" },
+];
+
+function getCategoryIcon(iconKey: string, className = "h-4 w-4") {
+  const IconComponent = ICON_MAP[iconKey] || Star;
+  return <IconComponent className={className} />;
+}
 
 export default function Metas() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [categories, setCategories] = useState<GoalCategoryData[]>([]);
   const [progressHistory, setProgressHistory] = useState<Record<string, ProgressEntry[]>>({});
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -114,17 +196,114 @@ export default function Metas() {
   const [progressMode, setProgressMode] = useState<"absolute" | "increment">("increment");
   const [progressValue, setProgressValue] = useState("");
   const [progressNote, setProgressNote] = useState("");
-  const [activeCategory, setActiveCategory] = useState<GoalCategory | "ALL">("ALL");
+  const [activeCategory, setActiveCategory] = useState<string>("ALL");
   const [detailGoal, setDetailGoal] = useState<Goal | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [createCategoryDialogOpen, setCreateCategoryDialogOpen] = useState(false);
   const [newGoal, setNewGoal] = useState<NewGoal>({
     title: "",
     description: "",
-    category: "PERSONAL",
+    category_id: "",
     target_value: 1,
     unit_label: "",
     end_date: undefined,
   });
+
+  // Combined categories (DB + defaults for backwards compatibility)
+  const allCategories = useMemo(() => {
+    if (categories.length > 0) return categories;
+    return DEFAULT_CATEGORIES;
+  }, [categories]);
+
+  // Get category config by ID or legacy category name
+  const getCategoryConfig = useCallback((goal: Goal): { label: string; icon: React.ReactNode; color: string } => {
+    // First try by category_id
+    if (goal.category_id) {
+      const cat = allCategories.find(c => c.id === goal.category_id);
+      if (cat) {
+        return {
+          label: cat.name,
+          icon: getCategoryIcon(cat.icon),
+          color: cat.color,
+        };
+      }
+    }
+    // Fallback to legacy category field
+    if (goal.category) {
+      const cat = allCategories.find(c => c.id === goal.category || c.name.toUpperCase() === goal.category?.toUpperCase());
+      if (cat) {
+        return {
+          label: cat.name,
+          icon: getCategoryIcon(cat.icon),
+          color: cat.color,
+        };
+      }
+      // Try default categories
+      const defaultCat = DEFAULT_CATEGORIES.find(c => c.id === goal.category);
+      if (defaultCat) {
+        return {
+          label: defaultCat.name,
+          icon: getCategoryIcon(defaultCat.icon),
+          color: defaultCat.color,
+        };
+      }
+    }
+    // Ultimate fallback
+    return {
+      label: "Pessoal",
+      icon: getCategoryIcon("user"),
+      color: "#8b5cf6",
+    };
+  }, [allCategories]);
+
+  const fetchCategories = useCallback(async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("goal_categories")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("order", { ascending: true });
+
+    if (!error && data && data.length > 0) {
+      setCategories(data.map(c => ({
+        id: c.id,
+        name: c.name,
+        icon: c.icon || "star",
+        color: c.color || "#6366f1",
+        is_default: c.is_default || false,
+      })));
+    } else {
+      // If no categories, create defaults
+      await createDefaultCategories();
+    }
+  }, [user]);
+
+  const createDefaultCategories = async () => {
+    if (!user) return;
+
+    const defaultCats = [
+      { name: "Financeira", icon: "dollar-sign", color: "#22c55e", order: 0 },
+      { name: "Fitness", icon: "dumbbell", color: "#f59e0b", order: 1 },
+      { name: "Saúde", icon: "heart", color: "#ef4444", order: 2 },
+      { name: "Pessoal", icon: "user", color: "#8b5cf6", order: 3 },
+    ];
+
+    const { data, error } = await supabase
+      .from("goal_categories")
+      .insert(defaultCats.map(c => ({ ...c, user_id: user.id, is_default: true })))
+      .select();
+
+    if (!error && data) {
+      setCategories(data.map(c => ({
+        id: c.id,
+        name: c.name,
+        icon: c.icon || "star",
+        color: c.color || "#6366f1",
+        is_default: c.is_default || false,
+      })));
+    }
+  };
 
   const fetchGoals = useCallback(async (showLoading = true) => {
     if (!user) return;
@@ -164,8 +343,37 @@ export default function Metas() {
   }, [user, toast]);
 
   useEffect(() => {
+    fetchCategories();
     fetchGoals();
-  }, [fetchGoals]);
+  }, [fetchCategories, fetchGoals]);
+
+  // Set default category for new goal when categories load
+  useEffect(() => {
+    if (allCategories.length > 0 && !newGoal.category_id) {
+      setNewGoal(prev => ({ ...prev, category_id: allCategories[0].id }));
+    }
+  }, [allCategories, newGoal.category_id]);
+
+  const handleCreateCategory = async (categoryData: { name: string; icon: string; color: string }) => {
+    if (!user) return;
+
+    const { error } = await supabase.from("goal_categories").insert({
+      user_id: user.id,
+      name: categoryData.name,
+      icon: categoryData.icon,
+      color: categoryData.color,
+      order: categories.length,
+      is_default: false,
+    });
+
+    if (error) {
+      toast({ title: "Erro ao criar setor", variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Setor criado com sucesso!" });
+    await fetchCategories();
+  };
 
   const handleCreateGoal = async () => {
     if (!user || !newGoal.title.trim()) return;
@@ -178,8 +386,8 @@ export default function Metas() {
       user_id: user.id,
       title: newGoal.title,
       description: newGoal.description || null,
-      type: "YEARLY", // Keep for compatibility
-      category: newGoal.category,
+      type: "YEARLY",
+      category_id: newGoal.category_id,
       target_value: newGoal.target_value,
       unit_label: newGoal.unit_label,
       start_date: format(new Date(), "yyyy-MM-dd"),
@@ -194,7 +402,7 @@ export default function Metas() {
     }
 
     toast({ title: "Meta criada com sucesso!" });
-    setNewGoal({ title: "", description: "", category: "PERSONAL", target_value: 1, unit_label: "", end_date: undefined });
+    setNewGoal({ title: "", description: "", category_id: allCategories[0]?.id || "", target_value: 1, unit_label: "", end_date: undefined });
     setDialogOpen(false);
     await fetchGoals(false);
   };
@@ -208,12 +416,9 @@ export default function Metas() {
     const numValue = parseFloat(progressValue);
     if (isNaN(numValue)) return;
 
-    // We store history as the VALUE ADDED in that update (delta), not the cumulative total.
-    // For "absolute" mode, we convert the entered total into a delta against current_value.
     const delta = progressMode === "increment" ? numValue : numValue - goal.current_value;
     const newCurrentValue = goal.current_value + delta;
 
-    // Add to progress history
     const { error: historyError } = await supabase
       .from("goal_progress_history")
       .insert({
@@ -227,7 +432,6 @@ export default function Metas() {
       return;
     }
 
-    // Update goal current value
     const completed = newCurrentValue >= goal.target_value;
     const { error } = await supabase
       .from("goals")
@@ -243,13 +447,11 @@ export default function Metas() {
     }
 
     if (completed && goal.status !== "COMPLETED") {
-      // Dispara confetes de celebração
       confetti({
         particleCount: 150,
         spread: 70,
         origin: { y: 0.6 },
       });
-      // Segunda explosão após um pequeno delay
       setTimeout(() => {
         confetti({
           particleCount: 100,
@@ -287,7 +489,6 @@ export default function Metas() {
   const handleSaveEdit = async () => {
     if (!editingGoal) return;
 
-    // Recalculate status based on current progress vs new target
     const isCompleted = editingGoal.current_value >= editingGoal.target_value;
     const newStatus = isCompleted ? "COMPLETED" : "ACTIVE";
 
@@ -298,7 +499,7 @@ export default function Metas() {
         description: editingGoal.description,
         target_value: editingGoal.target_value,
         unit_label: editingGoal.unit_label,
-        category: editingGoal.category,
+        category_id: editingGoal.category_id,
         end_date: editingGoal.end_date,
         status: newStatus,
       })
@@ -329,7 +530,7 @@ export default function Metas() {
 
   const filteredGoals = activeCategory === "ALL" 
     ? goals 
-    : goals.filter((g) => g.category === activeCategory);
+    : goals.filter((g) => g.category_id === activeCategory || g.category === activeCategory);
 
   const getProgressChartData = (goalId: string) => {
     const history = [...(progressHistory[goalId] || [])].sort(
@@ -365,7 +566,7 @@ export default function Metas() {
       </div>
 
       {/* Category filters */}
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-2 flex-wrap items-center">
         <Button
           variant={activeCategory === "ALL" ? "default" : "outline"}
           size="sm"
@@ -373,18 +574,29 @@ export default function Metas() {
         >
           Todas
         </Button>
-        {(Object.keys(CATEGORY_CONFIG) as GoalCategory[]).map((cat) => (
+        {allCategories.map((cat) => (
           <Button
-            key={cat}
-            variant={activeCategory === cat ? "default" : "outline"}
+            key={cat.id}
+            variant={activeCategory === cat.id ? "default" : "outline"}
             size="sm"
-            onClick={() => setActiveCategory(cat)}
+            onClick={() => setActiveCategory(cat.id)}
             className="gap-2"
           >
-            {CATEGORY_CONFIG[cat].icon}
-            {CATEGORY_CONFIG[cat].label}
+            <span style={{ color: activeCategory === cat.id ? undefined : cat.color }}>
+              {getCategoryIcon(cat.icon)}
+            </span>
+            {cat.name}
           </Button>
         ))}
+        {/* Add new category button */}
+        <button
+          type="button"
+          onClick={() => setCreateCategoryDialogOpen(true)}
+          className="h-9 w-9 flex items-center justify-center rounded-md border-2 border-dashed border-border bg-background hover:bg-accent hover:border-primary transition-colors"
+          title="Adicionar novo setor"
+        >
+          <Plus className="h-4 w-4 text-muted-foreground" />
+        </button>
       </div>
 
       {/* Goals grid */}
@@ -414,7 +626,7 @@ export default function Metas() {
           {filteredGoals.map((goal) => {
             const progress = Math.min(100, Math.round((goal.current_value / goal.target_value) * 100));
             const isCompleted = goal.status === "COMPLETED" || goal.current_value >= goal.target_value;
-            const categoryConfig = CATEGORY_CONFIG[goal.category] || CATEGORY_CONFIG.PERSONAL;
+            const categoryConfig = getCategoryConfig(goal);
             const chartData = getProgressChartData(goal.id);
             const daysRemaining = goal.end_date ? differenceInDays(parseISO(goal.end_date), new Date()) : null;
 
@@ -448,8 +660,8 @@ export default function Metas() {
                       {!isCompleted && daysRemaining !== null && (
                         <span className={cn(
                           "flex items-center gap-1 text-xs px-2 py-0.5 rounded",
-                          daysRemaining <= 7 ? "bg-red-500/20 text-red-400" :
-                          daysRemaining <= 30 ? "bg-amber-500/20 text-amber-400" :
+                          daysRemaining <= 7 ? "bg-destructive/20 text-destructive" :
+                          daysRemaining <= 30 ? "bg-warning/20 text-warning" :
                           "bg-muted text-muted-foreground"
                         )}>
                           <Clock className="h-3 w-3" />
@@ -603,20 +815,20 @@ export default function Metas() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Categoria</Label>
+              <Label>Setor</Label>
               <Select
-                value={newGoal.category}
-                onValueChange={(v) => setNewGoal({ ...newGoal, category: v as GoalCategory })}
+                value={newGoal.category_id}
+                onValueChange={(v) => setNewGoal({ ...newGoal, category_id: v })}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Selecione um setor" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(Object.keys(CATEGORY_CONFIG) as GoalCategory[]).map((cat) => (
-                    <SelectItem key={cat} value={cat}>
+                  {allCategories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
                       <div className="flex items-center gap-2">
-                        {CATEGORY_CONFIG[cat].icon}
-                        {CATEGORY_CONFIG[cat].label}
+                        <span style={{ color: cat.color }}>{getCategoryIcon(cat.icon)}</span>
+                        {cat.name}
                       </div>
                     </SelectItem>
                   ))}
@@ -658,7 +870,7 @@ export default function Metas() {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
+                  <CalendarComponent
                     mode="single"
                     selected={newGoal.end_date}
                     onSelect={(date) => setNewGoal({ ...newGoal, end_date: date })}
@@ -758,20 +970,20 @@ export default function Metas() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Categoria</Label>
+                <Label>Setor</Label>
                 <Select
-                  value={editingGoal.category}
-                  onValueChange={(v) => setEditingGoal({ ...editingGoal, category: v as GoalCategory })}
+                  value={editingGoal.category_id || ""}
+                  onValueChange={(v) => setEditingGoal({ ...editingGoal, category_id: v })}
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Selecione um setor" />
                   </SelectTrigger>
                   <SelectContent>
-                    {(Object.keys(CATEGORY_CONFIG) as GoalCategory[]).map((cat) => (
-                      <SelectItem key={cat} value={cat}>
+                    {allCategories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
                         <div className="flex items-center gap-2">
-                          {CATEGORY_CONFIG[cat].icon}
-                          {CATEGORY_CONFIG[cat].label}
+                          <span style={{ color: cat.color }}>{getCategoryIcon(cat.icon)}</span>
+                          {cat.name}
                         </div>
                       </SelectItem>
                     ))}
@@ -814,7 +1026,7 @@ export default function Metas() {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
+                    <CalendarComponent
                       mode="single"
                       selected={editingGoal.end_date ? parseISO(editingGoal.end_date) : undefined}
                       onSelect={(date) => setEditingGoal({ 
@@ -840,6 +1052,13 @@ export default function Metas() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Create Category Dialog */}
+      <CreateCategoryDialog
+        open={createCategoryDialogOpen}
+        onOpenChange={setCreateCategoryDialogOpen}
+        onCreateCategory={handleCreateCategory}
+      />
 
       {/* Goal Detail Modal */}
       <GoalDetailModal
