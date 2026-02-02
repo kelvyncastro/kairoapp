@@ -41,6 +41,7 @@ export default function Rotina() {
   const [searchQuery, setSearchQuery] = useState('');
   const [advancedFilters, setAdvancedFilters] = useState<FilterCondition[]>([]);
   const [folderSheetOpen, setFolderSheetOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const taskCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -157,6 +158,8 @@ export default function Rotina() {
           onUpdateFolder={updateFolder}
           onDeleteFolder={deleteFolder}
           taskCounts={taskCounts}
+          collapsed={sidebarCollapsed}
+          onCollapsedChange={setSidebarCollapsed}
         />
       </div>
 
