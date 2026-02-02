@@ -113,19 +113,53 @@ export function FinanceAnalysis({
         {/* Content */}
         <ScrollArea className="flex-1 p-4">
           {!hasGenerated && !isLoading && (
-            <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center space-y-4">
-              <div className="p-4 rounded-full bg-primary/10">
-                <Sparkles className="h-8 w-8 text-primary" />
-              </div>
-              <div className="space-y-2">
-                <h4 className="font-medium">Análise Financeira com IA</h4>
-                <p className="text-sm text-muted-foreground max-w-[280px]">
-                  Clique no botão abaixo para receber uma análise personalizada dos seus gastos e dicas para melhorar sua vida financeira.
+            <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center space-y-6">
+              {/* Animated icon with glow */}
+              <motion.div 
+                className="relative"
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/40 to-accent/30 blur-xl" />
+                <div className="relative p-5 rounded-full bg-gradient-to-br from-primary/20 to-accent/10 border border-primary/20">
+                  <Sparkles className="h-10 w-10 text-primary" />
+                </div>
+              </motion.div>
+
+              {/* Title and description */}
+              <div className="space-y-3">
+                <h4 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  Análise Inteligente
+                </h4>
+                <p className="text-sm text-muted-foreground max-w-[300px] leading-relaxed">
+                  Nossa IA analisa seus gastos e receitas para oferecer <span className="text-foreground font-medium">dicas personalizadas</span> de economia e saúde financeira.
                 </p>
               </div>
-              <Button onClick={generateAnalysis} className="gap-2">
+
+              {/* Feature highlights */}
+              <div className="grid grid-cols-1 gap-2 w-full max-w-[280px]">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 rounded-lg px-3 py-2">
+                  <span className="text-primary">✓</span>
+                  <span>Identifica padrões de gastos</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 rounded-lg px-3 py-2">
+                  <span className="text-primary">✓</span>
+                  <span>Sugere áreas para economizar</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 rounded-lg px-3 py-2">
+                  <span className="text-primary">✓</span>
+                  <span>Dicas de hábitos financeiros</span>
+                </div>
+              </div>
+
+              {/* CTA Button */}
+              <Button 
+                onClick={generateAnalysis} 
+                size="lg"
+                className="gap-2 bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity shadow-lg shadow-primary/20"
+              >
                 <Sparkles className="h-4 w-4" />
-                Gerar Análise
+                Gerar Minha Análise
               </Button>
             </div>
           )}
