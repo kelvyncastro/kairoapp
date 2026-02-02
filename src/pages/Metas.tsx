@@ -45,6 +45,7 @@ import {
   Flame,
   Leaf,
   Mountain,
+  Settings,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -91,6 +92,7 @@ import {
 } from "recharts";
 import { GoalDetailModal } from "@/components/goals/GoalDetailModal";
 import { CreateCategoryDialog } from "@/components/goals/CreateCategoryDialog";
+import { ManageCategoriesDialog } from "@/components/goals/ManageCategoriesDialog";
 
 interface Goal {
   id: string;
@@ -200,6 +202,7 @@ export default function Metas() {
   const [detailGoal, setDetailGoal] = useState<Goal | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [createCategoryDialogOpen, setCreateCategoryDialogOpen] = useState(false);
+  const [manageCategoriesDialogOpen, setManageCategoriesDialogOpen] = useState(false);
   const [newGoal, setNewGoal] = useState<NewGoal>({
     title: "",
     description: "",
@@ -385,6 +388,51 @@ export default function Metas() {
     }
 
     toast({ title: "Setor criado com sucesso!" });
+    await fetchCategories();
+  };
+
+  const handleUpdateCategory = async (id: string, data: { name: string; icon: string; color: string }) => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from("goal_categories")
+      .update({
+        name: data.name,
+        icon: data.icon,
+        color: data.color,
+      })
+      .eq("id", id)
+      .eq("user_id", user.id);
+
+    if (error) {
+      toast({ title: "Erro ao atualizar setor", variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Setor atualizado!" });
+    await fetchCategories();
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from("goal_categories")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", user.id);
+
+    if (error) {
+      toast({ title: "Erro ao excluir setor", variant: "destructive" });
+      return;
+    }
+
+    // Reset active category if it was the deleted one
+    if (activeCategory === id) {
+      setActiveCategory("ALL");
+    }
+
+    toast({ title: "Setor excluído!" });
     await fetchCategories();
   };
 
@@ -609,6 +657,15 @@ export default function Metas() {
           title="Adicionar novo setor"
         >
           <Plus className="h-4 w-4 text-muted-foreground" />
+        </button>
+        {/* Manage categories button */}
+        <button
+          type="button"
+          onClick={() => setManageCategoriesDialogOpen(true)}
+          className="h-9 w-9 flex items-center justify-center rounded-md border border-border bg-background hover:bg-accent transition-colors"
+          title="Gerenciar setores"
+        >
+          <Settings className="h-4 w-4 text-muted-foreground" />
         </button>
       </div>
 
@@ -1071,6 +1128,15 @@ export default function Metas() {
         open={createCategoryDialogOpen}
         onOpenChange={setCreateCategoryDialogOpen}
         onCreateCategory={handleCreateCategory}
+      />
+
+      {/* Manage Categories Dialog */}
+      <ManageCategoriesDialog
+        open={manageCategoriesDialogOpen}
+        onOpenChange={setManageCategoriesDialogOpen}
+        categories={allCategories}
+        onUpdateCategory={handleUpdateCategory}
+        onDeleteCategory={handleDeleteCategory}
       />
 
       {/* Goal Detail Modal */}
