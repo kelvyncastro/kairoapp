@@ -15,9 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import kairoLogo from "@/assets/kairo-logo.png";
-import mockupMacbook from "@/assets/mockup-macbook.png";
 import mockupIpad from "@/assets/mockup-ipad.png";
-import mockupIpad2 from "@/assets/mockup-ipad-2.png";
 
 // Floating particle component with scroll-based movement
 function FloatingParticle({ delay, duration, size, startX, startY }: {
@@ -408,59 +406,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Mockups Section */}
-      <section id="mockups" className="relative z-10 py-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Disponível em todos os dispositivos
-            </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Acesse suas informações de qualquer lugar, a qualquer momento
-            </p>
-          </motion.div>
-
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* iPad 1 */}
-            <motion.div
-              initial={{ opacity: 0, x: -40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              whileHover={{ scale: 1.03 }}
-              className="flex justify-center"
-            >
-              <img 
-                src={mockupIpad} 
-                alt="Kairo no iPad - Dashboard" 
-                className="rounded-2xl w-full max-w-2xl"
-              />
-            </motion.div>
-
-            {/* iPad 2 */}
-            <motion.div
-              initial={{ opacity: 0, x: 40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              viewport={{ once: true }}
-              whileHover={{ scale: 1.03 }}
-              className="flex justify-center"
-            >
-              <img 
-                src={mockupIpad2} 
-                alt="Kairo no iPad - Hábitos" 
-                className="rounded-2xl w-full max-w-2xl"
-              />
-            </motion.div>
-          </div>
-        </div>
-      </section>
 
       {/* Benefits Section */}
       <section className="relative z-10 py-24 px-4 sm:px-6 lg:px-8">
@@ -511,11 +456,11 @@ export default function Landing() {
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
               whileHover={{ scale: 1.02 }}
-              className="relative lg:scale-125 lg:translate-x-8"
+              className="relative lg:scale-110"
             >
               <img 
-                src={mockupMacbook} 
-                alt="Kairo Dashboard" 
+                src={mockupIpad} 
+                alt="Kairo no iPad" 
                 className="relative rounded-xl w-full"
               />
             </motion.div>
