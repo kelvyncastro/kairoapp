@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { 
+import {
   ChevronDown, 
   ChevronRight, 
   ChevronLeft,
@@ -10,7 +9,7 @@ import {
   Edit2,
   Trash2,
 } from 'lucide-react';
-import kairoLogo from '@/assets/kairo-logo.png';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -118,25 +117,6 @@ export function TaskSidebar({
           "border-r border-border/30 bg-gradient-to-b from-background to-muted/20 flex flex-col h-full transition-all duration-300 ease-in-out",
           collapsed ? "w-14" : "w-56"
         )}>
-          {/* Logo Header */}
-          <div className={cn(
-            "flex h-14 items-center border-b border-border/30",
-            collapsed ? "justify-center px-2" : "px-4"
-          )}>
-            <Link to="/dashboard" className="flex items-center gap-3 group">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl overflow-hidden shrink-0 ring-2 ring-border/50 group-hover:ring-primary/50 transition-all shadow-sm">
-                <img
-                  src={kairoLogo}
-                  alt="Kairo"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              {!collapsed && (
-                <span className="text-xl font-bold tracking-wide text-foreground">Kairo</span>
-              )}
-            </Link>
-          </div>
-
           {/* Content */}
           <div className="flex-1 overflow-y-auto py-3 px-2">
             {/* All tasks */}
