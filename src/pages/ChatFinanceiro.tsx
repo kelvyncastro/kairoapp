@@ -202,7 +202,7 @@ export default function ChatFinanceiro() {
   })), []);
 
   return (
-    <div className="h-[calc(100vh-4rem)] -m-6 relative overflow-hidden bg-background">
+    <div className="h-[calc(100vh-4rem)] -m-4 md:-m-6 relative overflow-hidden bg-background">
       {/* Dynamic Background */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Base gradient - uses theme background */}
@@ -250,33 +250,33 @@ export default function ChatFinanceiro() {
       {/* Content */}
       <div className="relative z-10 h-full flex flex-col max-w-3xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border/20">
-          <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-border/20">
+          <div className="flex items-center gap-2 md:gap-4">
             <Link to="/financas">
-              <Button variant="ghost" size="icon" className="hover:bg-accent/50">
-                <ArrowLeft className="h-5 w-5" />
+              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-accent/50">
+                <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
               </Button>
             </Link>
-            <div className="flex items-center gap-3">
-              <Avatar className="h-10 w-10 border-2 border-border/50">
+            <div className="flex items-center gap-2 md:gap-3">
+              <Avatar className="h-8 w-8 md:h-10 md:w-10 border-2 border-border/50">
                 <AvatarImage src={chatAssistant} alt="Assistant" />
                 <AvatarFallback className="bg-secondary">
-                  <MessageCircle className="h-5 w-5 text-muted-foreground" />
+                  <MessageCircle className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
                 </AvatarFallback>
               </Avatar>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="font-bold text-lg">Chat Financeiro</h1>
-                  <Sparkles className="h-4 w-4 text-muted-foreground" />
+                  <h1 className="font-bold text-sm md:text-lg">Chat Financeiro</h1>
+                  <Sparkles className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
                 </div>
-                <p className="text-xs text-muted-foreground">Registre transações por texto</p>
+                <p className="text-[10px] md:text-xs text-muted-foreground hidden sm:block">Registre transações por texto</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Messages */}
-        <ScrollArea className="flex-1 px-6 py-4" ref={scrollRef}>
+        <ScrollArea className="flex-1 px-4 md:px-6 py-3 md:py-4" ref={scrollRef}>
           <div className="space-y-4 pb-4">
             <AnimatePresence mode="popLayout">
               {messages.map((message) => (
@@ -363,7 +363,7 @@ export default function ChatFinanceiro() {
         </ScrollArea>
 
         {/* Input */}
-        <div className="px-6 py-4 border-t border-border/20">
+        <div className="px-4 md:px-6 py-3 md:py-4 border-t border-border/20">
           <div className="flex gap-3">
             <Input
               ref={inputRef}

@@ -174,78 +174,78 @@ export default function Consistencia() {
   }
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col -m-6 bg-background">
+    <div className="h-[calc(100vh-4rem)] flex flex-col -m-4 md:-m-6 bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border/30 flex-shrink-0">
+      <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-border/30 flex-shrink-0">
         <div>
-          <h1 className="text-2xl font-bold">Consistência</h1>
-          <p className="text-sm text-muted-foreground">O segredo está em aparecer todo dia.</p>
+          <h1 className="text-xl md:text-2xl font-bold">Consistência</h1>
+          <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">O segredo está em aparecer todo dia.</p>
         </div>
       </div>
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
         {/* Stats Cards */}
-        <div className="px-6 py-5">
-          <h2 className="text-xl font-bold text-foreground uppercase tracking-wider mb-4">
+        <div className="px-4 md:px-6 py-3 md:py-5">
+          <h2 className="text-base md:text-xl font-bold text-foreground uppercase tracking-wider mb-3 md:mb-4">
             Estatísticas
           </h2>
-          <div className="grid gap-4 md:grid-cols-4">
-            <div className="cave-card p-6">
+          <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4">
+            <div className="cave-card p-4 md:p-6">
               <div className="flex items-center gap-2 mb-2">
                 {stats.currentStreak >= 30 ? (
-                  <Crown className="h-5 w-5 streak-crown" />
+                  <Crown className="h-4 md:h-5 w-4 md:w-5 streak-crown" />
                 ) : stats.currentStreak >= 7 ? (
-                  <Trophy className="h-5 w-5 streak-trophy" />
+                  <Trophy className="h-4 md:h-5 w-4 md:w-5 streak-trophy" />
                 ) : stats.currentStreak >= 3 ? (
-                  <Flame className="h-5 w-5 streak-fire" />
+                  <Flame className="h-4 md:h-5 w-4 md:w-5 streak-fire" />
                 ) : (
-                  <Flame className="h-5 w-5 text-muted-foreground" />
+                  <Flame className="h-4 md:h-5 w-4 md:w-5 text-muted-foreground" />
                 )}
-                <span className="text-sm text-muted-foreground">Streak atual</span>
+                <span className="text-xs text-muted-foreground">Streak</span>
               </div>
               <div className="flex items-center gap-1">
-                <p className="text-3xl font-bold">{stats.currentStreak}</p>
-                <AnimatedFire streak={stats.currentStreak} size="md" />
+                <p className="text-2xl md:text-3xl font-bold">{stats.currentStreak}</p>
+                <AnimatedFire streak={stats.currentStreak} size="sm" />
               </div>
-              <p className="text-xs text-muted-foreground">dias seguidos</p>
+              <p className="text-[10px] md:text-xs text-muted-foreground">dias seguidos</p>
             </div>
 
-            <div className="cave-card p-6">
+            <div className="cave-card p-4 md:p-6">
               <div className="flex items-center gap-2 mb-2">
-                <Trophy className="h-5 w-5 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Melhor streak</span>
+                <Trophy className="h-4 md:h-5 w-4 md:w-5 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Melhor</span>
               </div>
-              <p className="text-3xl font-bold">{stats.bestStreak}</p>
-              <p className="text-xs text-muted-foreground">dias</p>
+              <p className="text-2xl md:text-3xl font-bold">{stats.bestStreak}</p>
+              <p className="text-[10px] md:text-xs text-muted-foreground">dias</p>
             </div>
 
-            <div className="cave-card p-6">
+            <div className="cave-card p-4 md:p-6">
               <div className="flex items-center gap-2 mb-2">
-                <Calendar className="h-5 w-5 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Este mês</span>
+                <Calendar className="h-4 md:h-5 w-4 md:w-5 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Este mês</span>
               </div>
-              <p className="text-3xl font-bold">{stats.activeDaysThisMonth}</p>
-              <p className="text-xs text-muted-foreground">dias ativos</p>
+              <p className="text-2xl md:text-3xl font-bold">{stats.activeDaysThisMonth}</p>
+              <p className="text-[10px] md:text-xs text-muted-foreground">dias ativos</p>
             </div>
 
-            <div className="cave-card p-6">
+            <div className="cave-card p-4 md:p-6">
               <div className="flex items-center gap-2 mb-2">
-                <Flame className="h-5 w-5 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Total</span>
+                <Flame className="h-4 md:h-5 w-4 md:w-5 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Total</span>
               </div>
-              <p className="text-3xl font-bold">{stats.totalDays}</p>
-              <p className="text-xs text-muted-foreground">dias ativos</p>
+              <p className="text-2xl md:text-3xl font-bold">{stats.totalDays}</p>
+              <p className="text-[10px] md:text-xs text-muted-foreground">dias ativos</p>
             </div>
           </div>
         </div>
 
         {/* Calendar */}
-        <div className="px-6 py-5 border-t border-border/30">
-          <h2 className="text-xl font-bold text-foreground uppercase tracking-wider mb-4">
+        <div className="px-4 md:px-6 py-3 md:py-5 border-t border-border/30">
+          <h2 className="text-base md:text-xl font-bold text-foreground uppercase tracking-wider mb-3 md:mb-4">
             Calendário
           </h2>
-          <div className="cave-card p-6">
+          <div className="cave-card p-4 md:p-6">
             <div className="flex items-center justify-between mb-6">
               <Button
                 variant="ghost"
@@ -319,38 +319,38 @@ export default function Consistencia() {
         </div>
 
         {/* Badges */}
-        <div className="px-6 py-5 border-t border-border/30">
-          <h2 className="text-xl font-bold text-foreground uppercase tracking-wider mb-4">
+        <div className="px-4 md:px-6 py-3 md:py-5 border-t border-border/30">
+          <h2 className="text-base md:text-xl font-bold text-foreground uppercase tracking-wider mb-3 md:mb-4">
             Conquistas
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-4">
             {badges.map((badge) => {
               const unlocked = stats.bestStreak >= badge.days;
               const Icon = badge.icon;
 
               return (
-                <div
-                  key={badge.days}
-                  className={cn(
-                    "cave-card flex flex-col items-center gap-2 p-4 transition-all",
-                    unlocked
-                      ? "border-success/30"
-                      : "opacity-50"
-                  )}
-                >
-                  <Icon
+                  <div
+                    key={badge.days}
                     className={cn(
-                      "h-8 w-8",
-                      unlocked ? badge.color : "text-muted-foreground"
+                      "cave-card flex flex-col items-center gap-1 md:gap-2 p-2 md:p-4 transition-all",
+                      unlocked
+                        ? "border-success/30"
+                        : "opacity-50"
                     )}
-                  />
-                  <span className="text-sm font-medium text-center">
-                    {badge.label}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {badge.days} dias
-                  </span>
-                </div>
+                  >
+                    <Icon
+                      className={cn(
+                        "h-5 w-5 md:h-8 md:w-8",
+                        unlocked ? badge.color : "text-muted-foreground"
+                      )}
+                    />
+                    <span className="text-[10px] md:text-sm font-medium text-center leading-tight">
+                      {badge.label}
+                    </span>
+                    <span className="text-[10px] md:text-xs text-muted-foreground">
+                      {badge.days}d
+                    </span>
+                  </div>
               );
             })}
           </div>
