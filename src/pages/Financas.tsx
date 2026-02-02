@@ -45,6 +45,7 @@ import { format, startOfMonth, endOfMonth, subMonths, addMonths, eachDayOfInterv
 import { ptBR } from "date-fns/locale";
 import { FolderIconRenderer } from "@/components/tasks/FolderIconRenderer";
 import { ExpensesBySectorChart } from "@/components/finance/ExpensesBySectorChart";
+import { DailyExpensesChart } from "@/components/finance/DailyExpensesChart";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -747,26 +748,10 @@ export default function Financas() {
         <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 md:px-6 pb-4">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsContent value="overview" className="space-y-3 md:space-y-4 mt-0">
-              {/* Daily Chart */}
+              {/* Daily Chart - Similar to Habits */}
               <div className="cave-card p-3 md:p-4">
-                <h3 className="font-bold uppercase tracking-wider text-[10px] md:text-xs mb-2 md:mb-3">Gastos Diários</h3>
-                <div className="flex items-end gap-[1px] md:gap-1 h-16 md:h-24">
-                  {dailyExpenses.map((day) => (
-                    <div
-                      key={day.date}
-                      className="flex-1 flex flex-col items-center group min-w-0"
-                    >
-                      <div
-                        className="w-full bg-primary/70 rounded-t transition-all hover:bg-primary"
-                        style={{ height: `${(day.total / maxDaily) * 100}%`, minHeight: day.total > 0 ? "2px" : "0" }}
-                        title={`R$ ${day.total.toFixed(2)}`}
-                      />
-                      <span className="text-[6px] md:text-[8px] text-muted-foreground mt-0.5">
-                        {Number(day.day) % 10 === 0 || Number(day.day) === 1 ? day.day : ""}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                <h3 className="font-bold text-sm md:text-base mb-3 md:mb-4">Gastos Diários</h3>
+                <DailyExpensesChart dailyExpenses={dailyExpenses} />
               </div>
 
               {/* By Sector - Pie Chart Redesigned */}

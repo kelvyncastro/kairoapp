@@ -98,18 +98,18 @@ export function ExpensesBySectorChart({ sectors, transactions }: ExpensesBySecto
       </div>
 
       {expensesBySector.length === 0 ? (
-        <p className="text-xs md:text-sm text-muted-foreground text-center py-6 md:py-8">
+        <p className="text-xs md:text-sm text-muted-foreground text-center py-4 md:py-6">
           Nenhum gasto {chartFilter === "paid" ? "pago" : "a pagar"} neste período
         </p>
       ) : (
-        <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-8">
+        <div className="flex flex-row items-start gap-4 md:gap-8">
           {/* Donut Chart with Tooltip */}
-          <div className="w-48 h-48 md:w-56 md:h-56 relative flex-shrink-0 mx-auto md:mx-0">
+          <div className="w-36 h-36 md:w-48 md:h-48 relative flex-shrink-0">
             <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
               {(() => {
                 let cumulativePercent = 0;
-                const strokeWidth = 12;
-                const radius = 38;
+                const strokeWidth = 14;
+                const radius = 36;
                 const circumference = 2 * Math.PI * radius;
 
                 return expensesBySector.map((sector) => {
@@ -146,8 +146,8 @@ export function ExpensesBySectorChart({ sectors, transactions }: ExpensesBySecto
             {/* Center Content */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="text-center">
-                <p className="text-base md:text-xl font-bold">R$ {formatCurrency(totalExpenses)}</p>
-                <p className="text-[10px] md:text-xs text-muted-foreground">
+                <p className="text-sm md:text-lg font-bold">R$ {formatCurrency(totalExpenses)}</p>
+                <p className="text-[8px] md:text-xs text-muted-foreground">
                   {chartFilter === "paid" ? "Pago" : "A Pagar"}
                 </p>
               </div>
@@ -155,9 +155,9 @@ export function ExpensesBySectorChart({ sectors, transactions }: ExpensesBySecto
           </div>
 
           {/* Legend - Detailed */}
-          <div className="w-full md:flex-1">
-            <h4 className="text-xs md:text-sm font-medium text-muted-foreground mb-2 md:mb-4">Por Categoria</h4>
-            <div className="space-y-1 md:space-y-2 max-h-40 md:max-h-56 overflow-y-auto">
+          <div className="flex-1 min-w-0">
+            <h4 className="text-[10px] md:text-xs font-medium text-muted-foreground mb-2 md:mb-3">Por Categoria</h4>
+            <div className="space-y-0.5 md:space-y-1 max-h-28 md:max-h-40 overflow-y-auto">
               {expensesBySector
                 .sort((a, b) => b.total - a.total)
                 .map((sector) => {
@@ -166,25 +166,25 @@ export function ExpensesBySectorChart({ sectors, transactions }: ExpensesBySecto
                     <div 
                       key={sector.id} 
                       className={cn(
-                        "flex items-center gap-2 md:gap-3 p-1.5 md:p-2 rounded-lg transition-all cursor-pointer",
+                        "flex items-center gap-1.5 md:gap-2 p-1 md:p-1.5 rounded-md transition-all cursor-pointer",
                         isHovered ? "bg-secondary" : "hover:bg-secondary/50"
                       )}
                       onMouseEnter={() => setHoveredSector(sector)}
                       onMouseLeave={() => setHoveredSector(null)}
                     >
                       <div 
-                        className="w-2 h-2 md:w-3 md:h-3 rounded-full flex-shrink-0"
+                        className="w-2 h-2 rounded-full flex-shrink-0"
                         style={{ backgroundColor: sector.color_label }}
                       />
                       <FolderIconRenderer 
                         icon={sector.icon || "wallet"} 
                         color={sector.color_label} 
-                        className="h-3 w-3 md:h-4 md:w-4 flex-shrink-0" 
+                        className="h-3 w-3 flex-shrink-0" 
                       />
-                      <span className="text-xs md:text-sm flex-1 truncate">{sector.name}</span>
+                      <span className="text-[10px] md:text-xs flex-1 truncate">{sector.name}</span>
                       <div className="text-right flex-shrink-0">
-                        <p className="text-xs md:text-sm font-semibold">R$ {formatCurrency(sector.total)}</p>
-                        <p className="text-[10px] md:text-xs text-muted-foreground">{sector.percent.toFixed(0)}%</p>
+                        <p className="text-[10px] md:text-xs font-semibold">R$ {formatCurrency(sector.total)}</p>
+                        <p className="text-[8px] md:text-[10px] text-muted-foreground">{sector.percent.toFixed(0)}%</p>
                       </div>
                     </div>
                   );
