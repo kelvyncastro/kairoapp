@@ -9,7 +9,6 @@ import {
   BarChart3,
   ArrowRight,
   Star,
-  Zap,
   Shield,
   Clock,
   TrendingUp
@@ -19,6 +18,72 @@ import kairoLogo from "@/assets/kairo-logo.png";
 import mockupMacbook from "@/assets/mockup-macbook.png";
 import mockupIpad from "@/assets/mockup-ipad.png";
 import mockupIpad2 from "@/assets/mockup-ipad-2.png";
+
+// Floating particle component
+function FloatingParticle({ delay, duration, size, startX, startY }: {
+  delay: number;
+  duration: number;
+  size: number;
+  startX: number;
+  startY: number;
+}) {
+  return (
+    <motion.div
+      className="absolute rounded-full bg-gradient-to-br from-primary/30 to-primary/10"
+      style={{
+        width: size,
+        height: size,
+        left: `${startX}%`,
+        bottom: `${startY}%`,
+      }}
+      initial={{ opacity: 0, y: 0, scale: 0 }}
+      animate={{
+        opacity: [0, 0.6, 0.4, 0],
+        y: [-20, -200, -400, -600],
+        scale: [0.5, 1.2, 0.9, 0.3],
+        x: [0, Math.random() * 80 - 40, Math.random() * 100 - 50],
+      }}
+      transition={{
+        duration,
+        delay,
+        repeat: Infinity,
+        ease: "easeOut",
+      }}
+    />
+  );
+}
+
+// Glowing orb component
+function GlowingOrb({ x, y, size, delay }: {
+  x: number;
+  y: number;
+  size: number;
+  delay: number;
+}) {
+  return (
+    <motion.div
+      className="absolute rounded-full blur-3xl bg-primary/20"
+      style={{
+        width: size,
+        height: size,
+        left: `${x}%`,
+        top: `${y}%`,
+      }}
+      animate={{
+        opacity: [0.1, 0.3, 0.1],
+        scale: [1, 1.3, 1],
+        x: [0, 30, 0],
+        y: [0, -30, 0],
+      }}
+      transition={{
+        duration: 10,
+        delay,
+        repeat: Infinity,
+        ease: "easeInOut",
+      }}
+    />
+  );
+}
 
 const features = [
   {
@@ -81,18 +146,83 @@ const stats = [
   { value: "4.9", label: "Avaliação" }
 ];
 
+// Generate particles array outside component to avoid recreation
+const particlesData = Array.from({ length: 30 }, (_, i) => ({
+  id: i,
+  delay: i * 0.4,
+  duration: 12 + (i % 5) * 3,
+  size: 4 + (i % 7) * 3,
+  startX: (i * 11) % 100,
+  startY: (i * 7) % 25 - 10,
+}));
+
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
+      {/* Dynamic Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        {/* Base gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/20 to-background" />
+        
+        {/* Animated mesh gradient */}
+        <motion.div
+          className="absolute inset-0"
+          animate={{
+            background: [
+              "radial-gradient(ellipse 100% 80% at 20% 30%, hsl(var(--primary) / 0.08) 0%, transparent 50%), radial-gradient(ellipse 80% 60% at 80% 70%, hsl(var(--secondary) / 0.1) 0%, transparent 50%)",
+              "radial-gradient(ellipse 80% 60% at 40% 70%, hsl(var(--primary) / 0.08) 0%, transparent 50%), radial-gradient(ellipse 100% 80% at 60% 30%, hsl(var(--secondary) / 0.1) 0%, transparent 50%)",
+              "radial-gradient(ellipse 100% 80% at 20% 30%, hsl(var(--primary) / 0.08) 0%, transparent 50%), radial-gradient(ellipse 80% 60% at 80% 70%, hsl(var(--secondary) / 0.1) 0%, transparent 50%)",
+            ],
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+        />
+        
+        {/* Glowing orbs */}
+        <GlowingOrb x={5} y={10} size={500} delay={0} />
+        <GlowingOrb x={70} y={40} size={600} delay={3} />
+        <GlowingOrb x={30} y={70} size={450} delay={6} />
+        <GlowingOrb x={85} y={20} size={350} delay={9} />
+        
+        {/* Floating particles */}
+        {particlesData.map((p) => (
+          <FloatingParticle key={p.id} {...p} />
+        ))}
+        
+        {/* Subtle grid overlay */}
+        <div 
+          className="absolute inset-0 opacity-[0.015]"
+          style={{
+            backgroundImage: `
+              linear-gradient(to right, hsl(var(--foreground)) 1px, transparent 1px),
+              linear-gradient(to bottom, hsl(var(--foreground)) 1px, transparent 1px)
+            `,
+            backgroundSize: '100px 100px',
+          }}
+        />
+        
+        {/* Vignette effect */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,hsl(var(--background)/0.5)_100%)]" />
+      </div>
+
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/60 backdrop-blur-xl border-b border-border/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
+            <motion.div 
+              className="flex items-center gap-3"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+            >
               <img src={kairoLogo} alt="Kairo" className="h-8 w-8 rounded-lg" />
               <span className="text-xl font-bold">Kairo</span>
-            </div>
-            <div className="hidden md:flex items-center gap-8">
+            </motion.div>
+            <motion.div 
+              className="hidden md:flex items-center gap-8"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
               <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
                 Recursos
               </a>
@@ -102,8 +232,13 @@ export default function Landing() {
               <a href="#testimonials" className="text-muted-foreground hover:text-foreground transition-colors">
                 Depoimentos
               </a>
-            </div>
-            <div className="flex items-center gap-3">
+            </motion.div>
+            <motion.div 
+              className="flex items-center gap-3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+            >
               <Link to="/auth">
                 <Button variant="ghost" className="hidden sm:inline-flex">
                   Entrar
@@ -115,13 +250,13 @@ export default function Landing() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-            </div>
+            </motion.div>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+      <section className="relative z-10 pt-32 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -129,56 +264,70 @@ export default function Landing() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            
-            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-6">
+            <motion.h1 
+              className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-6"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.1 }}
+            >
               Domine seu tempo.
               <br />
-              <span className="bg-gradient-to-r from-foreground via-muted-foreground to-foreground bg-clip-text text-transparent">
+              <motion.span 
+                className="bg-gradient-to-r from-foreground via-muted-foreground to-foreground bg-clip-text text-transparent"
+                animate={{
+                  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                }}
+                transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                style={{ backgroundSize: "200% 200%" }}
+              >
                 Conquiste seus objetivos.
-              </span>
-            </h1>
+              </motion.span>
+            </motion.h1>
             
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+            <motion.p 
+              className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
               O app completo para gerenciar tarefas, hábitos, metas e finanças. 
               Tudo em um único lugar, com design minimalista e poderoso.
-            </p>
+            </motion.p>
             
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <motion.div 
+              className="flex flex-col sm:flex-row items-center justify-center gap-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
               <Link to="/auth">
-                <Button size="lg" className="bg-foreground text-background hover:bg-foreground/90 h-12 px-8 text-base">
-                  Começar Gratuitamente
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Button size="lg" className="bg-foreground text-background hover:bg-foreground/90 h-12 px-8 text-base shadow-xl shadow-foreground/10">
+                    Começar Gratuitamente
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </motion.div>
               </Link>
               <a href="#mockups">
-                <Button size="lg" variant="outline" className="h-12 px-8 text-base">
-                  Ver Demonstração
-                </Button>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Button size="lg" variant="outline" className="h-12 px-8 text-base backdrop-blur-sm bg-background/50">
+                    Ver Demonstração
+                  </Button>
+                </motion.div>
               </a>
-            </div>
-          </motion.div>
-
-          {/* Hero Mockup */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="mt-16 relative"
-          >
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10 pointer-events-none" />
-            <div className="relative rounded-xl overflow-hidden border border-border shadow-2xl shadow-foreground/5">
-              <img 
-                src={mockupMacbook} 
-                alt="Kairo Dashboard no MacBook" 
-                className="w-full h-auto"
-              />
-            </div>
+            </motion.div>
           </motion.div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 border-y border-border bg-secondary/20">
+      <section className="relative z-10 py-16 border-y border-border/50 bg-secondary/10 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
@@ -190,7 +339,13 @@ export default function Landing() {
                 viewport={{ once: true }}
                 className="text-center"
               >
-                <div className="text-3xl sm:text-4xl font-bold mb-1">{stat.value}</div>
+                <motion.div 
+                  className="text-3xl sm:text-4xl font-bold mb-1"
+                  whileHover={{ scale: 1.1 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
+                  {stat.value}
+                </motion.div>
                 <div className="text-muted-foreground text-sm">{stat.label}</div>
               </motion.div>
             ))}
@@ -199,7 +354,7 @@ export default function Landing() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-24 px-4 sm:px-6 lg:px-8">
+      <section id="features" className="relative z-10 py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -224,11 +379,15 @@ export default function Landing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="p-6 rounded-xl border border-border bg-card hover:border-muted-foreground/30 transition-colors group"
+                whileHover={{ y: -5, scale: 1.02 }}
+                className="p-6 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm hover:border-primary/30 transition-all group"
               >
-                <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center mb-4 group-hover:bg-foreground/10 transition-colors">
+                <motion.div 
+                  className="h-12 w-12 rounded-lg bg-secondary/80 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors"
+                  whileHover={{ rotate: 5 }}
+                >
                   <feature.icon className="h-6 w-6" />
-                </div>
+                </motion.div>
                 <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
                 <p className="text-muted-foreground">{feature.description}</p>
               </motion.div>
@@ -238,7 +397,7 @@ export default function Landing() {
       </section>
 
       {/* Mockups Section */}
-      <section id="mockups" className="py-24 px-4 sm:px-6 lg:px-8 bg-secondary/20">
+      <section id="mockups" className="relative z-10 py-24 px-4 sm:px-6 lg:px-8 bg-secondary/10 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -262,10 +421,11 @@ export default function Landing() {
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
+              whileHover={{ scale: 1.02, rotate: 1 }}
               className="flex justify-center"
             >
               <div className="relative">
-                <div className="absolute -inset-4 bg-gradient-to-br from-foreground/5 to-transparent rounded-3xl blur-xl" />
+                <div className="absolute -inset-4 bg-gradient-to-br from-primary/10 to-transparent rounded-3xl blur-xl" />
                 <img 
                   src={mockupIpad} 
                   alt="Kairo no iPad - Dashboard" 
@@ -280,10 +440,11 @@ export default function Landing() {
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               viewport={{ once: true }}
+              whileHover={{ scale: 1.02, rotate: -1 }}
               className="flex justify-center"
             >
               <div className="relative">
-                <div className="absolute -inset-4 bg-gradient-to-br from-foreground/5 to-transparent rounded-3xl blur-xl" />
+                <div className="absolute -inset-4 bg-gradient-to-br from-primary/10 to-transparent rounded-3xl blur-xl" />
                 <img 
                   src={mockupIpad2} 
                   alt="Kairo no iPad - Hábitos" 
@@ -296,7 +457,7 @@ export default function Landing() {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8">
+      <section className="relative z-10 py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <motion.div
@@ -309,42 +470,32 @@ export default function Landing() {
                 Por que escolher o Kairo?
               </h2>
               <div className="space-y-6">
-                <div className="flex gap-4">
-                  <div className="h-10 w-10 rounded-lg bg-success/20 flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="h-5 w-5 text-success" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-1">Design Minimalista</h3>
-                    <p className="text-muted-foreground">Interface limpa que não distrai do que importa: suas metas.</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="h-10 w-10 rounded-lg bg-success/20 flex items-center justify-center shrink-0">
-                    <Shield className="h-5 w-5 text-success" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-1">Dados Seguros</h3>
-                    <p className="text-muted-foreground">Seus dados são criptografados e protegidos em nuvem segura.</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="h-10 w-10 rounded-lg bg-success/20 flex items-center justify-center shrink-0">
-                    <Clock className="h-5 w-5 text-success" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-1">Sincronização Instantânea</h3>
-                    <p className="text-muted-foreground">Alterações aparecem em tempo real em todos os dispositivos.</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="h-10 w-10 rounded-lg bg-success/20 flex items-center justify-center shrink-0">
-                    <Zap className="h-5 w-5 text-success" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-1">IA Integrada</h3>
-                    <p className="text-muted-foreground">Chat financeiro com inteligência artificial para análises.</p>
-                  </div>
-                </div>
+                {[
+                  { icon: CheckCircle2, title: "Design Minimalista", desc: "Interface limpa que não distrai do que importa: suas metas." },
+                  { icon: Shield, title: "Dados Seguros", desc: "Seus dados são criptografados e protegidos em nuvem segura." },
+                  { icon: Clock, title: "Sincronização Instantânea", desc: "Alterações aparecem em tempo real em todos os dispositivos." },
+                ].map((item, index) => (
+                  <motion.div 
+                    key={item.title}
+                    className="flex gap-4"
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    viewport={{ once: true }}
+                    whileHover={{ x: 5 }}
+                  >
+                    <motion.div 
+                      className="h-10 w-10 rounded-lg bg-success/20 flex items-center justify-center shrink-0"
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                    >
+                      <item.icon className="h-5 w-5 text-success" />
+                    </motion.div>
+                    <div>
+                      <h3 className="font-semibold mb-1">{item.title}</h3>
+                      <p className="text-muted-foreground">{item.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
             </motion.div>
 
@@ -353,13 +504,14 @@ export default function Landing() {
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
+              whileHover={{ scale: 1.02 }}
               className="relative"
             >
-              <div className="absolute -inset-4 bg-gradient-to-br from-foreground/5 to-transparent rounded-3xl blur-xl" />
+              <div className="absolute -inset-4 bg-gradient-to-br from-primary/10 to-transparent rounded-3xl blur-xl" />
               <img 
                 src={mockupMacbook} 
                 alt="Kairo Dashboard" 
-                className="relative rounded-xl shadow-2xl border border-border"
+                className="relative rounded-xl shadow-2xl border border-border/50"
               />
             </motion.div>
           </div>
@@ -367,7 +519,7 @@ export default function Landing() {
       </section>
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-24 px-4 sm:px-6 lg:px-8 bg-secondary/20">
+      <section id="testimonials" className="relative z-10 py-24 px-4 sm:px-6 lg:px-8 bg-secondary/10 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -392,11 +544,19 @@ export default function Landing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="p-6 rounded-xl border border-border bg-card"
+                whileHover={{ y: -5 }}
+                className="p-6 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm"
               >
                 <div className="flex gap-1 mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-warning text-warning" />
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, scale: 0 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.1 + i * 0.05 }}
+                    >
+                      <Star className="h-4 w-4 fill-warning text-warning" />
+                    </motion.div>
                   ))}
                 </div>
                 <p className="text-foreground mb-4">"{testimonial.content}"</p>
@@ -411,42 +571,66 @@ export default function Landing() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8">
+      <section className="relative z-10 py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
-            className="text-center p-8 sm:p-12 rounded-2xl border border-border bg-card"
+            className="text-center p-8 sm:p-12 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm relative overflow-hidden"
           >
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Pronto para transformar sua produtividade?
-            </h2>
-            <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
-              Junte-se a milhares de usuários que já estão conquistando seus objetivos com o Kairo.
-            </p>
-            <Link to="/auth">
-              <Button size="lg" className="bg-foreground text-background hover:bg-foreground/90 h-12 px-8 text-base">
-                Criar Conta Gratuita
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-            <p className="text-sm text-muted-foreground mt-4">
-              Sem cartão de crédito. Comece em segundos.
-            </p>
+            {/* CTA background glow */}
+            <motion.div
+              className="absolute -inset-20 bg-gradient-to-r from-primary/10 via-transparent to-primary/10 blur-3xl"
+              animate={{
+                rotate: [0, 360],
+              }}
+              transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+            />
+            
+            <div className="relative z-10">
+              <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+                Pronto para transformar sua produtividade?
+              </h2>
+              <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
+                Junte-se a milhares de usuários que já estão conquistando seus objetivos com o Kairo.
+              </p>
+              <Link to="/auth">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="inline-block"
+                >
+                  <Button size="lg" className="bg-foreground text-background hover:bg-foreground/90 h-12 px-8 text-base shadow-xl shadow-foreground/10">
+                    Criar Conta Gratuita
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </motion.div>
+              </Link>
+              <motion.p 
+                className="text-sm text-muted-foreground mt-4"
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                Sem cartão de crédito. Comece em segundos.
+              </motion.p>
+            </div>
           </motion.div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-border">
+      <footer className="relative z-10 py-12 px-4 sm:px-6 lg:px-8 border-t border-border/50 bg-background/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
+            <motion.div 
+              className="flex items-center gap-3"
+              whileHover={{ scale: 1.05 }}
+            >
               <img src={kairoLogo} alt="Kairo" className="h-8 w-8 rounded-lg" />
               <span className="text-xl font-bold">Kairo</span>
-            </div>
+            </motion.div>
             <p className="text-muted-foreground text-sm">
               © {new Date().getFullYear()} Kairo. Todos os direitos reservados.
             </p>
