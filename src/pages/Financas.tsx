@@ -17,6 +17,7 @@ import {
   CalendarIcon,
   MessageCircle,
   Brain,
+  Tags,
 } from "lucide-react";
 import { FinanceChat } from "@/components/finance/FinanceChat";
 import { FinanceAnalysis } from "@/components/finance/FinanceAnalysis";
@@ -737,12 +738,48 @@ export default function Financas() {
         </div>
 
         {/* Fixed: Tabs header */}
-        <div className="flex-shrink-0 px-4 md:px-6 pt-2 pb-2 border-t border-border/30">
+        <div className="flex-shrink-0 px-4 md:px-6 pt-3 pb-3">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
-            <TabsList className="grid w-full grid-cols-3 h-8 md:h-9">
-              <TabsTrigger value="overview" className="text-[10px] md:text-sm px-1 md:px-3">Visão Geral</TabsTrigger>
-              <TabsTrigger value="transactions" className="text-[10px] md:text-sm px-1 md:px-3">Transações</TabsTrigger>
-              <TabsTrigger value="sectors" className="text-[10px] md:text-sm px-1 md:px-3">Setores</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 h-10 md:h-11 bg-muted/50 p-1 rounded-xl">
+              <TabsTrigger 
+                value="overview" 
+                className={cn(
+                  "text-xs md:text-sm px-2 md:px-4 rounded-lg font-medium transition-all duration-200",
+                  "data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground",
+                  "data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground/80"
+                )}
+              >
+                <span className="flex items-center gap-1.5">
+                  <TrendingUp className="h-3.5 w-3.5 hidden md:inline" />
+                  Visão Geral
+                </span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="transactions" 
+                className={cn(
+                  "text-xs md:text-sm px-2 md:px-4 rounded-lg font-medium transition-all duration-200",
+                  "data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground",
+                  "data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground/80"
+                )}
+              >
+                <span className="flex items-center gap-1.5">
+                  <PiggyBank className="h-3.5 w-3.5 hidden md:inline" />
+                  Transações
+                </span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="sectors" 
+                className={cn(
+                  "text-xs md:text-sm px-2 md:px-4 rounded-lg font-medium transition-all duration-200",
+                  "data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground",
+                  "data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground/80"
+                )}
+              >
+                <span className="flex items-center gap-1.5">
+                  <Tags className="h-3.5 w-3.5 hidden md:inline" />
+                  Setores
+                </span>
+              </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
