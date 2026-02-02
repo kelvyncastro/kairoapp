@@ -109,17 +109,17 @@ const HabitGrid = React.memo(function HabitGrid({
       {/* Grid container */}
       <div className="flex w-full">
         {/* Fixed left column - Habit names */}
-        <div className="flex-shrink-0 w-72 border-r border-border/30 bg-background z-10">
+        <div className="flex-shrink-0 w-48 md:w-64 border-r border-border/30 bg-background z-10">
           {/* Header spacer */}
-          <div className="h-10 border-b border-border/30 flex items-center px-4">
-            <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Hábitos</span>
+          <div className="h-8 md:h-10 border-b border-border/30 flex items-center px-2 md:px-4">
+            <span className="text-xs md:text-sm font-medium text-muted-foreground uppercase tracking-wide">Hábitos</span>
           </div>
           
           {/* Habit rows */}
           {habits.map((habit) => (
             <div
               key={habit.id}
-              className="h-12 px-4 flex items-center justify-between border-b border-border/20 group hover:bg-muted/20 transition-colors"
+              className="h-10 md:h-12 px-2 md:px-4 flex items-center justify-between border-b border-border/20 group hover:bg-muted/20 transition-colors"
             >
               {editingHabitId === habit.id ? (
                 <Input
@@ -180,7 +180,7 @@ const HabitGrid = React.memo(function HabitGrid({
           ))}
 
           {/* Add habit row */}
-          <div className="h-12 px-4 flex items-center border-b border-border/20">
+          <div className="h-10 md:h-12 px-2 md:px-4 flex items-center border-b border-border/20">
             {isAddingHabit ? (
               <Input
                 ref={inputRef}
@@ -217,7 +217,7 @@ const HabitGrid = React.memo(function HabitGrid({
         <div ref={gridRef} className="flex-1 overflow-x-auto">
           <div className="inline-flex flex-col w-max min-w-full">
             {/* Days header */}
-            <div className="flex h-10 border-b border-border/30">
+            <div className="flex h-8 md:h-10 border-b border-border/30">
               {daysInMonth.map((day) => {
                 const isToday = isSameDay(day, today);
                 const isSun = isSunday(day);
@@ -246,7 +246,7 @@ const HabitGrid = React.memo(function HabitGrid({
 
             {/* Habit day cells */}
             {habits.map((habit) => (
-              <div key={habit.id} className="flex h-12 border-b border-border/20">
+              <div key={habit.id} className="flex h-10 md:h-12 border-b border-border/20">
                 {daysInMonth.map((day) => {
                   const status = getLogStatus(habit, day);
 
@@ -280,7 +280,7 @@ const HabitGrid = React.memo(function HabitGrid({
             ))}
 
             {/* Empty row for add habit alignment */}
-            <div className="flex h-12 border-b border-border/20">
+            <div className="flex h-10 md:h-12 border-b border-border/20">
               {daysInMonth.map((day) => (
                 <div key={day.toISOString()} className="w-8 flex-shrink-0" />
               ))}
