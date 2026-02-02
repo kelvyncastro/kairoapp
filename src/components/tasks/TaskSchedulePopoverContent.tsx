@@ -156,10 +156,14 @@ export function TaskSchedulePopoverContent({
     return getRecurrenceDates(selectedStart, currentRule, displayMonth);
   }, [isRecurring, selectedStart, currentRule, displayMonth]);
 
-  const setBothDates = (date: Date | undefined) => {
+  const setStartDate = (date: Date | undefined) => {
     const v = date ? formatDateString(date) : null;
-    onChange({ start_date: v, due_date: v });
-    onAfterSelectDate?.();
+    onChange({ start_date: v });
+  };
+
+  const setDueDate = (date: Date | undefined) => {
+    const v = date ? formatDateString(date) : null;
+    onChange({ due_date: v });
   };
 
   // Custom modifiers for highlighting recurrence days
@@ -180,7 +184,7 @@ export function TaskSchedulePopoverContent({
           <Calendar
             mode="single"
             selected={selectedStart}
-            onSelect={(date) => setBothDates(date)}
+            onSelect={setStartDate}
             locale={ptBR}
             className="pointer-events-auto"
             modifiers={modifiers}
@@ -206,7 +210,7 @@ export function TaskSchedulePopoverContent({
           <Calendar
             mode="single"
             selected={selectedDue}
-            onSelect={(date) => setBothDates(date)}
+            onSelect={setDueDate}
             locale={ptBR}
             className="pointer-events-auto"
             modifiers={modifiers}
