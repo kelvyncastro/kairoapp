@@ -436,21 +436,10 @@ export default function Landing() {
               whileHover={{ scale: 1.03 }}
               className="flex justify-center"
             >
-              <motion.img 
+              <img 
                 src={mockupIpad} 
                 alt="Kairo no iPad - Dashboard" 
                 className="rounded-2xl w-full max-w-2xl"
-                style={{
-                  boxShadow: "0 0 30px 2px hsl(var(--primary) / 0.3), 0 0 60px 4px hsl(var(--primary) / 0.15)",
-                }}
-                animate={{
-                  boxShadow: [
-                    "0 0 30px 2px hsl(var(--primary) / 0.2), 0 0 60px 4px hsl(var(--primary) / 0.1)",
-                    "0 0 40px 4px hsl(var(--primary) / 0.4), 0 0 80px 8px hsl(var(--primary) / 0.2)",
-                    "0 0 30px 2px hsl(var(--primary) / 0.2), 0 0 60px 4px hsl(var(--primary) / 0.1)",
-                  ],
-                }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               />
             </motion.div>
 
@@ -463,21 +452,10 @@ export default function Landing() {
               whileHover={{ scale: 1.03 }}
               className="flex justify-center"
             >
-              <motion.img 
+              <img 
                 src={mockupIpad2} 
                 alt="Kairo no iPad - Hábitos" 
                 className="rounded-2xl w-full max-w-2xl"
-                style={{
-                  boxShadow: "0 0 30px 2px hsl(var(--primary) / 0.3), 0 0 60px 4px hsl(var(--primary) / 0.15)",
-                }}
-                animate={{
-                  boxShadow: [
-                    "0 0 30px 2px hsl(var(--primary) / 0.2), 0 0 60px 4px hsl(var(--primary) / 0.1)",
-                    "0 0 40px 4px hsl(var(--primary) / 0.4), 0 0 80px 8px hsl(var(--primary) / 0.2)",
-                    "0 0 30px 2px hsl(var(--primary) / 0.2), 0 0 60px 4px hsl(var(--primary) / 0.1)",
-                  ],
-                }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
               />
             </motion.div>
           </div>
@@ -533,13 +511,12 @@ export default function Landing() {
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
               whileHover={{ scale: 1.02 }}
-              className="relative"
+              className="relative lg:scale-125 lg:translate-x-8"
             >
-              <div className="absolute -inset-4 bg-gradient-to-br from-primary/10 to-transparent rounded-3xl blur-xl" />
               <img 
                 src={mockupMacbook} 
                 alt="Kairo Dashboard" 
-                className="relative rounded-xl shadow-2xl border border-border/50"
+                className="relative rounded-xl w-full"
               />
             </motion.div>
           </div>
