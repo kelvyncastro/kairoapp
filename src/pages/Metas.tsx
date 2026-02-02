@@ -504,10 +504,7 @@ export default function Metas() {
                   <Progress 
                     value={progress} 
                     className="h-3"
-                    style={{ 
-                      // @ts-ignore
-                      '--progress-color': isCompleted ? 'hsl(var(--success))' : categoryConfig.color 
-                    }}
+                    indicatorColor={isCompleted ? 'hsl(var(--success))' : categoryConfig.color}
                   />
 
                   {/* Progress chart */}
