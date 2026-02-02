@@ -12,6 +12,8 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
+  Archive,
+  EyeOff,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -80,6 +82,9 @@ interface TaskTableViewProps {
   statuses: TaskStatus[];
   folders: TaskFolder[];
   selectedFolderId: string | null;
+  showCompleted: boolean;
+  completedTasksCount: number;
+  onToggleShowCompleted: () => void;
   onToggleComplete: (task: Task) => void;
   onUpdateTask: (id: string, updates: Partial<Task>) => Promise<boolean>;
   onDeleteTask: (id: string) => void;
@@ -96,6 +101,9 @@ export function TaskTableView({
   statuses,
   folders,
   selectedFolderId,
+  showCompleted,
+  completedTasksCount,
+  onToggleShowCompleted,
   onToggleComplete,
   onUpdateTask,
   onDeleteTask,
@@ -294,10 +302,34 @@ export function TaskTableView({
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Column settings */}
-      <div className="flex justify-end px-4 py-1.5 border-b border-border/20 flex-shrink-0">
+      <div className="flex justify-end gap-2 px-4 py-1.5 border-b border-border/20 flex-shrink-0">
+        {/* Fechados toggle */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className={cn(
+            "h-7 text-xs border border-border/50 rounded-lg gap-1.5",
+            showCompleted && "bg-muted"
+          )}
+          onClick={onToggleShowCompleted}
+        >
+          {showCompleted ? (
+            <EyeOff className="h-3.5 w-3.5" />
+          ) : (
+            <Archive className="h-3.5 w-3.5" />
+          )}
+          Fechados
+          {completedTasksCount > 0 && (
+            <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full">
+              {completedTasksCount}
+            </span>
+          )}
+        </Button>
+
+        {/* Colunas dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-7 text-xs">
+            <Button variant="ghost" size="sm" className="h-7 text-xs border border-border/50 rounded-lg">
               <Settings2 className="h-3.5 w-3.5 mr-1.5" />
               Colunas
             </Button>

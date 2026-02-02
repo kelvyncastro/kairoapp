@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { LayoutList, LayoutGrid, FolderOpen, Archive, Eye, EyeOff } from 'lucide-react';
+import { LayoutList, LayoutGrid, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTaskData } from '@/hooks/useTaskData';
 import { useSavedFilters } from '@/hooks/useSavedFilters';
@@ -236,26 +236,6 @@ export default function Rotina() {
             </Button>
           </div>
 
-          {/* Show/Hide Completed Toggle */}
-          <Button
-            variant={showCompleted ? 'secondary' : 'ghost'}
-            size="sm"
-            className="h-7 px-2 gap-1.5 shrink-0"
-            onClick={() => setShowCompleted(!showCompleted)}
-          >
-            {showCompleted ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Archive className="h-4 w-4" />
-            )}
-            <span className="hidden sm:inline">Fechados</span>
-            {completedTasksCount > 0 && (
-              <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full">
-                {completedTasksCount}
-              </span>
-            )}
-          </Button>
-
           <div className="h-4 w-px bg-border/50 shrink-0 hidden sm:block" />
 
           {/* Advanced Filters */}
@@ -279,6 +259,9 @@ export default function Rotina() {
             statuses={statuses}
             folders={folders}
             selectedFolderId={selectedFolderId}
+            showCompleted={showCompleted}
+            completedTasksCount={completedTasksCount}
+            onToggleShowCompleted={() => setShowCompleted(!showCompleted)}
             onToggleComplete={handleToggleComplete}
             onUpdateTask={updateTask}
             onDeleteTask={handleDeleteTask}
