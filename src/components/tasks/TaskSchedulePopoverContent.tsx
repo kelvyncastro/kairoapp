@@ -1,5 +1,7 @@
+import { useMemo } from "react";
 import { X } from "lucide-react";
 import { ptBR } from "date-fns/locale";
+import { addDays, addWeeks, addMonths, getDay, startOfMonth, endOfMonth } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -42,6 +44,17 @@ const RECURRENCE_OPTIONS: Array<{ value: string; label: string }> = [
   { value: "MONTHLY", label: "Todo mês" },
 ];
 
+// Map recurrence rule to day of week (0 = Sunday, 1 = Monday, etc.)
+const WEEKLY_DAY_MAP: Record<string, number> = {
+  WEEKLY_SUNDAY: 0,
+  WEEKLY_MONDAY: 1,
+  WEEKLY_TUESDAY: 2,
+  WEEKLY_WEDNESDAY: 3,
+  WEEKLY_THURSDAY: 4,
+  WEEKLY_FRIDAY: 5,
+  WEEKLY_SATURDAY: 6,
+};
+
 export interface TaskScheduleUpdates {
   start_date?: string | null;
   due_date?: string | null;
@@ -58,6 +71,69 @@ interface TaskSchedulePopoverContentProps {
   onAfterSelectDate?: () => void;
 }
 
+// Generate dates matching recurrence pattern for calendar highlighting
+function getRecurrenceDates(
+  baseDate: Date | undefined,
+  rule: string,
+  displayMonth: Date
+): Date[] {
+  if (!baseDate) return [];
+  
+  const dates: Date[] = [];
+  const monthStart = startOfMonth(displayMonth);
+  const monthEnd = endOfMonth(displayMonth);
+  
+  // Generate dates within the visible month range
+  let current = new Date(monthStart);
+  
+  while (current <= monthEnd) {
+    let matches = false;
+    
+    switch (rule) {
+      case "DAILY":
+        matches = current >= baseDate;
+        break;
+      case "WEEKDAYS":
+        const dayOfWeek = getDay(current);
+        matches = current >= baseDate && dayOfWeek >= 1 && dayOfWeek <= 5;
+        break;
+      case "WEEKENDS":
+        const dow = getDay(current);
+        matches = current >= baseDate && (dow === 0 || dow === 6);
+        break;
+      case "WEEKLY_SUNDAY":
+      case "WEEKLY_MONDAY":
+      case "WEEKLY_TUESDAY":
+      case "WEEKLY_WEDNESDAY":
+      case "WEEKLY_THURSDAY":
+      case "WEEKLY_FRIDAY":
+      case "WEEKLY_SATURDAY":
+        const targetDay = WEEKLY_DAY_MAP[rule];
+        matches = current >= baseDate && getDay(current) === targetDay;
+        break;
+      case "BIWEEKLY":
+        if (current >= baseDate) {
+          const diffTime = current.getTime() - baseDate.getTime();
+          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+          const diffWeeks = Math.floor(diffDays / 7);
+          matches = diffWeeks % 2 === 0 && getDay(current) === getDay(baseDate);
+        }
+        break;
+      case "MONTHLY":
+        matches = current >= baseDate && current.getDate() === baseDate.getDate();
+        break;
+    }
+    
+    if (matches && current.getTime() !== baseDate.getTime()) {
+      dates.push(new Date(current));
+    }
+    
+    current = addDays(current, 1);
+  }
+  
+  return dates;
+}
+
 export function TaskSchedulePopoverContent({
   startDate,
   dueDate,
@@ -70,11 +146,30 @@ export function TaskSchedulePopoverContent({
   const selectedDue = dueDate ? parseDateString(dueDate) : undefined;
 
   const currentRule = recurringRule || "DAILY";
+  
+  // Track visible month for calculating recurrence highlights
+  const displayMonth = selectedStart || selectedDue || new Date();
+  
+  // Calculate recurrence dates for highlighting
+  const recurrenceDates = useMemo(() => {
+    if (!isRecurring || !selectedStart) return [];
+    return getRecurrenceDates(selectedStart, currentRule, displayMonth);
+  }, [isRecurring, selectedStart, currentRule, displayMonth]);
 
   const setBothDates = (date: Date | undefined) => {
     const v = date ? formatDateString(date) : null;
     onChange({ start_date: v, due_date: v });
     onAfterSelectDate?.();
+  };
+
+  // Custom modifiers for highlighting recurrence days
+  const modifiers = isRecurring ? { recurrence: recurrenceDates } : {};
+  const modifiersStyles = {
+    recurrence: {
+      backgroundColor: "hsl(var(--muted))",
+      color: "hsl(var(--muted-foreground))",
+      borderRadius: "var(--radius)",
+    },
   };
 
   return (
@@ -88,6 +183,8 @@ export function TaskSchedulePopoverContent({
             onSelect={(date) => setBothDates(date)}
             locale={ptBR}
             className="pointer-events-auto"
+            modifiers={modifiers}
+            modifiersStyles={modifiersStyles}
           />
           {startDate && (
             <Button
@@ -112,6 +209,8 @@ export function TaskSchedulePopoverContent({
             onSelect={(date) => setBothDates(date)}
             locale={ptBR}
             className="pointer-events-auto"
+            modifiers={modifiers}
+            modifiersStyles={modifiersStyles}
           />
           {dueDate && (
             <Button
@@ -145,18 +244,26 @@ export function TaskSchedulePopoverContent({
         </div>
 
         {isRecurring && (
-          <Select value={currentRule} onValueChange={(v) => onChange({ recurring_rule: v })}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Selecione a recorrência" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover">
-              {RECURRENCE_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <>
+            <Select value={currentRule} onValueChange={(v) => onChange({ recurring_rule: v })}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Selecione a recorrência" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover">
+                {RECURRENCE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            {recurrenceDates.length > 0 && (
+              <p className="text-xs text-muted-foreground">
+                Dias destacados mostram as próximas ocorrências
+              </p>
+            )}
+          </>
         )}
       </div>
     </div>
