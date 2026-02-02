@@ -1,6 +1,24 @@
 import * as React from 'react';
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { FolderIconRenderer } from '@/components/tasks/FolderIconRenderer';
+
+interface Sector {
+  id: string;
+  name: string;
+  color_label: string;
+  icon: string;
+}
+
+interface Transaction {
+  id: string;
+  name: string;
+  date: string;
+  value: number;
+  sector_id: string | null;
+  description: string | null;
+  status: string;
+}
 
 interface DailyExpense {
   date: string;
@@ -10,13 +28,25 @@ interface DailyExpense {
 
 interface DailyExpensesChartProps {
   dailyExpenses: DailyExpense[];
+  transactions?: Transaction[];
+  sectors?: Sector[];
 }
 
-const DailyExpensesChart = React.memo(function DailyExpensesChart({ dailyExpenses }: DailyExpensesChartProps) {
+interface SectorBreakdown {
+  sector: Sector | null;
+  total: number;
+}
+
+const DailyExpensesChart = React.memo(function DailyExpensesChart({ 
+  dailyExpenses, 
+  transactions = [], 
+  sectors = [] 
+}: DailyExpensesChartProps) {
   const isMobile = useIsMobile();
   
   const chartData = React.useMemo(() => {
-    return dailyExpenses.map(({ day, total }) => ({
+    return dailyExpenses.map(({ date, day, total }) => ({
+      date,
       day: Number(day),
       total,
     }));
@@ -28,6 +58,26 @@ const DailyExpensesChart = React.memo(function DailyExpensesChart({ dailyExpense
   }, [chartData]);
 
   const hasData = chartData.some(d => d.total > 0);
+
+  const getBreakdownForDate = React.useCallback((date: string): SectorBreakdown[] => {
+    const dayTransactions = transactions.filter(t => t.date === date && t.value < 0);
+    
+    const breakdownMap = new Map<string | null, number>();
+    
+    dayTransactions.forEach(t => {
+      const sectorId = t.sector_id;
+      const current = breakdownMap.get(sectorId) || 0;
+      breakdownMap.set(sectorId, current + Math.abs(t.value));
+    });
+
+    const breakdown: SectorBreakdown[] = [];
+    breakdownMap.forEach((total, sectorId) => {
+      const sector = sectorId ? sectors.find(s => s.id === sectorId) || null : null;
+      breakdown.push({ sector, total });
+    });
+
+    return breakdown.sort((a, b) => b.total - a.total);
+  }, [transactions, sectors]);
 
   if (!hasData) {
     return (
@@ -73,12 +123,53 @@ const DailyExpensesChart = React.memo(function DailyExpensesChart({ dailyExpense
           <Tooltip
             content={({ active, payload }) => {
               if (active && payload && payload.length) {
+                const data = payload[0].payload;
+                const breakdown = getBreakdownForDate(data.date);
+                
                 return (
-                  <div className="bg-background border border-border rounded-lg px-3 py-2 shadow-lg">
-                    <p className="text-xs text-muted-foreground">Dia {payload[0].payload.day}</p>
-                    <p className="text-sm font-semibold text-foreground">
-                      R$ {formatCurrency(payload[0].value as number)}
-                    </p>
+                  <div className="bg-background border border-border rounded-lg px-3 py-2.5 shadow-xl min-w-[160px]">
+                    <div className="flex items-center justify-between gap-4 mb-2 pb-2 border-b border-border/50">
+                      <p className="text-xs text-muted-foreground">Dia {data.day}</p>
+                      <p className="text-sm font-bold text-foreground">
+                        R$ {formatCurrency(data.total)}
+                      </p>
+                    </div>
+                    
+                    {breakdown.length > 0 ? (
+                      <div className="space-y-1.5">
+                        {breakdown.slice(0, 5).map((item, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            {item.sector ? (
+                              <>
+                                <div 
+                                  className="w-2 h-2 rounded-full flex-shrink-0"
+                                  style={{ backgroundColor: item.sector.color_label }}
+                                />
+                                <FolderIconRenderer 
+                                  icon={item.sector.icon || "wallet"} 
+                                  color={item.sector.color_label} 
+                                  className="h-3 w-3 flex-shrink-0" 
+                                />
+                                <span className="text-xs flex-1 truncate">{item.sector.name}</span>
+                              </>
+                            ) : (
+                              <>
+                                <div className="w-2 h-2 rounded-full flex-shrink-0 bg-muted-foreground/50" />
+                                <span className="text-xs flex-1 truncate text-muted-foreground">Sem categoria</span>
+                              </>
+                            )}
+                            <span className="text-xs font-medium">R$ {formatCurrency(item.total)}</span>
+                          </div>
+                        ))}
+                        {breakdown.length > 5 && (
+                          <p className="text-[10px] text-muted-foreground text-center pt-1">
+                            +{breakdown.length - 5} mais
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">Nenhum gasto</p>
+                    )}
                   </div>
                 );
               }
