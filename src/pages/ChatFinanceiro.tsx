@@ -97,7 +97,17 @@ export default function ChatFinanceiro() {
     {
       id: "welcome",
       role: "assistant",
-      content: "Olá! Sou seu assistente financeiro inteligente. Posso **registrar transações** e **analisar suas finanças**.\n\n**Registrar:**\n• \"Gastei R$200 no mercado\"\n• \"Recebi R$5000 de salário\"\n\n**Consultar:**\n• \"Quanto gastei esse mês?\"\n• \"Quanto gastei de mercado em janeiro?\"\n• \"Me dá um relatório completo\"\n• \"Quais meus maiores gastos?\"",
+      content: `Olá! Sou seu assistente financeiro inteligente. Posso **registrar transações** e **analisar suas finanças**.
+
+### 📝 Registrar
+- "Gastei R$200 no mercado"
+- "Recebi R$5000 de salário"
+
+### 📊 Consultar
+- "Quanto gastei esse mês?"
+- "Quanto gastei de mercado em janeiro?"
+- "Me dá um relatório completo"
+- "Quais meus maiores gastos?"`,
       timestamp: new Date(),
     },
   ]);
