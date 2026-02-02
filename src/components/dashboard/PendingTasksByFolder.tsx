@@ -1,7 +1,7 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Folder, ArrowRight } from "lucide-react";
+import { Folder, ArrowRight, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 interface FolderGroup {
@@ -18,57 +18,89 @@ interface PendingTasksByFolderProps {
 
 export function PendingTasksByFolder({ pendingTasksByFolder, embedded = false }: PendingTasksByFolderProps) {
   const totalPending = pendingTasksByFolder.reduce((sum, f) => sum + f.tasks.length, 0);
+  const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(new Set());
+
+  const toggleFolder = (folderId: string) => {
+    setCollapsedFolders((prev) => {
+      const next = new Set(prev);
+      if (next.has(folderId)) {
+        next.delete(folderId);
+      } else {
+        next.add(folderId);
+      }
+      return next;
+    });
+  };
 
   const content = (
     <>
       {pendingTasksByFolder.length > 0 ? (
         <div className={cn(embedded ? "flex-1 overflow-y-auto pr-1" : "h-[240px] overflow-y-auto pr-1")}>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {pendingTasksByFolder.map((folder) => {
               const key = folder.folderId || "no-folder";
+              const isCollapsed = collapsedFolders.has(key);
+              const folderColor = folder.folderColor || "hsl(var(--muted-foreground))";
 
               return (
-                <div key={key}>
+                <div 
+                  key={key}
+                  className="rounded-lg overflow-hidden"
+                  style={{ backgroundColor: `${folderColor}15` }}
+                >
                   {/* Folder Header */}
-                  <div className="flex items-center gap-2 py-1 px-1">
+                  <button
+                    onClick={() => toggleFolder(key)}
+                    className="w-full flex items-center gap-2 py-2 px-3 hover:bg-secondary/30 transition-colors"
+                  >
+                    {isCollapsed ? (
+                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    )}
                     <Folder
                       className="h-4 w-4 shrink-0"
-                      style={{ color: folder.folderColor || "currentColor" }}
+                      style={{ color: folderColor }}
                     />
                     <span
-                      className="text-sm font-medium truncate flex-1"
-                      style={{ color: folder.folderColor || "inherit" }}
+                      className="text-sm font-medium truncate flex-1 text-left"
+                      style={{ color: folderColor }}
                     >
                       {folder.folderName}
                     </span>
-                    <span className="text-xs text-muted-foreground shrink-0">
+                    <span 
+                      className="text-xs font-medium shrink-0 px-1.5 py-0.5 rounded"
+                      style={{ backgroundColor: `${folderColor}25`, color: folderColor }}
+                    >
                       {folder.tasks.length}
                     </span>
-                  </div>
+                  </button>
 
                   {/* Tasks List */}
-                  <ul className="ml-5 space-y-1 mt-1">
-                    {folder.tasks.map((task) => (
-                      <li
-                        key={task.id}
-                        className="flex items-center gap-2 text-sm py-1.5 px-2 rounded-md bg-secondary/30"
-                      >
-                        <div
-                          className={cn(
-                            "w-2 h-2 rounded-full shrink-0",
-                            task.priority === 3
-                              ? "bg-destructive"
-                              : task.priority === 2
-                              ? "bg-warning"
-                              : task.priority === 1
-                              ? "bg-primary"
-                              : "bg-muted-foreground"
-                          )}
-                        />
-                        <span className="truncate">{task.title}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  {!isCollapsed && (
+                    <ul className="px-3 pb-2 space-y-1">
+                      {folder.tasks.map((task) => (
+                        <li
+                          key={task.id}
+                          className="flex items-center gap-2 text-sm py-1.5 px-2 rounded-md bg-background/50"
+                        >
+                          <div
+                            className={cn(
+                              "w-2 h-2 rounded-full shrink-0",
+                              task.priority === 3
+                                ? "bg-destructive"
+                                : task.priority === 2
+                                ? "bg-warning"
+                                : task.priority === 1
+                                ? "bg-primary"
+                                : "bg-muted-foreground"
+                            )}
+                          />
+                          <span className="truncate">{task.title}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               );
             })}
@@ -99,7 +131,7 @@ export function PendingTasksByFolder({ pendingTasksByFolder, embedded = false }:
   return (
     <div className="cave-card p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-bold uppercase tracking-wider text-sm">Rotina de Hoje</h3>
+        <h3 className="font-bold uppercase tracking-wider text-sm">Tarefas do Dia</h3>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">{totalPending} pendentes</span>
           <Link to="/rotina" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">

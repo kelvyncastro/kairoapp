@@ -360,10 +360,10 @@ export default function Dashboard() {
         {/* Main Grid */}
         <div className="px-6 py-5 border-t border-border/30">
           <div className="grid gap-6 lg:grid-cols-3 lg:auto-rows-fr">
-            {/* Column 1: Rotina */}
+            {/* Column 1: Tarefas */}
             <div className="cave-card p-5 flex flex-col">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold uppercase tracking-wider text-sm">Rotina do Dia</h3>
+                <h3 className="font-bold uppercase tracking-wider text-sm">Tarefas do Dia</h3>
                 <Link to="/rotina" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
                   Ver todas <ArrowRight className="h-3 w-3" />
                 </Link>
