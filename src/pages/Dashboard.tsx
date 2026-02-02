@@ -467,7 +467,7 @@ export default function Dashboard() {
             </div>
 
             {/* Column 3: Consistência */}
-            <div className="cave-card p-5">
+            <div className="cave-card p-5 flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold uppercase tracking-wider text-sm">Consistência</h3>
                 <Link to="/consistencia" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
@@ -475,19 +475,50 @@ export default function Dashboard() {
                 </Link>
               </div>
 
-              <div className="grid grid-cols-10 gap-1">
-                {stats.last30Days.map((day, i) => (
-                  <div
-                    key={i}
-                    className={cn(
-                      "consistency-day aspect-square rounded-sm",
-                      day.isActive ? "bg-success" : "bg-secondary"
-                    )}
-                    title={day.date}
-                  />
-                ))}
+              {/* Streak Stats */}
+              <div className="flex items-center justify-center gap-2 mb-6">
+                <div className="flex items-center gap-1">
+                  {getStreakIcon(stats.currentStreak)}
+                  <span className="text-4xl font-bold">{stats.currentStreak}</span>
+                </div>
+                <AnimatedFire streak={stats.currentStreak} size="md" />
               </div>
-              <p className="text-xs text-muted-foreground mt-3">Últimos 30 dias</p>
+              <p className="text-center text-sm text-muted-foreground mb-6">
+                {stats.currentStreak === 0 ? "Comece seu streak hoje!" : 
+                 stats.currentStreak === 1 ? "1 dia ativo" : 
+                 `${stats.currentStreak} dias seguidos`}
+              </p>
+
+              {/* 30 Days Grid */}
+              <div className="flex-1 flex flex-col justify-center">
+                <p className="text-xs text-muted-foreground mb-3">Últimos 30 dias</p>
+                <div className="grid grid-cols-10 gap-1.5">
+                  {stats.last30Days.map((day, i) => (
+                    <div
+                      key={i}
+                      className={cn(
+                        "aspect-square rounded-sm transition-all hover:scale-110",
+                        day.isActive ? "bg-success" : "bg-secondary"
+                      )}
+                      title={day.date}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Stats Summary */}
+              <div className="mt-6 pt-4 border-t border-border/50">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold">{stats.last30Days.filter(d => d.isActive).length}</p>
+                    <p className="text-xs text-muted-foreground">Dias ativos</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold">{Math.round((stats.last30Days.filter(d => d.isActive).length / 30) * 100)}%</p>
+                    <p className="text-xs text-muted-foreground">Taxa mensal</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
