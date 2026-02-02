@@ -521,12 +521,15 @@ export default function Financas() {
         <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
           <Button
             variant={analysisOpen ? "secondary" : "outline"}
-            size="icon"
-            className="h-8 w-8 md:h-9 md:w-9"
+            size="sm"
+            className={cn(
+              "h-8 md:h-9 px-2 md:px-3 gap-1.5 transition-all",
+              !analysisOpen && "bg-gradient-to-r from-primary/10 to-accent/10 border-primary/30 hover:border-primary/50 hover:from-primary/20 hover:to-accent/20"
+            )}
             onClick={() => setAnalysisOpen(!analysisOpen)}
-            title="Análise IA"
           >
-            <Brain className="h-4 w-4" />
+            <Brain className={cn("h-4 w-4", !analysisOpen && "text-primary")} />
+            <span className="hidden md:inline text-xs font-medium">Análise IA</span>
           </Button>
           <Link to="/chat-financeiro">
             <Button
