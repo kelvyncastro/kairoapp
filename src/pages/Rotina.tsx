@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { LayoutList, LayoutGrid, FolderOpen } from 'lucide-react';
+import { LayoutList, LayoutGrid, FolderOpen, Archive, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTaskData } from '@/hooks/useTaskData';
 import { useSavedFilters } from '@/hooks/useSavedFilters';
@@ -42,6 +42,7 @@ export default function Rotina() {
   const [advancedFilters, setAdvancedFilters] = useState<FilterCondition[]>([]);
   const [folderSheetOpen, setFolderSheetOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showCompleted, setShowCompleted] = useState(false);
 
   const taskCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -54,6 +55,11 @@ export default function Rotina() {
 
   const filteredTasks = useMemo(() => {
     let result = tasks;
+
+    // Filter by completed status (archive completed tasks by default)
+    if (!showCompleted) {
+      result = result.filter(t => !t.completed);
+    }
 
     if (selectedFolderId) {
       result = result.filter(t => t.folder_id === selectedFolderId);
@@ -70,7 +76,15 @@ export default function Rotina() {
     result = applyFilters(result, advancedFilters);
 
     return result;
-  }, [tasks, selectedFolderId, searchQuery, advancedFilters]);
+  }, [tasks, selectedFolderId, searchQuery, advancedFilters, showCompleted]);
+
+  const completedTasksCount = useMemo(() => {
+    let result = tasks.filter(t => t.completed);
+    if (selectedFolderId) {
+      result = result.filter(t => t.folder_id === selectedFolderId);
+    }
+    return result.length;
+  }, [tasks, selectedFolderId]);
 
   const selectedFolder = folders.find(f => f.id === selectedFolderId);
 
@@ -234,6 +248,30 @@ export default function Rotina() {
             onDeleteSavedFilter={deleteFilter}
             onLoadSavedFilter={handleLoadSavedFilter}
           />
+
+          <div className="h-4 w-px bg-border/50 shrink-0 hidden sm:block" />
+
+          {/* Show/Hide Completed Toggle */}
+          <Button
+            variant={showCompleted ? 'secondary' : 'ghost'}
+            size="sm"
+            className="h-7 px-2 gap-1.5 shrink-0"
+            onClick={() => setShowCompleted(!showCompleted)}
+          >
+            {showCompleted ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Archive className="h-4 w-4" />
+            )}
+            <span className="hidden sm:inline">
+              {showCompleted ? 'Ocultar' : 'Concluídas'}
+            </span>
+            {completedTasksCount > 0 && (
+              <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full">
+                {completedTasksCount}
+              </span>
+            )}
+          </Button>
 
           <div className="flex-1" />
         </div>
