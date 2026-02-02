@@ -39,41 +39,41 @@ export default function Habitos() {
   }
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col -m-4 md:-m-6 bg-background">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-border/30 flex-shrink-0">
+    <div className="h-[calc(100vh-4rem)] flex flex-col -m-4 md:-m-6 bg-background overflow-hidden">
+      {/* Header - Fixed */}
+      <div className="flex items-center justify-between px-4 md:px-6 py-2 md:py-3 border-b border-border/30 flex-shrink-0">
         <div className="flex items-center gap-2 md:gap-4">
-          <h1 className="text-lg md:text-2xl font-bold">Hábitos</h1>
+          <h1 className="text-lg md:text-xl font-bold">Hábitos</h1>
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-7 w-7 md:h-8 md:w-8" onClick={goToPreviousMonth}>
-              <ChevronLeft className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="h-6 w-6 md:h-7 md:w-7" onClick={goToPreviousMonth}>
+              <ChevronLeft className="h-3.5 w-3.5 md:h-4 md:w-4" />
             </Button>
-            <span className="text-xs md:text-sm font-medium min-w-[100px] md:min-w-[140px] text-center capitalize">
+            <span className="text-xs md:text-sm font-medium min-w-[80px] md:min-w-[100px] text-center capitalize">
               {format(currentDate, 'MMM yyyy', { locale: ptBR })}
             </span>
-            <Button variant="ghost" size="icon" className="h-7 w-7 md:h-8 md:w-8" onClick={goToNextMonth}>
-              <ChevronRight className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="h-6 w-6 md:h-7 md:w-7" onClick={goToNextMonth}>
+              <ChevronRight className="h-3.5 w-3.5 md:h-4 md:w-4" />
             </Button>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={goToToday}>
+        <Button variant="outline" size="sm" className="h-7 text-xs" onClick={goToToday}>
           Hoje
         </Button>
       </div>
 
-      {/* Content */}
+      {/* Content - Scrollable */}
       <div className="flex-1 overflow-y-auto">
         {/* Progress Chart */}
-        <div className="px-4 md:px-6 py-3 md:py-5">
-          <h2 className="text-base md:text-xl font-bold text-foreground uppercase tracking-wider mb-3 md:mb-4">
+        <div className="px-4 md:px-6 py-2 md:py-3">
+          <h2 className="text-sm md:text-base font-bold text-foreground uppercase tracking-wider mb-2 md:mb-3">
             Progresso do Mês
           </h2>
           <HabitProgressChart dailyScores={dailyScores} />
         </div>
 
         {/* Habits Grid */}
-        <div className="px-4 md:px-6 py-3 md:py-5 border-t border-border/30">
-          <h2 className="text-base md:text-xl font-bold text-foreground uppercase tracking-wider mb-3 md:mb-4">
+        <div className="px-4 md:px-6 py-2 md:py-3 border-t border-border/30">
+          <h2 className="text-sm md:text-base font-bold text-foreground uppercase tracking-wider mb-2 md:mb-3">
             Grade de Hábitos
           </h2>
           <HabitGrid

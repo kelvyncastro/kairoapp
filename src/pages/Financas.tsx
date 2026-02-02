@@ -679,54 +679,51 @@ export default function Financas() {
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden">
-        {/* Month Navigation */}
-        <div className="px-4 md:px-6 py-3 md:py-5">
-          <div className="flex items-center justify-between cave-card p-3 md:p-4 mb-4 md:mb-6">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
+      {/* Content - Full height with internal scroll */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Fixed: Month Navigation + Stats */}
+        <div className="flex-shrink-0 px-4 md:px-6 py-2 md:py-3">
+          <div className="flex items-center justify-between cave-card p-2 md:p-3 mb-2 md:mb-3">
+            <Button variant="ghost" size="icon" className="h-7 w-7 md:h-8 md:w-8" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="font-bold uppercase tracking-wider text-sm md:text-base">
+            <span className="font-bold uppercase tracking-wider text-xs md:text-sm">
               {format(currentMonth, "MMM yyyy", { locale: ptBR })}
             </span>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 md:h-8 md:w-8" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
 
-          {/* Stats Cards */}
-          <h2 className="text-base md:text-xl font-bold text-foreground uppercase tracking-wider mb-3 md:mb-4">
-            Resumo
-          </h2>
-          <div className="grid grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-6">
-            <div className="cave-card p-3 md:p-6">
-              <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
-                <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-success flex-shrink-0" />
-                <span className="text-xs md:text-sm text-muted-foreground truncate">Ganhos</span>
+          {/* Stats Cards - Compact */}
+          <div className="grid grid-cols-3 gap-2 md:gap-3">
+            <div className="cave-card p-2 md:p-4">
+              <div className="flex items-center gap-1 mb-0.5 md:mb-1">
+                <TrendingUp className="h-3 w-3 md:h-4 md:w-4 text-success flex-shrink-0" />
+                <span className="text-[10px] md:text-xs text-muted-foreground truncate">Ganhos</span>
               </div>
-              <p className="text-sm md:text-2xl font-bold text-success truncate">
+              <p className="text-xs md:text-lg font-bold text-success truncate">
                 R$ {income.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
               </p>
             </div>
 
-            <div className="cave-card p-3 md:p-6">
-              <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
-                <TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-destructive flex-shrink-0" />
-                <span className="text-xs md:text-sm text-muted-foreground truncate">Gastos</span>
+            <div className="cave-card p-2 md:p-4">
+              <div className="flex items-center gap-1 mb-0.5 md:mb-1">
+                <TrendingDown className="h-3 w-3 md:h-4 md:w-4 text-destructive flex-shrink-0" />
+                <span className="text-[10px] md:text-xs text-muted-foreground truncate">Gastos</span>
               </div>
-              <p className="text-sm md:text-2xl font-bold text-destructive truncate">
+              <p className="text-xs md:text-lg font-bold text-destructive truncate">
                 R$ {Math.abs(expenses).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
               </p>
             </div>
 
-            <div className="cave-card p-3 md:p-6">
-              <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
-                <PiggyBank className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground flex-shrink-0" />
-                <span className="text-xs md:text-sm text-muted-foreground truncate">Sobra</span>
+            <div className="cave-card p-2 md:p-4">
+              <div className="flex items-center gap-1 mb-0.5 md:mb-1">
+                <PiggyBank className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground flex-shrink-0" />
+                <span className="text-[10px] md:text-xs text-muted-foreground truncate">Sobra</span>
               </div>
               <p className={cn(
-                "text-sm md:text-2xl font-bold truncate",
+                "text-xs md:text-lg font-bold truncate",
                 balance >= 0 ? "text-success" : "text-destructive"
               )}>
                 R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
@@ -735,19 +732,25 @@ export default function Financas() {
           </div>
         </div>
 
-        <div className="px-4 md:px-6 py-3 md:py-5 border-t border-border/30">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3 mb-4 md:mb-6 h-9">
-              <TabsTrigger value="overview" className="text-xs md:text-sm px-1 md:px-3">Visão Geral</TabsTrigger>
-              <TabsTrigger value="transactions" className="text-xs md:text-sm px-1 md:px-3">Transações</TabsTrigger>
-              <TabsTrigger value="sectors" className="text-xs md:text-sm px-1 md:px-3">Setores</TabsTrigger>
+        {/* Fixed: Tabs header */}
+        <div className="flex-shrink-0 px-4 md:px-6 pt-2 pb-2 border-t border-border/30">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
+            <TabsList className="grid w-full grid-cols-3 h-8 md:h-9">
+              <TabsTrigger value="overview" className="text-[10px] md:text-sm px-1 md:px-3">Visão Geral</TabsTrigger>
+              <TabsTrigger value="transactions" className="text-[10px] md:text-sm px-1 md:px-3">Transações</TabsTrigger>
+              <TabsTrigger value="sectors" className="text-[10px] md:text-sm px-1 md:px-3">Setores</TabsTrigger>
             </TabsList>
+          </Tabs>
+        </div>
 
-            <TabsContent value="overview" className="space-y-4 md:space-y-6">
+        {/* Scrollable: Tab Content */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 md:px-6 pb-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsContent value="overview" className="space-y-3 md:space-y-4 mt-0">
               {/* Daily Chart */}
-              <div className="cave-card p-4 md:p-6">
-                <h3 className="font-bold uppercase tracking-wider text-xs md:text-sm mb-3 md:mb-4">Gastos Diários</h3>
-                <div className="flex items-end gap-[2px] md:gap-1 h-24 md:h-32">
+              <div className="cave-card p-3 md:p-4">
+                <h3 className="font-bold uppercase tracking-wider text-[10px] md:text-xs mb-2 md:mb-3">Gastos Diários</h3>
+                <div className="flex items-end gap-[1px] md:gap-1 h-16 md:h-24">
                   {dailyExpenses.map((day) => (
                     <div
                       key={day.date}
@@ -755,11 +758,11 @@ export default function Financas() {
                     >
                       <div
                         className="w-full bg-primary/70 rounded-t transition-all hover:bg-primary"
-                        style={{ height: `${(day.total / maxDaily) * 100}%`, minHeight: day.total > 0 ? "4px" : "0" }}
+                        style={{ height: `${(day.total / maxDaily) * 100}%`, minHeight: day.total > 0 ? "2px" : "0" }}
                         title={`R$ ${day.total.toFixed(2)}`}
                       />
-                      <span className="text-[8px] md:text-[10px] text-muted-foreground mt-1">
-                        {Number(day.day) % 7 === 0 || Number(day.day) === 1 ? day.day : ""}
+                      <span className="text-[6px] md:text-[8px] text-muted-foreground mt-0.5">
+                        {Number(day.day) % 10 === 0 || Number(day.day) === 1 ? day.day : ""}
                       </span>
                     </div>
                   ))}
@@ -773,7 +776,7 @@ export default function Financas() {
               />
             </TabsContent>
 
-            <TabsContent value="transactions" className="space-y-3 md:space-y-4">
+            <TabsContent value="transactions" className="space-y-3 md:space-y-4 mt-0">
               {/* Filters and Search */}
               <div className="cave-card p-3 md:p-6">
                 <div className="flex flex-col gap-3 md:gap-4">
@@ -941,7 +944,7 @@ export default function Financas() {
             </TabsContent>
 
             {/* Sectors Tab */}
-            <TabsContent value="sectors" className="space-y-3 md:space-y-4">
+            <TabsContent value="sectors" className="space-y-3 md:space-y-4 mt-0">
               <div className="cave-card p-3 md:p-6">
                 <div className="flex items-center justify-between mb-3 md:mb-4">
                   <div>

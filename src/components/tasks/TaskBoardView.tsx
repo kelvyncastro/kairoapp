@@ -159,8 +159,8 @@ export function TaskBoardView({
   };
 
   return (
-    <div className="flex-1 overflow-x-auto p-3 md:p-4">
-      <div className="flex gap-3 md:gap-4 min-h-full">
+    <div className="flex-1 overflow-hidden p-3 md:p-4">
+      <div className="flex gap-3 md:gap-4 h-full overflow-x-auto">
         {sortedStatuses.map((status) => {
           const columnTasks = tasksByStatus[status.id] || [];
           const isEditing = editingStatusId === status.id;
@@ -168,7 +168,7 @@ export function TaskBoardView({
           return (
             <div
               key={status.id}
-              className="flex flex-col w-64 md:w-72 shrink-0 group/column"
+              className="flex flex-col w-56 md:w-64 shrink-0 group/column h-full"
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, status.id)}
             >
@@ -290,8 +290,8 @@ export function TaskBoardView({
                 <span>Adicionar Tarefa</span>
               </button>
 
-              {/* Task cards */}
-              <div className="flex-1 space-y-2">
+              {/* Task cards - Scrollable */}
+              <div className="flex-1 space-y-2 overflow-y-auto pr-1">
                 {columnTasks.map((task) => {
                   const priorityInfo = getPriorityLabel(task.priority);
                   const dueDate = formatDate(task.due_date || task.date);
@@ -407,7 +407,7 @@ export function TaskBoardView({
 
         {/* Add column button */}
         {onCreateStatus && (
-          <div className="w-64 md:w-72 shrink-0">
+          <div className="w-56 md:w-64 shrink-0">
             {isAddingStatus ? (
               <div className="space-y-3 p-3 bg-card border border-border/30 rounded-lg">
                 <Input

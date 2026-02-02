@@ -15,14 +15,14 @@ const HabitProgressChart = React.memo(function HabitProgressChart({ dailyScores 
 
   if (chartData.length === 0) {
     return (
-      <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">
-        Nenhum dado disponível ainda. Adicione hábitos para ver seu progresso.
+      <div className="h-24 md:h-32 flex items-center justify-center text-muted-foreground text-xs md:text-sm">
+        Adicione hábitos para ver seu progresso.
       </div>
     );
   }
 
   return (
-    <div className="h-48 w-full">
+    <div className="h-24 md:h-32 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <defs>
