@@ -359,19 +359,27 @@ export default function Dashboard() {
 
         {/* Main Grid */}
         <div className="px-6 py-5 border-t border-border/30">
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="grid gap-6 lg:grid-cols-3 lg:auto-rows-fr">
             {/* Column 1: Rotina */}
-            <div className="space-y-6">
-              {/* Pending Tasks - Grouped by Folder */}
-              <PendingTasksByFolder 
-                pendingTasksByFolder={stats.pendingTasksByFolder} 
-              />
+            <div className="cave-card p-5 flex flex-col">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold uppercase tracking-wider text-sm">Rotina do Dia</h3>
+                <Link to="/rotina" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                  Ver todas <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+              <div className="flex-1">
+                <PendingTasksByFolder 
+                  pendingTasksByFolder={stats.pendingTasksByFolder} 
+                  embedded
+                />
+              </div>
             </div>
 
             {/* Column 2: Metas + Finanças */}
-            <div className="space-y-6">
+            <div className="flex flex-col gap-6">
               {/* Active Goals */}
-              <div className="cave-card p-5">
+              <div className="cave-card p-5 flex-1 flex flex-col">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold uppercase tracking-wider text-sm">Metas Ativas</h3>
                   <Link to="/metas" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
@@ -379,50 +387,52 @@ export default function Dashboard() {
                   </Link>
                 </div>
 
-                {stats.activeGoals.length > 0 ? (
-                  <div className="space-y-4">
-                    {stats.activeGoals.map((goal) => {
-                      const progress = Math.min(100, Math.round((goal.current / goal.target) * 100));
-                      const color = CATEGORY_COLORS[goal.category] || CATEGORY_COLORS.PERSONAL;
-                      return (
-                        <div key={goal.id} className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span 
-                              className="text-xs font-medium px-2 py-0.5 rounded"
-                              style={{ backgroundColor: `${color}20`, color }}
-                            >
-                              {goal.category === "FINANCIAL" ? "Financeira" : 
-                               goal.category === "FITNESS" ? "Fitness" : 
-                               goal.category === "HEALTH" ? "Saúde" : "Pessoal"}
-                            </span>
-                            <span className="text-xs text-muted-foreground">{progress}%</span>
+                <div className="flex-1">
+                  {stats.activeGoals.length > 0 ? (
+                    <div className="space-y-4">
+                      {stats.activeGoals.map((goal) => {
+                        const progress = Math.min(100, Math.round((goal.current / goal.target) * 100));
+                        const color = CATEGORY_COLORS[goal.category] || CATEGORY_COLORS.PERSONAL;
+                        return (
+                          <div key={goal.id} className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span 
+                                className="text-xs font-medium px-2 py-0.5 rounded"
+                                style={{ backgroundColor: `${color}20`, color }}
+                              >
+                                {goal.category === "FINANCIAL" ? "Financeira" : 
+                                 goal.category === "FITNESS" ? "Fitness" : 
+                                 goal.category === "HEALTH" ? "Saúde" : "Pessoal"}
+                              </span>
+                              <span className="text-xs text-muted-foreground">{progress}%</span>
+                            </div>
+                            <p className="text-sm font-medium truncate">{goal.title}</p>
+                            <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                              <div 
+                                className="h-full rounded-full transition-all"
+                                style={{ width: `${progress}%`, backgroundColor: color }}
+                              />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {goal.current.toLocaleString()} / {goal.target.toLocaleString()} {goal.unit}
+                            </p>
                           </div>
-                          <p className="text-sm font-medium truncate">{goal.title}</p>
-                          <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                            <div 
-                              className="h-full rounded-full transition-all"
-                              style={{ width: `${progress}%`, backgroundColor: color }}
-                            />
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {goal.current.toLocaleString()} / {goal.target.toLocaleString()} {goal.unit}
-                          </p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-6">
-                    <p className="text-sm text-muted-foreground mb-3">Nenhuma meta ativa</p>
-                    <Button asChild size="sm" variant="outline">
-                      <Link to="/metas">Criar meta</Link>
-                    </Button>
-                  </div>
-                )}
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center py-6">
+                      <p className="text-sm text-muted-foreground mb-3">Nenhuma meta ativa</p>
+                      <Button asChild size="sm" variant="outline">
+                        <Link to="/metas">Criar meta</Link>
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Finances */}
-              <div className="cave-card p-5">
+              <div className="cave-card p-5 flex-1 flex flex-col">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold uppercase tracking-wider text-sm">Finanças do Mês</h3>
                   <Link to="/financas" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
@@ -430,7 +440,7 @@ export default function Dashboard() {
                   </Link>
                 </div>
 
-                <div className="space-y-3">
+                <div className="flex-1 flex flex-col justify-center space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <TrendingUp className="h-4 w-4 text-success" />

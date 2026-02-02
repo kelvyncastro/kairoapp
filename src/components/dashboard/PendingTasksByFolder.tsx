@@ -13,25 +13,16 @@ interface FolderGroup {
 
 interface PendingTasksByFolderProps {
   pendingTasksByFolder: FolderGroup[];
+  embedded?: boolean;
 }
 
-export function PendingTasksByFolder({ pendingTasksByFolder }: PendingTasksByFolderProps) {
+export function PendingTasksByFolder({ pendingTasksByFolder, embedded = false }: PendingTasksByFolderProps) {
   const totalPending = pendingTasksByFolder.reduce((sum, f) => sum + f.tasks.length, 0);
 
-  return (
-    <div className="cave-card p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-bold uppercase tracking-wider text-sm">Rotina de Hoje</h3>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">{totalPending} pendentes</span>
-          <Link to="/rotina" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-            Ver tudo <ArrowRight className="h-3 w-3" />
-          </Link>
-        </div>
-      </div>
-
+  const content = (
+    <>
       {pendingTasksByFolder.length > 0 ? (
-        <div className="h-[240px] overflow-y-auto pr-1">
+        <div className={cn(embedded ? "flex-1 overflow-y-auto pr-1" : "h-[240px] overflow-y-auto pr-1")}>
           <div className="space-y-3">
             {pendingTasksByFolder.map((folder) => {
               const key = folder.folderId || "no-folder";
@@ -84,13 +75,39 @@ export function PendingTasksByFolder({ pendingTasksByFolder }: PendingTasksByFol
           </div>
         </div>
       ) : (
-        <div className="text-center py-6">
+        <div className={cn("flex flex-col items-center justify-center", embedded ? "flex-1" : "py-6")}>
           <p className="text-sm text-muted-foreground mb-3">Tudo feito! 🎉</p>
           <Button asChild size="sm" variant="outline">
             <Link to="/rotina">Criar tarefa</Link>
           </Button>
         </div>
       )}
+    </>
+  );
+
+  if (embedded) {
+    return (
+      <>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xs text-muted-foreground">{totalPending} pendentes</span>
+        </div>
+        {content}
+      </>
+    );
+  }
+
+  return (
+    <div className="cave-card p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-bold uppercase tracking-wider text-sm">Rotina de Hoje</h3>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">{totalPending} pendentes</span>
+          <Link to="/rotina" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+            Ver tudo <ArrowRight className="h-3 w-3" />
+          </Link>
+        </div>
+      </div>
+      {content}
     </div>
   );
 }
