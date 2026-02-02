@@ -102,9 +102,9 @@ export function ExpensesBySectorChart({ sectors, transactions }: ExpensesBySecto
           Nenhum gasto {chartFilter === "paid" ? "pago" : "a pagar"} neste período
         </p>
       ) : (
-        <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+        <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-8">
           {/* Donut Chart with Tooltip */}
-          <div className="w-40 h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 relative flex-shrink-0 mx-auto md:mx-0">
+          <div className="w-48 h-48 md:w-56 md:h-56 relative flex-shrink-0 mx-auto md:mx-0">
             <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
               {(() => {
                 let cumulativePercent = 0;
