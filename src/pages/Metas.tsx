@@ -610,24 +610,24 @@ export default function Metas() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="h-[calc(100vh-4rem)] flex flex-col -m-4 md:-m-6 bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-border/30 flex-shrink-0">
         <div>
-          <h1 className="text-2xl font-bold">Metas</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl md:text-2xl font-bold">Metas</h1>
+          <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">
             Defina objetivos e acompanhe seu progresso
           </p>
         </div>
 
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Meta
+        <Button onClick={() => setDialogOpen(true)} size="sm" className="md:size-default">
+          <Plus className="h-4 w-4 md:mr-2" />
+          <span className="hidden md:inline">Nova Meta</span>
         </Button>
       </div>
 
       {/* Category filters */}
-      <div className="flex gap-2 flex-wrap items-center">
+      <div className="flex gap-2 flex-wrap items-center px-4 md:px-6 py-2 md:py-3 border-b border-border/30 overflow-x-auto flex-shrink-0">
         <Button
           variant={activeCategory === "ALL" ? "default" : "outline"}
           size="sm"
@@ -641,19 +641,19 @@ export default function Metas() {
             variant={activeCategory === cat.id ? "default" : "outline"}
             size="sm"
             onClick={() => setActiveCategory(cat.id)}
-            className="gap-2"
+            className="gap-2 shrink-0"
           >
             <span style={{ color: activeCategory === cat.id ? undefined : cat.color }}>
               {getCategoryIcon(cat.icon)}
             </span>
-            {cat.name}
+            <span className="hidden sm:inline">{cat.name}</span>
           </Button>
         ))}
         {/* Add new category button */}
         <button
           type="button"
           onClick={() => setCreateCategoryDialogOpen(true)}
-          className="h-9 w-9 flex items-center justify-center rounded-md border-2 border-dashed border-border bg-background hover:bg-accent hover:border-primary transition-colors"
+          className="h-9 w-9 flex items-center justify-center rounded-md border-2 border-dashed border-border bg-background hover:bg-accent hover:border-primary transition-colors shrink-0"
           title="Adicionar novo setor"
         >
           <Plus className="h-4 w-4 text-muted-foreground" />
@@ -662,14 +662,15 @@ export default function Metas() {
         <button
           type="button"
           onClick={() => setManageCategoriesDialogOpen(true)}
-          className="h-9 w-9 flex items-center justify-center rounded-md border border-border bg-background hover:bg-accent transition-colors"
+          className="h-9 w-9 flex items-center justify-center rounded-md border border-border bg-background hover:bg-accent transition-colors shrink-0"
           title="Gerenciar setores"
         >
           <Settings className="h-4 w-4 text-muted-foreground" />
         </button>
       </div>
 
-      {/* Goals grid */}
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-5">
       {loading ? (
         <div className="grid gap-4 md:grid-cols-2">
           {[...Array(4)].map((_, i) => (
@@ -860,6 +861,7 @@ export default function Metas() {
           })}
         </div>
       )}
+      </div>
 
       {/* Create Goal Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
