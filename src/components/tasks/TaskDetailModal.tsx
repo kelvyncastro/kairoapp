@@ -46,6 +46,7 @@ import { useTaskDetails } from '@/hooks/useTaskDetails';
 import { FolderIconRenderer } from './FolderIconRenderer';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { TaskSchedulePopoverContent } from './TaskSchedulePopoverContent';
 
 // Parse YYYY-MM-DD string to Date using local timezone (avoids UTC shift)
 function parseDateString(dateStr: string): Date {
@@ -345,7 +346,7 @@ export function TaskDetailModal({
               </Select>
             </div>
 
-            {/* Dates */}
+            {/* Dates + recurrence */}
             <div className="flex items-center gap-3">
               <span className="text-muted-foreground w-28">📅 Datas</span>
               <div className="flex items-center gap-2">
@@ -356,15 +357,12 @@ export function TaskDetailModal({
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 bg-popover z-[100]" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={task.start_date ? parseDateString(task.start_date) : undefined}
-                      onSelect={(date) => onUpdateTask(task.id, { 
-                        start_date: date ? formatDateString(date) : null 
-                      })}
-                      locale={ptBR}
-                      initialFocus
-                      className="p-3 pointer-events-auto"
+                    <TaskSchedulePopoverContent
+                      startDate={task.start_date}
+                      dueDate={task.due_date}
+                      isRecurring={task.is_recurring}
+                      recurringRule={task.recurring_rule}
+                      onChange={(updates) => onUpdateTask(task.id, updates)}
                     />
                   </PopoverContent>
                 </Popover>
@@ -376,15 +374,12 @@ export function TaskDetailModal({
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 bg-popover z-[100]" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={task.due_date ? parseDateString(task.due_date) : undefined}
-                      onSelect={(date) => onUpdateTask(task.id, { 
-                        due_date: date ? formatDateString(date) : null 
-                      })}
-                      locale={ptBR}
-                      initialFocus
-                      className="p-3 pointer-events-auto"
+                    <TaskSchedulePopoverContent
+                      startDate={task.start_date}
+                      dueDate={task.due_date}
+                      isRecurring={task.is_recurring}
+                      recurringRule={task.recurring_rule}
+                      onChange={(updates) => onUpdateTask(task.id, updates)}
                     />
                   </PopoverContent>
                 </Popover>

@@ -48,6 +48,7 @@ import { TaskDetailModal } from './TaskDetailModal';
 import { TaskProgressIndicator } from './TaskProgressIndicator';
 import { TaskTimer } from './TaskTimer';
 import { StatusSelectWithCreate } from './StatusSelectWithCreate';
+import { TaskSchedulePopoverContent } from './TaskSchedulePopoverContent';
 
 // Column configuration
 interface ColumnConfig {
@@ -650,10 +651,19 @@ function EditableTitle({ value, onChange }: { value: string; onChange: (v: strin
   );
 }
 
-// Inline date picker
-function EditableDate({ value, onChange, placeholder }: { value: string | null; onChange: (v: string | null) => void; placeholder: string }) {
+// Inline date + recurrence picker
+function EditableSchedule({
+  task,
+  displayValue,
+  placeholder,
+  onUpdate,
+}: {
+  task: Task;
+  displayValue: string | null;
+  placeholder: string;
+  onUpdate: (updates: Partial<Task>) => void;
+}) {
   const [open, setOpen] = useState(false);
-  const date = value ? parseISO(value) : undefined;
 
   const formatDisplayDate = (dateStr: string | null) => {
     if (!dateStr) return placeholder;
@@ -669,39 +679,22 @@ function EditableDate({ value, onChange, placeholder }: { value: string | null; 
         <button
           className={cn(
             "text-xs px-2 py-1 rounded hover:bg-muted/50 transition-colors flex items-center gap-1",
-            value ? "text-foreground" : "text-muted-foreground"
+            displayValue ? "text-foreground" : "text-muted-foreground",
           )}
         >
           <CalendarIcon className="h-3 w-3" />
-          {formatDisplayDate(value)}
+          {formatDisplayDate(displayValue)}
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0 bg-popover" align="start">
-        <Calendar
-          mode="single"
-          selected={date}
-          onSelect={(d) => {
-            onChange(d ? format(d, 'yyyy-MM-dd') : null);
-            setOpen(false);
-          }}
-          initialFocus
-          className="p-3 pointer-events-auto"
+        <TaskSchedulePopoverContent
+          startDate={task.start_date}
+          dueDate={task.due_date || task.date}
+          isRecurring={task.is_recurring}
+          recurringRule={task.recurring_rule}
+          onChange={(updates) => onUpdate(updates)}
+          onAfterSelectDate={() => setOpen(false)}
         />
-        {value && (
-          <div className="p-2 border-t border-border">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full text-xs text-destructive"
-              onClick={() => {
-                onChange(null);
-                setOpen(false);
-              }}
-            >
-              Limpar data
-            </Button>
-          </div>
-        )}
       </PopoverContent>
     </Popover>
   );
@@ -950,19 +943,21 @@ function TaskTable({
       
       case 'start_date':
         return (
-          <EditableDate
-            value={task.start_date}
-            onChange={(v) => onUpdateTask(task.id, { start_date: v })}
+          <EditableSchedule
+            task={task}
+            displayValue={task.start_date}
             placeholder="Início"
+            onUpdate={(updates) => onUpdateTask(task.id, updates)}
           />
         );
       
       case 'due_date':
         return (
-          <EditableDate
-            value={task.due_date || task.date}
-            onChange={(v) => onUpdateTask(task.id, { due_date: v })}
+          <EditableSchedule
+            task={task}
+            displayValue={task.due_date || task.date}
             placeholder="Vencimento"
+            onUpdate={(updates) => onUpdateTask(task.id, updates)}
           />
         );
       
