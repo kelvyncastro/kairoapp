@@ -510,17 +510,18 @@ export default function Financas() {
   }
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col -m-6 bg-background">
+    <div className="h-[calc(100vh-4rem)] flex flex-col -m-4 md:-m-6 bg-background overflow-x-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border/30 flex-shrink-0">
-        <div>
-          <h1 className="text-2xl font-bold">Finanças</h1>
-          <p className="text-sm text-muted-foreground">Controle é liberdade.</p>
+      <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-border/30 flex-shrink-0">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-lg md:text-2xl font-bold truncate">Finanças</h1>
+          <p className="text-xs md:text-sm text-muted-foreground hidden md:block">Controle é liberdade.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
           <Button
             variant={analysisOpen ? "secondary" : "outline"}
             size="icon"
+            className="h-8 w-8 md:h-9 md:w-9"
             onClick={() => setAnalysisOpen(!analysisOpen)}
             title="Análise IA"
           >
@@ -530,7 +531,7 @@ export default function Financas() {
             <Button
               variant="outline"
               size="icon"
-              className="relative"
+              className="h-8 w-8 md:h-9 md:w-9 relative"
               title="Chat Financeiro"
             >
               <MessageCircle className="h-4 w-4" />
@@ -538,12 +539,12 @@ export default function Financas() {
           </Link>
           <Dialog open={addTransactionOpen} onOpenChange={setAddTransactionOpen}>
             <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Transação
+              <Button size="sm" className="h-8 md:h-9 px-2 md:px-4">
+                <Plus className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Nova Transação</span>
               </Button>
             </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Nova Transação</DialogTitle>
             </DialogHeader>
@@ -585,49 +586,51 @@ export default function Financas() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label>Tipo</Label>
-                <Select
-                  value={newTransaction.type}
-                  onValueChange={(v) =>
-                    setNewTransaction((prev) => {
-                      const type = v as "income" | "expense";
-                      const nextStatus =
-                        type === "income"
-                          ? "received"
-                          : prev.status === "received"
-                            ? "paid"
-                            : prev.status;
-                      return { ...prev, type, status: nextStatus };
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="expense">Despesa</SelectItem>
-                    <SelectItem value="income">Receita</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select
-                  disabled={newTransaction.type === "income"}
-                  value={newTransaction.status}
-                  onValueChange={(v) => setNewTransaction({ ...newTransaction, status: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="paid">Pago</SelectItem>
-                    <SelectItem value="received">Recebido</SelectItem>
-                    <SelectItem value="pending">A pagar</SelectItem>
-                    <SelectItem value="to_receive">A receber</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Tipo</Label>
+                  <Select
+                    value={newTransaction.type}
+                    onValueChange={(v) =>
+                      setNewTransaction((prev) => {
+                        const type = v as "income" | "expense";
+                        const nextStatus =
+                          type === "income"
+                            ? "received"
+                            : prev.status === "received"
+                              ? "paid"
+                              : prev.status;
+                        return { ...prev, type, status: nextStatus };
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="expense">Despesa</SelectItem>
+                      <SelectItem value="income">Receita</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Status</Label>
+                  <Select
+                    disabled={newTransaction.type === "income"}
+                    value={newTransaction.status}
+                    onValueChange={(v) => setNewTransaction({ ...newTransaction, status: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="paid">Pago</SelectItem>
+                      <SelectItem value="received">Recebido</SelectItem>
+                      <SelectItem value="pending">A pagar</SelectItem>
+                      <SelectItem value="to_receive">A receber</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Data</Label>
@@ -677,86 +680,86 @@ export default function Financas() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {/* Month Navigation */}
-        <div className="px-6 py-5">
-          <div className="flex items-center justify-between cave-card p-4 mb-6">
-            <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
+        <div className="px-4 md:px-6 py-3 md:py-5">
+          <div className="flex items-center justify-between cave-card p-3 md:p-4 mb-4 md:mb-6">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="font-bold uppercase tracking-wider">
-              {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
+            <span className="font-bold uppercase tracking-wider text-sm md:text-base">
+              {format(currentMonth, "MMM yyyy", { locale: ptBR })}
             </span>
-            <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
 
           {/* Stats Cards */}
-          <h2 className="text-xl font-bold text-foreground uppercase tracking-wider mb-4">
+          <h2 className="text-base md:text-xl font-bold text-foreground uppercase tracking-wider mb-3 md:mb-4">
             Resumo
           </h2>
-          <div className="grid gap-4 md:grid-cols-3 mb-6">
-            <div className="cave-card p-6">
-              <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className="h-5 w-5 text-success" />
-                <span className="text-sm text-muted-foreground">Ganhos</span>
+          <div className="grid grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-6">
+            <div className="cave-card p-3 md:p-6">
+              <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
+                <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-success flex-shrink-0" />
+                <span className="text-xs md:text-sm text-muted-foreground truncate">Ganhos</span>
               </div>
-              <p className="text-2xl font-bold text-success">
-                R$ {income.toFixed(2)}
+              <p className="text-sm md:text-2xl font-bold text-success truncate">
+                R$ {income.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
               </p>
             </div>
 
-            <div className="cave-card p-6">
-              <div className="flex items-center gap-2 mb-2">
-                <TrendingDown className="h-5 w-5 text-destructive" />
-                <span className="text-sm text-muted-foreground">Gastos</span>
+            <div className="cave-card p-3 md:p-6">
+              <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
+                <TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-destructive flex-shrink-0" />
+                <span className="text-xs md:text-sm text-muted-foreground truncate">Gastos</span>
               </div>
-              <p className="text-2xl font-bold text-destructive">
-                R$ {Math.abs(expenses).toFixed(2)}
+              <p className="text-sm md:text-2xl font-bold text-destructive truncate">
+                R$ {Math.abs(expenses).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
               </p>
             </div>
 
-            <div className="cave-card p-6">
-              <div className="flex items-center gap-2 mb-2">
-                <PiggyBank className="h-5 w-5 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Sobra</span>
+            <div className="cave-card p-3 md:p-6">
+              <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
+                <PiggyBank className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground flex-shrink-0" />
+                <span className="text-xs md:text-sm text-muted-foreground truncate">Sobra</span>
               </div>
               <p className={cn(
-                "text-2xl font-bold",
+                "text-sm md:text-2xl font-bold truncate",
                 balance >= 0 ? "text-success" : "text-destructive"
               )}>
-                R$ {balance.toFixed(2)}
+                R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="px-6 py-5 border-t border-border/30">
+        <div className="px-4 md:px-6 py-3 md:py-5 border-t border-border/30">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3 mb-6">
-              <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-              <TabsTrigger value="transactions">Transações</TabsTrigger>
-              <TabsTrigger value="sectors">Setores</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 mb-4 md:mb-6 h-9">
+              <TabsTrigger value="overview" className="text-xs md:text-sm px-1 md:px-3">Visão Geral</TabsTrigger>
+              <TabsTrigger value="transactions" className="text-xs md:text-sm px-1 md:px-3">Transações</TabsTrigger>
+              <TabsTrigger value="sectors" className="text-xs md:text-sm px-1 md:px-3">Setores</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="overview" className="space-y-6">
+            <TabsContent value="overview" className="space-y-4 md:space-y-6">
               {/* Daily Chart */}
-              <div className="cave-card p-6">
-                <h3 className="font-bold uppercase tracking-wider text-sm mb-4">Gastos Diários</h3>
-                <div className="flex items-end gap-1 h-32">
+              <div className="cave-card p-4 md:p-6">
+                <h3 className="font-bold uppercase tracking-wider text-xs md:text-sm mb-3 md:mb-4">Gastos Diários</h3>
+                <div className="flex items-end gap-[2px] md:gap-1 h-24 md:h-32">
                   {dailyExpenses.map((day) => (
                     <div
                       key={day.date}
-                      className="flex-1 flex flex-col items-center group"
+                      className="flex-1 flex flex-col items-center group min-w-0"
                     >
                       <div
                         className="w-full bg-primary/70 rounded-t transition-all hover:bg-primary"
                         style={{ height: `${(day.total / maxDaily) * 100}%`, minHeight: day.total > 0 ? "4px" : "0" }}
                         title={`R$ ${day.total.toFixed(2)}`}
                       />
-                      <span className="text-[10px] text-muted-foreground mt-1">
-                        {Number(day.day) % 5 === 0 || Number(day.day) === 1 ? day.day : ""}
+                      <span className="text-[8px] md:text-[10px] text-muted-foreground mt-1">
+                        {Number(day.day) % 7 === 0 || Number(day.day) === 1 ? day.day : ""}
                       </span>
                     </div>
                   ))}
@@ -770,48 +773,49 @@ export default function Financas() {
               />
             </TabsContent>
 
-            <TabsContent value="transactions" className="space-y-4">
+            <TabsContent value="transactions" className="space-y-3 md:space-y-4">
               {/* Filters and Search */}
-              <div className="cave-card p-6">
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-bold uppercase tracking-wider text-sm">Transações</h3>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Verifique suas transações completas.
-                      </p>
-                    </div>
+              <div className="cave-card p-3 md:p-6">
+                <div className="flex flex-col gap-3 md:gap-4">
+                  <div>
+                    <h3 className="font-bold uppercase tracking-wider text-xs md:text-sm">Transações</h3>
+                    <p className="text-xs md:text-sm text-muted-foreground mt-1 hidden md:block">
+                      Verifique suas transações completas.
+                    </p>
                   </div>
                   
-                  <div className="flex flex-col md:flex-row gap-4">
-                    {/* Filter Tabs */}
-                    <div className="flex flex-wrap gap-2">
-                      {[
-                        { value: "all", label: "Todas" },
-                        { value: "paid", label: "Pagos" },
-                        { value: "received", label: "Recebidos" },
-                        { value: "pending", label: "A pagar" },
-                        { value: "to_receive", label: "A receber" },
-                      ].map((filter) => (
-                        <Button
-                          key={filter.value}
-                          variant={transactionFilter === filter.value ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setTransactionFilter(filter.value as TransactionFilter)}
-                        >
-                          {filter.label}
-                        </Button>
-                      ))}
+                  <div className="flex flex-col gap-3 md:gap-4">
+                    {/* Filter Tabs - Horizontal scroll on mobile */}
+                    <div className="overflow-x-auto -mx-3 px-3 md:mx-0 md:px-0">
+                      <div className="flex gap-1 md:gap-2 min-w-max md:flex-wrap">
+                        {[
+                          { value: "all", label: "Todas" },
+                          { value: "paid", label: "Pagos" },
+                          { value: "received", label: "Recebidos" },
+                          { value: "pending", label: "A pagar" },
+                          { value: "to_receive", label: "A receber" },
+                        ].map((filter) => (
+                          <Button
+                            key={filter.value}
+                            variant={transactionFilter === filter.value ? "default" : "outline"}
+                            size="sm"
+                            className="h-7 md:h-8 text-xs md:text-sm px-2 md:px-3 flex-shrink-0"
+                            onClick={() => setTransactionFilter(filter.value as TransactionFilter)}
+                          >
+                            {filter.label}
+                          </Button>
+                        ))}
+                      </div>
                     </div>
                     
                     {/* Search */}
-                    <div className="relative flex-1 md:max-w-xs">
+                    <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
-                        placeholder="Pesquisar por descrição, categoria..."
+                        placeholder="Pesquisar..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9"
+                        className="pl-9 h-8 md:h-9 text-sm"
                       />
                     </div>
                   </div>
@@ -819,13 +823,13 @@ export default function Financas() {
               </div>
 
               {filteredTransactions.length === 0 ? (
-                <div className="empty-state">
-                  <PiggyBank className="empty-state-icon" />
-                  <h3 className="empty-state-title">Nenhuma transação</h3>
-                  <p className="empty-state-description">
+                <div className="empty-state py-8">
+                  <PiggyBank className="empty-state-icon h-10 w-10" />
+                  <h3 className="empty-state-title text-sm">Nenhuma transação</h3>
+                  <p className="empty-state-description text-xs">
                     {transactions.length === 0 
-                      ? "Adicione sua primeira transação do mês"
-                      : "Nenhuma transação encontrada com os filtros selecionados"}
+                      ? "Adicione sua primeira transação"
+                      : "Nenhuma transação encontrada"}
                   </p>
                 </div>
               ) : (
@@ -937,23 +941,23 @@ export default function Financas() {
             </TabsContent>
 
             {/* Sectors Tab */}
-            <TabsContent value="sectors" className="space-y-6">
-              <div className="cave-card p-6">
-                <div className="flex items-center justify-between mb-6">
+            <TabsContent value="sectors" className="space-y-3 md:space-y-4">
+              <div className="cave-card p-3 md:p-6">
+                <div className="flex items-center justify-between mb-3 md:mb-4">
                   <div>
-                    <h3 className="font-bold uppercase tracking-wider text-sm">Gerenciar Setores</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Personalize seus setores para uma análise financeira mais precisa.
+                    <h3 className="font-bold uppercase tracking-wider text-xs md:text-sm">Setores</h3>
+                    <p className="text-xs md:text-sm text-muted-foreground mt-1 hidden md:block">
+                      Gerencie suas categorias de gastos
                     </p>
                   </div>
                   <Dialog open={addSectorOpen} onOpenChange={setAddSectorOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="outline">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Novo Setor
+                      <Button size="sm" className="h-7 md:h-8 text-xs md:text-sm">
+                        <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                        Novo
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Novo Setor</DialogTitle>
                       </DialogHeader>
@@ -975,13 +979,13 @@ export default function Financas() {
                                 type="button"
                                 onClick={() => setNewSector({ ...newSector, color_label: color })}
                                 className={cn(
-                                  "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                                  "w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center transition-all",
                                   newSector.color_label === color ? "ring-2 ring-offset-2 ring-offset-background ring-primary" : ""
                                 )}
                                 style={{ backgroundColor: color }}
                               >
                                 {newSector.color_label === color && (
-                                  <Check className="h-4 w-4 text-white" />
+                                  <Check className="h-3 w-3 md:h-4 md:w-4 text-white" />
                                 )}
                               </button>
                             ))}
@@ -989,15 +993,15 @@ export default function Financas() {
                         </div>
                         <div className="space-y-2">
                           <Label>Ícone do Setor</Label>
-                          <ScrollArea className="h-32 rounded-md border p-2">
-                            <div className="flex flex-wrap gap-2">
+                          <ScrollArea className="h-28 md:h-32 rounded-md border p-2">
+                            <div className="flex flex-wrap gap-1.5 md:gap-2">
                               {sectorIcons.map((icon) => (
                                 <button
                                   key={icon}
                                   type="button"
                                   onClick={() => setNewSector({ ...newSector, icon })}
                                   className={cn(
-                                    "w-10 h-10 rounded-lg flex items-center justify-center transition-all border",
+                                    "w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center transition-all border",
                                     newSector.icon === icon 
                                       ? "bg-primary/20 border-primary" 
                                       : "bg-secondary/50 border-transparent hover:bg-secondary"
@@ -1006,7 +1010,7 @@ export default function Financas() {
                                   <FolderIconRenderer 
                                     icon={icon} 
                                     color={newSector.color_label}
-                                    className="h-5 w-5" 
+                                    className="h-4 w-4 md:h-5 md:w-5" 
                                   />
                                 </button>
                               ))}
@@ -1024,36 +1028,36 @@ export default function Financas() {
                 </div>
 
                 {sectors.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">
+                  <p className="text-xs md:text-sm text-muted-foreground text-center py-6">
                     Nenhum setor criado
                   </p>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-1.5 md:space-y-2">
                     {sectors.map((sector) => (
                       <div
                         key={sector.id}
-                        className="flex items-center justify-between p-4 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors group"
+                        className="flex items-center justify-between p-2.5 md:p-4 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors group"
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 md:gap-3 min-w-0">
                           <FolderIconRenderer 
                             icon={sector.icon || "wallet"} 
                             color={sector.color_label}
-                            className="h-5 w-5" 
+                            className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" 
                           />
-                          <span className="font-medium">{sector.name}</span>
+                          <span className="font-medium text-sm truncate">{sector.name}</span>
                         </div>
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex-shrink-0">
                           <button
                             onClick={() => setEditingSector(sector)}
-                            className="p-2 hover:bg-secondary rounded"
+                            className="p-1.5 md:p-2 hover:bg-secondary rounded"
                           >
-                            <Edit2 className="h-4 w-4" />
+                            <Edit2 className="h-3.5 w-3.5 md:h-4 md:w-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteSector(sector.id)}
-                            className="p-2 hover:bg-secondary rounded text-destructive"
+                            className="p-1.5 md:p-2 hover:bg-secondary rounded text-destructive"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5 md:h-4 md:w-4" />
                           </button>
                         </div>
                       </div>

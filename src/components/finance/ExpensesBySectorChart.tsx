@@ -67,15 +67,15 @@ export function ExpensesBySectorChart({ sectors, transactions }: ExpensesBySecto
   };
 
   return (
-    <div className="cave-card p-6">
+    <div className="cave-card p-4 md:p-6">
       {/* Header with title and filters */}
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="font-bold text-lg">Despesas</h3>
-        <div className="flex bg-muted rounded-lg p-1">
+      <div className="flex items-center justify-between mb-4 md:mb-6">
+        <h3 className="font-bold text-sm md:text-lg">Despesas</h3>
+        <div className="flex bg-muted rounded-lg p-0.5 md:p-1">
           <button
             onClick={() => setChartFilter("paid")}
             className={cn(
-              "px-4 py-1.5 text-sm font-medium rounded-md transition-all",
+              "px-2.5 md:px-4 py-1 md:py-1.5 text-xs md:text-sm font-medium rounded-md transition-all",
               chartFilter === "paid" 
                 ? "bg-background shadow-sm text-foreground" 
                 : "text-muted-foreground hover:text-foreground"
@@ -86,7 +86,7 @@ export function ExpensesBySectorChart({ sectors, transactions }: ExpensesBySecto
           <button
             onClick={() => setChartFilter("pending")}
             className={cn(
-              "px-4 py-1.5 text-sm font-medium rounded-md transition-all",
+              "px-2.5 md:px-4 py-1 md:py-1.5 text-xs md:text-sm font-medium rounded-md transition-all",
               chartFilter === "pending" 
                 ? "bg-background shadow-sm text-foreground" 
                 : "text-muted-foreground hover:text-foreground"
@@ -98,18 +98,18 @@ export function ExpensesBySectorChart({ sectors, transactions }: ExpensesBySecto
       </div>
 
       {expensesBySector.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-8">
+        <p className="text-xs md:text-sm text-muted-foreground text-center py-6 md:py-8">
           Nenhum gasto {chartFilter === "paid" ? "pago" : "a pagar"} neste período
         </p>
       ) : (
-        <div className="flex flex-col lg:flex-row items-center gap-8">
+        <div className="flex flex-col gap-4 md:gap-8">
           {/* Donut Chart with Tooltip */}
-          <div className="w-72 h-72 relative flex-shrink-0">
+          <div className="w-48 h-48 md:w-64 md:h-64 relative flex-shrink-0 mx-auto">
             <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
               {(() => {
                 let cumulativePercent = 0;
-                const strokeWidth = 14;
-                const radius = 36;
+                const strokeWidth = 12;
+                const radius = 38;
                 const circumference = 2 * Math.PI * radius;
 
                 return expensesBySector.map((sector) => {
@@ -127,13 +127,13 @@ export function ExpensesBySectorChart({ sectors, transactions }: ExpensesBySecto
                       r={radius}
                       fill="none"
                       stroke={sector.color_label}
-                      strokeWidth={isHovered ? strokeWidth + 4 : strokeWidth}
+                      strokeWidth={isHovered ? strokeWidth + 3 : strokeWidth}
                       strokeDasharray={`${strokeDasharray} ${circumference}`}
                       strokeDashoffset={strokeDashoffset}
                       className="transition-all duration-200 cursor-pointer"
                       style={{ 
                         opacity: hoveredSector && !isHovered ? 0.4 : 1,
-                        filter: isHovered ? 'drop-shadow(0 0 8px rgba(0,0,0,0.3))' : 'none'
+                        filter: isHovered ? 'drop-shadow(0 0 6px rgba(0,0,0,0.3))' : 'none'
                       }}
                       onMouseEnter={() => setHoveredSector(sector)}
                       onMouseLeave={() => setHoveredSector(null)}
@@ -146,38 +146,18 @@ export function ExpensesBySectorChart({ sectors, transactions }: ExpensesBySecto
             {/* Center Content */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="text-center">
-                <p className="text-2xl font-bold">R$ {formatCurrency(totalExpenses)}</p>
-                <p className="text-sm text-muted-foreground">
-                  Total {chartFilter === "paid" ? "Pago" : "A Pagar"}
+                <p className="text-base md:text-xl font-bold">R$ {formatCurrency(totalExpenses)}</p>
+                <p className="text-[10px] md:text-xs text-muted-foreground">
+                  {chartFilter === "paid" ? "Pago" : "A Pagar"}
                 </p>
               </div>
             </div>
-
-            {/* Tooltip */}
-            {hoveredSector && (
-              <div 
-                className="absolute left-1/2 -translate-x-1/2 bottom-4 z-10 animate-in fade-in-0 zoom-in-95 duration-150"
-              >
-                <div className="bg-card border border-border rounded-lg shadow-xl px-4 py-3 min-w-[200px]">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div 
-                      className="w-3 h-3 rounded-sm flex-shrink-0"
-                      style={{ backgroundColor: hoveredSector.color_label }}
-                    />
-                    <span className="font-semibold text-sm">{hoveredSector.name}</span>
-                  </div>
-                  <p className="text-muted-foreground text-sm pl-5">
-                    {hoveredSector.name}: R$ {formatCurrency(hoveredSector.total)} ({hoveredSector.percent.toFixed(1)}%)
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Legend - Detailed */}
-          <div className="flex-1 w-full lg:max-w-md">
-            <h4 className="text-sm font-medium text-muted-foreground mb-4">Detalhes por Categoria</h4>
-            <div className="space-y-2">
+          <div className="w-full">
+            <h4 className="text-xs md:text-sm font-medium text-muted-foreground mb-2 md:mb-4">Por Categoria</h4>
+            <div className="space-y-1 md:space-y-2 max-h-40 md:max-h-60 overflow-y-auto">
               {expensesBySector
                 .sort((a, b) => b.total - a.total)
                 .map((sector) => {
@@ -186,25 +166,25 @@ export function ExpensesBySectorChart({ sectors, transactions }: ExpensesBySecto
                     <div 
                       key={sector.id} 
                       className={cn(
-                        "flex items-center gap-3 p-2 rounded-lg transition-all cursor-pointer",
+                        "flex items-center gap-2 md:gap-3 p-1.5 md:p-2 rounded-lg transition-all cursor-pointer",
                         isHovered ? "bg-secondary" : "hover:bg-secondary/50"
                       )}
                       onMouseEnter={() => setHoveredSector(sector)}
                       onMouseLeave={() => setHoveredSector(null)}
                     >
                       <div 
-                        className="w-3 h-3 rounded-full flex-shrink-0"
+                        className="w-2 h-2 md:w-3 md:h-3 rounded-full flex-shrink-0"
                         style={{ backgroundColor: sector.color_label }}
                       />
                       <FolderIconRenderer 
                         icon={sector.icon || "wallet"} 
                         color={sector.color_label} 
-                        className="h-4 w-4 flex-shrink-0" 
+                        className="h-3 w-3 md:h-4 md:w-4 flex-shrink-0" 
                       />
-                      <span className="text-sm flex-1 truncate">{sector.name}</span>
+                      <span className="text-xs md:text-sm flex-1 truncate">{sector.name}</span>
                       <div className="text-right flex-shrink-0">
-                        <p className="text-sm font-semibold">R$ {formatCurrency(sector.total)}</p>
-                        <p className="text-xs text-muted-foreground">{sector.percent.toFixed(1)}%</p>
+                        <p className="text-xs md:text-sm font-semibold">R$ {formatCurrency(sector.total)}</p>
+                        <p className="text-[10px] md:text-xs text-muted-foreground">{sector.percent.toFixed(0)}%</p>
                       </div>
                     </div>
                   );
