@@ -360,36 +360,12 @@ export default function Dashboard() {
         {/* Main Grid */}
         <div className="px-6 py-5 border-t border-border/30">
           <div className="grid gap-6 lg:grid-cols-3">
-            {/* Column 1: Rotina + Consistência */}
+            {/* Column 1: Rotina */}
             <div className="space-y-6">
               {/* Pending Tasks - Grouped by Folder */}
               <PendingTasksByFolder 
                 pendingTasksByFolder={stats.pendingTasksByFolder} 
               />
-
-              {/* Consistency Grid */}
-              <div className="cave-card p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold uppercase tracking-wider text-sm">Consistência</h3>
-                  <Link to="/consistencia" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-                    Ver mais <ArrowRight className="h-3 w-3" />
-                  </Link>
-                </div>
-
-                <div className="grid grid-cols-10 gap-1">
-                  {stats.last30Days.map((day, i) => (
-                    <div
-                      key={i}
-                      className={cn(
-                        "consistency-day aspect-square rounded-sm",
-                        day.isActive ? "bg-success" : "bg-secondary"
-                      )}
-                      title={day.date}
-                    />
-                  ))}
-                </div>
-                <p className="text-xs text-muted-foreground mt-3">Últimos 30 dias</p>
-              </div>
             </div>
 
             {/* Column 2: Metas + Finanças */}
@@ -490,16 +466,29 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Column 3: Agenda - Temporariamente desativado */}
-            {/* <div className="cave-card p-5">
+            {/* Column 3: Consistência */}
+            <div className="cave-card p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold uppercase tracking-wider text-sm">Agenda</h3>
-                <Link to="/agenda" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                <h3 className="font-bold uppercase tracking-wider text-sm">Consistência</h3>
+                <Link to="/consistencia" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
                   Ver mais <ArrowRight className="h-3 w-3" />
                 </Link>
               </div>
-              <CalendarWidget />
-            </div> */}
+
+              <div className="grid grid-cols-10 gap-1">
+                {stats.last30Days.map((day, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      "consistency-day aspect-square rounded-sm",
+                      day.isActive ? "bg-success" : "bg-secondary"
+                    )}
+                    title={day.date}
+                  />
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground mt-3">Últimos 30 dias</p>
+            </div>
           </div>
         </div>
       </div>
