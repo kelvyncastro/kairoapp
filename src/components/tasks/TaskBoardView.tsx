@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, MoreHorizontal, Edit2, Trash2, Calendar, Clock, X, Check, AlertTriangle } from 'lucide-react';
+import { Plus, MoreHorizontal, Edit2, Trash2, Calendar, Clock, X, Check, AlertTriangle, Settings2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { Task, TaskStatus, TaskFolder, COLOR_PALETTE } from '@/types/tasks';
 import { format, isToday, isTomorrow, parseISO, isBefore, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { ManageStatusesDialog } from './ManageStatusesDialog';
 
 // Virtual "Atrasada" status color
 const OVERDUE_COLOR = '#dc2626';
@@ -47,6 +48,7 @@ export function TaskBoardView({
 }: TaskBoardViewProps) {
   const [isAddingStatus, setIsAddingStatus] = useState(false);
   const [newStatusName, setNewStatusName] = useState('');
+  const [isManageStatusesOpen, setIsManageStatusesOpen] = useState(false);
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return null;
     const date = parseISO(dateStr);
@@ -156,18 +158,23 @@ export function TaskBoardView({
                 <span className="text-xs text-muted-foreground">{columnTasks.length}</span>
                 
                 {/* Status options menu */}
-                {onDeleteStatus && (
+                {onUpdateStatus && onDeleteStatus && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button 
                         variant="ghost" 
                         size="icon"
-                        className="h-5 w-5 ml-auto opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity"
+                        className="h-5 w-5 ml-auto opacity-0 group-hover/column:opacity-100 hover:opacity-100 transition-opacity"
                       >
                         <MoreHorizontal className="h-3.5 w-3.5" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="bg-popover">
+                      <DropdownMenuItem onClick={() => setIsManageStatusesOpen(true)}>
+                        <Settings2 className="h-3.5 w-3.5 mr-2" />
+                        Gerenciar status
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem 
                         className="text-destructive"
                         onClick={() => onDeleteStatus(status.id)}
@@ -387,6 +394,17 @@ export function TaskBoardView({
           </div>
         )}
       </div>
+
+      {/* Manage Statuses Dialog */}
+      {onUpdateStatus && onDeleteStatus && (
+        <ManageStatusesDialog
+          open={isManageStatusesOpen}
+          onOpenChange={setIsManageStatusesOpen}
+          statuses={statuses}
+          onUpdateStatus={onUpdateStatus}
+          onDeleteStatus={onDeleteStatus}
+        />
+      )}
     </div>
   );
 }
