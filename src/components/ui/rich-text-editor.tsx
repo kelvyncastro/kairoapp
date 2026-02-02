@@ -5,6 +5,7 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import { Color } from '@tiptap/extension-color';
 import Highlight from '@tiptap/extension-highlight';
 import Placeholder from '@tiptap/extension-placeholder';
+import Heading from '@tiptap/extension-heading';
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import {
@@ -15,13 +16,18 @@ import {
   List,
   Type,
   Highlighter,
+  Heading1,
+  Heading2,
+  Heading3,
+  Pilcrow,
 } from 'lucide-react';
 import { Button } from './button';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from './popover';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './dropdown-menu';
 
 interface RichTextEditorProps {
   content: string;
@@ -66,7 +72,9 @@ export function RichTextEditor({
 }: RichTextEditorProps) {
   const [showToolbar, setShowToolbar] = useState(false);
   const [toolbarPosition, setToolbarPosition] = useState({ top: 0, left: 0 });
+  const [isInteractingWithToolbar, setIsInteractingWithToolbar] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const toolbarRef = useRef<HTMLDivElement>(null);
 
   const editor = useEditor({
     extensions: [
@@ -96,6 +104,12 @@ export function RichTextEditor({
         blockquote: false,
         horizontalRule: false,
       }),
+      Heading.configure({
+        levels: [1, 2, 3],
+        HTMLAttributes: {
+          class: 'font-bold',
+        },
+      }),
       Underline,
       TextStyle,
       Color,
@@ -117,6 +131,9 @@ export function RichTextEditor({
         class: cn(
           'prose prose-sm dark:prose-invert max-w-none focus:outline-none min-h-[80px] p-4',
           'prose-p:my-1 prose-ul:my-1 prose-ol:my-1',
+          'prose-h1:text-xl prose-h1:font-bold prose-h1:my-2',
+          'prose-h2:text-lg prose-h2:font-bold prose-h2:my-1.5',
+          'prose-h3:text-base prose-h3:font-bold prose-h3:my-1',
         ),
       },
       handleKeyDown: (view, event) => {
@@ -144,9 +161,11 @@ export function RichTextEditor({
     onBlur: () => {
       // Delay to allow clicking on toolbar
       setTimeout(() => {
-        setShowToolbar(false);
-        onBlur?.();
-      }, 200);
+        if (!isInteractingWithToolbar) {
+          setShowToolbar(false);
+          onBlur?.();
+        }
+      }, 300);
     },
     onSelectionUpdate: ({ editor }) => {
       const { from, to } = editor.state.selection;
@@ -160,13 +179,13 @@ export function RichTextEditor({
           
           if (containerRect) {
             setToolbarPosition({
-              top: rect.top - containerRect.top - 45,
-              left: rect.left - containerRect.left + (rect.width / 2) - 120,
+              top: rect.top - containerRect.top - 50,
+              left: rect.left - containerRect.left + (rect.width / 2) - 150,
             });
             setShowToolbar(true);
           }
         }
-      } else {
+      } else if (!isInteractingWithToolbar) {
         setShowToolbar(false);
       }
     },
@@ -200,6 +219,7 @@ export function RichTextEditor({
   }, [editor]);
 
   const setTextColor = useCallback((color: string) => {
+    setIsInteractingWithToolbar(false);
     if (color === 'inherit') {
       editor?.chain().focus().unsetColor().run();
     } else {
@@ -208,6 +228,7 @@ export function RichTextEditor({
   }, [editor]);
 
   const setHighlight = useCallback((color: string) => {
+    setIsInteractingWithToolbar(false);
     if (!color) {
       editor?.chain().focus().unsetHighlight().run();
     } else {
@@ -215,22 +236,103 @@ export function RichTextEditor({
     }
   }, [editor]);
 
+  const setHeading = useCallback((level: 1 | 2 | 3 | 0) => {
+    setIsInteractingWithToolbar(false);
+    if (level === 0) {
+      editor?.chain().focus().setParagraph().run();
+    } else {
+      editor?.chain().focus().toggleHeading({ level }).run();
+    }
+  }, [editor]);
+
+  const handleToolbarMouseEnter = () => {
+    setIsInteractingWithToolbar(true);
+  };
+
+  const handleToolbarMouseLeave = () => {
+    setIsInteractingWithToolbar(false);
+  };
+
   if (!editor) {
     return null;
   }
+
+  const getCurrentHeadingLabel = () => {
+    if (editor.isActive('heading', { level: 1 })) return 'H1';
+    if (editor.isActive('heading', { level: 2 })) return 'H2';
+    if (editor.isActive('heading', { level: 3 })) return 'H3';
+    return 'T';
+  };
 
   return (
     <div ref={containerRef} className={cn('relative rounded-lg bg-muted/20 border border-border/30', className)}>
       {/* Floating Toolbar */}
       {showToolbar && (
         <div
+          ref={toolbarRef}
           className="absolute z-50 flex items-center gap-0.5 bg-popover border border-border rounded-lg shadow-lg p-1 animate-in fade-in-0 zoom-in-95"
           style={{
-            top: Math.max(toolbarPosition.top, -45),
-            left: Math.max(Math.min(toolbarPosition.left, 200), 0),
+            top: Math.max(toolbarPosition.top, -50),
+            left: Math.max(Math.min(toolbarPosition.left, 180), 0),
           }}
           onMouseDown={(e) => e.preventDefault()}
+          onMouseEnter={handleToolbarMouseEnter}
+          onMouseLeave={handleToolbarMouseLeave}
         >
+          {/* Heading Selector */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  'h-7 px-2 text-xs font-semibold',
+                  editor.isActive('heading') && 'bg-muted'
+                )}
+                onMouseDown={(e) => e.preventDefault()}
+              >
+                {getCurrentHeadingLabel()}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              className="bg-popover z-[100]" 
+              align="start"
+              onCloseAutoFocus={(e) => e.preventDefault()}
+            >
+              <DropdownMenuItem 
+                onClick={() => setHeading(0)}
+                className="flex items-center gap-2"
+              >
+                <Pilcrow className="h-4 w-4" />
+                <span>Texto normal</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setHeading(1)}
+                className="flex items-center gap-2"
+              >
+                <Heading1 className="h-4 w-4" />
+                <span className="text-xl font-bold">Título 1</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setHeading(2)}
+                className="flex items-center gap-2"
+              >
+                <Heading2 className="h-4 w-4" />
+                <span className="text-lg font-bold">Título 2</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setHeading(3)}
+                className="flex items-center gap-2"
+              >
+                <Heading3 className="h-4 w-4" />
+                <span className="text-base font-bold">Título 3</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <div className="w-px h-5 bg-border mx-0.5" />
+
           {/* Bold */}
           <Button
             type="button"
@@ -291,18 +393,23 @@ export function RichTextEditor({
           <div className="w-px h-5 bg-border mx-0.5" />
 
           {/* Text Color */}
-          <Popover>
-            <PopoverTrigger asChild>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7"
+                onMouseDown={(e) => e.preventDefault()}
               >
                 <Type className="h-3.5 w-3.5" />
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-2 bg-popover z-[100]" side="top">
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              className="w-auto p-2 bg-popover z-[100]" 
+              align="center"
+              onCloseAutoFocus={(e) => e.preventDefault()}
+            >
               <div className="grid grid-cols-5 gap-1">
                 {TEXT_COLORS.map((c) => (
                   <button
@@ -317,22 +424,27 @@ export function RichTextEditor({
                   </button>
                 ))}
               </div>
-            </PopoverContent>
-          </Popover>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Highlight */}
-          <Popover>
-            <PopoverTrigger asChild>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7"
+                onMouseDown={(e) => e.preventDefault()}
               >
                 <Highlighter className="h-3.5 w-3.5" />
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-2 bg-popover z-[100]" side="top">
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              className="w-auto p-2 bg-popover z-[100]" 
+              align="center"
+              onCloseAutoFocus={(e) => e.preventDefault()}
+            >
               <div className="grid grid-cols-5 gap-1">
                 {HIGHLIGHT_COLORS.map((c) => (
                   <button
@@ -348,8 +460,8 @@ export function RichTextEditor({
                   />
                 ))}
               </div>
-            </PopoverContent>
-          </Popover>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       )}
 
@@ -378,6 +490,21 @@ export function RichTextEditor({
         }
         .ProseMirror s {
           text-decoration: line-through;
+        }
+        .ProseMirror h1 {
+          font-size: 1.25rem;
+          font-weight: 700;
+          margin: 0.5rem 0;
+        }
+        .ProseMirror h2 {
+          font-size: 1.125rem;
+          font-weight: 700;
+          margin: 0.375rem 0;
+        }
+        .ProseMirror h3 {
+          font-size: 1rem;
+          font-weight: 700;
+          margin: 0.25rem 0;
         }
       `}</style>
     </div>
