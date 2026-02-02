@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { 
   CheckCircle2, 
   Target, 
@@ -19,7 +19,7 @@ import mockupMacbook from "@/assets/mockup-macbook.png";
 import mockupIpad from "@/assets/mockup-ipad.png";
 import mockupIpad2 from "@/assets/mockup-ipad-2.png";
 
-// Floating particle component
+// Floating particle component with scroll-based movement
 function FloatingParticle({ delay, duration, size, startX, startY }: {
   delay: number;
   duration: number;
@@ -29,19 +29,18 @@ function FloatingParticle({ delay, duration, size, startX, startY }: {
 }) {
   return (
     <motion.div
-      className="absolute rounded-full bg-gradient-to-br from-primary/30 to-primary/10"
+      className="absolute rounded-full bg-gradient-to-br from-primary/20 to-primary/5"
       style={{
         width: size,
         height: size,
         left: `${startX}%`,
-        bottom: `${startY}%`,
+        top: `${startY}%`,
       }}
-      initial={{ opacity: 0, y: 0, scale: 0 }}
       animate={{
-        opacity: [0, 0.6, 0.4, 0],
-        y: [-20, -200, -400, -600],
-        scale: [0.5, 1.2, 0.9, 0.3],
-        x: [0, Math.random() * 80 - 40, Math.random() * 100 - 50],
+        opacity: [0, 0.5, 0.3, 0],
+        y: [0, -100, -200, -300],
+        x: [0, Math.random() * 40 - 20, Math.random() * 60 - 30],
+        scale: [0.5, 1, 0.8, 0.3],
       }}
       transition={{
         duration,
@@ -54,29 +53,31 @@ function FloatingParticle({ delay, duration, size, startX, startY }: {
 }
 
 // Glowing orb component
-function GlowingOrb({ x, y, size, delay }: {
+function GlowingOrb({ x, y, size, delay, scrollY }: {
   x: number;
   y: number;
   size: number;
   delay: number;
+  scrollY: any;
 }) {
+  const yOffset = useTransform(scrollY, [0, 3000], [0, y * 0.3]);
+  
   return (
     <motion.div
-      className="absolute rounded-full blur-3xl bg-primary/20"
+      className="absolute rounded-full blur-3xl bg-primary/15"
       style={{
         width: size,
         height: size,
         left: `${x}%`,
         top: `${y}%`,
+        y: yOffset,
       }}
       animate={{
-        opacity: [0.1, 0.3, 0.1],
-        scale: [1, 1.3, 1],
-        x: [0, 30, 0],
-        y: [0, -30, 0],
+        opacity: [0.08, 0.2, 0.08],
+        scale: [1, 1.2, 1],
       }}
       transition={{
-        duration: 10,
+        duration: 8,
         delay,
         repeat: Infinity,
         ease: "easeInOut",
@@ -157,10 +158,17 @@ const particlesData = Array.from({ length: 30 }, (_, i) => ({
 }));
 
 export default function Landing() {
+  const { scrollY } = useScroll();
+  const backgroundY = useTransform(scrollY, [0, 2000], [0, -200]);
+  const gridY = useTransform(scrollY, [0, 2000], [0, 100]);
+  
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
       {/* Dynamic Animated Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      <motion.div 
+        className="fixed inset-0 overflow-hidden pointer-events-none"
+        style={{ y: backgroundY }}
+      >
         {/* Base gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/20 to-background" />
         
@@ -177,32 +185,36 @@ export default function Landing() {
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
         />
         
-        {/* Glowing orbs */}
-        <GlowingOrb x={5} y={10} size={500} delay={0} />
-        <GlowingOrb x={70} y={40} size={600} delay={3} />
-        <GlowingOrb x={30} y={70} size={450} delay={6} />
-        <GlowingOrb x={85} y={20} size={350} delay={9} />
+        {/* Glowing orbs with parallax */}
+        <GlowingOrb x={5} y={10} size={500} delay={0} scrollY={scrollY} />
+        <GlowingOrb x={70} y={40} size={600} delay={3} scrollY={scrollY} />
+        <GlowingOrb x={30} y={70} size={450} delay={6} scrollY={scrollY} />
+        <GlowingOrb x={85} y={20} size={350} delay={9} scrollY={scrollY} />
         
         {/* Floating particles */}
         {particlesData.map((p) => (
           <FloatingParticle key={p.id} {...p} />
         ))}
         
-        {/* Subtle grid overlay */}
-        <div 
-          className="absolute inset-0 opacity-[0.015]"
+        {/* Subtle grid overlay with parallax */}
+        <motion.div 
+          className="absolute inset-0 opacity-[0.02]"
           style={{
             backgroundImage: `
               linear-gradient(to right, hsl(var(--foreground)) 1px, transparent 1px),
               linear-gradient(to bottom, hsl(var(--foreground)) 1px, transparent 1px)
             `,
-            backgroundSize: '100px 100px',
+            backgroundSize: '80px 80px',
+            y: gridY,
           }}
         />
         
         {/* Vignette effect */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,hsl(var(--background)/0.5)_100%)]" />
-      </div>
+      </motion.div>
+
+      {/* Secondary fixed overlay for depth */}
+      <div className="fixed inset-0 pointer-events-none bg-gradient-to-b from-transparent via-transparent to-background/30 z-[1]" />
 
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/60 backdrop-blur-xl border-b border-border/50">
