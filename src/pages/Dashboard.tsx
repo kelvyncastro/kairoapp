@@ -387,9 +387,9 @@ export default function Dashboard() {
                   </Link>
                 </div>
 
-                <div className="flex-1">
+                <div className="flex-1 overflow-hidden">
                   {stats.activeGoals.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className="h-full max-h-[160px] overflow-y-auto pr-1 space-y-4">
                       {stats.activeGoals.map((goal) => {
                         const progress = Math.min(100, Math.round((goal.current / goal.target) * 100));
                         const color = CATEGORY_COLORS[goal.category] || CATEGORY_COLORS.PERSONAL;
