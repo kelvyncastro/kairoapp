@@ -308,8 +308,8 @@ export function TaskTableView({
           variant="ghost"
           size="sm"
           className={cn(
-            "h-7 text-xs border border-border/50 rounded-lg gap-1.5",
-            showCompleted && "bg-muted"
+            "h-7 text-xs border-2 border-border rounded-lg gap-1.5",
+            showCompleted && "bg-muted border-primary/50"
           )}
           onClick={onToggleShowCompleted}
         >
@@ -329,7 +329,7 @@ export function TaskTableView({
         {/* Colunas dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-7 text-xs border border-border/50 rounded-lg">
+            <Button variant="ghost" size="sm" className="h-7 text-xs border-2 border-border rounded-lg">
               <Settings2 className="h-3.5 w-3.5 mr-1.5" />
               Colunas
             </Button>
