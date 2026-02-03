@@ -211,6 +211,7 @@ export function useRankings() {
       bet_description?: string;
       bet_amount?: string;
       goals: { title: string; description?: string }[];
+      newInvitees?: string[]; // New participants to invite
     }
   ) => {
     if (!user) return null;
@@ -255,9 +256,55 @@ export function useRankings() {
         if (goalsError) throw goalsError;
       }
 
+      // Invite new participants if any
+      if (data.newInvitees && data.newInvitees.length > 0) {
+        for (const invitee of data.newInvitees) {
+          // Find user by public_id
+          const { data: profileByPublicId } = await supabase
+            .from('user_profiles')
+            .select('user_id')
+            .eq('public_id', invitee.toUpperCase())
+            .single();
+
+          if (profileByPublicId && profileByPublicId.user_id !== user.id) {
+            // Check if participant already exists
+            const { data: existingParticipant } = await supabase
+              .from('ranking_participants')
+              .select('id')
+              .eq('ranking_id', rankingId)
+              .eq('user_id', profileByPublicId.user_id)
+              .single();
+
+            if (!existingParticipant) {
+              // Add participant
+              await supabase
+                .from('ranking_participants')
+                .insert({
+                  ranking_id: rankingId,
+                  user_id: profileByPublicId.user_id,
+                  status: 'pending'
+                });
+
+              // Create notification
+              await supabase
+                .from('notifications')
+                .insert({
+                  user_id: profileByPublicId.user_id,
+                  type: 'ranking_invite',
+                  title: 'Convite para Ranking',
+                  message: `Você foi convidado para participar do ranking "${data.name}"`,
+                  data: { ranking_id: rankingId }
+                });
+            }
+          }
+        }
+      }
+
       toast({
         title: "Ranking atualizado!",
-        description: "As alterações foram salvas com sucesso."
+        description: data.newInvitees && data.newInvitees.length > 0 
+          ? "Alterações salvas e convites enviados."
+          : "As alterações foram salvas com sucesso."
       });
 
       await fetchRankings();
