@@ -49,6 +49,7 @@ import { NotificationBell } from "@/components/notifications/NotificationBell";
 const mainNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { path: "/rotina", label: "Tarefas", icon: ListTodo },
+  { path: "/calendario", label: "Calendário", icon: CalendarClock },
   { path: "/habitos", label: "Hábitos", icon: CalendarCheck },
   { path: "/metas", label: "Metas", icon: Target },
   { path: "/consistencia", label: "Consistência", icon: Flame },
