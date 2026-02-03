@@ -1,18 +1,20 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { 
-  format, 
-  startOfWeek, 
-  endOfWeek, 
-  eachDayOfInterval, 
-  isSameDay, 
+import {
+  format,
+  startOfWeek,
+  addDays,
+  isSameDay,
   isToday,
+  differenceInMinutes,
   setHours,
   setMinutes,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarBlock, PRIORITY_COLORS } from '@/types/calendar-blocks';
-import { Check, AlertTriangle } from 'lucide-react';
+import {
+  CalendarBlock,
+  PRIORITY_COLORS,
+} from '@/types/calendar-blocks';
 
 interface CalendarWeekViewProps {
   currentDate: Date;
@@ -22,7 +24,7 @@ interface CalendarWeekViewProps {
   onSlotSelect: (start: Date, end: Date) => void;
 }
 
-const SLOT_HEIGHT = 48; // pixels per hour
+const HOUR_HEIGHT = 48; // pixels per hour
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
 export function CalendarWeekView({
@@ -32,176 +34,179 @@ export function CalendarWeekView({
   onDayClick,
   onSlotSelect,
 }: CalendarWeekViewProps) {
-  // Get week days
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to current time on mount
+  useEffect(() => {
+    if (scrollRef.current) {
+      const now = new Date();
+      const scrollTop = (now.getHours() - 2) * HOUR_HEIGHT;
+      scrollRef.current.scrollTop = Math.max(0, scrollTop);
+    }
+  }, []);
+
+  // Get week days starting from Sunday
   const weekDays = useMemo(() => {
-    const start = startOfWeek(currentDate, { weekStartsOn: 1 });
-    const end = endOfWeek(currentDate, { weekStartsOn: 1 });
-    return eachDayOfInterval({ start, end });
+    const start = startOfWeek(currentDate, { locale: ptBR });
+    return Array.from({ length: 7 }, (_, i) => addDays(start, i));
   }, [currentDate]);
 
   // Group blocks by day
   const blocksByDay = useMemo(() => {
-    const grouped: Record<string, CalendarBlock[]> = {};
+    const map = new Map<string, CalendarBlock[]>();
     weekDays.forEach(day => {
       const key = format(day, 'yyyy-MM-dd');
-      grouped[key] = blocks.filter(block => 
-        isSameDay(new Date(block.start_time), day)
-      );
+      map.set(key, []);
     });
-    return grouped;
+    
+    blocks.forEach(block => {
+      const blockDate = new Date(block.start_time);
+      const key = format(blockDate, 'yyyy-MM-dd');
+      if (map.has(key)) {
+        map.get(key)!.push(block);
+      }
+    });
+    
+    return map;
   }, [blocks, weekDays]);
 
-  // Calculate daily stats
-  const dailyStats = useMemo(() => {
-    const stats: Record<string, { total: number; completed: number; overload: boolean }> = {};
-    weekDays.forEach(day => {
-      const key = format(day, 'yyyy-MM-dd');
-      const dayBlocks = blocksByDay[key] || [];
-      const totalMinutes = dayBlocks.reduce((sum, b) => sum + (b.duration_minutes || 0), 0);
-      stats[key] = {
-        total: dayBlocks.length,
-        completed: dayBlocks.filter(b => b.status === 'completed').length,
-        overload: totalMinutes > 10 * 60, // More than 10 hours
-      };
-    });
-    return stats;
-  }, [blocksByDay, weekDays]);
-
+  // Handle slot click
   const handleSlotClick = (day: Date, hour: number) => {
     const start = setMinutes(setHours(day, hour), 0);
     const end = setMinutes(setHours(day, hour + 1), 0);
     onSlotSelect(start, end);
   };
 
+  // Calculate block position and dimensions
+  const getBlockStyle = (block: CalendarBlock) => {
+    const start = new Date(block.start_time);
+    const end = new Date(block.end_time);
+    
+    const startMinutes = start.getHours() * 60 + start.getMinutes();
+    const durationMinutes = differenceInMinutes(end, start);
+    
+    const top = (startMinutes / 60) * HOUR_HEIGHT;
+    const height = Math.max((durationMinutes / 60) * HOUR_HEIGHT, 20);
+    
+    return { top, height };
+  };
+
+  // Get day abbreviation
+  const getDayAbbr = (date: Date) => {
+    return format(date, 'EEE', { locale: ptBR }).toUpperCase().slice(0, 3);
+  };
+
   return (
-    <div className="flex flex-col h-full">
-      {/* Week header */}
-      <div className="flex border-b border-border/50 bg-card">
-        <div className="w-14 flex-shrink-0" /> {/* Time column spacer */}
-        {weekDays.map((day) => {
-          const key = format(day, 'yyyy-MM-dd');
-          const stats = dailyStats[key];
+    <div className="flex flex-col h-full bg-background">
+      {/* Header with day names and dates */}
+      <div className="flex-shrink-0 border-b border-border/30">
+        <div className="flex">
+          {/* Timezone/empty column */}
+          <div className="w-14 flex-shrink-0 py-2 px-2 text-[10px] text-muted-foreground text-right pr-3">
+            GMT-03
+          </div>
           
-          return (
+          {/* Day columns headers */}
+          {weekDays.map((day) => (
             <div
-              key={key}
-              className={cn(
-                "flex-1 p-2 text-center border-l border-border/30 cursor-pointer hover:bg-muted/50 transition-colors",
-                isToday(day) && "bg-primary/10"
-              )}
+              key={day.toISOString()}
+              className="flex-1 flex flex-col items-center py-2 cursor-pointer hover:bg-accent/30 transition-colors"
               onClick={() => onDayClick(day)}
             >
-              <p className="text-xs text-muted-foreground uppercase">
-                {format(day, 'EEE', { locale: ptBR })}
-              </p>
-              <p className={cn(
-                "text-lg font-bold",
-                isToday(day) && "text-primary"
+              <span className={cn(
+                "text-[11px] font-medium tracking-wide",
+                isToday(day) ? "text-primary" : "text-muted-foreground"
+              )}>
+                {getDayAbbr(day)}.
+              </span>
+              <span className={cn(
+                "text-xl font-medium mt-0.5 w-10 h-10 flex items-center justify-center rounded-full transition-colors",
+                isToday(day) 
+                  ? "bg-primary text-primary-foreground" 
+                  : "text-foreground hover:bg-accent"
               )}>
                 {format(day, 'd')}
-              </p>
-              <div className="flex items-center justify-center gap-1 mt-1">
-                {stats?.overload && (
-                  <AlertTriangle className="h-3 w-3 text-warning" />
-                )}
-                <span className="text-xs text-muted-foreground">
-                  {stats?.completed}/{stats?.total}
-                </span>
-              </div>
+              </span>
             </div>
-          );
-        })}
+          ))}
+        </div>
       </div>
 
-      {/* Grid */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="flex" style={{ height: 24 * SLOT_HEIGHT }}>
-          {/* Time column */}
-          <div className="w-14 flex-shrink-0 relative">
+      {/* Scrollable time grid */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="flex min-h-full">
+          {/* Time labels column */}
+          <div className="w-14 flex-shrink-0">
             {HOURS.map((hour) => (
               <div
                 key={hour}
-                className="absolute w-full text-right pr-2 text-xs text-muted-foreground font-mono"
-                style={{ top: hour * SLOT_HEIGHT - 8 }}
+                className="relative"
+                style={{ height: HOUR_HEIGHT }}
               >
-                {hour.toString().padStart(2, '0')}:00
+                <span className="absolute -top-2 right-3 text-[11px] text-muted-foreground font-mono">
+                  {hour === 0 ? '' : `${hour} ${hour < 12 ? 'AM' : 'PM'}`}
+                </span>
               </div>
             ))}
           </div>
 
           {/* Day columns */}
           {weekDays.map((day) => {
-            const key = format(day, 'yyyy-MM-dd');
-            const dayBlocks = blocksByDay[key] || [];
-
+            const dayKey = format(day, 'yyyy-MM-dd');
+            const dayBlocks = blocksByDay.get(dayKey) || [];
+            
             return (
               <div
-                key={key}
+                key={day.toISOString()}
                 className={cn(
                   "flex-1 relative border-l border-border/30",
-                  isToday(day) && "bg-primary/5"
+                  isToday(day) && "bg-primary/[0.02]"
                 )}
               >
-                {/* Hour grid lines */}
+                {/* Hour slots */}
                 {HOURS.map((hour) => (
                   <div
                     key={hour}
-                    className="absolute left-0 right-0 border-t border-border/20 hover:bg-primary/5 cursor-pointer transition-colors"
-                    style={{ top: hour * SLOT_HEIGHT, height: SLOT_HEIGHT }}
+                    className="border-t border-border/20 cursor-pointer hover:bg-accent/20 transition-colors"
+                    style={{ height: HOUR_HEIGHT }}
                     onClick={() => handleSlotClick(day, hour)}
                   />
                 ))}
 
+                {/* Current time indicator */}
+                {isToday(day) && <CurrentTimeIndicator hourHeight={HOUR_HEIGHT} />}
+
                 {/* Blocks */}
                 {dayBlocks.map((block) => {
-                  const startTime = new Date(block.start_time);
-                  const endTime = new Date(block.end_time);
-                  const startMinutes = startTime.getHours() * 60 + startTime.getMinutes();
-                  const endMinutes = endTime.getHours() * 60 + endTime.getMinutes();
-                  const top = (startMinutes / 60) * SLOT_HEIGHT;
-                  const height = Math.max(((endMinutes - startMinutes) / 60) * SLOT_HEIGHT, 20);
-
+                  const { top, height } = getBlockStyle(block);
                   return (
                     <div
                       key={block.id}
                       className={cn(
-                        "absolute left-0.5 right-0.5 rounded px-1 py-0.5 cursor-pointer",
-                        "border-l-2 text-xs overflow-hidden hover:shadow-md transition-shadow",
+                        "absolute left-1 right-1 rounded-md px-2 py-1 cursor-pointer",
+                        "text-white text-xs font-medium overflow-hidden",
+                        "hover:ring-2 hover:ring-ring/50 transition-shadow",
                         block.status === 'completed' && "opacity-60"
                       )}
                       style={{
                         top,
                         height,
-                        backgroundColor: `${block.color}30`,
-                        borderLeftColor: block.color || '#6366f1',
+                        backgroundColor: block.color || 'hsl(200, 70%, 50%)',
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
                         onBlockClick(block);
                       }}
                     >
-                      <div className="flex items-center gap-1">
-                        <span className={cn(
-                          "truncate font-medium",
-                          block.status === 'completed' && "line-through"
-                        )}>
-                          {block.title}
-                        </span>
-                        {block.status === 'completed' && (
-                          <Check className="h-3 w-3 text-success flex-shrink-0" />
-                        )}
-                      </div>
+                      <div className="truncate">{block.title}</div>
                       {height > 30 && (
-                        <p className="text-[10px] text-muted-foreground">
-                          {format(startTime, 'HH:mm')}
-                        </p>
+                        <div className="text-[10px] opacity-80 truncate">
+                          {format(new Date(block.start_time), 'h')} - {format(new Date(block.end_time), 'ha', { locale: ptBR })}
+                        </div>
                       )}
                     </div>
                   );
                 })}
-
-                {/* Current time indicator */}
-                {isToday(day) && <CurrentTimeIndicator slotHeight={SLOT_HEIGHT} />}
               </div>
             );
           })}
@@ -211,17 +216,17 @@ export function CalendarWeekView({
   );
 }
 
-function CurrentTimeIndicator({ slotHeight }: { slotHeight: number }) {
+function CurrentTimeIndicator({ hourHeight }: { hourHeight: number }) {
   const now = new Date();
   const minutes = now.getHours() * 60 + now.getMinutes();
-  const top = (minutes / 60) * slotHeight;
+  const top = (minutes / 60) * hourHeight;
 
   return (
     <div
       className="absolute left-0 right-0 flex items-center pointer-events-none z-10"
       style={{ top }}
     >
-      <div className="w-2 h-2 rounded-full bg-destructive -ml-1" />
+      <div className="w-2.5 h-2.5 rounded-full bg-destructive -ml-1" />
       <div className="flex-1 h-0.5 bg-destructive" />
     </div>
   );
