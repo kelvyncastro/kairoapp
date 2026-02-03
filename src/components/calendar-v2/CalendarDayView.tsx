@@ -112,24 +112,107 @@ export function CalendarDayView({
     return snapToQuarter(Math.max(0, Math.min(rawMinutes, 24 * 60 - 15)));
   }, []);
 
-  // Mouse handlers
+  // Mouse handlers for drag-to-create
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.button !== 0) return;
+    if (e.button !== 0 || movingBlock || pendingDragBlock) return;
     e.preventDefault();
     const minutes = getMinutesFromY(e.clientY);
     setIsDragging(true);
     setDragStartMinutes(minutes);
     setDragEndMinutes(minutes + 15);
+  }, [getMinutesFromY, movingBlock, pendingDragBlock]);
+
+  // Block mousedown - start tracking potential drag
+  const handleBlockMouseDown = useCallback((e: React.MouseEvent, block: CalendarBlock) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setPendingDragBlock(block);
+    setDragStartPos({ x: e.clientX, y: e.clientY });
+    setDragStartTime(Date.now());
+  }, []);
+
+  // Actually start moving the block
+  const startBlockMove = useCallback((block: CalendarBlock, clientY: number) => {
+    const blockStartTime = new Date(block.start_time);
+    const blockStartMinutes = blockStartTime.getHours() * 60 + blockStartTime.getMinutes();
+    const clickMinutes = getMinutesFromY(clientY);
+    
+    setMovingBlock(block);
+    setMoveOffsetMinutes(clickMinutes - blockStartMinutes);
+    setMoveTargetMinutes(blockStartMinutes);
+    setPendingDragBlock(null);
+    setDragStartPos(null);
   }, [getMinutesFromY]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    // Check if we should start dragging a block
+    if (pendingDragBlock && dragStartPos) {
+      const dx = Math.abs(e.clientX - dragStartPos.x);
+      const dy = Math.abs(e.clientY - dragStartPos.y);
+      const elapsed = Date.now() - dragStartTime;
+      
+      if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD || (elapsed > DRAG_TIME_THRESHOLD && (dx > 2 || dy > 2))) {
+        startBlockMove(pendingDragBlock, e.clientY);
+      }
+      return;
+    }
+
+    // Handle block moving
+    if (movingBlock) {
+      const minutes = getMinutesFromY(e.clientY);
+      const adjustedMinutes = snapToQuarter(Math.max(0, minutes - moveOffsetMinutes));
+      setMoveTargetMinutes(adjustedMinutes);
+      return;
+    }
+
+    // Handle drag-to-create
     if (!isDragging) return;
     const minutes = getMinutesFromY(e.clientY);
     setDragEndMinutes(minutes);
-  }, [isDragging, getMinutesFromY]);
+  }, [isDragging, getMinutesFromY, movingBlock, moveOffsetMinutes, pendingDragBlock, dragStartPos, dragStartTime, startBlockMove]);
 
-  const handleMouseUp = useCallback(() => {
-    if (!isDragging) return;
+  const handleMouseUp = useCallback(async () => {
+    // If we had a pending drag that never started, treat as click
+    if (pendingDragBlock && !movingBlock) {
+      onBlockClick(pendingDragBlock);
+      setPendingDragBlock(null);
+      setDragStartPos(null);
+      return;
+    }
+
+    // Handle block move completion
+    if (movingBlock && onBlockMove) {
+      const blockStart = new Date(movingBlock.start_time);
+      const blockEnd = new Date(movingBlock.end_time);
+      const duration = differenceInMinutes(blockEnd, blockStart);
+      
+      const newStartHour = Math.floor(moveTargetMinutes / 60);
+      const newStartMinute = moveTargetMinutes % 60;
+      const newStart = setMinutes(setHours(currentDate, newStartHour), newStartMinute);
+      const newEnd = new Date(newStart.getTime() + duration * 60 * 1000);
+
+      const isRecurring = movingBlock.recurrence_type !== 'none' || movingBlock.recurrence_parent_id;
+
+      if (isRecurring) {
+        setPendingMove({ block: movingBlock, newStart, newEnd });
+        setRecurrenceDialogOpen(true);
+      } else {
+        await onBlockMove(movingBlock.id, newStart, newEnd);
+      }
+
+      setMovingBlock(null);
+      setPendingDragBlock(null);
+      setDragStartPos(null);
+      return;
+    }
+
+    if (!isDragging) {
+      setIsDragging(false);
+      setPendingDragBlock(null);
+      setDragStartPos(null);
+      return;
+    }
     
     const startMin = Math.min(dragStartMinutes, dragEndMinutes);
     const endMin = Math.max(dragStartMinutes, dragEndMinutes);
@@ -145,18 +228,28 @@ export function CalendarDayView({
     
     onSlotSelect(start, end);
     setIsDragging(false);
-  }, [isDragging, dragStartMinutes, dragEndMinutes, currentDate, onSlotSelect]);
+    setPendingDragBlock(null);
+    setDragStartPos(null);
+  }, [isDragging, dragStartMinutes, dragEndMinutes, currentDate, onSlotSelect, movingBlock, moveTargetMinutes, onBlockMove, pendingDragBlock, onBlockClick]);
+
+  // Handle recurrence dialog confirmation
+  const handleRecurrenceConfirm = async (scope: RecurrenceEditScope) => {
+    if (pendingMove && onBlockMove) {
+      await onBlockMove(pendingMove.block.id, pendingMove.newStart, pendingMove.newEnd, scope);
+    }
+    setPendingMove(null);
+  };
 
   // Global mouse up listener
   useEffect(() => {
     const handleGlobalMouseUp = () => {
-      if (isDragging) {
+      if (isDragging || movingBlock || pendingDragBlock) {
         handleMouseUp();
       }
     };
     window.addEventListener('mouseup', handleGlobalMouseUp);
     return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
-  }, [isDragging, handleMouseUp]);
+  }, [isDragging, movingBlock, pendingDragBlock, handleMouseUp]);
 
   // Get drag preview style
   const getDragPreviewStyle = () => {
