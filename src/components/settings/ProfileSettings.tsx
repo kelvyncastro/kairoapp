@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera, Loader2, Check, LogOut } from "lucide-react";
+import { Camera, Loader2, Check, LogOut, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
