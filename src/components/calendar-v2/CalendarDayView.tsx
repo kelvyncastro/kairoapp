@@ -289,8 +289,7 @@ export function CalendarDayView({
       {/* Day header */}
       <div className="flex-shrink-0 border-b border-border/40">
         <div className="flex">
-          <div className="w-16 flex-shrink-0 py-3 px-2 text-[10px] text-muted-foreground/60 text-right pr-3 font-mono">
-            GMT-03
+          <div className="w-16 flex-shrink-0 py-3 px-2">
           </div>
           <div className="flex-1 flex flex-col items-center py-2">
             <span className={cn(
