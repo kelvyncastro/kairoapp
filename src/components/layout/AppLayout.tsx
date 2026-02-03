@@ -25,6 +25,7 @@ import {
   PanelLeftClose,
   PanelLeft,
   Trophy,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import kairoLogo from "@/assets/kairo-logo.png";
@@ -158,6 +159,70 @@ export default function AppLayout() {
           </Tooltip>
         );
       })}
+
+      {/* Admin Link - Only for Admins */}
+      {isAdmin && (
+        <div className="pt-4">
+          <AnimatePresence mode="wait">
+            {(mobile || !collapsed) && (
+              <motion.p
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                className="px-3 mb-3 text-[10px] font-bold text-muted-foreground/60 uppercase tracking-[0.2em]"
+              >
+                Administração
+              </motion.p>
+            )}
+          </AnimatePresence>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                to="/admin"
+                className={cn(
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 relative overflow-hidden group",
+                  location.pathname === '/admin'
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                  mobile && "py-3",
+                  !mobile && collapsed && "justify-center px-2"
+                )}
+              >
+                <motion.div
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
+                  <Shield className={cn(
+                    "h-4 w-4 shrink-0 transition-all relative z-10",
+                    location.pathname === '/admin' && "drop-shadow-sm"
+                  )} />
+                </motion.div>
+                <AnimatePresence mode="wait">
+                  {(mobile || !collapsed) && (
+                    <motion.span
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: 'auto' }}
+                      exit={{ opacity: 0, width: 0 }}
+                      className={cn(
+                        "font-semibold whitespace-nowrap overflow-hidden relative z-10",
+                        location.pathname === '/admin' && "text-primary-foreground"
+                      )}
+                    >
+                      Painel Admin
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </Link>
+            </TooltipTrigger>
+            {!mobile && collapsed && (
+              <TooltipContent side="right" sideOffset={8} className="font-medium bg-popover border shadow-lg">
+                <p>Painel Admin</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </div>
+      )}
 
       {/* Em Desenvolvimento - Admin Only */}
       {isAdmin && (
