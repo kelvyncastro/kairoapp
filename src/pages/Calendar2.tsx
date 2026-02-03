@@ -261,15 +261,6 @@ export default function Calendar2() {
           )}
         </div>
 
-        {/* Sidebar (desktop only, day view) */}
-        {view === 'day' && (
-          <div className="hidden lg:block w-72 border-l border-border/30 p-4 overflow-y-auto bg-card/50">
-            <CalendarProductivityPanel
-              currentDate={currentDate}
-              blocks={blocks}
-            />
-          </div>
-        )}
       </div>
 
       {/* Block Modal */}
