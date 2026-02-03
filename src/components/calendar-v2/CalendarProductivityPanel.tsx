@@ -120,48 +120,6 @@ export function CalendarProductivityPanel({
         </div>
       </div>
 
-      {/* Demand breakdown */}
-      {stats.total > 0 && (
-        <div className="pt-3 border-t border-border/50">
-          <p className="text-xs text-muted-foreground mb-2">Distribuição</p>
-          <div className="flex gap-1 h-2 rounded-full overflow-hidden">
-            {stats.completed > 0 && (
-              <div 
-                className="bg-success" 
-                style={{ width: `${(stats.completed / stats.total) * 100}%` }}
-              />
-            )}
-            {stats.inProgress > 0 && (
-              <div 
-                className="bg-primary" 
-                style={{ width: `${(stats.inProgress / stats.total) * 100}%` }}
-              />
-            )}
-            {stats.pending > 0 && (
-              <div 
-                className="bg-muted" 
-                style={{ width: `${(stats.pending / stats.total) * 100}%` }}
-              />
-            )}
-            {stats.postponed > 0 && (
-              <div 
-                className="bg-warning" 
-                style={{ width: `${(stats.postponed / stats.total) * 100}%` }}
-              />
-            )}
-            {stats.cancelled > 0 && (
-              <div 
-                className="bg-destructive" 
-                style={{ width: `${(stats.cancelled / stats.total) * 100}%` }}
-              />
-            )}
-          </div>
-          <div className="flex items-center justify-between mt-1.5 text-[10px] text-muted-foreground">
-            <span>{stats.completed} concluídas</span>
-            <span>{stats.pending} pendentes</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

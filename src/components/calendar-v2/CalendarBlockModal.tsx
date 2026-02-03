@@ -306,59 +306,6 @@ export function CalendarBlockModal({
             </div>
           </div>
 
-          {/* Demand Type & Priority */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Tipo de demanda</Label>
-              <Select value={demandType} onValueChange={(v) => setDemandType(v as CalendarDemandType)}>
-                <SelectTrigger className="mt-1.5">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fixed">
-                    <span className="flex items-center gap-2">
-                      <Target className="h-4 w-4" />
-                      {DEMAND_TYPE_LABELS.fixed}
-                    </span>
-                  </SelectItem>
-                  <SelectItem value="flexible">
-                    <span className="flex items-center gap-2">
-                      <Timer className="h-4 w-4" />
-                      {DEMAND_TYPE_LABELS.flexible}
-                    </span>
-                  </SelectItem>
-                  <SelectItem value="micro">
-                    <span className="flex items-center gap-2">
-                      <Zap className="h-4 w-4" />
-                      {DEMAND_TYPE_LABELS.micro}
-                    </span>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Prioridade</Label>
-              <Select value={priority} onValueChange={(v) => setPriority(v as CalendarPriority)}>
-                <SelectTrigger className="mt-1.5">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {(Object.keys(PRIORITY_LABELS) as CalendarPriority[]).map((p) => (
-                    <SelectItem key={p} value={p}>
-                      <span className="flex items-center gap-2">
-                        <span 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: PRIORITY_COLORS[p] }}
-                        />
-                        {PRIORITY_LABELS[p]}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
           {/* Color */}
           <div>
             <Label className="mb-2 block">Cor do bloco</Label>
