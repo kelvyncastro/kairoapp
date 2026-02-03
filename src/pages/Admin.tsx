@@ -397,43 +397,52 @@ export default function Admin() {
                       </TableCell>
                       <TableCell className="text-right">
                         {userIsAdmin ? (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="text-destructive hover:text-destructive"
-                                disabled={revokingAdmin === user.user_id}
-                              >
-                                {revokingAdmin === user.user_id ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <>
-                                    <UserX className="h-4 w-4 mr-1" />
-                                    Revogar
-                                  </>
-                                )}
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Revogar Acesso Admin</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Tem certeza que deseja remover o acesso de administrador de{" "}
-                                  <strong>{user.first_name} {user.last_name}</strong>?
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => revokeAdminRole(user.user_id)}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          // Protect supreme admin (Arthur Alberti) from having admin revoked
+                          user.first_name?.toLowerCase() === 'arthur' && 
+                          user.last_name?.toLowerCase()?.includes('alberti') ? (
+                            <Badge variant="outline" className="border-yellow-500 text-yellow-500">
+                              <Crown className="h-3 w-3 mr-1" />
+                              Admin Supremo
+                            </Badge>
+                          ) : (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive"
+                                  disabled={revokingAdmin === user.user_id}
                                 >
-                                  Revogar
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                                  {revokingAdmin === user.user_id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <>
+                                      <UserX className="h-4 w-4 mr-1" />
+                                      Revogar
+                                    </>
+                                  )}
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Revogar Acesso Admin</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Tem certeza que deseja remover o acesso de administrador de{" "}
+                                    <strong>{user.first_name} {user.last_name}</strong>?
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => revokeAdminRole(user.user_id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Revogar
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )
                         ) : (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
