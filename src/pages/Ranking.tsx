@@ -1,0 +1,728 @@
+import { useState, useCallback } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useRankings, Ranking } from "@/hooks/useRankings";
+import {
+  Trophy,
+  Plus,
+  Users,
+  Calendar,
+  Coins,
+  Check,
+  X,
+  Crown,
+  Target,
+  Loader2,
+  ChevronRight,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { format, differenceInDays, isAfter, isBefore } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+export default function RankingPage() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const { rankings, loading, refetch } = useRankings();
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [selectedRanking, setSelectedRanking] = useState<Ranking | null>(null);
+  const [creating, setCreating] = useState(false);
+
+  // Create form state
+  const [newRanking, setNewRanking] = useState({
+    name: "",
+    description: "",
+    start_date: new Date(),
+    end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    bet_amount: "",
+    goals: [""],
+    invites: [""],
+  });
+
+  const handleCreateRanking = async () => {
+    if (!user || !newRanking.name.trim()) return;
+
+    setCreating(true);
+
+    try {
+      // Create ranking
+      const { data: rankingData, error: rankingError } = await supabase
+        .from("rankings")
+        .insert({
+          name: newRanking.name,
+          description: newRanking.description || null,
+          creator_id: user.id,
+          start_date: format(newRanking.start_date, "yyyy-MM-dd"),
+          end_date: format(newRanking.end_date, "yyyy-MM-dd"),
+          bet_amount: newRanking.bet_amount || null,
+          status: "pending",
+        })
+        .select()
+        .single();
+
+      if (rankingError) throw rankingError;
+
+      // Add creator as participant
+      await supabase.from("ranking_participants").insert({
+        ranking_id: rankingData.id,
+        user_id: user.id,
+        status: "accepted",
+        accepted_bet: true,
+        joined_at: new Date().toISOString(),
+      });
+
+      // Create goals
+      const validGoals = newRanking.goals.filter((g) => g.trim());
+      if (validGoals.length > 0) {
+        await supabase.from("ranking_goals").insert(
+          validGoals.map((title, index) => ({
+            ranking_id: rankingData.id,
+            title,
+            order_index: index,
+          }))
+        );
+      }
+
+      // Invite participants by public_id
+      const validInvites = newRanking.invites.filter((i) => i.trim());
+      for (const publicId of validInvites) {
+        const { data: profile } = await supabase
+          .from("user_profiles")
+          .select("user_id")
+          .eq("public_id", publicId.toUpperCase())
+          .single();
+
+        if (profile && profile.user_id !== user.id) {
+          await supabase.from("ranking_participants").insert({
+            ranking_id: rankingData.id,
+            user_id: profile.user_id,
+            status: "pending",
+          });
+
+          // Send notification
+          await supabase.from("notifications").insert({
+            user_id: profile.user_id,
+            type: "ranking_invite",
+            title: "Convite para Ranking",
+            message: `Você foi convidado para participar do ranking "${newRanking.name}"`,
+            data: { ranking_id: rankingData.id },
+          });
+        }
+      }
+
+      toast({ title: "Ranking criado com sucesso!" });
+      setCreateDialogOpen(false);
+      setNewRanking({
+        name: "",
+        description: "",
+        start_date: new Date(),
+        end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        bet_amount: "",
+        goals: [""],
+        invites: [""],
+      });
+
+      // Refetch immediately
+      await refetch();
+    } catch (error) {
+      console.error("Error creating ranking:", error);
+      toast({ title: "Erro ao criar ranking", variant: "destructive" });
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleAcceptInvite = async (rankingId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from("ranking_participants")
+        .update({
+          status: "accepted",
+          joined_at: new Date().toISOString(),
+        })
+        .eq("ranking_id", rankingId)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      toast({ title: "Convite aceito!" });
+
+      // Check if all participants accepted to auto-start
+      const ranking = rankings.find((r) => r.id === rankingId);
+      if (ranking) {
+        const allAccepted = ranking.participants.every(
+          (p) => p.status === "accepted" || p.user_id === user.id
+        );
+        const today = new Date();
+        const startDate = new Date(ranking.start_date);
+
+        if (allAccepted && !isAfter(startDate, today) && ranking.status === "pending") {
+          await supabase
+            .from("rankings")
+            .update({ status: "active" })
+            .eq("id", rankingId);
+        }
+      }
+
+      // Refetch immediately
+      await refetch();
+    } catch (error) {
+      console.error("Error accepting invite:", error);
+      toast({ title: "Erro ao aceitar convite", variant: "destructive" });
+    }
+  };
+
+  const handleDeclineInvite = async (rankingId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from("ranking_participants")
+        .delete()
+        .eq("ranking_id", rankingId)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      toast({ title: "Convite recusado" });
+      await refetch();
+    } catch (error) {
+      console.error("Error declining invite:", error);
+      toast({ title: "Erro ao recusar convite", variant: "destructive" });
+    }
+  };
+
+  const getStatusBadge = (ranking: Ranking) => {
+    const userParticipation = ranking.participants.find(
+      (p) => p.user_id === user?.id
+    );
+
+    if (userParticipation?.status === "pending") {
+      return (
+        <Badge variant="outline" className="bg-warning/20 text-warning border-warning/30">
+          Convite Pendente
+        </Badge>
+      );
+    }
+
+    switch (ranking.status) {
+      case "active":
+        return (
+          <Badge variant="outline" className="bg-success/20 text-success border-success/30">
+            Ativo
+          </Badge>
+        );
+      case "pending":
+        return (
+          <Badge variant="outline" className="bg-muted text-muted-foreground">
+            Aguardando
+          </Badge>
+        );
+      case "ended":
+        return (
+          <Badge variant="outline" className="bg-secondary text-secondary-foreground">
+            Finalizado
+          </Badge>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const addGoalField = () => {
+    setNewRanking((prev) => ({ ...prev, goals: [...prev.goals, ""] }));
+  };
+
+  const addInviteField = () => {
+    setNewRanking((prev) => ({ ...prev, invites: [...prev.invites, ""] }));
+  };
+
+  const updateGoal = (index: number, value: string) => {
+    setNewRanking((prev) => ({
+      ...prev,
+      goals: prev.goals.map((g, i) => (i === index ? value : g)),
+    }));
+  };
+
+  const updateInvite = (index: number, value: string) => {
+    setNewRanking((prev) => ({
+      ...prev,
+      invites: prev.invites.map((inv, i) => (i === index ? value : inv)),
+    }));
+  };
+
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full flex flex-col -m-4 md:-m-6 bg-background overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-border/30 flex-shrink-0">
+        <div>
+          <h1 className="text-lg md:text-xl font-bold flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-primary" />
+            Rankings
+          </h1>
+          <p className="text-xs text-muted-foreground hidden sm:block">
+            Competições entre amigos
+          </p>
+        </div>
+        <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-1" />
+          Novo Ranking
+        </Button>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-4 md:p-6">
+        {rankings.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <Trophy className="h-16 w-16 text-muted-foreground/30 mb-4" />
+            <h3 className="text-lg font-medium text-muted-foreground">
+              Nenhum ranking ainda
+            </h3>
+            <p className="text-sm text-muted-foreground/70 mb-4">
+              Crie um ranking para competir com seus amigos
+            </p>
+            <Button onClick={() => setCreateDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Criar Ranking
+            </Button>
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {rankings.map((ranking) => {
+              const userParticipation = ranking.participants.find(
+                (p) => p.user_id === user?.id
+              );
+              const isPending = userParticipation?.status === "pending";
+              const isCreator = ranking.creator_id === user?.id;
+              const daysLeft = differenceInDays(
+                new Date(ranking.end_date),
+                new Date()
+              );
+              const acceptedParticipants = ranking.participants.filter(
+                (p) => p.status === "accepted"
+              );
+
+              return (
+                <div
+                  key={ranking.id}
+                  className={cn(
+                    "cave-card p-4 cursor-pointer transition-all hover:border-primary/30",
+                    isPending && "border-warning/30 bg-warning/5"
+                  )}
+                  onClick={() => !isPending && setSelectedRanking(ranking)}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        {isCreator && (
+                          <Crown className="h-4 w-4 text-warning" />
+                        )}
+                        <h3 className="font-semibold truncate">{ranking.name}</h3>
+                      </div>
+                      {ranking.description && (
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {ranking.description}
+                        </p>
+                      )}
+                    </div>
+                    {getStatusBadge(ranking)}
+                  </div>
+
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
+                    <div className="flex items-center gap-1">
+                      <Users className="h-3.5 w-3.5" />
+                      {acceptedParticipants.length}/{ranking.max_participants}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Target className="h-3.5 w-3.5" />
+                      {ranking.goals.length} metas
+                    </div>
+                    {ranking.bet_amount && (
+                      <div className="flex items-center gap-1">
+                        <Coins className="h-3.5 w-3.5 text-warning" />
+                        R$ {ranking.bet_amount}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground mb-3">
+                    <Calendar className="h-3.5 w-3.5" />
+                    {format(new Date(ranking.start_date), "dd MMM", { locale: ptBR })} -{" "}
+                    {format(new Date(ranking.end_date), "dd MMM", { locale: ptBR })}
+                    {ranking.status === "active" && daysLeft > 0 && (
+                      <span className="text-primary ml-2">
+                        ({daysLeft} dias restantes)
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Participants avatars */}
+                  <div className="flex items-center gap-1 mb-3">
+                    {acceptedParticipants.slice(0, 5).map((p) => (
+                      <Avatar key={p.id} className="h-6 w-6 border-2 border-background">
+                        <AvatarImage src={p.profile?.avatar_url || undefined} />
+                        <AvatarFallback className="text-[10px]">
+                          {p.profile?.first_name?.[0] || "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                    ))}
+                    {acceptedParticipants.length > 5 && (
+                      <span className="text-xs text-muted-foreground ml-1">
+                        +{acceptedParticipants.length - 5}
+                      </span>
+                    )}
+                  </div>
+
+                  {isPending ? (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="flex-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAcceptInvite(ranking.id);
+                        }}
+                      >
+                        <Check className="h-4 w-4 mr-1" />
+                        Aceitar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeclineInvite(ranking.id);
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        {ranking.status === "active" && (
+                          <Progress
+                            value={
+                              (acceptedParticipants.find((p) => p.user_id === user?.id)
+                                ?.total_points || 0) / 10
+                            }
+                            className="h-1.5"
+                          />
+                        )}
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground ml-2" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Create Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-primary" />
+              Criar Ranking
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label>Nome do Ranking</Label>
+              <Input
+                placeholder="Ex: Desafio de Janeiro"
+                value={newRanking.name}
+                onChange={(e) =>
+                  setNewRanking((prev) => ({ ...prev, name: e.target.value }))
+                }
+              />
+            </div>
+
+            <div>
+              <Label>Descrição (opcional)</Label>
+              <Textarea
+                placeholder="Descreva o objetivo do ranking..."
+                value={newRanking.description}
+                onChange={(e) =>
+                  setNewRanking((prev) => ({ ...prev, description: e.target.value }))
+                }
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Data Início</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start text-left">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      {format(newRanking.start_date, "dd/MM/yyyy")}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <CalendarComponent
+                      mode="single"
+                      selected={newRanking.start_date}
+                      onSelect={(date) =>
+                        date && setNewRanking((prev) => ({ ...prev, start_date: date }))
+                      }
+                      locale={ptBR}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div>
+                <Label>Data Fim</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start text-left">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      {format(newRanking.end_date, "dd/MM/yyyy")}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <CalendarComponent
+                      mode="single"
+                      selected={newRanking.end_date}
+                      onSelect={(date) =>
+                        date && setNewRanking((prev) => ({ ...prev, end_date: date }))
+                      }
+                      locale={ptBR}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
+            <div>
+              <Label>Valor da Aposta (opcional)</Label>
+              <div className="relative">
+                <Coins className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-warning" />
+                <Input
+                  placeholder="R$ 0,00"
+                  className="pl-9"
+                  value={newRanking.bet_amount}
+                  onChange={(e) =>
+                    setNewRanking((prev) => ({ ...prev, bet_amount: e.target.value }))
+                  }
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label>Metas Diárias</Label>
+              <div className="space-y-2">
+                {newRanking.goals.map((goal, index) => (
+                  <Input
+                    key={index}
+                    placeholder={`Meta ${index + 1}`}
+                    value={goal}
+                    onChange={(e) => updateGoal(index, e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && goal.trim()) {
+                        e.preventDefault();
+                        addGoalField();
+                      }
+                    }}
+                  />
+                ))}
+                <Button type="button" variant="outline" size="sm" onClick={addGoalField}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Adicionar Meta
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <Label>Convidar Participantes (ID Público)</Label>
+              <div className="space-y-2">
+                {newRanking.invites.map((invite, index) => (
+                  <Input
+                    key={index}
+                    placeholder="Ex: Q7MUTYSL"
+                    value={invite}
+                    onChange={(e) => updateInvite(index, e.target.value.toUpperCase())}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && invite.trim()) {
+                        e.preventDefault();
+                        addInviteField();
+                      }
+                    }}
+                    maxLength={8}
+                  />
+                ))}
+                <Button type="button" variant="outline" size="sm" onClick={addInviteField}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Adicionar Participante
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setCreateDialogOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleCreateRanking}
+              disabled={!newRanking.name.trim() || creating}
+            >
+              {creating ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Trophy className="h-4 w-4 mr-2" />
+              )}
+              Criar Ranking
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Ranking Detail Dialog */}
+      <Dialog
+        open={!!selectedRanking}
+        onOpenChange={() => setSelectedRanking(null)}
+      >
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          {selectedRanking && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-primary" />
+                  {selectedRanking.name}
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-4">
+                {selectedRanking.description && (
+                  <p className="text-sm text-muted-foreground">
+                    {selectedRanking.description}
+                  </p>
+                )}
+
+                <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    {format(new Date(selectedRanking.start_date), "dd MMM", {
+                      locale: ptBR,
+                    })}{" "}
+                    -{" "}
+                    {format(new Date(selectedRanking.end_date), "dd MMM yyyy", {
+                      locale: ptBR,
+                    })}
+                  </div>
+                  {selectedRanking.bet_amount && (
+                    <div className="flex items-center gap-1">
+                      <Coins className="h-4 w-4 text-warning" />
+                      R$ {selectedRanking.bet_amount}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                    <Target className="h-4 w-4" />
+                    Metas ({selectedRanking.goals.length})
+                  </h4>
+                  <div className="space-y-1">
+                    {selectedRanking.goals.map((goal) => (
+                      <div
+                        key={goal.id}
+                        className="text-sm p-2 bg-secondary/50 rounded"
+                      >
+                        {goal.title}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Ranking
+                  </h4>
+                  <div className="space-y-2">
+                    {selectedRanking.participants
+                      .filter((p) => p.status === "accepted")
+                      .sort((a, b) => b.total_points - a.total_points)
+                      .map((participant, index) => (
+                        <div
+                          key={participant.id}
+                          className={cn(
+                            "flex items-center gap-3 p-2 rounded",
+                            index === 0 && "bg-warning/10 border border-warning/30"
+                          )}
+                        >
+                          <span className="font-bold text-sm w-5">
+                            {index + 1}º
+                          </span>
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage
+                              src={participant.profile?.avatar_url || undefined}
+                            />
+                            <AvatarFallback>
+                              {participant.profile?.first_name?.[0] || "?"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <p className="font-medium text-sm">
+                              {participant.profile?.first_name}{" "}
+                              {participant.profile?.last_name}
+                              {participant.user_id === user?.id && (
+                                <span className="text-muted-foreground"> (você)</span>
+                              )}
+                            </p>
+                          </div>
+                          <div className="font-bold text-primary">
+                            {participant.total_points} pts
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
