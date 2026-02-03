@@ -1010,6 +1010,17 @@ export default function Financas() {
               )}
             </TabsContent>
 
+            {/* Investments Tab */}
+            <TabsContent value="investments" className="mt-0">
+              <InvestmentsTab
+                transactions={transactions}
+                sectors={sectors}
+                allTransactions={allTransactions}
+                onEditTransaction={setEditingTransaction}
+                onDeleteTransaction={handleDeleteTransaction}
+              />
+            </TabsContent>
+
             {/* Sectors Tab */}
             <TabsContent value="sectors" className="space-y-3 md:space-y-4 mt-0">
               <div className="cave-card p-3 md:p-6">
