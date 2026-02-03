@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Table,
   TableBody,
@@ -31,7 +32,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Shield, Users, Search, Crown, UserCheck, UserX, Copy, Check, Loader2 } from "lucide-react";
+import { Shield, Users, Search, Crown, UserCheck, UserX, Copy, Check, Loader2, Calendar } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 interface UserProfile {
@@ -302,7 +305,8 @@ export default function Admin() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nome</TableHead>
+                  <TableHead>Usuário</TableHead>
+                  <TableHead>Entrada</TableHead>
                   <TableHead>Public ID</TableHead>
                   <TableHead>User ID</TableHead>
                   <TableHead>Assinatura</TableHead>
@@ -317,19 +321,36 @@ export default function Admin() {
                   return (
                     <TableRow key={user.id}>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          {user.first_name || user.last_name ? (
-                            <span className="font-medium">
-                              {user.first_name} {user.last_name}
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground italic">
-                              Sem nome
-                            </span>
-                          )}
-                          {userIsAdmin && (
-                            <Crown className="h-4 w-4 text-yellow-500" />
-                          )}
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={user.avatar_url || undefined} alt={user.first_name || 'User'} />
+                            <AvatarFallback className="bg-primary/10 text-primary">
+                              {user.first_name?.charAt(0)?.toUpperCase() || '?'}
+                              {user.last_name?.charAt(0)?.toUpperCase() || ''}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex items-center gap-2">
+                            {user.first_name || user.last_name ? (
+                              <span className="text-base font-bold">
+                                {user.first_name} {user.last_name}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground italic">
+                                Sem nome
+                              </span>
+                            )}
+                            {userIsAdmin && (
+                              <Crown className="h-4 w-4 text-yellow-500" />
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Calendar className="h-4 w-4" />
+                          <span className="text-sm">
+                            {format(new Date(user.created_at), "dd MMM yyyy", { locale: ptBR })}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -486,7 +507,7 @@ export default function Admin() {
                 })}
                 {filteredUsers.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       Nenhum usuário encontrado
                     </TableCell>
                   </TableRow>
