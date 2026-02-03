@@ -48,10 +48,30 @@ export function CalendarDayView({
   const scrollRef = useRef<HTMLDivElement>(null);
   const dayColumnRef = useRef<HTMLDivElement>(null);
 
-  // Drag state
+  // Drag-to-create state
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartMinutes, setDragStartMinutes] = useState(0);
   const [dragEndMinutes, setDragEndMinutes] = useState(0);
+
+  // Drag-to-move state
+  const [movingBlock, setMovingBlock] = useState<CalendarBlock | null>(null);
+  const [moveTargetMinutes, setMoveTargetMinutes] = useState(0);
+  const [moveOffsetMinutes, setMoveOffsetMinutes] = useState(0);
+
+  // Click vs drag detection
+  const [pendingDragBlock, setPendingDragBlock] = useState<CalendarBlock | null>(null);
+  const [dragStartPos, setDragStartPos] = useState<{ x: number; y: number } | null>(null);
+  const [dragStartTime, setDragStartTime] = useState<number>(0);
+  const DRAG_THRESHOLD = 5;
+  const DRAG_TIME_THRESHOLD = 150;
+
+  // Recurrence dialog state
+  const [recurrenceDialogOpen, setRecurrenceDialogOpen] = useState(false);
+  const [pendingMove, setPendingMove] = useState<{
+    block: CalendarBlock;
+    newStart: Date;
+    newEnd: Date;
+  } | null>(null);
 
   // Scroll to current time on mount
   useEffect(() => {
