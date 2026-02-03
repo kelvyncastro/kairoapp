@@ -173,13 +173,15 @@ export function RankingCard({ ranking, onSelect }: RankingCardProps) {
           )}
 
           {/* Bet Info */}
-          {ranking.bet_description && (
+          {(ranking.bet_description || ranking.bet_amount) && (
             <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
               <div className="flex items-center gap-2 text-yellow-500 text-xs font-medium mb-1">
                 <Coins className="h-3 w-3" />
-                Aposta: {ranking.bet_amount}
+                {ranking.bet_amount ? `Aposta: ${ranking.bet_amount}` : 'Com Aposta'}
               </div>
-              <p className="text-xs text-muted-foreground line-clamp-2">{ranking.bet_description}</p>
+              {ranking.bet_description && (
+                <p className="text-xs text-muted-foreground line-clamp-2">{ranking.bet_description}</p>
+              )}
             </div>
           )}
 
