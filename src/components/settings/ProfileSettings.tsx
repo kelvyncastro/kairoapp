@@ -256,10 +256,39 @@ export function ProfileSettings() {
       <div className="cave-card p-6">
         <h2 className="text-lg font-bold uppercase tracking-wider mb-6">Conta</h2>
         
-        <Button variant="destructive" onClick={signOut}>
-          <LogOut className="mr-2 h-4 w-4" />
-          Sair da conta
-        </Button>
+        <div className="space-y-4">
+          {/* User ID */}
+          {profile?.public_id && (
+            <div>
+              <Label className="text-muted-foreground">Seu ID público</Label>
+              <div className="flex items-center gap-2 mt-1.5">
+                <Input
+                  value={profile.public_id}
+                  disabled
+                  className="max-w-xs bg-muted font-mono text-sm"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    navigator.clipboard.writeText(profile.public_id || '');
+                    toast.success('ID copiado!');
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Compartilhe este ID para que outros usuários possam te encontrar
+              </p>
+            </div>
+          )}
+
+          <Button variant="destructive" onClick={signOut}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Sair da conta
+          </Button>
+        </div>
       </div>
     </div>
   );
