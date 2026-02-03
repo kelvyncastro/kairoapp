@@ -397,6 +397,10 @@ export default function AppLayout() {
             <div className="hidden md:block" />
 
             <div className="flex items-center gap-2">
+              {/* Notifications */}
+              <NotificationBell />
+              
+              {/* Profile */}
               {/* Profile */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
