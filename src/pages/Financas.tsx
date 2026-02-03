@@ -263,7 +263,7 @@ export default function Financas() {
     const monthStart = format(startOfMonth(currentMonth), "yyyy-MM-dd");
     const monthEnd = format(endOfMonth(currentMonth), "yyyy-MM-dd");
 
-    const [sectorsRes, transactionsRes] = await Promise.all([
+    const [sectorsRes, transactionsRes, allTransactionsRes] = await Promise.all([
       supabase.from("finance_sectors").select("*").eq("user_id", user.id).order("name"),
       supabase
         .from("finance_transactions")
@@ -272,6 +272,12 @@ export default function Financas() {
         .gte("date", monthStart)
         .lte("date", monthEnd)
         .order("date", { ascending: false }),
+      // Fetch all transactions for investment evolution chart
+      supabase
+        .from("finance_transactions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("date", { ascending: true }),
     ]);
 
     const sectorsData = (sectorsRes.data as Sector[]) || [];
@@ -286,6 +292,7 @@ export default function Financas() {
     }
     
     setTransactions((transactionsRes.data as Transaction[]) || []);
+    setAllTransactions((allTransactionsRes.data as Transaction[]) || []);
     setLoading(false);
   }, [user, currentMonth, createDefaultSectors]);
 
