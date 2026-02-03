@@ -100,6 +100,15 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
     setSelectedDate(prev => direction === 'prev' ? subDays(prev, 1) : addDays(prev, 1));
   };
 
+  const handleDeleteRanking = async () => {
+    setDeleting(true);
+    const success = await deleteRanking(ranking.id);
+    if (success) {
+      onBack();
+    }
+    setDeleting(false);
+  };
+
   const canNavigatePrev = selectedDate > startDate;
   const canNavigateNext = selectedDate < endDate;
 
