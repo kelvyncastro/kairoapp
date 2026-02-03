@@ -413,6 +413,36 @@ export function useRankings() {
     }
   };
 
+  const deleteRanking = async (rankingId: string) => {
+    if (!user) return;
+
+    try {
+      // Delete ranking (cascade will handle participants, goals, and logs)
+      const { error } = await supabase
+        .from('rankings')
+        .delete()
+        .eq('id', rankingId)
+        .eq('creator_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Ranking excluído!",
+        description: "O ranking foi removido com sucesso."
+      });
+
+      await fetchRankings();
+      return true;
+    } catch (error) {
+      console.error('Error deleting ranking:', error);
+      toast({
+        title: "Erro ao excluir ranking",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
   return {
     rankings,
     loading,
@@ -422,6 +452,7 @@ export function useRankings() {
     respondToInvite,
     toggleGoalCompletion,
     getGoalLogs,
-    startRanking
+    startRanking,
+    deleteRanking
   };
 }

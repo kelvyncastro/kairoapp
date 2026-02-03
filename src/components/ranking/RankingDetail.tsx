@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { 
   Trophy, Calendar, Target, Users, Coins, ArrowLeft, 
-  Check, ChevronLeft, ChevronRight, Crown, Medal, Pencil, Sparkles
+  Check, ChevronLeft, ChevronRight, Crown, Medal, Pencil, Sparkles, Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,17 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { RankingWithDetails, RankingGoalLog } from "@/types/ranking";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRankings } from "@/hooks/useRankings";
@@ -25,7 +36,7 @@ interface RankingDetailProps {
 
 export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetailProps) {
   const { user } = useAuth();
-  const { toggleGoalCompletion, getGoalLogs, fetchRankings, rankings } = useRankings();
+  const { toggleGoalCompletion, getGoalLogs, fetchRankings, rankings, deleteRanking } = useRankings();
   
   // Get the latest ranking data from the hook
   const ranking = rankings.find(r => r.id === initialRanking.id) || initialRanking;
@@ -33,12 +44,14 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [goalLogs, setGoalLogs] = useState<RankingGoalLog[]>([]);
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const startDate = parseISO(ranking.start_date);
   const endDate = parseISO(ranking.end_date);
   const isActive = ranking.status === 'active';
   const isCreator = ranking.creator_id === user?.id;
   const canEdit = isCreator && ranking.status === 'pending';
+  const canDelete = isCreator;
   
   const isDateInRange = isWithinInterval(selectedDate, { start: startDate, end: endDate });
   const canEditGoals = isActive && isDateInRange;
@@ -87,6 +100,15 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
     setSelectedDate(prev => direction === 'prev' ? subDays(prev, 1) : addDays(prev, 1));
   };
 
+  const handleDeleteRanking = async () => {
+    setDeleting(true);
+    const success = await deleteRanking(ranking.id);
+    if (success) {
+      onBack();
+    }
+    setDeleting(false);
+  };
+
   const canNavigatePrev = selectedDate > startDate;
   const canNavigateNext = selectedDate < endDate;
 
@@ -119,6 +141,35 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
                 </Button>
               }
             />
+          )}
+          {canDelete && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive">
+                  <Trash2 className="h-4 w-4" />
+                  Excluir
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir Ranking</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza que deseja excluir o ranking "{ranking.name}"? 
+                    Esta ação não pode ser desfeita e todos os dados serão perdidos.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleDeleteRanking}
+                    disabled={deleting}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {deleting ? "Excluindo..." : "Excluir"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
           <Badge className={cn(
             ranking.status === 'active' && "bg-green-500/20 text-green-500",
