@@ -831,6 +831,17 @@ export default function Financas() {
               />
             </TabsContent>
 
+            <TabsContent value="investments" className="mt-0">
+              <InvestmentsTab
+                sectors={sectors}
+                transactions={transactions}
+                allTransactions={allTransactions}
+                onEditTransaction={(t) => setEditingTransaction(t)}
+                onDeleteTransaction={handleDeleteTransaction}
+                currentMonth={currentMonth}
+              />
+            </TabsContent>
+
             <TabsContent value="transactions" className="space-y-3 md:space-y-4 mt-0">
               {/* Filters and Search */}
               <div className="cave-card p-3 md:p-6">
