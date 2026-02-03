@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { 
   Trophy, Calendar, Target, Users, Coins, ArrowLeft, 
-  Check, ChevronLeft, ChevronRight, Crown, Medal
+  Check, ChevronLeft, ChevronRight, Crown, Medal, Pencil, Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RankingWithDetails, RankingGoalLog } from "@/types/ranking";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRankings } from "@/hooks/useRankings";
+import { CreateRankingDialog } from "./CreateRankingDialog";
 import { format, addDays, subDays, isWithinInterval, parseISO, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -22,9 +23,12 @@ interface RankingDetailProps {
   onBack: () => void;
 }
 
-export function RankingDetail({ ranking, onBack }: RankingDetailProps) {
+export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetailProps) {
   const { user } = useAuth();
-  const { toggleGoalCompletion, getGoalLogs, fetchRankings } = useRankings();
+  const { toggleGoalCompletion, getGoalLogs, fetchRankings, rankings } = useRankings();
+  
+  // Get the latest ranking data from the hook
+  const ranking = rankings.find(r => r.id === initialRanking.id) || initialRanking;
   
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [goalLogs, setGoalLogs] = useState<RankingGoalLog[]>([]);
@@ -33,6 +37,8 @@ export function RankingDetail({ ranking, onBack }: RankingDetailProps) {
   const startDate = parseISO(ranking.start_date);
   const endDate = parseISO(ranking.end_date);
   const isActive = ranking.status === 'active';
+  const isCreator = ranking.creator_id === user?.id;
+  const canEdit = isCreator && ranking.status === 'pending';
   
   const isDateInRange = isWithinInterval(selectedDate, { start: startDate, end: endDate });
   const canEditGoals = isActive && isDateInRange;
@@ -100,15 +106,30 @@ export function RankingDetail({ ranking, onBack }: RankingDetailProps) {
             {format(startDate, "dd MMM", { locale: ptBR })} - {format(endDate, "dd MMM yyyy", { locale: ptBR })}
           </p>
         </div>
-        <Badge className={cn(
-          ranking.status === 'active' && "bg-green-500/20 text-green-500",
-          ranking.status === 'pending' && "bg-yellow-500/20 text-yellow-500",
-          ranking.status === 'completed' && "bg-muted text-muted-foreground"
-        )}>
-          {ranking.status === 'active' && 'Ativo'}
-          {ranking.status === 'pending' && 'Aguardando'}
-          {ranking.status === 'completed' && 'Finalizado'}
-        </Badge>
+        <div className="flex items-center gap-2">
+          {canEdit && (
+            <CreateRankingDialog
+              editMode
+              rankingToEdit={ranking}
+              onSuccess={() => fetchRankings()}
+              trigger={
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Pencil className="h-4 w-4" />
+                  Editar
+                </Button>
+              }
+            />
+          )}
+          <Badge className={cn(
+            ranking.status === 'active' && "bg-green-500/20 text-green-500",
+            ranking.status === 'pending' && "bg-yellow-500/20 text-yellow-500",
+            ranking.status === 'completed' && "bg-muted text-muted-foreground"
+          )}>
+            {ranking.status === 'active' && 'Ativo'}
+            {ranking.status === 'pending' && 'Aguardando'}
+            {ranking.status === 'completed' && 'Finalizado'}
+          </Badge>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
