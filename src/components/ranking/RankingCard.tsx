@@ -82,11 +82,27 @@ export function RankingCard({ ranking, onSelect }: RankingCardProps) {
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Trophy className="h-5 w-5 text-primary" />
+              <div className={cn(
+                "h-10 w-10 rounded-xl flex items-center justify-center",
+                (ranking.bet_description || ranking.bet_amount) 
+                  ? "bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 ring-1 ring-yellow-500/30" 
+                  : "bg-primary/10"
+              )}>
+                {(ranking.bet_description || ranking.bet_amount) ? (
+                  <Coins className="h-5 w-5 text-yellow-500" />
+                ) : (
+                  <Trophy className="h-5 w-5 text-primary" />
+                )}
               </div>
               <div>
-                <CardTitle className="text-lg">{ranking.name}</CardTitle>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-lg">{ranking.name}</CardTitle>
+                  {(ranking.bet_description || ranking.bet_amount) && (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-yellow-500/40 text-yellow-500 bg-yellow-500/10">
+                      💰 Aposta
+                    </Badge>
+                  )}
+                </div>
                 {ranking.creator_profile && (
                   <p className="text-xs text-muted-foreground">
                     por {ranking.creator_profile.first_name || 'Usuário'}
