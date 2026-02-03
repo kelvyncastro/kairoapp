@@ -50,7 +50,7 @@ export function useCalendarBlocks({ view, currentDate }: UseCalendarBlocksOption
         priority: block.priority as CalendarPriority,
         status: block.status as CalendarBlockStatus,
         recurrence_type: block.recurrence_type as CalendarRecurrenceType,
-        recurrence_rule: block.recurrence_rule as RecurrenceRule | null,
+        recurrence_rule: block.recurrence_rule as unknown as RecurrenceRule | null,
       }));
       
       setBlocks(mappedBlocks);
