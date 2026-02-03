@@ -141,8 +141,8 @@ export function CalendarBlockModal({
     }
   }, [block, defaultStartTime, defaultEndTime, open]);
 
-  const handleSave = async () => {
-    if (!title.trim()) return;
+  const handleSave = useCallback(async () => {
+    if (!title.trim() || saving) return;
 
     setSaving(true);
     try {
@@ -179,7 +179,24 @@ export function CalendarBlockModal({
     } finally {
       setSaving(false);
     }
-  };
+  }, [title, saving, recurrenceType, recurrenceInterval, selectedDays, recurrenceEndDate, onSave, startTime, endTime, demandType, priority, block, color, onClose]);
+
+  // Handle Enter key to save
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.shiftKey && open) {
+        // Don't trigger on textarea or when focus is on a button
+        const target = e.target as HTMLElement;
+        if (target.tagName === 'TEXTAREA') return;
+        
+        e.preventDefault();
+        handleSave();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open, handleSave]);
 
   const handleDelete = async () => {
     if (!block || !onDelete) return;
