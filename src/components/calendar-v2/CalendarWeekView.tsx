@@ -102,12 +102,7 @@ export function CalendarWeekView({
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isDragging || !dragDay) return;
-    
-    const dayKey = format(dragDay, 'yyyy-MM-dd');
-    const dayColumn = document.querySelector(`[data-day="${dayKey}"]`) as HTMLElement;
-    if (!dayColumn) return;
-    
-    const minutes = getMinutesFromY(e.clientY, dayColumn);
+    const minutes = getMinutesFromY(e.clientY);
     setDragEndMinutes(minutes);
   }, [isDragging, dragDay, getMinutesFromY]);
 
