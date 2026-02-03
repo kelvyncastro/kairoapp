@@ -185,9 +185,16 @@ export function useCalendarBlocks({ view, currentDate }: UseCalendarBlocksOption
 
   const updateBlock = async (id: string, updates: Partial<CalendarBlock>) => {
     try {
+      // Remove computed fields and convert types for Supabase
+      const { duration_minutes, recurrence_rule, ...rest } = updates;
+      const dbUpdates: Record<string, unknown> = { ...rest };
+      if (recurrence_rule !== undefined) {
+        dbUpdates.recurrence_rule = recurrence_rule as unknown as Record<string, unknown>;
+      }
+      
       const { error } = await supabase
         .from('calendar_blocks')
-        .update(updates)
+        .update(dbUpdates)
         .eq('id', id);
 
       if (error) throw error;

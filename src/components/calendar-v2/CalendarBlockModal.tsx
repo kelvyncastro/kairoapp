@@ -169,7 +169,7 @@ export function CalendarBlockModal({
         recurrence_rule: finalRecurrenceRule,
         recurrence_end_date: recurrenceEndDate?.toISOString().split('T')[0] || null,
         recurrence_parent_id: block?.recurrence_parent_id || null,
-        is_recurrence_paused: block?.is_recurrence_paused || false,
+        is_recurrence_paused: block?.is_recurrence_paused ?? false,
         actual_start_time: block?.actual_start_time || null,
         actual_end_time: block?.actual_end_time || null,
         completed_at: block?.completed_at || null,
