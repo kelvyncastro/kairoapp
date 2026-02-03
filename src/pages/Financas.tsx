@@ -18,6 +18,7 @@ import {
   MessageCircle,
   Brain,
   Tags,
+  ChartLine,
 } from "lucide-react";
 import { FinanceChat } from "@/components/finance/FinanceChat";
 import { FinanceAnalysis } from "@/components/finance/FinanceAnalysis";
