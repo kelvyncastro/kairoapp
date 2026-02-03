@@ -107,7 +107,7 @@ export function useCalendarBlocks({ view, currentDate }: UseCalendarBlocksOption
 
       const { data, error } = await supabase
         .from('calendar_blocks')
-        .insert(insertData)
+        .insert(insertData as any)
         .select()
         .single();
 
