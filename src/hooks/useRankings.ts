@@ -418,6 +418,7 @@ export function useRankings() {
     loading,
     fetchRankings,
     createRanking,
+    updateRanking,
     respondToInvite,
     toggleGoalCompletion,
     getGoalLogs,
