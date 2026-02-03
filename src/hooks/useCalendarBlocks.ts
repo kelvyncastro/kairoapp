@@ -95,12 +95,19 @@ export function useCalendarBlocks({ view, currentDate }: UseCalendarBlocksOption
     if (!user) return null;
 
     try {
+      // Convert for Supabase types
+      const { recurrence_rule, ...rest } = block;
+      const insertData: Record<string, unknown> = {
+        ...rest,
+        user_id: user.id,
+      };
+      if (recurrence_rule !== undefined) {
+        insertData.recurrence_rule = recurrence_rule as unknown as Record<string, unknown>;
+      }
+
       const { data, error } = await supabase
         .from('calendar_blocks')
-        .insert({
-          ...block,
-          user_id: user.id,
-        })
+        .insert(insertData)
         .select()
         .single();
 
