@@ -133,7 +133,7 @@ export function CalendarBlockModal({
       setEndTime(defaultEndTime || addMinutes(defaultStartTime || new Date(), 60));
       setDemandType('fixed');
       setPriority('medium');
-      setColor(COLORS[0]);
+      setColor(COLORS[0].value);
       setRecurrenceType('none');
       setRecurrenceRule(null);
       setRecurrenceEndDate(undefined);
