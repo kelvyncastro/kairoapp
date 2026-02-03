@@ -361,19 +361,27 @@ export function CalendarBlockModal({
 
           {/* Color */}
           <div>
-            <Label>Cor</Label>
-            <div className="flex flex-wrap gap-2 mt-1.5">
+            <Label className="mb-2 block">Cor do bloco</Label>
+            <div className="grid grid-cols-6 gap-2">
               {COLORS.map((c) => (
                 <button
-                  key={c}
+                  key={c.value}
                   type="button"
-                  onClick={() => setColor(c)}
+                  onClick={() => setColor(c.value)}
                   className={cn(
-                    "w-7 h-7 rounded-full border-2 transition-transform",
-                    color === c ? "scale-110 border-foreground" : "border-transparent hover:scale-105"
+                    "group relative w-full aspect-square rounded-lg transition-all duration-200",
+                    "hover:scale-105 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background",
+                    color === c.value 
+                      ? "ring-2 ring-foreground ring-offset-2 ring-offset-background scale-105" 
+                      : "hover:ring-1 hover:ring-muted-foreground/50"
                   )}
-                  style={{ backgroundColor: c }}
-                />
+                  style={{ backgroundColor: c.value }}
+                  title={c.name}
+                >
+                  {color === c.value && (
+                    <Check className="absolute inset-0 m-auto h-4 w-4 text-white drop-shadow-md" />
+                  )}
+                </button>
               ))}
             </div>
           </div>
