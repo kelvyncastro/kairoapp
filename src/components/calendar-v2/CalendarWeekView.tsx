@@ -231,6 +231,19 @@ export function CalendarWeekView({
   }, [getMinutesFromY]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    // Check if we should start dragging a block (click vs drag detection)
+    if (pendingDragBlock && dragStartPos) {
+      const dx = Math.abs(e.clientX - dragStartPos.x);
+      const dy = Math.abs(e.clientY - dragStartPos.y);
+      const elapsed = Date.now() - dragStartTime;
+      
+      // Start drag if moved enough OR held long enough while moving
+      if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD || (elapsed > DRAG_TIME_THRESHOLD && (dx > 2 || dy > 2))) {
+        startBlockMove(pendingDragBlock, e.clientY);
+      }
+      return;
+    }
+
     // Handle block moving
     if (movingBlock) {
       const targetDay = getDayFromX(e.clientX);
@@ -248,7 +261,7 @@ export function CalendarWeekView({
     if (!isDragging || !dragDay) return;
     const minutes = getMinutesFromY(e.clientY);
     setDragEndMinutes(minutes);
-  }, [isDragging, dragDay, getMinutesFromY, movingBlock, getDayFromX, moveOffsetMinutes]);
+  }, [isDragging, dragDay, getMinutesFromY, movingBlock, getDayFromX, moveOffsetMinutes, pendingDragBlock, dragStartPos, dragStartTime, startBlockMove]);
 
   const handleMouseUp = useCallback(async () => {
     // Handle block move completion
