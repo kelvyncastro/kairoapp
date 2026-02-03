@@ -250,7 +250,47 @@ export function useCalendarBlocks({ view, currentDate }: UseCalendarBlocksOption
     });
   };
 
-  const moveBlock = async (id: string, newStartTime: Date, newEndTime: Date) => {
+  const moveBlock = async (id: string, newStartTime: Date, newEndTime: Date, scope?: 'this' | 'all') => {
+    const block = blocks.find(b => b.id === id);
+    
+    // If scope is 'all' and it's part of a recurring series, update all instances
+    if (scope === 'all' && block) {
+      const parentId = block.recurrence_parent_id || id;
+      
+      // Calculate the time difference
+      const oldStart = new Date(block.start_time);
+      const timeDiff = newStartTime.getTime() - oldStart.getTime();
+      
+      // Get all related blocks
+      const { data: relatedBlocks } = await supabase
+        .from('calendar_blocks')
+        .select('*')
+        .or(`id.eq.${parentId},recurrence_parent_id.eq.${parentId}`);
+      
+      if (relatedBlocks) {
+        // Update each block with the time difference
+        for (const relBlock of relatedBlocks) {
+          const relOldStart = new Date(relBlock.start_time);
+          const relOldEnd = new Date(relBlock.end_time);
+          const relNewStart = new Date(relOldStart.getTime() + timeDiff);
+          const relNewEnd = new Date(relOldEnd.getTime() + timeDiff);
+          
+          await supabase
+            .from('calendar_blocks')
+            .update({
+              start_time: relNewStart.toISOString(),
+              end_time: relNewEnd.toISOString(),
+            })
+            .eq('id', relBlock.id);
+        }
+        
+        toast.success('Todos os eventos atualizados!');
+        fetchBlocks();
+        return true;
+      }
+    }
+    
+    // Just update this single instance
     return updateBlock(id, {
       start_time: newStartTime.toISOString(),
       end_time: newEndTime.toISOString(),

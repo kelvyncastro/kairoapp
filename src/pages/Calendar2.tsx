@@ -247,6 +247,7 @@ export default function Calendar2() {
               onBlockClick={handleBlockClick}
               onDayClick={handleDayClick}
               onSlotSelect={handleSlotSelect}
+              onBlockMove={moveBlock}
             />
           )}
           {view === 'month' && (
