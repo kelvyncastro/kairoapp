@@ -201,6 +201,77 @@ export function useRankings() {
     }
   };
 
+  const updateRanking = async (
+    rankingId: string,
+    data: {
+      name: string;
+      description?: string;
+      start_date: string;
+      end_date: string;
+      bet_description?: string;
+      bet_amount?: string;
+      goals: { title: string; description?: string }[];
+    }
+  ) => {
+    if (!user) return null;
+
+    try {
+      // Update ranking
+      const { error: rankingError } = await supabase
+        .from('rankings')
+        .update({
+          name: data.name,
+          description: data.description || null,
+          start_date: data.start_date,
+          end_date: data.end_date,
+          bet_description: data.bet_description || null,
+          bet_amount: data.bet_amount || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', rankingId)
+        .eq('creator_id', user.id);
+
+      if (rankingError) throw rankingError;
+
+      // Delete existing goals and recreate them
+      await supabase
+        .from('ranking_goals')
+        .delete()
+        .eq('ranking_id', rankingId);
+
+      // Create new goals
+      if (data.goals.length > 0) {
+        const goalsToInsert = data.goals.map((goal, index) => ({
+          ranking_id: rankingId,
+          title: goal.title,
+          description: goal.description || null,
+          order_index: index
+        }));
+
+        const { error: goalsError } = await supabase
+          .from('ranking_goals')
+          .insert(goalsToInsert);
+
+        if (goalsError) throw goalsError;
+      }
+
+      toast({
+        title: "Ranking atualizado!",
+        description: "As alterações foram salvas com sucesso."
+      });
+
+      await fetchRankings();
+      return true;
+    } catch (error) {
+      console.error('Error updating ranking:', error);
+      toast({
+        title: "Erro ao atualizar ranking",
+        variant: "destructive"
+      });
+      return null;
+    }
+  };
+
   const respondToInvite = async (rankingId: string, accept: boolean, acceptBet: boolean = false) => {
     if (!user) return;
 
