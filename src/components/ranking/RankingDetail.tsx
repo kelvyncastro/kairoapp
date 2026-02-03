@@ -191,7 +191,9 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
             <CreateRankingDialog
               editMode
               rankingToEdit={ranking}
-              onSuccess={() => fetchRankings()}
+              onSuccess={async () => {
+                await fetchRankings();
+              }}
               trigger={
                 <Button variant="outline" size="sm" className="gap-2">
                   <Pencil className="h-4 w-4" />

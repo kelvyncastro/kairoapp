@@ -315,6 +315,16 @@ export function useRankings() {
       const ranking = rankings.find(r => r.id === rankingId);
       if (!ranking) return;
 
+      // Prevent changes if ranking is completed
+      if (ranking.status === 'completed') {
+        toast({
+          title: "Ranking finalizado",
+          description: "Não é possível alterar metas de um ranking finalizado.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const totalGoals = ranking.goals.length;
       const pointsPerGoal = totalGoals > 0 ? 10 / totalGoals : 0;
 
@@ -329,7 +339,7 @@ export function useRankings() {
 
       if (existingLog) {
         // Update existing log
-        await supabase
+        const { error: updateError } = await supabase
           .from('ranking_goal_logs')
           .update({
             completed,
@@ -337,9 +347,11 @@ export function useRankings() {
             updated_at: new Date().toISOString()
           })
           .eq('id', existingLog.id);
+
+        if (updateError) throw updateError;
       } else {
         // Create new log
-        await supabase
+        const { error: insertError } = await supabase
           .from('ranking_goal_logs')
           .insert({
             ranking_id: rankingId,
@@ -349,6 +361,8 @@ export function useRankings() {
             completed,
             points_earned: completed ? pointsPerGoal : 0
           });
+
+        if (insertError) throw insertError;
       }
 
       // Update total points for participant
@@ -360,15 +374,23 @@ export function useRankings() {
 
       const totalPoints = (allLogs || []).reduce((sum, log) => sum + Number(log.points_earned), 0);
 
-      await supabase
+      const { error: pointsError } = await supabase
         .from('ranking_participants')
         .update({ total_points: totalPoints })
         .eq('ranking_id', rankingId)
         .eq('user_id', user.id);
 
+      if (pointsError) throw pointsError;
+
+      // Immediately refetch to update UI
       await fetchRankings();
     } catch (error) {
       console.error('Error toggling goal:', error);
+      toast({
+        title: "Erro ao atualizar meta",
+        description: "Ocorreu um erro ao marcar/desmarcar a meta.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -587,6 +609,43 @@ export function useRankings() {
     }
   };
 
+  // Check and finalize expired rankings
+  const checkAndFinalizeExpiredRankings = useCallback(async () => {
+    if (!user) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Find active rankings that have passed their end_date
+    const expiredRankings = rankings.filter(r => {
+      if (r.status !== 'active') return false;
+      const endDate = new Date(r.end_date);
+      endDate.setHours(23, 59, 59, 999);
+      return today > endDate;
+    });
+
+    if (expiredRankings.length === 0) return;
+
+    // Update each expired ranking to completed
+    for (const ranking of expiredRankings) {
+      try {
+        const { error } = await supabase
+          .from('rankings')
+          .update({ status: 'completed' })
+          .eq('id', ranking.id);
+
+        if (error) {
+          console.error('Error finalizing ranking:', error);
+        }
+      } catch (error) {
+        console.error('Error finalizing ranking:', error);
+      }
+    }
+
+    // Refetch to update UI
+    await fetchRankings();
+  }, [user, rankings, fetchRankings]);
+
   return {
     rankings,
     loading,
@@ -600,6 +659,7 @@ export function useRankings() {
     deleteRanking,
     requestDeletion,
     consentToDeletion,
-    cancelDeletionRequest
+    cancelDeletionRequest,
+    checkAndFinalizeExpiredRankings
   };
 }
