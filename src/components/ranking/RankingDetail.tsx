@@ -341,6 +341,19 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
             </Badge>
           )}
 
+          {/* Button to replay winner celebration */}
+          {ranking.status === 'completed' && winner && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2 border-yellow-500/30 text-yellow-500 hover:bg-yellow-500/10"
+              onClick={() => setShowWinnerCelebration(true)}
+            >
+              <Trophy className="h-4 w-4" />
+              Ver Celebração
+            </Button>
+          )}
+
           <Badge className={cn(
             ranking.status === 'active' && "bg-green-500/20 text-green-500",
             ranking.status === 'pending' && "bg-yellow-500/20 text-yellow-500",
