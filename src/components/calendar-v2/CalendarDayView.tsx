@@ -262,7 +262,21 @@ export function CalendarDayView({
     return { top, height, startMin, endMin: finalEndMin };
   };
 
+  // Get moving block preview style
+  const getMovingBlockStyle = () => {
+    if (!movingBlock) return null;
+    const blockStart = new Date(movingBlock.start_time);
+    const blockEnd = new Date(movingBlock.end_time);
+    const duration = differenceInMinutes(blockEnd, blockStart);
+    
+    const top = (moveTargetMinutes / 60) * HOUR_HEIGHT;
+    const height = Math.max((duration / 60) * HOUR_HEIGHT, 28);
+    
+    return { top, height };
+  };
+
   const dragPreviewStyle = getDragPreviewStyle();
+  const movingBlockStyle = getMovingBlockStyle();
 
   return (
     <div 
