@@ -135,73 +135,71 @@ export default function Calendar2() {
   return (
     <div className="h-full flex flex-col -m-4 md:-m-6 bg-background overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-border/50 bg-card flex-shrink-0">
-        <div className="flex items-center gap-4">
-          <h1 className="text-xl font-bold hidden md:block">Calendar 2.0</h1>
-          
+      <div className="flex items-center justify-between px-3 md:px-4 py-2 border-b border-border/30 bg-background flex-shrink-0">
+        <div className="flex items-center gap-2 md:gap-4">
           {/* Navigation */}
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={goToPrevious}>
+          <div className="flex items-center gap-0.5">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={goToPrevious}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="sm" onClick={goToToday}>
+            <Button variant="ghost" size="sm" className="h-8 px-3 text-sm" onClick={goToToday}>
               Hoje
             </Button>
-            <Button variant="ghost" size="icon" onClick={goToNext}>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={goToNext}>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
           
-          <span className="text-sm font-medium capitalize">{getViewTitle()}</span>
+          <span className="text-lg font-semibold capitalize hidden sm:block">{getViewTitle()}</span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {/* View toggle */}
-          <div className="flex items-center gap-0.5 bg-muted/50 rounded-lg p-0.5">
+          <div className="flex items-center border border-border/50 rounded-lg overflow-hidden">
             <Button
               variant={view === 'day' ? 'secondary' : 'ghost'}
               size="sm"
-              className="h-8 px-3"
+              className="h-8 px-3 rounded-none border-0"
               onClick={() => setView('day')}
             >
               <Calendar className="h-4 w-4 md:mr-1.5" />
-              <span className="hidden md:inline">Dia</span>
+              <span className="hidden md:inline text-xs">Dia</span>
             </Button>
             <Button
               variant={view === 'week' ? 'secondary' : 'ghost'}
               size="sm"
-              className="h-8 px-3"
+              className="h-8 px-3 rounded-none border-0 border-x border-border/30"
               onClick={() => setView('week')}
             >
               <CalendarDays className="h-4 w-4 md:mr-1.5" />
-              <span className="hidden md:inline">Semana</span>
+              <span className="hidden md:inline text-xs">Semana</span>
             </Button>
             <Button
               variant={view === 'month' ? 'secondary' : 'ghost'}
               size="sm"
-              className="h-8 px-3"
+              className="h-8 px-3 rounded-none border-0"
               onClick={() => setView('month')}
             >
               <CalendarRange className="h-4 w-4 md:mr-1.5" />
-              <span className="hidden md:inline">Mês</span>
+              <span className="hidden md:inline text-xs">Mês</span>
             </Button>
           </div>
 
           {/* Reorganize button (day view only) */}
           {view === 'day' && (
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={handleReorganize}
               disabled={isReorganizing || loading}
-              className="hidden md:flex"
+              className="hidden md:flex h-8"
             >
               {isReorganizing ? (
                 <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
               ) : (
                 <Sparkles className="h-4 w-4 mr-1.5" />
               )}
-              Reorganizar
+              <span className="text-xs">Reorganizar</span>
             </Button>
           )}
 
@@ -209,6 +207,7 @@ export default function Calendar2() {
           <Button
             variant="ghost"
             size="icon"
+            className="h-8 w-8"
             onClick={refetch}
             disabled={loading}
           >
@@ -216,9 +215,9 @@ export default function Calendar2() {
           </Button>
 
           {/* Add new */}
-          <Button size="sm" onClick={handleCreateNew}>
+          <Button size="sm" className="h-8" onClick={handleCreateNew}>
             <Plus className="h-4 w-4 md:mr-1.5" />
-            <span className="hidden md:inline">Nova demanda</span>
+            <span className="hidden md:inline text-xs">Nova demanda</span>
           </Button>
         </div>
       </div>
