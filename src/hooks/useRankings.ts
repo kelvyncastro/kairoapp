@@ -57,6 +57,7 @@ export function useRankings() {
   const [rankings, setRankings] = useState<Ranking[]>([]);
   const [loading, setLoading] = useState(true);
   const fetchingRef = useRef(false);
+  const profilesCacheRef = useRef<Map<string, UserProfile>>(new Map());
 
   const fetchRankings = useCallback(async () => {
     if (!user || fetchingRef.current) return;
@@ -113,10 +114,10 @@ export function useRankings() {
             .in("user_id", participantUserIds)
         : { data: [] };
 
-      const profilesMap = new Map<string, UserProfile>();
+      // Update cache
       [...(creatorProfiles || []), ...(participantProfiles || [])].forEach(
         (p) => {
-          profilesMap.set(p.user_id, p as UserProfile);
+          profilesCacheRef.current.set(p.user_id, p as UserProfile);
         }
       );
 
@@ -126,7 +127,7 @@ export function useRankings() {
           .filter((p) => p.ranking_id === ranking.id)
           .map((p) => ({
             ...p,
-            profile: profilesMap.get(p.user_id),
+            profile: profilesCacheRef.current.get(p.user_id),
           }));
 
         const rankingGoals = goals.filter((g) => g.ranking_id === ranking.id);
@@ -135,7 +136,7 @@ export function useRankings() {
           ...ranking,
           participants: rankingParticipants,
           goals: rankingGoals,
-          creator_profile: profilesMap.get(ranking.creator_id),
+          creator_profile: profilesCacheRef.current.get(ranking.creator_id),
         };
       });
 
@@ -166,15 +167,38 @@ export function useRankings() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "rankings" },
-        () => {
-          fetchRankings();
+        (payload) => {
+          if (payload.eventType === "UPDATE" && payload.new) {
+            // Optimistic update for ranking changes
+            setRankings((prev) =>
+              prev.map((r) =>
+                r.id === payload.new.id ? { ...r, ...payload.new } : r
+              )
+            );
+          } else {
+            fetchRankings();
+          }
         }
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "ranking_participants" },
-        () => {
-          fetchRankings();
+        (payload) => {
+          if (payload.eventType === "UPDATE" && payload.new) {
+            // Optimistic update for participant changes
+            setRankings((prev) =>
+              prev.map((r) => ({
+                ...r,
+                participants: r.participants.map((p) =>
+                  p.id === payload.new.id
+                    ? { ...p, ...payload.new }
+                    : p
+                ),
+              }))
+            );
+          } else {
+            fetchRankings();
+          }
         }
       )
       .on(
@@ -187,8 +211,28 @@ export function useRankings() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "ranking_goal_logs" },
-        () => {
-          fetchRankings();
+        (payload) => {
+          if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+            // Update participant points optimistically
+            const log = payload.new as { ranking_id: string; user_id: string; points_earned: number };
+            setRankings((prev) =>
+              prev.map((r) => {
+                if (r.id !== log.ranking_id) return r;
+                return {
+                  ...r,
+                  participants: r.participants.map((p) => {
+                    if (p.user_id !== log.user_id) return p;
+                    // Recalculate or just trigger a refetch for accurate totals
+                    return p;
+                  }),
+                };
+              })
+            );
+            // Full refetch to get accurate point totals
+            fetchRankings();
+          } else {
+            fetchRankings();
+          }
         }
       )
       .subscribe();
