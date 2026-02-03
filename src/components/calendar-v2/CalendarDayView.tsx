@@ -356,97 +356,124 @@ export function CalendarDayView({
               </div>
             )}
 
+            {/* Moving block preview */}
+            {movingBlock && movingBlockStyle && (
+              <div
+                className="absolute left-2 right-4 rounded-lg px-3 py-1.5 pointer-events-none z-30 opacity-80 shadow-lg ring-2 ring-primary"
+                style={{
+                  top: movingBlockStyle.top,
+                  height: movingBlockStyle.height,
+                  backgroundColor: movingBlock.color || 'hsl(207, 90%, 54%)',
+                }}
+              >
+                <div className="truncate font-semibold text-white text-sm">{movingBlock.title}</div>
+              </div>
+            )}
+
             {/* Current time indicator */}
             {isToday(currentDate) && <CurrentTimeIndicator hourHeight={HOUR_HEIGHT} />}
 
             {/* Blocks */}
-            {positionedBlocks.map((block) => (
-              <ContextMenu key={block.id}>
-                <ContextMenuTrigger asChild>
-                  <div
-                    className={cn(
-                      "absolute left-2 right-4 rounded-lg px-3 py-1.5 cursor-pointer",
-                      "text-white overflow-hidden group shadow-sm",
-                      "hover:shadow-lg hover:brightness-110 transition-all",
-                      block.status === 'completed' && "opacity-60"
-                    )}
-                    style={{
-                      top: block.top,
-                      height: block.height,
-                      backgroundColor: block.color || 'hsl(207, 90%, 54%)',
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onBlockClick(block);
-                    }}
-                  >
-                    <div className="flex items-start gap-2 h-full">
-                      <GripVertical className="h-4 w-4 opacity-0 group-hover:opacity-70 transition-opacity flex-shrink-0 cursor-grab mt-0.5" />
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className={cn(
-                            "font-semibold text-sm truncate",
-                            block.status === 'completed' && "line-through"
-                          )}>
-                            {block.title}
-                          </span>
-                          {block.status === 'completed' && (
-                            <Check className="h-3 w-3 flex-shrink-0" />
+            {positionedBlocks.map((block) => {
+              const isBeingMoved = movingBlock?.id === block.id;
+              if (isBeingMoved) return null;
+
+              return (
+                <ContextMenu key={block.id}>
+                  <ContextMenuTrigger asChild>
+                    <div
+                      className={cn(
+                        "absolute left-2 right-4 rounded-lg px-3 py-1.5 cursor-grab active:cursor-grabbing",
+                        "text-white overflow-hidden group shadow-sm",
+                        "hover:shadow-lg hover:brightness-110 transition-all",
+                        block.status === 'completed' && "opacity-60"
+                      )}
+                      style={{
+                        top: block.top,
+                        height: block.height,
+                        backgroundColor: block.color || 'hsl(207, 90%, 54%)',
+                      }}
+                      onMouseDown={(e) => handleBlockMouseDown(e, block)}
+                    >
+                      <div className="flex items-start gap-2 h-full">
+                        <GripVertical className="h-4 w-4 opacity-0 group-hover:opacity-70 transition-opacity flex-shrink-0 cursor-grab mt-0.5" />
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className={cn(
+                              "font-semibold text-sm truncate",
+                              block.status === 'completed' && "line-through"
+                            )}>
+                              {block.title}
+                            </span>
+                            {block.status === 'completed' && (
+                              <Check className="h-3 w-3 flex-shrink-0" />
+                            )}
+                          </div>
+                          
+                          {block.height > 45 && (
+                            <div className="text-xs opacity-80 mt-0.5">
+                              {format(new Date(block.start_time), 'H:mm')} - {format(new Date(block.end_time), 'H:mm')}
+                            </div>
+                          )}
+                          
+                          {block.height > 70 && block.description && (
+                            <p className="text-xs opacity-70 mt-1 line-clamp-2">
+                              {block.description}
+                            </p>
                           )}
                         </div>
                         
-                        {block.height > 45 && (
-                          <div className="text-xs opacity-80 mt-0.5">
-                            {format(new Date(block.start_time), 'H:mm')} - {format(new Date(block.end_time), 'H:mm')}
-                          </div>
-                        )}
-                        
-                        {block.height > 70 && block.description && (
-                          <p className="text-xs opacity-70 mt-1 line-clamp-2">
-                            {block.description}
-                          </p>
-                        )}
+                        {/* Priority indicator */}
+                        <div 
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1 shadow-sm"
+                          style={{ 
+                            backgroundColor: PRIORITY_COLORS[block.priority],
+                          }}
+                        />
                       </div>
-                      
-                      {/* Priority indicator */}
-                      <div 
-                        className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1 shadow-sm"
-                        style={{ 
-                          backgroundColor: PRIORITY_COLORS[block.priority],
-                        }}
-                      />
                     </div>
-                  </div>
-                </ContextMenuTrigger>
-                <ContextMenuContent>
-                  {onBlockComplete && block.status !== 'completed' && (
-                    <ContextMenuItem onClick={() => onBlockComplete(block.id)}>
-                      <Check className="h-4 w-4 mr-2" />
-                      Marcar como concluída
-                    </ContextMenuItem>
-                  )}
-                  {onBlockDuplicate && (
-                    <ContextMenuItem onClick={() => onBlockDuplicate(block)}>
-                      Duplicar
-                    </ContextMenuItem>
-                  )}
-                  <ContextMenuSeparator />
-                  {onBlockDelete && (
-                    <ContextMenuItem 
-                      onClick={() => onBlockDelete(block.id)}
-                      className="text-destructive"
-                    >
-                      Excluir
-                    </ContextMenuItem>
-                  )}
-                </ContextMenuContent>
-              </ContextMenu>
-            ))}
+                  </ContextMenuTrigger>
+                  <ContextMenuContent>
+                    {onBlockComplete && block.status !== 'completed' && (
+                      <ContextMenuItem onClick={() => onBlockComplete(block.id)}>
+                        <Check className="h-4 w-4 mr-2" />
+                        Marcar como concluída
+                      </ContextMenuItem>
+                    )}
+                    {onBlockDuplicate && (
+                      <ContextMenuItem onClick={() => onBlockDuplicate(block)}>
+                        Duplicar
+                      </ContextMenuItem>
+                    )}
+                    <ContextMenuSeparator />
+                    {onBlockDelete && (
+                      <ContextMenuItem 
+                        onClick={() => onBlockDelete(block.id)}
+                        className="text-destructive"
+                      >
+                        Excluir
+                      </ContextMenuItem>
+                    )}
+                  </ContextMenuContent>
+                </ContextMenu>
+              );
+            })}
           </div>
         </div>
       </div>
     </div>
+
+    {/* Recurrence Edit Dialog */}
+    <RecurrenceEditDialog
+      open={recurrenceDialogOpen}
+      onClose={() => {
+        setRecurrenceDialogOpen(false);
+        setPendingMove(null);
+      }}
+      onConfirm={handleRecurrenceConfirm}
+    />
+    </>
   );
 }
 
