@@ -239,7 +239,7 @@ export function CalendarWeekView({
                   "flex-1 relative border-l border-border/30",
                   isToday(day) && "bg-primary/[0.03]"
                 )}
-                onMouseDown={(e) => handleMouseDown(e, day, e.currentTarget)}
+                onMouseDown={(e) => handleMouseDown(e, day)}
               >
                 {/* Hour lines */}
                 {HOURS.map((hour) => (
