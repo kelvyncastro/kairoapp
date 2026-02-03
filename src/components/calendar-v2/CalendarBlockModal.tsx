@@ -182,7 +182,7 @@ export function CalendarBlockModal({
 
   const handleDelete = async () => {
     if (!block || !onDelete) return;
-    const hasRecurrence = block.recurrence_parent_id || block.recurrence_type !== 'none';
+    const hasRecurrence = Boolean(block.recurrence_parent_id) || block.recurrence_type !== 'none';
     await onDelete(block.id, hasRecurrence);
     onClose();
   };
