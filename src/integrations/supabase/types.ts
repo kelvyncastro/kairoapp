@@ -533,6 +533,39 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          data: Json | null
+          id: string
+          message: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          message: string
+          read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       nutrition_days: {
         Row: {
           calories_total: number | null
@@ -584,6 +617,178 @@ export type Database = {
           target_protein?: number | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      ranking_goal_logs: {
+        Row: {
+          completed: boolean
+          created_at: string
+          date: string
+          goal_id: string
+          id: string
+          points_earned: number
+          ranking_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          date: string
+          goal_id: string
+          id?: string
+          points_earned?: number
+          ranking_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          date?: string
+          goal_id?: string
+          id?: string
+          points_earned?: number
+          ranking_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ranking_goal_logs_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "ranking_goals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ranking_goal_logs_ranking_id_fkey"
+            columns: ["ranking_id"]
+            isOneToOne: false
+            referencedRelation: "rankings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ranking_goals: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          order_index: number
+          ranking_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_index?: number
+          ranking_id: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_index?: number
+          ranking_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ranking_goals_ranking_id_fkey"
+            columns: ["ranking_id"]
+            isOneToOne: false
+            referencedRelation: "rankings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ranking_participants: {
+        Row: {
+          accepted_bet: boolean | null
+          created_at: string
+          id: string
+          joined_at: string | null
+          ranking_id: string
+          status: string
+          total_points: number
+          user_id: string
+        }
+        Insert: {
+          accepted_bet?: boolean | null
+          created_at?: string
+          id?: string
+          joined_at?: string | null
+          ranking_id: string
+          status?: string
+          total_points?: number
+          user_id: string
+        }
+        Update: {
+          accepted_bet?: boolean | null
+          created_at?: string
+          id?: string
+          joined_at?: string | null
+          ranking_id?: string
+          status?: string
+          total_points?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ranking_participants_ranking_id_fkey"
+            columns: ["ranking_id"]
+            isOneToOne: false
+            referencedRelation: "rankings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rankings: {
+        Row: {
+          bet_amount: string | null
+          bet_description: string | null
+          created_at: string
+          creator_id: string
+          description: string | null
+          end_date: string
+          id: string
+          max_participants: number
+          name: string
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          bet_amount?: string | null
+          bet_description?: string | null
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          end_date: string
+          id?: string
+          max_participants?: number
+          name: string
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          bet_amount?: string | null
+          bet_description?: string | null
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          end_date?: string
+          id?: string
+          max_participants?: number
+          name?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -816,6 +1021,7 @@ export type Database = {
           id: string
           last_name: string | null
           onboarding_completed: boolean
+          public_id: string | null
           updated_at: string
           user_id: string
         }
@@ -828,6 +1034,7 @@ export type Database = {
           id?: string
           last_name?: string | null
           onboarding_completed?: boolean
+          public_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -840,6 +1047,7 @@ export type Database = {
           id?: string
           last_name?: string | null
           onboarding_completed?: boolean
+          public_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -1083,11 +1291,20 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      generate_public_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_ranking_creator: {
+        Args: { _ranking_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_ranking_participant: {
+        Args: { _ranking_id: string; _user_id: string }
         Returns: boolean
       }
     }
