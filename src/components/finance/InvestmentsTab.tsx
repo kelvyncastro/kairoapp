@@ -153,7 +153,7 @@ export function InvestmentsTab({
           </div>
           <p className={cn(
             "text-lg md:text-xl font-bold",
-            totalInvestedThisMonth > 0 ? "text-blue-500" : "text-muted-foreground"
+            totalInvestedThisMonth > 0 ? "text-success" : "text-muted-foreground"
           )}>
             R$ {formatCurrency(totalInvestedThisMonth)}
           </p>
