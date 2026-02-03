@@ -225,9 +225,8 @@ export default function Calendar2() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Main calendar view */}
-        <div className="flex-1 overflow-hidden">
+      <div className="flex-1 p-3 md:p-4 overflow-hidden">
+        <div className="h-full rounded-xl border border-border/50 bg-card/30 overflow-hidden shadow-sm">
           {view === 'day' && (
             <CalendarDayView
               currentDate={currentDate}
@@ -260,7 +259,6 @@ export default function Calendar2() {
             />
           )}
         </div>
-
       </div>
 
       {/* Block Modal */}
