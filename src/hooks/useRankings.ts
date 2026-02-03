@@ -310,24 +310,30 @@ export function useRankings() {
   ) => {
     if (!user) return;
 
+    // Get ranking to calculate points
+    const ranking = rankings.find(r => r.id === rankingId);
+    if (!ranking) return;
+
+    // Prevent changes if ranking is completed
+    if (ranking.status === 'completed') {
+      toast({
+        title: "Ranking finalizado",
+        description: "Não é possível alterar metas de um ranking finalizado.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const totalGoals = ranking.goals.length;
+    const pointsPerGoal = totalGoals > 0 ? 10 / totalGoals : 0;
+
+    // OPTIMISTIC UPDATE: Update UI immediately before database operation
+    const previousRankings = [...rankings];
+    
+    // We don't have goal logs in the state, but we trigger a visual update by forcing re-render
+    // The actual UI component should handle optimistic state locally
+
     try {
-      // Get ranking to calculate points
-      const ranking = rankings.find(r => r.id === rankingId);
-      if (!ranking) return;
-
-      // Prevent changes if ranking is completed
-      if (ranking.status === 'completed') {
-        toast({
-          title: "Ranking finalizado",
-          description: "Não é possível alterar metas de um ranking finalizado.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      const totalGoals = ranking.goals.length;
-      const pointsPerGoal = totalGoals > 0 ? 10 / totalGoals : 0;
-
       // Check if log exists
       const { data: existingLog } = await supabase
         .from('ranking_goal_logs')
@@ -374,18 +380,18 @@ export function useRankings() {
 
       const totalPoints = (allLogs || []).reduce((sum, log) => sum + Number(log.points_earned), 0);
 
-      const { error: pointsError } = await supabase
+      await supabase
         .from('ranking_participants')
         .update({ total_points: totalPoints })
         .eq('ranking_id', rankingId)
         .eq('user_id', user.id);
 
-      if (pointsError) throw pointsError;
-
-      // Immediately refetch to update UI
-      await fetchRankings();
+      // Background refetch (non-blocking)
+      fetchRankings();
     } catch (error) {
       console.error('Error toggling goal:', error);
+      // Revert on error
+      setRankings(previousRankings);
       toast({
         title: "Erro ao atualizar meta",
         description: "Ocorreu um erro ao marcar/desmarcar a meta.",

@@ -106,19 +106,50 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
   }, [selectedDate, ranking.id]);
 
   const handleToggleGoal = async (goalId: string, completed: boolean) => {
-    if (!canEditGoals) return;
+    if (!canEditGoals || !user) return;
     
-    await toggleGoalCompletion(
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    const totalGoals = ranking.goals.length;
+    const pointsPerGoal = totalGoals > 0 ? 10 / totalGoals : 0;
+    
+    // OPTIMISTIC UPDATE: Update UI immediately
+    setGoalLogs(prev => {
+      const existingIndex = prev.findIndex(log => log.goal_id === goalId);
+      if (existingIndex >= 0) {
+        // Update existing log
+        const updated = [...prev];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          completed,
+          points_earned: completed ? pointsPerGoal : 0
+        };
+        return updated;
+      } else {
+        // Add new log optimistically
+        return [...prev, {
+          id: `temp-${goalId}-${dateStr}`,
+          ranking_id: ranking.id,
+          goal_id: goalId,
+          user_id: user.id,
+          date: dateStr,
+          completed,
+          points_earned: completed ? pointsPerGoal : 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }];
+      }
+    });
+    
+    // Execute in background (non-blocking)
+    toggleGoalCompletion(
       ranking.id,
       goalId,
-      format(selectedDate, 'yyyy-MM-dd'),
+      dateStr,
       completed
-    );
-    
-    // Refresh goal logs
-    const logs = await getGoalLogs(ranking.id, format(selectedDate, 'yyyy-MM-dd'));
-    setGoalLogs(logs);
-    await fetchRankings();
+    ).then(() => {
+      // Refresh goal logs in background to sync with server
+      getGoalLogs(ranking.id, dateStr).then(setGoalLogs);
+    });
   };
 
   const isGoalCompleted = (goalId: string) => {
