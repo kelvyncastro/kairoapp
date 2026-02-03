@@ -292,6 +292,7 @@ export default function Financas() {
     }
     
     setTransactions((transactionsRes.data as Transaction[]) || []);
+    setAllTransactions((allTransactionsRes.data as Transaction[]) || []);
     setLoading(false);
   }, [user, currentMonth, createDefaultSectors]);
 
