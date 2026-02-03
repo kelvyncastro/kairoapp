@@ -14,6 +14,131 @@ export type Database = {
   }
   public: {
     Tables: {
+      calendar_blocks: {
+        Row: {
+          actual_end_time: string | null
+          actual_start_time: string | null
+          color: string | null
+          completed_at: string | null
+          created_at: string
+          demand_type: Database["public"]["Enums"]["calendar_demand_type"]
+          description: string | null
+          duration_minutes: number | null
+          end_time: string
+          id: string
+          is_recurrence_paused: boolean | null
+          priority: Database["public"]["Enums"]["calendar_priority"]
+          recurrence_end_date: string | null
+          recurrence_parent_id: string | null
+          recurrence_rule: Json | null
+          recurrence_type: Database["public"]["Enums"]["calendar_recurrence_type"]
+          start_time: string
+          status: Database["public"]["Enums"]["calendar_block_status"]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actual_end_time?: string | null
+          actual_start_time?: string | null
+          color?: string | null
+          completed_at?: string | null
+          created_at?: string
+          demand_type?: Database["public"]["Enums"]["calendar_demand_type"]
+          description?: string | null
+          duration_minutes?: number | null
+          end_time: string
+          id?: string
+          is_recurrence_paused?: boolean | null
+          priority?: Database["public"]["Enums"]["calendar_priority"]
+          recurrence_end_date?: string | null
+          recurrence_parent_id?: string | null
+          recurrence_rule?: Json | null
+          recurrence_type?: Database["public"]["Enums"]["calendar_recurrence_type"]
+          start_time: string
+          status?: Database["public"]["Enums"]["calendar_block_status"]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          actual_end_time?: string | null
+          actual_start_time?: string | null
+          color?: string | null
+          completed_at?: string | null
+          created_at?: string
+          demand_type?: Database["public"]["Enums"]["calendar_demand_type"]
+          description?: string | null
+          duration_minutes?: number | null
+          end_time?: string
+          id?: string
+          is_recurrence_paused?: boolean | null
+          priority?: Database["public"]["Enums"]["calendar_priority"]
+          recurrence_end_date?: string | null
+          recurrence_parent_id?: string | null
+          recurrence_rule?: Json | null
+          recurrence_type?: Database["public"]["Enums"]["calendar_recurrence_type"]
+          start_time?: string
+          status?: Database["public"]["Enums"]["calendar_block_status"]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_blocks_recurrence_parent_id_fkey"
+            columns: ["recurrence_parent_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_blocks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_daily_stats: {
+        Row: {
+          actual_time_minutes: number | null
+          cancelled_blocks: number | null
+          completed_blocks: number | null
+          created_at: string
+          date: string
+          execution_score: number | null
+          id: string
+          planned_blocks: number | null
+          planned_time_minutes: number | null
+          postponed_blocks: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actual_time_minutes?: number | null
+          cancelled_blocks?: number | null
+          completed_blocks?: number | null
+          created_at?: string
+          date: string
+          execution_score?: number | null
+          id?: string
+          planned_blocks?: number | null
+          planned_time_minutes?: number | null
+          postponed_blocks?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          actual_time_minutes?: number | null
+          cancelled_blocks?: number | null
+          completed_blocks?: number | null
+          created_at?: string
+          date?: string
+          execution_score?: number | null
+          id?: string
+          planned_blocks?: number | null
+          planned_time_minutes?: number | null
+          postponed_blocks?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       consistency_days: {
         Row: {
           created_at: string | null
@@ -1319,6 +1444,20 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      calendar_block_status:
+        | "pending"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
+        | "postponed"
+      calendar_demand_type: "fixed" | "flexible" | "micro"
+      calendar_priority: "low" | "medium" | "high" | "urgent"
+      calendar_recurrence_type:
+        | "none"
+        | "daily"
+        | "weekly"
+        | "monthly"
+        | "custom"
       food_source: "PHOTO" | "TEXT" | "MANUAL"
       goal_status: "ACTIVE" | "COMPLETED" | "PAUSED"
       goal_type: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY"
@@ -1460,6 +1599,22 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      calendar_block_status: [
+        "pending",
+        "in_progress",
+        "completed",
+        "cancelled",
+        "postponed",
+      ],
+      calendar_demand_type: ["fixed", "flexible", "micro"],
+      calendar_priority: ["low", "medium", "high", "urgent"],
+      calendar_recurrence_type: [
+        "none",
+        "daily",
+        "weekly",
+        "monthly",
+        "custom",
+      ],
       food_source: ["PHOTO", "TEXT", "MANUAL"],
       goal_status: ["ACTIVE", "COMPLETED", "PAUSED"],
       goal_type: ["DAILY", "WEEKLY", "MONTHLY", "YEARLY"],
