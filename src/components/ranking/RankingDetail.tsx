@@ -45,16 +45,13 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
   const [goalLogs, setGoalLogs] = useState<RankingGoalLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [goalLogs, setGoalLogs] = useState<RankingGoalLog[]>([]);
-  const [loading, setLoading] = useState(false);
 
   const startDate = parseISO(ranking.start_date);
   const endDate = parseISO(ranking.end_date);
   const isActive = ranking.status === 'active';
   const isCreator = ranking.creator_id === user?.id;
   const canEdit = isCreator && ranking.status === 'pending';
+  const canDelete = isCreator;
   
   const isDateInRange = isWithinInterval(selectedDate, { start: startDate, end: endDate });
   const canEditGoals = isActive && isDateInRange;
