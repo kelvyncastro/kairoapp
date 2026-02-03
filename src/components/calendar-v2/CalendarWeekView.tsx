@@ -112,6 +112,13 @@ export function CalendarWeekView({
   const [moveTargetMinutes, setMoveTargetMinutes] = useState(0);
   const [moveOffsetMinutes, setMoveOffsetMinutes] = useState(0);
 
+  // Click vs drag detection
+  const [pendingDragBlock, setPendingDragBlock] = useState<CalendarBlock | null>(null);
+  const [dragStartPos, setDragStartPos] = useState<{ x: number; y: number } | null>(null);
+  const [dragStartTime, setDragStartTime] = useState<number>(0);
+  const DRAG_THRESHOLD = 5; // pixels
+  const DRAG_TIME_THRESHOLD = 150; // ms
+
   // Recurrence dialog state
   const [recurrenceDialogOpen, setRecurrenceDialogOpen] = useState(false);
   const [pendingMove, setPendingMove] = useState<{
