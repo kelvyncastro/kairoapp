@@ -750,24 +750,25 @@ export default function Financas() {
         {/* Fixed: Tabs header */}
         <div className="flex-shrink-0 px-4 md:px-6 pt-3 pb-3">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
-            <TabsList className="grid w-full grid-cols-3 h-10 md:h-11 bg-muted/50 p-1 rounded-xl">
+            <TabsList className="grid w-full grid-cols-4 h-10 md:h-11 bg-muted/50 p-1 rounded-xl">
               <TabsTrigger 
                 value="overview" 
                 className={cn(
-                  "text-xs md:text-sm px-2 md:px-4 rounded-lg font-medium transition-all duration-200",
+                  "text-xs md:text-sm px-1 md:px-4 rounded-lg font-medium transition-all duration-200",
                   "data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground",
                   "data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground/80"
                 )}
               >
                 <span className="flex items-center gap-1.5">
                   <TrendingUp className="h-3.5 w-3.5 hidden md:inline" />
-                  Visão Geral
+                  <span className="hidden md:inline">Visão Geral</span>
+                  <span className="md:hidden">Geral</span>
                 </span>
               </TabsTrigger>
               <TabsTrigger 
                 value="transactions" 
                 className={cn(
-                  "text-xs md:text-sm px-2 md:px-4 rounded-lg font-medium transition-all duration-200",
+                  "text-xs md:text-sm px-1 md:px-4 rounded-lg font-medium transition-all duration-200",
                   "data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground",
                   "data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground/80"
                 )}
@@ -778,9 +779,23 @@ export default function Financas() {
                 </span>
               </TabsTrigger>
               <TabsTrigger 
+                value="investments" 
+                className={cn(
+                  "text-xs md:text-sm px-1 md:px-4 rounded-lg font-medium transition-all duration-200",
+                  "data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground",
+                  "data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground/80"
+                )}
+              >
+                <span className="flex items-center gap-1.5">
+                  <ChartLine className="h-3.5 w-3.5 hidden md:inline" />
+                  <span className="hidden md:inline">Investimentos</span>
+                  <span className="md:hidden">Invest.</span>
+                </span>
+              </TabsTrigger>
+              <TabsTrigger 
                 value="sectors" 
                 className={cn(
-                  "text-xs md:text-sm px-2 md:px-4 rounded-lg font-medium transition-all duration-200",
+                  "text-xs md:text-sm px-1 md:px-4 rounded-lg font-medium transition-all duration-200",
                   "data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground",
                   "data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground/80"
                 )}
