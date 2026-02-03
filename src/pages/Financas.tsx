@@ -211,6 +211,7 @@ export default function Financas() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [addTransactionOpen, setAddTransactionOpen] = useState(false);
