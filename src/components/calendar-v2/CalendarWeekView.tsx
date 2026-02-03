@@ -338,15 +338,15 @@ export function CalendarWeekView({
 
   // Global mouse up listener
   useEffect(() => {
-    const handleGlobalMouseUp = () => {
-      if (isDragging || movingBlock) {
-        handleMouseUp();
+    const handleGlobalMouseUp = (e: MouseEvent) => {
+      if (isDragging || movingBlock || pendingDragBlock) {
+        handleMouseUp(e);
       }
     };
     
     window.addEventListener('mouseup', handleGlobalMouseUp);
     return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
-  }, [isDragging, movingBlock, handleMouseUp]);
+  }, [isDragging, movingBlock, pendingDragBlock, handleMouseUp]);
 
   // Calculate block style
   const getBlockStyle = (block: CalendarBlock) => {
