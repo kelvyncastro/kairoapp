@@ -9,6 +9,8 @@ export interface Ranking {
   bet_description: string | null;
   bet_amount: string | null;
   status: 'pending' | 'active' | 'completed' | 'cancelled';
+  deletion_requested: boolean;
+  deletion_requested_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -20,6 +22,7 @@ export interface RankingParticipant {
   status: 'pending' | 'accepted' | 'rejected';
   accepted_bet: boolean;
   total_points: number;
+  deletion_consent: boolean;
   joined_at: string | null;
   created_at: string;
   // Joined data
