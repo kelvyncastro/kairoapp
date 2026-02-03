@@ -921,13 +921,14 @@ export default function Financas() {
                           const sector = sectors.find(s => s.id === t.sector_id);
                           const isExpense = t.value < 0;
                           const effectiveStatus = getEffectiveStatus(t);
+                          const isInvestment = sector?.name.toLowerCase().includes("investimento") || sector?.name.toLowerCase().includes("investment");
                           return (
                             <tr key={t.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors group">
                               <td className="p-4">
                                 <div className="flex items-center gap-3">
                                   <div className={cn(
                                     "w-2 h-2 rounded-full flex-shrink-0",
-                                    isExpense ? "bg-red-500" : "bg-emerald-500"
+                                    isInvestment ? "bg-blue-500" : (isExpense ? "bg-red-500" : "bg-emerald-500")
                                   )} />
                                   <span className="text-sm font-medium">{t.name}</span>
                                 </div>
@@ -935,7 +936,7 @@ export default function Financas() {
                               <td className="p-4">
                                 <span className={cn(
                                   "text-sm font-semibold",
-                                  isExpense ? "text-red-500" : "text-emerald-500"
+                                  isInvestment ? "text-blue-500" : (isExpense ? "text-red-500" : "text-emerald-500")
                                 )}>
                                   {isExpense ? "- " : "+ "}R$ {Math.abs(t.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                 </span>
@@ -957,16 +958,20 @@ export default function Financas() {
                               <td className="p-4">
                                 <span className={cn(
                                   "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
-                                  isExpense 
-                                    ? "bg-red-500/10 text-red-500" 
-                                    : "bg-emerald-500/10 text-emerald-500"
+                                  isInvestment
+                                    ? "bg-blue-500/10 text-blue-500"
+                                    : isExpense 
+                                      ? "bg-red-500/10 text-red-500" 
+                                      : "bg-emerald-500/10 text-emerald-500"
                                 )}>
-                                  {isExpense ? (
+                                  {isInvestment ? (
+                                    <Wallet className="h-3 w-3" />
+                                  ) : isExpense ? (
                                     <TrendingDown className="h-3 w-3" />
                                   ) : (
                                     <TrendingUp className="h-3 w-3" />
                                   )}
-                                  {isExpense ? "Despesa" : "Receita"}
+                                  {isInvestment ? "Investimento" : isExpense ? "Despesa" : "Receita"}
                                 </span>
                               </td>
                               <td className="p-4">
