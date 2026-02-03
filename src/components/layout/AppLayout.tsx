@@ -18,6 +18,7 @@ import {
   ChevronDown,
   LogOut,
   Calendar,
+  CalendarClock,
   Construction,
   MessageSquare,
   Menu,
