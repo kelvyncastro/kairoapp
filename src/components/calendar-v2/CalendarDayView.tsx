@@ -14,6 +14,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
+import { RecurrenceEditDialog, RecurrenceEditScope } from './RecurrenceEditDialog';
 
 interface CalendarDayViewProps {
   currentDate: Date;
@@ -23,7 +24,7 @@ interface CalendarDayViewProps {
   onBlockComplete?: (id: string) => Promise<boolean>;
   onBlockDelete?: (id: string) => Promise<boolean>;
   onBlockDuplicate?: (block: CalendarBlock) => Promise<any>;
-  onBlockMove?: (id: string, newStart: Date, newEnd: Date) => Promise<boolean>;
+  onBlockMove?: (id: string, newStart: Date, newEnd: Date, scope?: RecurrenceEditScope) => Promise<boolean>;
 }
 
 const HOUR_HEIGHT = 60;
@@ -42,6 +43,7 @@ export function CalendarDayView({
   onBlockComplete,
   onBlockDelete,
   onBlockDuplicate,
+  onBlockMove,
 }: CalendarDayViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const dayColumnRef = useRef<HTMLDivElement>(null);
