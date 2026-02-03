@@ -60,16 +60,18 @@ interface CalendarBlockModalProps {
 }
 
 const COLORS = [
-  '#6366f1', // Indigo
-  '#8b5cf6', // Violet
-  '#ec4899', // Pink
-  '#ef4444', // Red
-  '#f97316', // Orange
-  '#eab308', // Yellow
-  '#22c55e', // Green
-  '#14b8a6', // Teal
-  '#3b82f6', // Blue
-  '#06b6d4', // Cyan
+  { value: '#3b82f6', name: 'Azul' },
+  { value: '#6366f1', name: 'Índigo' },
+  { value: '#8b5cf6', name: 'Violeta' },
+  { value: '#a855f7', name: 'Roxo' },
+  { value: '#ec4899', name: 'Rosa' },
+  { value: '#ef4444', name: 'Vermelho' },
+  { value: '#f97316', name: 'Laranja' },
+  { value: '#eab308', name: 'Amarelo' },
+  { value: '#22c55e', name: 'Verde' },
+  { value: '#14b8a6', name: 'Teal' },
+  { value: '#06b6d4', name: 'Ciano' },
+  { value: '#64748b', name: 'Cinza' },
 ];
 
 const DAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -94,7 +96,7 @@ export function CalendarBlockModal({
   const [endTime, setEndTime] = useState<Date>(new Date());
   const [demandType, setDemandType] = useState<CalendarDemandType>('fixed');
   const [priority, setPriority] = useState<CalendarPriority>('medium');
-  const [color, setColor] = useState(COLORS[0]);
+  const [color, setColor] = useState(COLORS[0].value);
   const [recurrenceType, setRecurrenceType] = useState<CalendarRecurrenceType>('none');
   const [recurrenceRule, setRecurrenceRule] = useState<RecurrenceRule | null>(null);
   const [recurrenceEndDate, setRecurrenceEndDate] = useState<Date | undefined>();
@@ -111,7 +113,7 @@ export function CalendarBlockModal({
       setEndTime(new Date(block.end_time));
       setDemandType(block.demand_type);
       setPriority(block.priority);
-      setColor(block.color || COLORS[0]);
+      setColor(block.color || COLORS[0].value);
       setRecurrenceType(block.recurrence_type);
       setRecurrenceRule(block.recurrence_rule || null);
       if (block.recurrence_end_date) {
@@ -131,7 +133,7 @@ export function CalendarBlockModal({
       setEndTime(defaultEndTime || addMinutes(defaultStartTime || new Date(), 60));
       setDemandType('fixed');
       setPriority('medium');
-      setColor(COLORS[0]);
+      setColor(COLORS[0].value);
       setRecurrenceType('none');
       setRecurrenceRule(null);
       setRecurrenceEndDate(undefined);
@@ -359,19 +361,27 @@ export function CalendarBlockModal({
 
           {/* Color */}
           <div>
-            <Label>Cor</Label>
-            <div className="flex flex-wrap gap-2 mt-1.5">
+            <Label className="mb-2 block">Cor do bloco</Label>
+            <div className="grid grid-cols-6 gap-2">
               {COLORS.map((c) => (
                 <button
-                  key={c}
+                  key={c.value}
                   type="button"
-                  onClick={() => setColor(c)}
+                  onClick={() => setColor(c.value)}
                   className={cn(
-                    "w-7 h-7 rounded-full border-2 transition-transform",
-                    color === c ? "scale-110 border-foreground" : "border-transparent hover:scale-105"
+                    "group relative w-full aspect-square rounded-lg transition-all duration-200",
+                    "hover:scale-105 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background",
+                    color === c.value 
+                      ? "ring-2 ring-foreground ring-offset-2 ring-offset-background scale-105" 
+                      : "hover:ring-1 hover:ring-muted-foreground/50"
                   )}
-                  style={{ backgroundColor: c }}
-                />
+                  style={{ backgroundColor: c.value }}
+                  title={c.name}
+                >
+                  {color === c.value && (
+                    <Check className="absolute inset-0 m-auto h-4 w-4 text-white drop-shadow-md" />
+                  )}
+                </button>
               ))}
             </div>
           </div>

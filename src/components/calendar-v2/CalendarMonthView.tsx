@@ -8,7 +8,6 @@ import {
   endOfWeek,
   addDays,
   isSameMonth,
-  isSameDay,
   isToday,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -30,7 +29,7 @@ export function CalendarMonthView({
   onBlockClick,
 }: CalendarMonthViewProps) {
   // Generate calendar grid
-  const calendarDays = useMemo(() => {
+  const { weeks, blocksByDay } = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(currentDate);
     const calendarStart = startOfWeek(monthStart, { locale: ptBR });
@@ -44,37 +43,34 @@ export function CalendarMonthView({
       current = addDays(current, 1);
     }
     
-    return days;
-  }, [currentDate]);
+    // Split into weeks
+    const weeksArr: Date[][] = [];
+    for (let i = 0; i < days.length; i += 7) {
+      weeksArr.push(days.slice(i, i + 7));
+    }
 
-  // Group blocks by day
-  const blocksByDay = useMemo(() => {
+    // Group blocks by day
     const map = new Map<string, CalendarBlock[]>();
     blocks.forEach(block => {
       const key = format(new Date(block.start_time), 'yyyy-MM-dd');
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(block);
     });
-    return map;
-  }, [blocks]);
 
-  // Split into weeks
-  const weeks = useMemo(() => {
-    const result: Date[][] = [];
-    for (let i = 0; i < calendarDays.length; i += 7) {
-      result.push(calendarDays.slice(i, i + 7));
-    }
-    return result;
-  }, [calendarDays]);
+    return { weeks: weeksArr, blocksByDay: map };
+  }, [currentDate, blocks]);
 
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Weekday headers */}
-      <div className="grid grid-cols-7 border-b border-border/30">
-        {WEEKDAY_LABELS.map((day) => (
+      <div className="grid grid-cols-7 border-b border-border/40 flex-shrink-0">
+        {WEEKDAY_LABELS.map((day, idx) => (
           <div
             key={day}
-            className="py-2 text-center text-[11px] font-medium text-muted-foreground tracking-wide"
+            className={cn(
+              "py-3 text-center text-xs font-semibold tracking-wider",
+              idx === 0 ? "text-destructive/70" : "text-muted-foreground"
+            )}
           >
             {day}
           </div>
@@ -82,23 +78,29 @@ export function CalendarMonthView({
       </div>
 
       {/* Calendar grid */}
-      <div className="flex-1 grid grid-rows-[repeat(auto-fill,minmax(0,1fr))] overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {weeks.map((week, weekIdx) => (
-          <div key={weekIdx} className="grid grid-cols-7 border-b border-border/20 last:border-b-0">
-            {week.map((day) => {
+          <div 
+            key={weekIdx} 
+            className="flex-1 grid grid-cols-7 min-h-0"
+            style={{ minHeight: '80px' }}
+          >
+            {week.map((day, dayIdx) => {
               const dayKey = format(day, 'yyyy-MM-dd');
               const dayBlocks = blocksByDay.get(dayKey) || [];
               const isCurrentMonth = isSameMonth(day, currentDate);
-              const maxVisible = 3;
+              const maxVisible = 2;
               const hasMore = dayBlocks.length > maxVisible;
 
               return (
                 <div
-                  key={day.toISOString()}
+                  key={dayKey}
                   className={cn(
-                    "min-h-[100px] border-r border-border/20 last:border-r-0 p-1 cursor-pointer",
-                    "hover:bg-accent/30 transition-colors",
-                    !isCurrentMonth && "bg-muted/20"
+                    "relative border-r border-b border-border/20 p-1 cursor-pointer transition-colors overflow-hidden",
+                    "hover:bg-accent/40",
+                    !isCurrentMonth && "bg-muted/30",
+                    dayIdx === 0 && "border-l-0",
+                    isToday(day) && "bg-primary/5"
                   )}
                   onClick={() => onDayClick(day)}
                 >
@@ -106,10 +108,10 @@ export function CalendarMonthView({
                   <div className="flex justify-center mb-1">
                     <span
                       className={cn(
-                        "text-sm w-7 h-7 flex items-center justify-center rounded-full",
-                        isToday(day) && "bg-primary text-primary-foreground font-semibold",
+                        "text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full transition-colors",
+                        isToday(day) && "bg-primary text-primary-foreground",
                         !isToday(day) && isCurrentMonth && "text-foreground",
-                        !isToday(day) && !isCurrentMonth && "text-muted-foreground"
+                        !isToday(day) && !isCurrentMonth && "text-muted-foreground/60"
                       )}
                     >
                       {format(day, 'd')}
@@ -117,14 +119,14 @@ export function CalendarMonthView({
                   </div>
 
                   {/* Blocks preview */}
-                  <div className="space-y-0.5">
+                  <div className="space-y-0.5 overflow-hidden">
                     {dayBlocks.slice(0, maxVisible).map((block) => (
                       <div
                         key={block.id}
                         className={cn(
-                          "text-[10px] px-1.5 py-0.5 rounded truncate cursor-pointer",
-                          "text-white font-medium",
-                          "hover:ring-1 hover:ring-ring/50"
+                          "text-[10px] leading-tight px-1.5 py-0.5 rounded truncate cursor-pointer",
+                          "text-white font-medium shadow-sm",
+                          "hover:brightness-110 transition-all"
                         )}
                         style={{ backgroundColor: block.color || 'hsl(200, 70%, 50%)' }}
                         onClick={(e) => {
@@ -132,12 +134,12 @@ export function CalendarMonthView({
                           onBlockClick(block);
                         }}
                       >
-                        {block.title}
+                        {format(new Date(block.start_time), 'HH:mm')} {block.title}
                       </div>
                     ))}
                     
                     {hasMore && (
-                      <div className="text-[10px] text-muted-foreground px-1.5">
+                      <div className="text-[10px] text-muted-foreground font-medium px-1.5">
                         +{dayBlocks.length - maxVisible} mais
                       </div>
                     )}

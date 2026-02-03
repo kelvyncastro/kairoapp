@@ -1,13 +1,12 @@
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo, useRef, useEffect, useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { format, isSameDay, isToday, differenceInMinutes, setHours, setMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   CalendarBlock,
   PRIORITY_COLORS,
-  DEMAND_TYPE_LABELS,
 } from '@/types/calendar-blocks';
-import { Check, Clock, GripVertical } from 'lucide-react';
+import { Check, GripVertical } from 'lucide-react';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -27,8 +26,13 @@ interface CalendarDayViewProps {
   onBlockMove?: (id: string, newStart: Date, newEnd: Date) => Promise<boolean>;
 }
 
-const HOUR_HEIGHT = 60; // pixels per hour
+const HOUR_HEIGHT = 60;
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
+
+// Snap to 15-minute intervals
+const snapToQuarter = (minutes: number): number => {
+  return Math.round(minutes / 15) * 15;
+};
 
 export function CalendarDayView({
   currentDate,
@@ -40,6 +44,12 @@ export function CalendarDayView({
   onBlockDuplicate,
 }: CalendarDayViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const dayColumnRef = useRef<HTMLDivElement>(null);
+
+  // Drag state
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartMinutes, setDragStartMinutes] = useState(0);
+  const [dragEndMinutes, setDragEndMinutes] = useState(0);
 
   // Scroll to current time on mount
   useEffect(() => {
@@ -62,52 +72,106 @@ export function CalendarDayView({
     return dayBlocks.map(block => {
       const startTime = new Date(block.start_time);
       const endTime = new Date(block.end_time);
-      
       const startMinutes = startTime.getHours() * 60 + startTime.getMinutes();
       const durationMinutes = differenceInMinutes(endTime, startTime);
-      
       const top = (startMinutes / 60) * HOUR_HEIGHT;
       const height = Math.max((durationMinutes / 60) * HOUR_HEIGHT, 28);
-      
-      return {
-        ...block,
-        top,
-        height,
-        durationMinutes,
-      };
+      return { ...block, top, height, durationMinutes };
     });
   }, [dayBlocks]);
 
-  // Handle slot click
-  const handleSlotClick = (hour: number, offsetY: number) => {
-    const minuteOffset = Math.floor((offsetY / HOUR_HEIGHT) * 60);
-    const startMinute = Math.floor(minuteOffset / 15) * 15;
+  // Calculate minutes from Y position
+  const getMinutesFromY = useCallback((clientY: number): number => {
+    if (!dayColumnRef.current) return 0;
+    const rect = dayColumnRef.current.getBoundingClientRect();
+    const y = clientY - rect.top + (scrollRef.current?.scrollTop || 0);
+    const rawMinutes = (y / HOUR_HEIGHT) * 60;
+    return snapToQuarter(Math.max(0, Math.min(rawMinutes, 24 * 60 - 15)));
+  }, []);
+
+  // Mouse handlers
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    const minutes = getMinutesFromY(e.clientY);
+    setIsDragging(true);
+    setDragStartMinutes(minutes);
+    setDragEndMinutes(minutes + 15);
+  }, [getMinutesFromY]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging) return;
+    const minutes = getMinutesFromY(e.clientY);
+    setDragEndMinutes(minutes);
+  }, [isDragging, getMinutesFromY]);
+
+  const handleMouseUp = useCallback(() => {
+    if (!isDragging) return;
     
-    const start = setMinutes(setHours(currentDate, hour), startMinute);
-    const end = setMinutes(setHours(currentDate, hour), startMinute + 30);
+    const startMin = Math.min(dragStartMinutes, dragEndMinutes);
+    const endMin = Math.max(dragStartMinutes, dragEndMinutes);
+    const finalEndMin = endMin === startMin ? startMin + 30 : endMin;
+    
+    const startHour = Math.floor(startMin / 60);
+    const startMinute = startMin % 60;
+    const endHour = Math.floor(finalEndMin / 60);
+    const endMinute = finalEndMin % 60;
+    
+    const start = setMinutes(setHours(currentDate, startHour), startMinute);
+    const end = setMinutes(setHours(currentDate, endHour), endMinute);
     
     onSlotSelect(start, end);
+    setIsDragging(false);
+  }, [isDragging, dragStartMinutes, dragEndMinutes, currentDate, onSlotSelect]);
+
+  // Global mouse up listener
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      if (isDragging) {
+        handleMouseUp();
+      }
+    };
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
+  }, [isDragging, handleMouseUp]);
+
+  // Get drag preview style
+  const getDragPreviewStyle = () => {
+    if (!isDragging) return null;
+    const startMin = Math.min(dragStartMinutes, dragEndMinutes);
+    const endMin = Math.max(dragStartMinutes, dragEndMinutes);
+    const finalEndMin = endMin === startMin ? startMin + 15 : endMin;
+    const top = (startMin / 60) * HOUR_HEIGHT;
+    const height = ((finalEndMin - startMin) / 60) * HOUR_HEIGHT;
+    return { top, height, startMin, endMin: finalEndMin };
   };
 
+  const dragPreviewStyle = getDragPreviewStyle();
+
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div 
+      className="flex flex-col h-full bg-background select-none"
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+    >
       {/* Day header */}
-      <div className="flex-shrink-0 border-b border-border/30">
+      <div className="flex-shrink-0 border-b border-border/40">
         <div className="flex">
-          <div className="w-16 flex-shrink-0 py-2 px-2 text-[10px] text-muted-foreground text-right pr-3">
+          <div className="w-16 flex-shrink-0 py-3 px-2 text-[10px] text-muted-foreground/60 text-right pr-3 font-mono">
             GMT-03
           </div>
           <div className="flex-1 flex flex-col items-center py-2">
             <span className={cn(
-              "text-[11px] font-medium tracking-wide uppercase",
+              "text-[11px] font-semibold tracking-wider uppercase",
               isToday(currentDate) ? "text-primary" : "text-muted-foreground"
             )}>
               {format(currentDate, 'EEE', { locale: ptBR })}.
             </span>
             <span className={cn(
-              "text-xl font-medium mt-0.5 w-10 h-10 flex items-center justify-center rounded-full",
+              "text-2xl font-medium mt-1 w-11 h-11 flex items-center justify-center rounded-full transition-all",
               isToday(currentDate) 
-                ? "bg-primary text-primary-foreground" 
+                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30" 
                 : "text-foreground"
             )}>
               {format(currentDate, 'd')}
@@ -116,18 +180,14 @@ export function CalendarDayView({
         </div>
       </div>
 
-      {/* Scrollable time grid */}
+      {/* Scrollable grid */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden">
         <div className="flex min-h-full">
-          {/* Time labels column */}
+          {/* Time labels */}
           <div className="w-16 flex-shrink-0">
             {HOURS.map((hour) => (
-              <div
-                key={hour}
-                className="relative"
-                style={{ height: HOUR_HEIGHT }}
-              >
-                <span className="absolute -top-2 right-3 text-[11px] text-muted-foreground font-mono">
+              <div key={hour} className="relative" style={{ height: HOUR_HEIGHT }}>
+                <span className="absolute -top-2.5 right-3 text-[11px] text-muted-foreground/70 font-mono">
                   {hour === 0 ? '' : `${hour} ${hour < 12 ? 'AM' : 'PM'}`}
                 </span>
               </div>
@@ -135,20 +195,35 @@ export function CalendarDayView({
           </div>
 
           {/* Day column */}
-          <div className="flex-1 relative border-l border-border/30">
-            {/* Hour slots */}
+          <div 
+            ref={dayColumnRef}
+            className="flex-1 relative border-l border-border/30"
+            onMouseDown={handleMouseDown}
+          >
+            {/* Hour lines */}
             {HOURS.map((hour) => (
               <div
                 key={hour}
-                className="border-t border-border/20 cursor-pointer hover:bg-accent/20 transition-colors"
+                className="border-t border-border/20 hover:bg-accent/10 transition-colors"
                 style={{ height: HOUR_HEIGHT }}
-                onClick={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const offsetY = e.clientY - rect.top;
-                  handleSlotClick(hour, offsetY);
-                }}
               />
             ))}
+
+            {/* Drag preview */}
+            {isDragging && dragPreviewStyle && (
+              <div
+                className="absolute left-2 right-4 rounded-lg bg-primary/40 border-2 border-primary border-dashed pointer-events-none z-20"
+                style={{
+                  top: dragPreviewStyle.top,
+                  height: dragPreviewStyle.height,
+                }}
+              >
+                <div className="px-3 py-1 text-sm font-semibold text-primary">
+                  {format(setMinutes(setHours(currentDate, Math.floor(dragPreviewStyle.startMin / 60)), dragPreviewStyle.startMin % 60), 'HH:mm')} - 
+                  {format(setMinutes(setHours(currentDate, Math.floor(dragPreviewStyle.endMin / 60)), dragPreviewStyle.endMin % 60), 'HH:mm')}
+                </div>
+              </div>
+            )}
 
             {/* Current time indicator */}
             {isToday(currentDate) && <CurrentTimeIndicator hourHeight={HOUR_HEIGHT} />}
@@ -159,17 +234,20 @@ export function CalendarDayView({
                 <ContextMenuTrigger asChild>
                   <div
                     className={cn(
-                      "absolute left-2 right-4 rounded-md px-3 py-1.5 cursor-pointer",
-                      "text-white overflow-hidden group",
-                      "hover:ring-2 hover:ring-ring/50 transition-all",
+                      "absolute left-2 right-4 rounded-lg px-3 py-1.5 cursor-pointer",
+                      "text-white overflow-hidden group shadow-sm",
+                      "hover:shadow-lg hover:brightness-110 transition-all",
                       block.status === 'completed' && "opacity-60"
                     )}
                     style={{
                       top: block.top,
                       height: block.height,
-                      backgroundColor: block.color || 'hsl(200, 70%, 50%)',
+                      backgroundColor: block.color || 'hsl(207, 90%, 54%)',
                     }}
-                    onClick={() => onBlockClick(block)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onBlockClick(block);
+                    }}
                   >
                     <div className="flex items-start gap-2 h-full">
                       <GripVertical className="h-4 w-4 opacity-0 group-hover:opacity-70 transition-opacity flex-shrink-0 cursor-grab mt-0.5" />
@@ -177,7 +255,7 @@ export function CalendarDayView({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className={cn(
-                            "font-medium text-sm truncate",
+                            "font-semibold text-sm truncate",
                             block.status === 'completed' && "line-through"
                           )}>
                             {block.title}
@@ -187,15 +265,13 @@ export function CalendarDayView({
                           )}
                         </div>
                         
-                        {block.height > 40 && (
-                          <div className="flex items-center gap-1 mt-0.5 text-xs opacity-80">
-                            <span>
-                              {format(new Date(block.start_time), 'h')} - {format(new Date(block.end_time), 'ha')}
-                            </span>
+                        {block.height > 45 && (
+                          <div className="text-xs opacity-80 mt-0.5">
+                            {format(new Date(block.start_time), 'H:mm')} - {format(new Date(block.end_time), 'H:mm')}
                           </div>
                         )}
                         
-                        {block.height > 60 && block.description && (
+                        {block.height > 70 && block.description && (
                           <p className="text-xs opacity-70 mt-1 line-clamp-2">
                             {block.description}
                           </p>
@@ -204,10 +280,9 @@ export function CalendarDayView({
                       
                       {/* Priority indicator */}
                       <div 
-                        className="w-2 h-2 rounded-full flex-shrink-0 mt-1"
+                        className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1 shadow-sm"
                         style={{ 
                           backgroundColor: PRIORITY_COLORS[block.priority],
-                          boxShadow: '0 0 4px rgba(0,0,0,0.3)'
                         }}
                       />
                     </div>
@@ -254,8 +329,8 @@ function CurrentTimeIndicator({ hourHeight }: { hourHeight: number }) {
       className="absolute left-0 right-0 flex items-center pointer-events-none z-10"
       style={{ top }}
     >
-      <div className="w-2.5 h-2.5 rounded-full bg-destructive -ml-1" />
-      <div className="flex-1 h-0.5 bg-destructive" />
+      <div className="w-3 h-3 rounded-full bg-destructive -ml-1.5 shadow-lg shadow-destructive/50" />
+      <div className="flex-1 h-0.5 bg-destructive shadow-sm" />
     </div>
   );
 }
