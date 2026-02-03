@@ -15,7 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useRankings } from "@/hooks/useRankings";
+import { useRankingsStore } from "@/contexts/RankingsContext";
 import { RankingWithDetails } from "@/types/ranking";
 import { supabase } from "@/integrations/supabase/client";
 import { format, addDays, parseISO } from "date-fns";
@@ -46,7 +46,7 @@ interface CreateRankingDialogProps {
 }
 
 export function CreateRankingDialog({ trigger, editMode = false, rankingToEdit, onSuccess }: CreateRankingDialogProps) {
-  const { createRanking, updateRanking } = useRankings();
+  const { createRanking, updateRanking } = useRankingsStore();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const goalInputRefs = useRef<(HTMLInputElement | null)[]>([]);

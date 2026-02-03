@@ -3,7 +3,7 @@ import { Trophy, Users, Clock, CheckCircle, Copy, Check, Inbox } from "lucide-re
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useRankings } from "@/hooks/useRankings";
+import { RankingsProvider, useRankingsStore } from "@/contexts/RankingsContext";
 import { useUserProfile } from "@/contexts/UserProfileContext";
 import { useNotifications } from "@/hooks/useNotifications";
 import { RankingCard } from "@/components/ranking/RankingCard";
@@ -14,8 +14,8 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
-export default function Ranking() {
-  const { rankings, loading, respondToInvite, fetchRankings, checkAndFinalizeExpiredRankings } = useRankings();
+function RankingInner() {
+  const { rankings, loading, respondToInvite, fetchRankings, checkAndFinalizeExpiredRankings } = useRankingsStore();
   const { profile } = useUserProfile();
   const { notifications, markAsRead } = useNotifications();
   const { toast } = useToast();
@@ -293,6 +293,14 @@ export default function Ranking() {
   );
 }
 
+export default function Ranking() {
+  return (
+    <RankingsProvider>
+      <RankingInner />
+    </RankingsProvider>
+  );
+}
+
 // Empty state WITH create button (only for Aguardando tab)
 function EmptyState({ icon, title, description, onSuccess }: { icon: React.ReactNode; title: string; description: string; onSuccess?: () => void }) {
   return (
@@ -323,3 +331,4 @@ function EmptyStateSimple({ icon, title, description }: { icon: React.ReactNode;
     </div>
   );
 }
+
