@@ -540,7 +540,7 @@ export default function Financas() {
             onClick={() => setAnalysisOpen(!analysisOpen)}
           >
             <Brain className={cn("h-4 w-4", !analysisOpen && "text-primary")} />
-            <span className="hidden md:inline text-xs font-medium">Análise IA</span>
+            <span className="text-xs font-medium">Análise IA</span>
           </Button>
           <Link to="/chat-financeiro">
             <Button
