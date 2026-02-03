@@ -13,6 +13,7 @@ import {
   Crown,
   Target,
   Loader2,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +35,7 @@ import {
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format, isAfter } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { RankingPublicIdCard } from "@/components/ranking/RankingPublicIdCard";
 import { RankingStatsRow } from "@/components/ranking/RankingStatsRow";
