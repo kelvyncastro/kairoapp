@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { Plus, Trophy, Calendar, Target, Users, Coins, X, Pencil, GripVertical, Sparkles } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Plus, Trophy, Calendar, Target, Users, Coins, X, Sparkles, User, Loader2, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,11 +12,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRankings } from "@/hooks/useRankings";
 import { RankingWithDetails } from "@/types/ranking";
+import { supabase } from "@/integrations/supabase/client";
 import { format, addDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+
+interface UserProfile {
+  user_id: string;
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+  public_id: string | null;
+}
+
+interface InviteeWithProfile {
+  publicId: string;
+  profile: UserProfile | null;
+  loading: boolean;
+  notFound: boolean;
+}
 
 interface CreateRankingDialogProps {
   trigger?: React.ReactNode;
@@ -30,6 +47,7 @@ export function CreateRankingDialog({ trigger, editMode = false, rankingToEdit, 
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const goalInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const inviteeInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   
   // Form state
   const [name, setName] = useState("");
@@ -42,7 +60,51 @@ export function CreateRankingDialog({ trigger, editMode = false, rankingToEdit, 
   const [goals, setGoals] = useState<{ title: string; description: string }[]>([
     { title: "", description: "" }
   ]);
-  const [invitees, setInvitees] = useState<string[]>([""]);
+  const [invitees, setInvitees] = useState<InviteeWithProfile[]>([
+    { publicId: "", profile: null, loading: false, notFound: false }
+  ]);
+
+  // Debounced search for user profiles
+  const searchUserProfile = useCallback(async (publicId: string, index: number) => {
+    if (publicId.length !== 8) {
+      setInvitees(prev => {
+        const updated = [...prev];
+        updated[index] = { ...updated[index], profile: null, loading: false, notFound: false };
+        return updated;
+      });
+      return;
+    }
+
+    setInvitees(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], loading: true, notFound: false };
+      return updated;
+    });
+
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('user_id, first_name, last_name, avatar_url, public_id')
+        .eq('public_id', publicId.toUpperCase())
+        .single();
+
+      setInvitees(prev => {
+        const updated = [...prev];
+        if (error || !data) {
+          updated[index] = { ...updated[index], profile: null, loading: false, notFound: true };
+        } else {
+          updated[index] = { ...updated[index], profile: data, loading: false, notFound: false };
+        }
+        return updated;
+      });
+    } catch {
+      setInvitees(prev => {
+        const updated = [...prev];
+        updated[index] = { ...updated[index], profile: null, loading: false, notFound: true };
+        return updated;
+      });
+    }
+  }, []);
 
   // Populate form when editing
   useEffect(() => {
@@ -62,10 +124,25 @@ export function CreateRankingDialog({ trigger, editMode = false, rankingToEdit, 
     }
   }, [editMode, rankingToEdit, open]);
 
+  // Debounce effect for invitee search
+  useEffect(() => {
+    const timers: NodeJS.Timeout[] = [];
+    
+    invitees.forEach((invitee, index) => {
+      if (invitee.publicId.length === 8 && !invitee.profile && !invitee.loading) {
+        const timer = setTimeout(() => {
+          searchUserProfile(invitee.publicId, index);
+        }, 300);
+        timers.push(timer);
+      }
+    });
+
+    return () => timers.forEach(t => clearTimeout(t));
+  }, [invitees, searchUserProfile]);
+
   const addGoal = () => {
     const newGoals = [...goals, { title: "", description: "" }];
     setGoals(newGoals);
-    // Focus on the new input after render
     setTimeout(() => {
       const lastIndex = newGoals.length - 1;
       goalInputRefs.current[lastIndex]?.focus();
@@ -90,17 +167,20 @@ export function CreateRankingDialog({ trigger, editMode = false, rankingToEdit, 
       const currentGoalTitle = goals[index].title.trim();
       
       if (currentGoalTitle) {
-        // If current goal has text, create new goal and focus it
         addGoal();
       } else if (index < goals.length - 1) {
-        // If empty and not last, move to next
         goalInputRefs.current[index + 1]?.focus();
       }
     }
   };
 
   const addInvitee = () => {
-    setInvitees([...invitees, ""]);
+    const newInvitees = [...invitees, { publicId: "", profile: null, loading: false, notFound: false }];
+    setInvitees(newInvitees);
+    setTimeout(() => {
+      const lastIndex = newInvitees.length - 1;
+      inviteeInputRefs.current[lastIndex]?.focus();
+    }, 0);
   };
 
   const removeInvitee = (index: number) => {
@@ -111,8 +191,27 @@ export function CreateRankingDialog({ trigger, editMode = false, rankingToEdit, 
 
   const updateInvitee = (index: number, value: string) => {
     const newInvitees = [...invitees];
-    newInvitees[index] = value;
+    const upperValue = value.toUpperCase();
+    newInvitees[index] = { 
+      publicId: upperValue, 
+      profile: upperValue.length === 8 ? newInvitees[index].profile : null, 
+      loading: false, 
+      notFound: false 
+    };
     setInvitees(newInvitees);
+  };
+
+  const handleInviteeKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const currentInvitee = invitees[index].publicId.trim();
+      
+      if (currentInvitee.length === 8) {
+        addInvitee();
+      } else if (index < invitees.length - 1) {
+        inviteeInputRefs.current[index + 1]?.focus();
+      }
+    }
   };
 
   const resetForm = () => {
@@ -124,7 +223,7 @@ export function CreateRankingDialog({ trigger, editMode = false, rankingToEdit, 
     setBetDescription("");
     setBetAmount("");
     setGoals([{ title: "", description: "" }]);
-    setInvitees([""]);
+    setInvitees([{ publicId: "", profile: null, loading: false, notFound: false }]);
   };
 
   const handleSubmit = async () => {
@@ -133,7 +232,7 @@ export function CreateRankingDialog({ trigger, editMode = false, rankingToEdit, 
     setLoading(true);
     try {
       const validGoals = goals.filter(g => g.title.trim());
-      const validInvitees = invitees.filter(i => i.trim());
+      const validInvitees = invitees.filter(i => i.publicId.trim() && i.profile).map(i => i.publicId);
 
       if (editMode && rankingToEdit) {
         await updateRanking(rankingToEdit.id, {
@@ -165,6 +264,8 @@ export function CreateRankingDialog({ trigger, editMode = false, rankingToEdit, 
       setLoading(false);
     }
   };
+
+  const validInviteesCount = invitees.filter(i => i.profile).length;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -316,119 +417,117 @@ export function CreateRankingDialog({ trigger, editMode = false, rankingToEdit, 
                   <Users className="h-4 w-4 text-muted-foreground" />
                   Convidar Participantes
                 </div>
-                <Button variant="outline" size="sm" onClick={addInvitee}>
-                  <Plus className="h-3 w-3 mr-1" />
-                  Adicionar
+                <Button variant="outline" size="sm" onClick={addInvitee} className="gap-1.5">
+                  <Plus className="h-3 w-3" />
+                  Novo Participante
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Insira o ID público (8 caracteres) dos usuários que deseja convidar.
-              </p>
-              <div className="space-y-2">
-                {invitees.map((invitee, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      placeholder="ID do usuário (ex: ABC12345)"
-                      value={invitee}
-                      onChange={(e) => updateInvitee(index, e.target.value.toUpperCase())}
-                      className="uppercase"
-                      maxLength={8}
-                    />
-                    {invitees.length > 1 && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeInvitee(index)}
-                        className="h-10 w-10"
+              <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/5 via-muted/30 to-transparent border border-blue-500/10">
+                <p className="text-xs text-muted-foreground mb-4 flex items-center gap-1.5">
+                  <Sparkles className="h-3 w-3 text-blue-500" />
+                  Pressione <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono">Enter</kbd> para adicionar outro participante
+                </p>
+                <div className="space-y-2">
+                  <AnimatePresence mode="popLayout">
+                    {invitees.map((invitee, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: -20, scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                        className="group relative"
                       >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
+                        <div className={cn(
+                          "flex items-center gap-2 p-2 rounded-lg transition-all duration-200",
+                          "bg-background/80 border border-border/50",
+                          "hover:border-blue-500/30 hover:shadow-sm",
+                          invitee.profile && "border-green-500/30 bg-green-500/5",
+                          invitee.notFound && invitee.publicId.length === 8 && "border-red-500/30 bg-red-500/5"
+                        )}>
+                          {/* Avatar or placeholder */}
+                          <div className="flex items-center justify-center h-9 w-9 rounded-lg shrink-0 overflow-hidden">
+                            {invitee.loading ? (
+                              <div className="h-full w-full flex items-center justify-center bg-muted">
+                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                              </div>
+                            ) : invitee.profile ? (
+                              <Avatar className="h-9 w-9">
+                                <AvatarImage src={invitee.profile.avatar_url || undefined} />
+                                <AvatarFallback className="text-xs bg-green-500/20 text-green-600">
+                                  {invitee.profile.first_name?.charAt(0) || '?'}
+                                </AvatarFallback>
+                              </Avatar>
+                            ) : (
+                              <div className={cn(
+                                "h-full w-full flex items-center justify-center rounded-lg",
+                                invitee.notFound && invitee.publicId.length === 8 
+                                  ? "bg-red-500/10 text-red-500" 
+                                  : "bg-gradient-to-br from-blue-500/20 to-blue-500/10 text-blue-500"
+                              )}>
+                                <User className="h-4 w-4" />
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Input and name display */}
+                          <div className="flex-1 min-w-0">
+                            <Input
+                              ref={(el) => { inviteeInputRefs.current[index] = el; }}
+                              placeholder="Digite o ID (8 caracteres)"
+                              value={invitee.publicId}
+                              onChange={(e) => updateInvitee(index, e.target.value)}
+                              onKeyDown={(e) => handleInviteeKeyDown(index, e)}
+                              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50 uppercase font-mono"
+                              maxLength={8}
+                            />
+                            {invitee.profile && (
+                              <motion.p 
+                                initial={{ opacity: 0, y: -5 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="text-xs text-green-600 font-medium px-3 -mt-1 flex items-center gap-1"
+                              >
+                                <CheckCircle className="h-3 w-3" />
+                                {invitee.profile.first_name} {invitee.profile.last_name}
+                              </motion.p>
+                            )}
+                            {invitee.notFound && invitee.publicId.length === 8 && (
+                              <motion.p 
+                                initial={{ opacity: 0, y: -5 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="text-xs text-red-500 px-3 -mt-1"
+                              >
+                                Usuário não encontrado
+                              </motion.p>
+                            )}
+                          </div>
+                          
+                          {invitees.length > 1 && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeInvitee(index)}
+                              className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+                {validInviteesCount > 0 && (
+                  <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle className="h-3 w-3 text-green-500" />
+                      {validInviteesCount} participante(s) encontrado(s)
+                    </span>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           )}
-
-          {/* Goals */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <Target className="h-4 w-4 text-muted-foreground" />
-                Metas Diárias *
-              </div>
-              <Button variant="outline" size="sm" onClick={addGoal}>
-                <Plus className="h-3 w-3 mr-1" />
-                Adicionar Meta
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Cada participante precisará cumprir estas metas diariamente. Pontuação proporcional às metas completadas (máx. 10 pts/dia).
-            </p>
-            <div className="space-y-3">
-              {goals.map((goal, index) => (
-                <div key={index} className="flex gap-2">
-                  <div className="flex-1 space-y-2">
-                    <Input
-                      placeholder={`Meta ${index + 1}`}
-                      value={goal.title}
-                      onChange={(e) => updateGoal(index, 'title', e.target.value)}
-                    />
-                  </div>
-                  {goals.length > 1 && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeGoal(index)}
-                      className="h-10 w-10"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Invitees */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                Convidar Participantes
-              </div>
-              <Button variant="outline" size="sm" onClick={addInvitee}>
-                <Plus className="h-3 w-3 mr-1" />
-                Adicionar
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Insira o ID público (8 caracteres) dos usuários que deseja convidar.
-            </p>
-            <div className="space-y-2">
-              {invitees.map((invitee, index) => (
-                <div key={index} className="flex gap-2">
-                  <Input
-                    placeholder="ID do usuário (ex: ABC12345)"
-                    value={invitee}
-                    onChange={(e) => updateInvitee(index, e.target.value.toUpperCase())}
-                    className="uppercase"
-                    maxLength={8}
-                  />
-                  {invitees.length > 1 && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeInvitee(index)}
-                      className="h-10 w-10"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
 
           {/* Bet */}
           <div className="space-y-3">
