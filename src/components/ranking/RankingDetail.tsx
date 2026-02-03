@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { 
   Trophy, Calendar, Target, Users, Coins, ArrowLeft, 
   Check, ChevronLeft, ChevronRight, Crown, Medal, Pencil, Sparkles, Trash2
@@ -57,6 +57,7 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
   const [deleting, setDeleting] = useState(false);
   const [requestingDeletion, setRequestingDeletion] = useState(false);
   const [showWinnerCelebration, setShowWinnerCelebration] = useState(false);
+  const processingGoalsRef = useRef<Set<string>>(new Set());
   const celebrationShownRef = useRef(false);
 
   const startDate = parseISO(ranking.start_date);
@@ -105,8 +106,16 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
     loadGoalLogs();
   }, [selectedDate, ranking.id, getGoalLogs]);
 
-  const handleToggleGoal = async (goalId: string, completed: boolean) => {
+  const handleToggleGoal = useCallback(async (goalId: string, completed: boolean) => {
     if (!canEditGoals || !user) return;
+    
+    // Prevent double-clicks: if this goal is already being processed, ignore
+    if (processingGoalsRef.current.has(goalId)) {
+      return;
+    }
+    
+    // Mark this goal as being processed
+    processingGoalsRef.current.add(goalId);
     
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
     const totalGoals = ranking.goals.length;
@@ -141,16 +150,23 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
     });
     
     // Execute in background (non-blocking)
-    toggleGoalCompletion(
-      ranking.id,
-      goalId,
-      dateStr,
-      completed
-    ).then(() => {
+    try {
+      await toggleGoalCompletion(
+        ranking.id,
+        goalId,
+        dateStr,
+        completed
+      );
       // Refresh goal logs in background to sync with server
-      getGoalLogs(ranking.id, dateStr).then(setGoalLogs);
-    });
-  };
+      const logs = await getGoalLogs(ranking.id, dateStr);
+      setGoalLogs(logs);
+    } finally {
+      // Remove from processing set after a small delay to prevent rapid re-clicks
+      setTimeout(() => {
+        processingGoalsRef.current.delete(goalId);
+      }, 300);
+    }
+  }, [canEditGoals, user, selectedDate, ranking.id, ranking.goals.length, toggleGoalCompletion, getGoalLogs]);
 
   const isGoalCompleted = (goalId: string) => {
     return goalLogs.some(log => log.goal_id === goalId && log.completed);
