@@ -257,9 +257,9 @@ export default function Calendar2() {
           )}
         </div>
 
-        {/* Sidebar (desktop only) */}
+        {/* Sidebar (desktop only, day view) */}
         {view === 'day' && (
-          <div className="hidden lg:block w-80 border-l border-border/50 p-4 overflow-y-auto">
+          <div className="hidden lg:block w-72 border-l border-border/30 p-4 overflow-y-auto bg-card/50">
             <CalendarProductivityPanel
               currentDate={currentDate}
               blocks={blocks}
