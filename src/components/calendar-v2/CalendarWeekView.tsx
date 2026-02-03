@@ -530,11 +530,7 @@ export function CalendarWeekView({
                           width: `calc(${layoutInfo.width}% - 4px)`,
                           backgroundColor: block.color || 'hsl(207, 90%, 54%)',
                         }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!movingBlock) onBlockClick(block);
-                        }}
-                        onMouseDown={(e) => handleBlockDragStart(e, block)}
+                        onMouseDown={(e) => handleBlockMouseDown(e, block)}
                       >
                         <div className="truncate font-semibold">{block.title}</div>
                         {height > 32 && (
