@@ -476,7 +476,10 @@ export function CreateRankingDialog({ trigger, editMode = false, rankingToEdit, 
               onClick={handleSubmit} 
               disabled={loading || !name.trim() || goals.every(g => !g.title.trim())}
             >
-              {loading ? "Criando..." : "Criar Ranking"}
+              {loading 
+                ? (editMode ? "Salvando..." : "Criando...") 
+                : (editMode ? "Salvar Alterações" : "Criar Ranking")
+              }
             </Button>
           </div>
         </div>

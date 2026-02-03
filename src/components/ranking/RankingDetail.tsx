@@ -182,61 +182,101 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
               </div>
               <Progress value={dailyProgress} className="h-2 mt-2" />
             </CardHeader>
-            <CardContent className="space-y-3">
-              <AnimatePresence mode="popLayout">
-                {ranking.goals.map((goal, index) => {
-                  const completed = isGoalCompleted(goal.id);
-                  return (
-                    <motion.div
-                      key={goal.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ delay: index * 0.05 }}
-                      className={cn(
-                        "flex items-center gap-3 p-3 rounded-lg border transition-all",
-                        completed ? "bg-primary/5 border-primary/20" : "bg-muted/30 border-border/50",
-                        !canEditGoals && "opacity-60"
-                      )}
-                    >
-                      <Checkbox
-                        checked={completed}
-                        onCheckedChange={(checked) => handleToggleGoal(goal.id, !!checked)}
-                        disabled={!canEditGoals || loading}
-                        className="h-5 w-5"
-                      />
-                      <div className="flex-1">
-                        <p className={cn(
-                          "font-medium",
-                          completed && "line-through text-muted-foreground"
-                        )}>
-                          {goal.title}
-                        </p>
-                        {goal.description && (
-                          <p className="text-xs text-muted-foreground">{goal.description}</p>
+            <CardContent className="p-4">
+              <div className="space-y-3">
+                <AnimatePresence mode="popLayout">
+                  {ranking.goals.map((goal, index) => {
+                    const completed = isGoalCompleted(goal.id);
+                    const pointsPerGoal = 10 / ranking.goals.length;
+                    
+                    return (
+                      <motion.div
+                        key={goal.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ delay: index * 0.05 }}
+                        className={cn(
+                          "group relative flex items-center gap-4 p-4 rounded-xl transition-all duration-300",
+                          "border-2",
+                          completed 
+                            ? "bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/30 shadow-sm" 
+                            : "bg-gradient-to-r from-muted/50 via-muted/30 to-transparent border-border/50 hover:border-primary/20",
+                          !canEditGoals && "opacity-60 pointer-events-none"
                         )}
-                      </div>
-                      {completed && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="h-6 w-6 rounded-full bg-primary flex items-center justify-center"
-                        >
-                          <Check className="h-4 w-4 text-primary-foreground" />
-                        </motion.div>
-                      )}
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
+                      >
+                        {/* Goal Number Badge */}
+                        <div className={cn(
+                          "flex items-center justify-center h-10 w-10 rounded-xl shrink-0 transition-all duration-300",
+                          "text-sm font-bold",
+                          completed 
+                            ? "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20" 
+                            : "bg-gradient-to-br from-muted to-muted/60 text-muted-foreground"
+                        )}>
+                          {completed ? <Check className="h-5 w-5" /> : index + 1}
+                        </div>
 
-              {!isActive && (
-                <p className="text-sm text-center text-muted-foreground py-4">
-                  {ranking.status === 'pending' 
-                    ? 'O ranking ainda não foi iniciado.' 
-                    : 'O ranking foi finalizado.'}
-                </p>
-              )}
+                        {/* Goal Content */}
+                        <div className="flex-1 min-w-0">
+                          <p className={cn(
+                            "font-semibold text-base transition-all duration-300",
+                            completed && "text-primary"
+                          )}>
+                            {goal.title}
+                          </p>
+                          {goal.description && (
+                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                              {goal.description}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <span className={cn(
+                              "text-[10px] px-2 py-0.5 rounded-full font-medium",
+                              completed 
+                                ? "bg-primary/20 text-primary" 
+                                : "bg-muted text-muted-foreground"
+                            )}>
+                              {completed ? `+${pointsPerGoal.toFixed(1)} pts` : `${pointsPerGoal.toFixed(1)} pts`}
+                            </span>
+                            {completed && (
+                              <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                                <Sparkles className="h-3 w-3 text-primary" />
+                                Completo
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Checkbox */}
+                        <Checkbox
+                          checked={completed}
+                          onCheckedChange={(checked) => handleToggleGoal(goal.id, !!checked)}
+                          disabled={!canEditGoals || loading}
+                          className={cn(
+                            "h-6 w-6 rounded-lg border-2 transition-all duration-300",
+                            completed 
+                              ? "border-primary bg-primary data-[state=checked]:bg-primary" 
+                              : "border-muted-foreground/30 hover:border-primary/50"
+                          )}
+                        />
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+
+                {!isActive && (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <div className="h-12 w-12 rounded-full bg-muted/50 flex items-center justify-center mb-3">
+                      <Target className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {ranking.status === 'pending' 
+                        ? 'O ranking ainda não foi iniciado.' 
+                        : 'O ranking foi finalizado.'}
+                    </p>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
 
