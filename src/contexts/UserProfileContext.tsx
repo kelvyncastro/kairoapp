@@ -13,6 +13,7 @@ export interface UserProfile {
   avatar_url: string | null;
   app_theme: AppTheme;
   onboarding_completed: boolean;
+  public_id: string | null;
 }
 
 interface UserProfileContextType {
