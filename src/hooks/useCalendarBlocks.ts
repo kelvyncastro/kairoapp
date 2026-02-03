@@ -230,6 +230,10 @@ export function useCalendarBlocks({ view, currentDate }: UseCalendarBlocksOption
         .eq('id', id);
 
       if (error) throw error;
+      
+      // Immediately refetch to update UI
+      await fetchBlocks();
+      
       toast.success('Demanda excluída!');
       return true;
     } catch (error) {
