@@ -25,6 +25,7 @@ import Configuracoes from "./pages/Configuracoes";
 import Agenda from "./pages/Agenda";
 import Calendar2 from "./pages/Calendar2";
 import Ranking from "./pages/Ranking";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -79,7 +80,7 @@ const App = () => (
                 <Route path="/calendario" element={<Calendar2 />} />
                 <Route path="/ranking" element={<Ranking />} />
                 <Route path="/configuracoes" element={<Configuracoes />} />
-                <Route path="/configuracoes" element={<Configuracoes />} />
+                <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
