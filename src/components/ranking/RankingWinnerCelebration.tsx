@@ -27,7 +27,7 @@ async function playCelebrationSound() {
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
         body: JSON.stringify({ 
-          prompt: "Celebratory fanfare with crowd cheering and applause, triumphant victory sound effect",
+          prompt: "Epic orchestral victory music with magical sparkles and triumphant horns, uplifting celebration melody",
           duration: 5
         }),
       }
