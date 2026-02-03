@@ -33,7 +33,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Shield, Users, Search, Crown, UserCheck, UserX, Copy, Check, Loader2, Calendar } from "lucide-react";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
@@ -45,6 +45,7 @@ interface UserProfile {
   public_id: string | null;
   subscription_status: string;
   created_at: string;
+  updated_at: string;
   avatar_url: string | null;
 }
 
@@ -307,6 +308,8 @@ export default function Admin() {
                 <TableRow>
                   <TableHead>Usuário</TableHead>
                   <TableHead>Entrada</TableHead>
+                  <TableHead>Tempo Ativo</TableHead>
+                  <TableHead>Última Atividade</TableHead>
                   <TableHead>Public ID</TableHead>
                   <TableHead>User ID</TableHead>
                   <TableHead>Assinatura</TableHead>
@@ -352,6 +355,16 @@ export default function Admin() {
                             {format(new Date(user.created_at), "dd MMM yyyy", { locale: ptBR })}
                           </span>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground">
+                          {formatDistanceToNow(new Date(user.created_at), { locale: ptBR, addSuffix: false })}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground">
+                          {formatDistanceToNow(new Date(user.updated_at), { locale: ptBR, addSuffix: true })}
+                        </span>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -507,7 +520,7 @@ export default function Admin() {
                 })}
                 {filteredUsers.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                       Nenhum usuário encontrado
                     </TableCell>
                   </TableRow>
