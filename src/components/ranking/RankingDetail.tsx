@@ -36,7 +36,16 @@ interface RankingDetailProps {
 
 export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetailProps) {
   const { user } = useAuth();
-  const { toggleGoalCompletion, getGoalLogs, fetchRankings, rankings, deleteRanking } = useRankings();
+  const { 
+    toggleGoalCompletion, 
+    getGoalLogs, 
+    fetchRankings, 
+    rankings, 
+    deleteRanking,
+    requestDeletion,
+    consentToDeletion,
+    cancelDeletionRequest
+  } = useRankings();
   
   // Get the latest ranking data from the hook
   const ranking = rankings.find(r => r.id === initialRanking.id) || initialRanking;
@@ -45,13 +54,22 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
   const [goalLogs, setGoalLogs] = useState<RankingGoalLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [requestingDeletion, setRequestingDeletion] = useState(false);
 
   const startDate = parseISO(ranking.start_date);
   const endDate = parseISO(ranking.end_date);
   const isActive = ranking.status === 'active';
   const isCreator = ranking.creator_id === user?.id;
   const canEdit = isCreator && ranking.status === 'pending';
-  const canDelete = isCreator;
+  const canDeleteDirectly = isCreator && (ranking.status === 'pending' || ranking.status === 'completed');
+  const canRequestDeletion = isCreator && ranking.status === 'active' && !ranking.deletion_requested;
+  
+  // Check deletion consent status
+  const acceptedParticipants = ranking.participants.filter(p => p.status === 'accepted');
+  const allConsented = acceptedParticipants.every(p => p.deletion_consent === true);
+  const currentUserParticipant = ranking.participants.find(p => p.user_id === user?.id);
+  const userHasConsented = currentUserParticipant?.deletion_consent === true;
+  const consentCount = acceptedParticipants.filter(p => p.deletion_consent).length;
   
   const isDateInRange = isWithinInterval(selectedDate, { start: startDate, end: endDate });
   const canEditGoals = isActive && isDateInRange;
