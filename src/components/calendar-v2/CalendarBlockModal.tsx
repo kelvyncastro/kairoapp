@@ -39,7 +39,6 @@ import {
   Clock,
   Repeat,
   Trash2,
-  Copy,
   Check,
   X,
   Zap,
@@ -185,14 +184,10 @@ export function CalendarBlockModal({
   const handleDelete = async () => {
     if (!block || !onDelete) return;
     const hasRecurrence = Boolean(block.recurrence_parent_id) || block.recurrence_type !== 'none';
-    await onDelete(block.id, hasRecurrence);
-    onClose();
-  };
-
-  const handleDuplicate = async () => {
-    if (!block || !onDuplicate) return;
-    await onDuplicate(block);
-    onClose();
+    const success = await onDelete(block.id, hasRecurrence);
+    if (success) {
+      onClose();
+    }
   };
 
   const handleComplete = async () => {
@@ -453,12 +448,6 @@ export function CalendarBlockModal({
                 <Button variant="outline" size="sm" onClick={handleComplete}>
                   <Check className="h-4 w-4 mr-1" />
                   Concluir
-                </Button>
-              )}
-              {onDuplicate && (
-                <Button variant="outline" size="sm" onClick={handleDuplicate}>
-                  <Copy className="h-4 w-4 mr-1" />
-                  Duplicar
                 </Button>
               )}
               {onDelete && (
