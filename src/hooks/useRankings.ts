@@ -58,10 +58,14 @@ export function useRankings() {
   const [loading, setLoading] = useState(true);
   const fetchingRef = useRef(false);
   const profilesCacheRef = useRef<Map<string, UserProfile>>(new Map());
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastFetchRef = useRef<number>(0);
 
-  const fetchRankings = useCallback(async () => {
-    if (!user || fetchingRef.current) return;
+  const fetchRankingsInternal = useCallback(async () => {
+    if (!user) return;
     
+    // Prevent concurrent fetches
+    if (fetchingRef.current) return;
     fetchingRef.current = true;
 
     try {
@@ -80,10 +84,12 @@ export function useRankings() {
       }
 
       const rankingIds = rankingsData.map((r) => r.id);
-      const creatorIds = [...new Set(rankingsData.map((r) => r.creator_id))];
+      
+      // Collect all unique user IDs needed upfront
+      const creatorIds = new Set(rankingsData.map((r) => r.creator_id));
 
       // Batch fetch all related data in parallel
-      const [participantsRes, goalsRes, creatorProfilesRes] = await Promise.all([
+      const [participantsRes, goalsRes] = await Promise.all([
         supabase
           .from("ranking_participants")
           .select("*")
@@ -93,33 +99,31 @@ export function useRankings() {
           .select("*")
           .in("ranking_id", rankingIds)
           .order("order_index", { ascending: true }),
-        supabase
-          .from("user_profiles")
-          .select("user_id, first_name, last_name, avatar_url, public_id")
-          .in("user_id", creatorIds),
       ]);
 
       const participants = participantsRes.data || [];
       const goals = goalsRes.data || [];
-      const creatorProfiles = creatorProfilesRes.data || [];
 
-      // Fetch participant profiles
-      const participantUserIds = [
-        ...new Set(participants.map((p) => p.user_id)),
-      ];
-      const { data: participantProfiles } = participantUserIds.length > 0
-        ? await supabase
-            .from("user_profiles")
-            .select("user_id, first_name, last_name, avatar_url, public_id")
-            .in("user_id", participantUserIds)
-        : { data: [] };
+      // Add all participant user IDs to the set
+      participants.forEach((p) => creatorIds.add(p.user_id));
 
-      // Update cache
-      [...(creatorProfiles || []), ...(participantProfiles || [])].forEach(
-        (p) => {
-          profilesCacheRef.current.set(p.user_id, p as UserProfile);
-        }
+      // Filter out already cached profiles
+      const uncachedUserIds = [...creatorIds].filter(
+        (id) => !profilesCacheRef.current.has(id)
       );
+
+      // Single batch fetch for ALL profiles needed (creators + participants)
+      if (uncachedUserIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("user_profiles")
+          .select("user_id, first_name, last_name, avatar_url, public_id")
+          .in("user_id", uncachedUserIds);
+
+        // Update cache
+        (profiles || []).forEach((p) => {
+          profilesCacheRef.current.set(p.user_id, p as UserProfile);
+        });
+      }
 
       // Map data to rankings
       const enrichedRankings: Ranking[] = rankingsData.map((ranking) => {
@@ -141,6 +145,7 @@ export function useRankings() {
       });
 
       setRankings(enrichedRankings);
+      lastFetchRef.current = Date.now();
     } catch (error) {
       console.error("Error fetching rankings:", error);
       toast({
@@ -151,12 +156,30 @@ export function useRankings() {
       setLoading(false);
       fetchingRef.current = false;
     }
-  }, [user]);
+  }, [user, toast]);
+
+  // Debounced fetch that prevents rapid successive calls
+  const fetchRankings = useCallback(() => {
+    // Clear any pending debounced fetch
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // If we fetched recently (within 500ms), debounce
+    const timeSinceLastFetch = Date.now() - lastFetchRef.current;
+    if (timeSinceLastFetch < 500) {
+      debounceTimerRef.current = setTimeout(() => {
+        fetchRankingsInternal();
+      }, 500 - timeSinceLastFetch);
+    } else {
+      fetchRankingsInternal();
+    }
+  }, [fetchRankingsInternal]);
 
   // Initial fetch
   useEffect(() => {
-    fetchRankings();
-  }, [fetchRankings]);
+    fetchRankingsInternal();
+  }, [fetchRankingsInternal]);
 
   // Realtime subscription for automatic updates
   useEffect(() => {
@@ -169,15 +192,17 @@ export function useRankings() {
         { event: "*", schema: "public", table: "rankings" },
         (payload) => {
           if (payload.eventType === "UPDATE" && payload.new) {
-            // Optimistic update for ranking changes
+            // Optimistic update for ranking changes - no refetch needed
             setRankings((prev) =>
               prev.map((r) =>
                 r.id === payload.new.id ? { ...r, ...payload.new } : r
               )
             );
-          } else {
+          } else if (payload.eventType === "INSERT") {
+            // New ranking - debounced fetch
             fetchRankings();
           }
+          // DELETE events handled by debounced fetch
         }
       )
       .on(
@@ -185,18 +210,17 @@ export function useRankings() {
         { event: "*", schema: "public", table: "ranking_participants" },
         (payload) => {
           if (payload.eventType === "UPDATE" && payload.new) {
-            // Optimistic update for participant changes
+            // Optimistic update for participant changes - no refetch
             setRankings((prev) =>
               prev.map((r) => ({
                 ...r,
                 participants: r.participants.map((p) =>
-                  p.id === payload.new.id
-                    ? { ...p, ...payload.new }
-                    : p
+                  p.id === payload.new.id ? { ...p, ...payload.new } : p
                 ),
               }))
             );
           } else {
+            // INSERT/DELETE - debounced fetch
             fetchRankings();
           }
         }
@@ -213,8 +237,14 @@ export function useRankings() {
         { event: "*", schema: "public", table: "ranking_goal_logs" },
         (payload) => {
           if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
-            // Update participant points optimistically
-            const log = payload.new as { ranking_id: string; user_id: string; points_earned: number };
+            // Optimistic update for points
+            const log = payload.new as { 
+              ranking_id: string; 
+              user_id: string; 
+              points_earned: number;
+              completed: boolean;
+            };
+            
             setRankings((prev) =>
               prev.map((r) => {
                 if (r.id !== log.ranking_id) return r;
@@ -222,15 +252,18 @@ export function useRankings() {
                   ...r,
                   participants: r.participants.map((p) => {
                     if (p.user_id !== log.user_id) return p;
-                    // Recalculate or just trigger a refetch for accurate totals
-                    return p;
+                    // Update points immediately for responsive UI
+                    const pointsDelta = log.completed ? log.points_earned : -log.points_earned;
+                    return {
+                      ...p,
+                      total_points: Math.max(0, p.total_points + pointsDelta),
+                    };
                   }),
                 };
               })
             );
-            // Full refetch to get accurate point totals
-            fetchRankings();
-          } else {
+            
+            // Background sync for accurate totals (debounced)
             fetchRankings();
           }
         }
@@ -238,14 +271,18 @@ export function useRankings() {
       .subscribe();
 
     return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
       supabase.removeChannel(channel);
     };
   }, [user, fetchRankings]);
 
   const refetch = useCallback(() => {
     fetchingRef.current = false;
-    return fetchRankings();
-  }, [fetchRankings]);
+    lastFetchRef.current = 0; // Reset to allow immediate fetch
+    return fetchRankingsInternal();
+  }, [fetchRankingsInternal]);
 
   return {
     rankings,
