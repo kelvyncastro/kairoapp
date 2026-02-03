@@ -174,7 +174,8 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
               }
             />
           )}
-          {canDelete && (
+          {/* Direct delete for pending/completed rankings */}
+          {canDeleteDirectly && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive">
@@ -203,6 +204,117 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
               </AlertDialogContent>
             </AlertDialog>
           )}
+          
+          {/* Request deletion for active rankings */}
+          {canRequestDeletion && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive">
+                  <Trash2 className="h-4 w-4" />
+                  Solicitar Exclusão
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Solicitar Exclusão</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Como este ranking está ativo, todos os participantes precisam consentir com a exclusão.
+                    Será enviada uma notificação para cada participante solicitando o consentimento.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleRequestDeletion}
+                    disabled={requestingDeletion}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {requestingDeletion ? "Enviando..." : "Solicitar"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+
+          {/* Show deletion request status for creator */}
+          {isCreator && ranking.deletion_requested && (
+            <div className="flex items-center gap-2">
+              {allConsented ? (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm" className="gap-2">
+                      <Trash2 className="h-4 w-4" />
+                      Confirmar Exclusão
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Todos Consentiram</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Todos os participantes concordaram com a exclusão. Deseja prosseguir?
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={handleDeleteRanking}
+                        disabled={deleting}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {deleting ? "Excluindo..." : "Excluir Definitivamente"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              ) : (
+                <>
+                  <Badge variant="outline" className="text-yellow-500 border-yellow-500">
+                    Aguardando consentimento ({consentCount}/{acceptedParticipants.length})
+                  </Badge>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handleCancelDeletionRequest}
+                    className="text-muted-foreground"
+                  >
+                    Cancelar solicitação
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Show consent buttons for non-creator participants */}
+          {!isCreator && ranking.deletion_requested && !userHasConsented && (
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-yellow-500 border-yellow-500">
+                Exclusão solicitada
+              </Badge>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => handleConsentToDeletion(true)}
+                className="text-destructive hover:text-destructive"
+              >
+                Concordar
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => handleConsentToDeletion(false)}
+              >
+                Recusar
+              </Button>
+            </div>
+          )}
+
+          {/* Show consent status for non-creator who already consented */}
+          {!isCreator && ranking.deletion_requested && userHasConsented && (
+            <Badge variant="outline" className="text-muted-foreground">
+              Você concordou com a exclusão
+            </Badge>
+          )}
+
           <Badge className={cn(
             ranking.status === 'active' && "bg-green-500/20 text-green-500",
             ranking.status === 'pending' && "bg-yellow-500/20 text-yellow-500",
