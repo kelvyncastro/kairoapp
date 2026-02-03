@@ -79,19 +79,21 @@ export function CalendarWeekView({
   }, [blocks, weekDays]);
 
   // Calculate minutes from Y position
-  const getMinutesFromY = useCallback((clientY: number, dayColumn: HTMLElement): number => {
-    const rect = dayColumn.getBoundingClientRect();
-    const y = clientY - rect.top + (scrollRef.current?.scrollTop || 0);
+  const getMinutesFromY = useCallback((clientY: number): number => {
+    if (!scrollRef.current) return 0;
+    const scrollContainer = scrollRef.current;
+    const scrollRect = scrollContainer.getBoundingClientRect();
+    const y = clientY - scrollRect.top + scrollContainer.scrollTop;
     const rawMinutes = (y / HOUR_HEIGHT) * 60;
     return snapToQuarter(Math.max(0, Math.min(rawMinutes, 24 * 60 - 15)));
   }, []);
 
   // Mouse handlers for drag-to-create
-  const handleMouseDown = useCallback((e: React.MouseEvent, day: Date, dayColumn: HTMLElement) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent, day: Date) => {
     if (e.button !== 0) return;
     e.preventDefault();
     
-    const minutes = getMinutesFromY(e.clientY, dayColumn);
+    const minutes = getMinutesFromY(e.clientY);
     setIsDragging(true);
     setDragDay(day);
     setDragStartMinutes(minutes);
@@ -100,12 +102,7 @@ export function CalendarWeekView({
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isDragging || !dragDay) return;
-    
-    const dayKey = format(dragDay, 'yyyy-MM-dd');
-    const dayColumn = document.querySelector(`[data-day="${dayKey}"]`) as HTMLElement;
-    if (!dayColumn) return;
-    
-    const minutes = getMinutesFromY(e.clientY, dayColumn);
+    const minutes = getMinutesFromY(e.clientY);
     setDragEndMinutes(minutes);
   }, [isDragging, dragDay, getMinutesFromY]);
 
@@ -242,7 +239,7 @@ export function CalendarWeekView({
                   "flex-1 relative border-l border-border/30",
                   isToday(day) && "bg-primary/[0.03]"
                 )}
-                onMouseDown={(e) => handleMouseDown(e, day, e.currentTarget)}
+                onMouseDown={(e) => handleMouseDown(e, day)}
               >
                 {/* Hour lines */}
                 {HOURS.map((hour) => (

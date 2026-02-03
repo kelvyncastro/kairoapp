@@ -82,9 +82,10 @@ export function CalendarDayView({
 
   // Calculate minutes from Y position
   const getMinutesFromY = useCallback((clientY: number): number => {
-    if (!dayColumnRef.current) return 0;
-    const rect = dayColumnRef.current.getBoundingClientRect();
-    const y = clientY - rect.top + (scrollRef.current?.scrollTop || 0);
+    if (!scrollRef.current) return 0;
+    const scrollContainer = scrollRef.current;
+    const scrollRect = scrollContainer.getBoundingClientRect();
+    const y = clientY - scrollRect.top + scrollContainer.scrollTop;
     const rawMinutes = (y / HOUR_HEIGHT) * 60;
     return snapToQuarter(Math.max(0, Math.min(rawMinutes, 24 * 60 - 15)));
   }, []);
