@@ -279,6 +279,7 @@ export function CalendarDayView({
   const movingBlockStyle = getMovingBlockStyle();
 
   return (
+    <>
     <div 
       className="flex flex-col h-full bg-background select-none"
       onMouseMove={handleMouseMove}
