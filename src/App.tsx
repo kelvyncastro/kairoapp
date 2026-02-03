@@ -69,13 +69,13 @@ const App = () => (
                 <Route path="/habitos" element={<Habitos />} />
                 <Route path="/metas" element={<Metas />} />
                 <Route path="/consistencia" element={<Consistencia />} />
-                <Route path="/ranking" element={<Ranking />} />
                 <Route path="/treino" element={<AdminRoute><Treino /></AdminRoute>} />
                 <Route path="/dieta" element={<AdminRoute><Dieta /></AdminRoute>} />
                 <Route path="/financas" element={<Financas />} />
                 <Route path="/chat-financeiro" element={<ChatFinanceiro />} />
                 <Route path="/ebook" element={<AdminRoute><Ebook /></AdminRoute>} />
                 <Route path="/agenda" element={<Agenda />} />
+                <Route path="/ranking" element={<Ranking />} />
                 <Route path="/configuracoes" element={<Configuracoes />} />
               </Route>
               <Route path="*" element={<NotFound />} />

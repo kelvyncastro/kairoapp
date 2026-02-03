@@ -43,6 +43,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 const mainNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -396,6 +397,10 @@ export default function AppLayout() {
             <div className="hidden md:block" />
 
             <div className="flex items-center gap-2">
+              {/* Notifications */}
+              <NotificationBell />
+              
+              {/* Profile */}
               {/* Profile */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

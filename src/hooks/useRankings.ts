@@ -1,77 +1,30 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { Ranking, RankingParticipant, RankingGoal, RankingGoalLog, RankingWithDetails } from "@/types/ranking";
 import { useToast } from "@/hooks/use-toast";
-
-interface UserProfile {
-  user_id: string;
-  first_name: string | null;
-  last_name: string | null;
-  avatar_url: string | null;
-  public_id: string | null;
-}
-
-interface RankingParticipant {
-  id: string;
-  ranking_id: string;
-  user_id: string;
-  status: string;
-  accepted_bet: boolean | null;
-  total_points: number;
-  joined_at: string | null;
-  deletion_consent: boolean | null;
-  profile?: UserProfile;
-}
-
-interface RankingGoal {
-  id: string;
-  ranking_id: string;
-  title: string;
-  description: string | null;
-  order_index: number;
-}
-
-export interface Ranking {
-  id: string;
-  name: string;
-  description: string | null;
-  creator_id: string;
-  start_date: string;
-  end_date: string;
-  max_participants: number;
-  bet_description: string | null;
-  bet_amount: string | null;
-  status: string;
-  created_at: string;
-  updated_at: string;
-  deletion_requested: boolean | null;
-  deletion_requested_at: string | null;
-  participants: RankingParticipant[];
-  goals: RankingGoal[];
-  creator_profile?: UserProfile;
-}
 
 export function useRankings() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [rankings, setRankings] = useState<Ranking[]>([]);
+  const [rankings, setRankings] = useState<RankingWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const fetchingRef = useRef(false);
-  const profilesCacheRef = useRef<Map<string, UserProfile>>(new Map());
 
   const fetchRankings = useCallback(async () => {
     if (!user || fetchingRef.current) return;
     
     fetchingRef.current = true;
-
+    
     try {
-      // Fetch all rankings the user can see
+      // Fetch rankings where user is creator or participant
       const { data: rankingsData, error: rankingsError } = await supabase
-        .from("rankings")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .from('rankings')
+        .select('*')
+        .order('created_at', { ascending: false });
 
       if (rankingsError) throw rankingsError;
+
       if (!rankingsData || rankingsData.length === 0) {
         setRankings([]);
         setLoading(false);
@@ -79,177 +32,591 @@ export function useRankings() {
         return;
       }
 
-      const rankingIds = rankingsData.map((r) => r.id);
-      const creatorIds = [...new Set(rankingsData.map((r) => r.creator_id))];
+      const rankingIds = rankingsData.map(r => r.id);
+      const creatorIds = [...new Set(rankingsData.map(r => r.creator_id))];
 
-      // Batch fetch all related data in parallel
+      // Batch fetch participants, goals, and profiles in parallel
       const [participantsRes, goalsRes, creatorProfilesRes] = await Promise.all([
         supabase
-          .from("ranking_participants")
-          .select("*")
-          .in("ranking_id", rankingIds),
+          .from('ranking_participants')
+          .select('*')
+          .in('ranking_id', rankingIds),
         supabase
-          .from("ranking_goals")
-          .select("*")
-          .in("ranking_id", rankingIds)
-          .order("order_index", { ascending: true }),
+          .from('ranking_goals')
+          .select('*')
+          .in('ranking_id', rankingIds)
+          .order('order_index', { ascending: true }),
         supabase
-          .from("user_profiles")
-          .select("user_id, first_name, last_name, avatar_url, public_id")
-          .in("user_id", creatorIds),
+          .from('user_profiles')
+          .select('user_id, first_name, last_name, avatar_url, public_id')
+          .in('user_id', creatorIds)
       ]);
 
-      const participants = participantsRes.data || [];
-      const goals = goalsRes.data || [];
+      const allParticipants = participantsRes.data || [];
+      const allGoals = goalsRes.data || [];
       const creatorProfiles = creatorProfilesRes.data || [];
 
-      // Fetch participant profiles
-      const participantUserIds = [
-        ...new Set(participants.map((p) => p.user_id)),
-      ];
-      const { data: participantProfiles } = participantUserIds.length > 0
+      // Get unique participant user IDs for profile fetching
+      const participantUserIds = [...new Set(allParticipants.map(p => p.user_id))];
+      
+      // Fetch all participant profiles in one query
+      const { data: participantProfiles } = participantUserIds.length > 0 
         ? await supabase
-            .from("user_profiles")
-            .select("user_id, first_name, last_name, avatar_url, public_id")
-            .in("user_id", participantUserIds)
+            .from('user_profiles')
+            .select('user_id, first_name, last_name, avatar_url, public_id')
+            .in('user_id', participantUserIds)
         : { data: [] };
 
-      // Update cache
-      [...(creatorProfiles || []), ...(participantProfiles || [])].forEach(
-        (p) => {
-          profilesCacheRef.current.set(p.user_id, p as UserProfile);
-        }
-      );
+      const profilesMap = new Map((participantProfiles || []).map(p => [p.user_id, p]));
+      const creatorProfilesMap = new Map(creatorProfiles.map(p => [p.user_id, p]));
 
-      // Map data to rankings
-      const enrichedRankings: Ranking[] = rankingsData.map((ranking) => {
-        const rankingParticipants = participants
-          .filter((p) => p.ranking_id === ranking.id)
-          .map((p) => ({
+      // Build rankings with details
+      const rankingsWithDetails: RankingWithDetails[] = rankingsData.map((ranking) => {
+        const participants = allParticipants
+          .filter(p => p.ranking_id === ranking.id)
+          .map(p => ({
             ...p,
-            profile: profilesCacheRef.current.get(p.user_id),
-          }));
+            user_profile: profilesMap.get(p.user_id) || undefined
+          } as RankingParticipant));
 
-        const rankingGoals = goals.filter((g) => g.ranking_id === ranking.id);
+        const goals = allGoals.filter(g => g.ranking_id === ranking.id);
+        const creatorProfile = creatorProfilesMap.get(ranking.creator_id);
 
         return {
           ...ranking,
-          participants: rankingParticipants,
-          goals: rankingGoals,
-          creator_profile: profilesCacheRef.current.get(ranking.creator_id),
-        };
+          participants,
+          goals,
+          creator_profile: creatorProfile || undefined
+        } as RankingWithDetails;
       });
 
-      setRankings(enrichedRankings);
+      setRankings(rankingsWithDetails);
     } catch (error) {
-      console.error("Error fetching rankings:", error);
-      toast({
-        title: "Erro ao carregar rankings",
-        variant: "destructive",
-      });
+      console.error('Error fetching rankings:', error);
     } finally {
       setLoading(false);
       fetchingRef.current = false;
     }
   }, [user]);
 
-  // Initial fetch
   useEffect(() => {
     fetchRankings();
   }, [fetchRankings]);
 
-  // Realtime subscription for automatic updates
-  useEffect(() => {
+  const createRanking = async (
+    data: {
+      name: string;
+      description?: string;
+      start_date: string;
+      end_date: string;
+      bet_description?: string;
+      bet_amount?: string;
+      goals: { title: string; description?: string }[];
+      invitees: string[]; // public_ids or emails
+    }
+  ) => {
+    if (!user) return null;
+
+    try {
+      // Create ranking
+      const { data: ranking, error: rankingError } = await supabase
+        .from('rankings')
+        .insert({
+          name: data.name,
+          description: data.description || null,
+          creator_id: user.id,
+          start_date: data.start_date,
+          end_date: data.end_date,
+          bet_description: data.bet_description || null,
+          bet_amount: data.bet_amount || null,
+        })
+        .select()
+        .single();
+
+      if (rankingError) throw rankingError;
+
+      // Add creator as participant (auto-accepted)
+      await supabase
+        .from('ranking_participants')
+        .insert({
+          ranking_id: ranking.id,
+          user_id: user.id,
+          status: 'accepted',
+          accepted_bet: true,
+          joined_at: new Date().toISOString()
+        });
+
+      // Create goals
+      if (data.goals.length > 0) {
+        const goalsToInsert = data.goals.map((goal, index) => ({
+          ranking_id: ranking.id,
+          title: goal.title,
+          description: goal.description || null,
+          order_index: index
+        }));
+
+        const { error: goalsError } = await supabase
+          .from('ranking_goals')
+          .insert(goalsToInsert);
+
+        if (goalsError) throw goalsError;
+      }
+
+      // Invite participants
+      for (const invitee of data.invitees) {
+        // Try to find user by public_id or email
+        let targetUserId: string | null = null;
+
+        // First try public_id
+        const { data: profileByPublicId } = await supabase
+          .from('user_profiles')
+          .select('user_id')
+          .eq('public_id', invitee.toUpperCase())
+          .single();
+
+        if (profileByPublicId) {
+          targetUserId = profileByPublicId.user_id;
+        }
+
+        if (targetUserId && targetUserId !== user.id) {
+          // Add participant
+          await supabase
+            .from('ranking_participants')
+            .insert({
+              ranking_id: ranking.id,
+              user_id: targetUserId,
+              status: 'pending'
+            });
+
+          // Create notification
+          await supabase
+            .from('notifications')
+            .insert({
+              user_id: targetUserId,
+              type: 'ranking_invite',
+              title: 'Convite para Ranking',
+              message: `Você foi convidado para participar do ranking "${data.name}"`,
+              data: { ranking_id: ranking.id }
+            });
+        }
+      }
+
+      toast({
+        title: "Ranking criado!",
+        description: "Convites enviados para os participantes."
+      });
+
+      await fetchRankings();
+      return ranking;
+    } catch (error) {
+      console.error('Error creating ranking:', error);
+      toast({
+        title: "Erro ao criar ranking",
+        variant: "destructive"
+      });
+      return null;
+    }
+  };
+
+  const updateRanking = async (
+    rankingId: string,
+    data: {
+      name: string;
+      description?: string;
+      start_date: string;
+      end_date: string;
+      bet_description?: string;
+      bet_amount?: string;
+      goals: { title: string; description?: string }[];
+    }
+  ) => {
+    if (!user) return null;
+
+    try {
+      // Update ranking
+      const { error: rankingError } = await supabase
+        .from('rankings')
+        .update({
+          name: data.name,
+          description: data.description || null,
+          start_date: data.start_date,
+          end_date: data.end_date,
+          bet_description: data.bet_description || null,
+          bet_amount: data.bet_amount || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', rankingId)
+        .eq('creator_id', user.id);
+
+      if (rankingError) throw rankingError;
+
+      // Delete existing goals and recreate them
+      await supabase
+        .from('ranking_goals')
+        .delete()
+        .eq('ranking_id', rankingId);
+
+      // Create new goals
+      if (data.goals.length > 0) {
+        const goalsToInsert = data.goals.map((goal, index) => ({
+          ranking_id: rankingId,
+          title: goal.title,
+          description: goal.description || null,
+          order_index: index
+        }));
+
+        const { error: goalsError } = await supabase
+          .from('ranking_goals')
+          .insert(goalsToInsert);
+
+        if (goalsError) throw goalsError;
+      }
+
+      toast({
+        title: "Ranking atualizado!",
+        description: "As alterações foram salvas com sucesso."
+      });
+
+      await fetchRankings();
+      return true;
+    } catch (error) {
+      console.error('Error updating ranking:', error);
+      toast({
+        title: "Erro ao atualizar ranking",
+        variant: "destructive"
+      });
+      return null;
+    }
+  };
+
+  const respondToInvite = async (rankingId: string, accept: boolean, acceptBet: boolean = false) => {
     if (!user) return;
 
-    const channel = supabase
-      .channel("rankings-realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "rankings" },
-        (payload) => {
-          if (payload.eventType === "UPDATE" && payload.new) {
-            // Optimistic update for ranking changes
-            setRankings((prev) =>
-              prev.map((r) =>
-                r.id === payload.new.id ? { ...r, ...payload.new } : r
-              )
-            );
-          } else {
-            fetchRankings();
-          }
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "ranking_participants" },
-        (payload) => {
-          if (payload.eventType === "UPDATE" && payload.new) {
-            // Optimistic update for participant changes
-            setRankings((prev) =>
-              prev.map((r) => ({
-                ...r,
-                participants: r.participants.map((p) =>
-                  p.id === payload.new.id
-                    ? { ...p, ...payload.new }
-                    : p
-                ),
-              }))
-            );
-          } else {
-            fetchRankings();
-          }
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "ranking_goals" },
-        () => {
-          fetchRankings();
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "ranking_goal_logs" },
-        (payload) => {
-          if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
-            // Update participant points optimistically
-            const log = payload.new as { ranking_id: string; user_id: string; points_earned: number };
-            setRankings((prev) =>
-              prev.map((r) => {
-                if (r.id !== log.ranking_id) return r;
-                return {
-                  ...r,
-                  participants: r.participants.map((p) => {
-                    if (p.user_id !== log.user_id) return p;
-                    // Recalculate or just trigger a refetch for accurate totals
-                    return p;
-                  }),
-                };
-              })
-            );
-            // Full refetch to get accurate point totals
-            fetchRankings();
-          } else {
-            fetchRankings();
-          }
-        }
-      )
-      .subscribe();
+    try {
+      const { error } = await supabase
+        .from('ranking_participants')
+        .update({
+          status: accept ? 'accepted' : 'rejected',
+          accepted_bet: acceptBet,
+          joined_at: accept ? new Date().toISOString() : null
+        })
+        .eq('ranking_id', rankingId)
+        .eq('user_id', user.id);
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, fetchRankings]);
+      if (error) throw error;
 
-  const refetch = useCallback(() => {
-    fetchingRef.current = false;
-    return fetchRankings();
-  }, [fetchRankings]);
+      toast({
+        title: accept ? "Convite aceito!" : "Convite recusado",
+      });
+
+      await fetchRankings();
+    } catch (error) {
+      console.error('Error responding to invite:', error);
+      toast({
+        title: "Erro ao responder convite",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const toggleGoalCompletion = async (
+    rankingId: string,
+    goalId: string,
+    date: string,
+    completed: boolean
+  ) => {
+    if (!user) return;
+
+    try {
+      // Get ranking to calculate points
+      const ranking = rankings.find(r => r.id === rankingId);
+      if (!ranking) return;
+
+      const totalGoals = ranking.goals.length;
+      const pointsPerGoal = totalGoals > 0 ? 10 / totalGoals : 0;
+
+      // Check if log exists
+      const { data: existingLog } = await supabase
+        .from('ranking_goal_logs')
+        .select('*')
+        .eq('goal_id', goalId)
+        .eq('user_id', user.id)
+        .eq('date', date)
+        .single();
+
+      if (existingLog) {
+        // Update existing log
+        await supabase
+          .from('ranking_goal_logs')
+          .update({
+            completed,
+            points_earned: completed ? pointsPerGoal : 0,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingLog.id);
+      } else {
+        // Create new log
+        await supabase
+          .from('ranking_goal_logs')
+          .insert({
+            ranking_id: rankingId,
+            goal_id: goalId,
+            user_id: user.id,
+            date,
+            completed,
+            points_earned: completed ? pointsPerGoal : 0
+          });
+      }
+
+      // Update total points for participant
+      const { data: allLogs } = await supabase
+        .from('ranking_goal_logs')
+        .select('points_earned')
+        .eq('ranking_id', rankingId)
+        .eq('user_id', user.id);
+
+      const totalPoints = (allLogs || []).reduce((sum, log) => sum + Number(log.points_earned), 0);
+
+      await supabase
+        .from('ranking_participants')
+        .update({ total_points: totalPoints })
+        .eq('ranking_id', rankingId)
+        .eq('user_id', user.id);
+
+      await fetchRankings();
+    } catch (error) {
+      console.error('Error toggling goal:', error);
+    }
+  };
+
+  const getGoalLogs = async (rankingId: string, date: string): Promise<RankingGoalLog[]> => {
+    if (!user) return [];
+
+    try {
+      const { data, error } = await supabase
+        .from('ranking_goal_logs')
+        .select('*')
+        .eq('ranking_id', rankingId)
+        .eq('user_id', user.id)
+        .eq('date', date);
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching goal logs:', error);
+      return [];
+    }
+  };
+
+  const startRanking = async (rankingId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('rankings')
+        .update({ status: 'active' })
+        .eq('id', rankingId)
+        .eq('creator_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Ranking iniciado!",
+      });
+
+      await fetchRankings();
+    } catch (error) {
+      console.error('Error starting ranking:', error);
+    }
+  };
+
+  const deleteRanking = async (rankingId: string) => {
+    if (!user) return;
+
+    try {
+      const ranking = rankings.find(r => r.id === rankingId);
+      if (!ranking) return false;
+
+      // If ranking is active, check if all participants have consented
+      if (ranking.status === 'active') {
+        const acceptedParticipants = ranking.participants.filter(p => p.status === 'accepted');
+        const allConsented = acceptedParticipants.every(p => p.deletion_consent === true);
+        
+        if (!allConsented) {
+          toast({
+            title: "Não é possível excluir",
+            description: "Todos os participantes precisam consentir com a exclusão.",
+            variant: "destructive"
+          });
+          return false;
+        }
+      }
+
+      // Delete ranking (cascade will handle participants, goals, and logs)
+      const { error } = await supabase
+        .from('rankings')
+        .delete()
+        .eq('id', rankingId)
+        .eq('creator_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Ranking excluído!",
+        description: "O ranking foi removido com sucesso."
+      });
+
+      await fetchRankings();
+      return true;
+    } catch (error) {
+      console.error('Error deleting ranking:', error);
+      toast({
+        title: "Erro ao excluir ranking",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
+  const requestDeletion = async (rankingId: string) => {
+    if (!user) return false;
+
+    try {
+      const ranking = rankings.find(r => r.id === rankingId);
+      if (!ranking || ranking.creator_id !== user.id) return false;
+
+      // Mark ranking as deletion requested
+      const { error: updateError } = await supabase
+        .from('rankings')
+        .update({
+          deletion_requested: true,
+          deletion_requested_at: new Date().toISOString()
+        })
+        .eq('id', rankingId)
+        .eq('creator_id', user.id);
+
+      if (updateError) throw updateError;
+
+      // Set creator's consent to true
+      await supabase
+        .from('ranking_participants')
+        .update({ deletion_consent: true })
+        .eq('ranking_id', rankingId)
+        .eq('user_id', user.id);
+
+      // Notify all other participants
+      const otherParticipants = ranking.participants.filter(
+        p => p.user_id !== user.id && p.status === 'accepted'
+      );
+
+      for (const participant of otherParticipants) {
+        await supabase
+          .from('notifications')
+          .insert({
+            user_id: participant.user_id,
+            type: 'ranking_update',
+            title: 'Solicitação de Exclusão',
+            message: `O criador do ranking "${ranking.name}" está solicitando a exclusão. Seu consentimento é necessário.`,
+            data: { ranking_id: rankingId, action: 'deletion_request' }
+          });
+      }
+
+      toast({
+        title: "Solicitação enviada!",
+        description: "Aguardando consentimento dos outros participantes."
+      });
+
+      await fetchRankings();
+      return true;
+    } catch (error) {
+      console.error('Error requesting deletion:', error);
+      toast({
+        title: "Erro ao solicitar exclusão",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
+  const consentToDeletion = async (rankingId: string, consent: boolean) => {
+    if (!user) return false;
+
+    try {
+      const { error } = await supabase
+        .from('ranking_participants')
+        .update({ deletion_consent: consent })
+        .eq('ranking_id', rankingId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: consent ? "Consentimento registrado" : "Consentimento negado",
+        description: consent 
+          ? "Você concordou com a exclusão do ranking."
+          : "Você recusou a exclusão do ranking."
+      });
+
+      await fetchRankings();
+      return true;
+    } catch (error) {
+      console.error('Error consenting to deletion:', error);
+      toast({
+        title: "Erro ao registrar consentimento",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
+  const cancelDeletionRequest = async (rankingId: string) => {
+    if (!user) return false;
+
+    try {
+      // Reset deletion request
+      const { error: updateError } = await supabase
+        .from('rankings')
+        .update({
+          deletion_requested: false,
+          deletion_requested_at: null
+        })
+        .eq('id', rankingId)
+        .eq('creator_id', user.id);
+
+      if (updateError) throw updateError;
+
+      // Reset all consents
+      await supabase
+        .from('ranking_participants')
+        .update({ deletion_consent: false })
+        .eq('ranking_id', rankingId);
+
+      toast({
+        title: "Solicitação cancelada",
+        description: "A solicitação de exclusão foi cancelada."
+      });
+
+      await fetchRankings();
+      return true;
+    } catch (error) {
+      console.error('Error canceling deletion request:', error);
+      return false;
+    }
+  };
 
   return {
     rankings,
     loading,
-    refetch,
+    fetchRankings,
+    createRanking,
+    updateRanking,
+    respondToInvite,
+    toggleGoalCompletion,
+    getGoalLogs,
+    startRanking,
+    deleteRanking,
+    requestDeletion,
+    consentToDeletion,
+    cancelDeletionRequest
   };
 }
