@@ -89,11 +89,11 @@ export function CalendarWeekView({
   }, []);
 
   // Mouse handlers for drag-to-create
-  const handleMouseDown = useCallback((e: React.MouseEvent, day: Date, dayColumn: HTMLElement) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent, day: Date) => {
     if (e.button !== 0) return;
     e.preventDefault();
     
-    const minutes = getMinutesFromY(e.clientY, dayColumn);
+    const minutes = getMinutesFromY(e.clientY);
     setIsDragging(true);
     setDragDay(day);
     setDragStartMinutes(minutes);
