@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -6,7 +6,6 @@ import { useRankings, Ranking } from "@/hooks/useRankings";
 import {
   Trophy,
   Plus,
-  Users,
   Calendar,
   Coins,
   Check,
@@ -14,11 +13,9 @@ import {
   Crown,
   Target,
   Loader2,
-  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
   DialogContent,
@@ -35,10 +32,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { format, differenceInDays, isAfter, isBefore } from "date-fns";
+import { format, isAfter } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { RankingPublicIdCard } from "@/components/ranking/RankingPublicIdCard";
+import { RankingStatsRow } from "@/components/ranking/RankingStatsRow";
+import { RankingFilterTabs, RankingTabKey } from "@/components/ranking/RankingFilterTabs";
+import { RankingListCard } from "@/components/ranking/RankingListCard";
 
 export default function RankingPage() {
   const { user } = useAuth();
@@ -47,6 +47,8 @@ export default function RankingPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedRanking, setSelectedRanking] = useState<Ranking | null>(null);
   const [creating, setCreating] = useState(false);
+  const [publicId, setPublicId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<RankingTabKey>("active");
 
   // Create form state
   const [newRanking, setNewRanking] = useState({
@@ -149,6 +151,60 @@ export default function RankingPage() {
       toast({ title: "Erro ao criar ranking", variant: "destructive" });
     } finally {
       setCreating(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!user) return;
+
+    let alive = true;
+    (async () => {
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .select("public_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!alive) return;
+      if (error) {
+        console.error("Error fetching public_id:", error);
+        return;
+      }
+      setPublicId((data?.public_id as string | null) || null);
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [user]);
+
+  const counts = useMemo(() => {
+    const active = rankings.filter((r) => r.status === "active").length;
+    const ended = rankings.filter((r) => r.status === "ended").length;
+    const pending = rankings.filter((r) => {
+      const part = r.participants.find((p) => p.user_id === user?.id);
+      return part?.status === "pending" || r.status === "pending";
+    }).length;
+    return { active, pending, ended, total: rankings.length };
+  }, [rankings, user?.id]);
+
+  const filteredRankings = useMemo(() => {
+    if (activeTab === "active") return rankings.filter((r) => r.status === "active");
+    if (activeTab === "ended") return rankings.filter((r) => r.status === "ended");
+    // pending
+    return rankings.filter((r) => {
+      const part = r.participants.find((p) => p.user_id === user?.id);
+      return part?.status === "pending" || r.status === "pending";
+    });
+  }, [activeTab, rankings, user?.id]);
+
+  const handleCopyPublicId = async () => {
+    if (!publicId) return;
+    try {
+      await navigator.clipboard.writeText(publicId);
+      toast({ title: "ID copiado!" });
+    } catch {
+      toast({ title: "Não foi possível copiar", variant: "destructive" });
     }
   };
 
@@ -286,132 +342,66 @@ export default function RankingPage() {
       {/* Header */}
       <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-border/30 flex-shrink-0">
         <div>
-          <h1 className="text-lg md:text-xl font-bold flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-primary" />
-            Rankings
-          </h1>
+          <h1 className="text-lg md:text-xl font-bold">Ranking entre Amigos</h1>
           <p className="text-xs text-muted-foreground hidden sm:block">
-            Competições entre amigos
+            Compita com seus amigos e alcance suas metas juntos
           </p>
         </div>
-        <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
+        <Button size="sm" variant="secondary" onClick={() => setCreateDialogOpen(true)} className="bg-background text-foreground hover:bg-background/90">
           <Plus className="h-4 w-4 mr-1" />
-          Novo Ranking
+          Criar Ranking
         </Button>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6">
-        {rankings.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <Trophy className="h-16 w-16 text-muted-foreground/30 mb-4" />
-            <h3 className="text-lg font-medium text-muted-foreground">
-              Nenhum ranking ainda
-            </h3>
-            <p className="text-sm text-muted-foreground/70 mb-4">
-              Crie um ranking para competir com seus amigos
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
+        <RankingPublicIdCard publicId={publicId} onCopy={handleCopyPublicId} />
+
+        <RankingStatsRow
+          active={counts.active}
+          pending={counts.pending}
+          ended={counts.ended}
+          total={counts.total}
+        />
+
+        <RankingFilterTabs
+          value={activeTab}
+          onChange={setActiveTab}
+          counts={{ active: counts.active, pending: counts.pending, ended: counts.ended }}
+        />
+
+        {filteredRankings.length === 0 ? (
+          <div className="cave-card p-10 text-center">
+            <Trophy className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground">
+              Nenhum ranking nessa categoria.
             </p>
-            <Button onClick={() => setCreateDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Criar Ranking
-            </Button>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {rankings.map((ranking) => {
-              const userParticipation = ranking.participants.find(
-                (p) => p.user_id === user?.id
-              );
-              const isPending = userParticipation?.status === "pending";
-              const isCreator = ranking.creator_id === user?.id;
-              const daysLeft = differenceInDays(
-                new Date(ranking.end_date),
-                new Date()
-              );
-              const acceptedParticipants = ranking.participants.filter(
-                (p) => p.status === "accepted"
-              );
+          <div className="grid gap-4 md:grid-cols-2">
+            {filteredRankings.map((ranking) => {
+              const userParticipation = ranking.participants.find((p) => p.user_id === user?.id);
+              const isPendingInvite = userParticipation?.status === "pending";
 
-              return (
-                <div
-                  key={ranking.id}
-                  className={cn(
-                    "cave-card p-4 cursor-pointer transition-all hover:border-primary/30",
-                    isPending && "border-warning/30 bg-warning/5"
-                  )}
-                  onClick={() => !isPending && setSelectedRanking(ranking)}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        {isCreator && (
-                          <Crown className="h-4 w-4 text-warning" />
-                        )}
-                        <h3 className="font-semibold truncate">{ranking.name}</h3>
-                      </div>
-                      {ranking.description && (
-                        <p className="text-xs text-muted-foreground line-clamp-2">
-                          {ranking.description}
+              if (isPendingInvite) {
+                return (
+                  <div key={ranking.id} className="cave-card p-4 border border-warning/30 bg-warning/5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="font-semibold">{ranking.name}</h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Convite pendente
                         </p>
-                      )}
-                    </div>
-                    {getStatusBadge(ranking)}
-                  </div>
-
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
-                    <div className="flex items-center gap-1">
-                      <Users className="h-3.5 w-3.5" />
-                      {acceptedParticipants.length}/{ranking.max_participants}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Target className="h-3.5 w-3.5" />
-                      {ranking.goals.length} metas
-                    </div>
-                    {ranking.bet_amount && (
-                      <div className="flex items-center gap-1">
-                        <Coins className="h-3.5 w-3.5 text-warning" />
-                        R$ {ranking.bet_amount}
                       </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground mb-3">
-                    <Calendar className="h-3.5 w-3.5" />
-                    {format(new Date(ranking.start_date), "dd MMM", { locale: ptBR })} -{" "}
-                    {format(new Date(ranking.end_date), "dd MMM", { locale: ptBR })}
-                    {ranking.status === "active" && daysLeft > 0 && (
-                      <span className="text-primary ml-2">
-                        ({daysLeft} dias restantes)
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Participants avatars */}
-                  <div className="flex items-center gap-1 mb-3">
-                    {acceptedParticipants.slice(0, 5).map((p) => (
-                      <Avatar key={p.id} className="h-6 w-6 border-2 border-background">
-                        <AvatarImage src={p.profile?.avatar_url || undefined} />
-                        <AvatarFallback className="text-[10px]">
-                          {p.profile?.first_name?.[0] || "?"}
-                        </AvatarFallback>
-                      </Avatar>
-                    ))}
-                    {acceptedParticipants.length > 5 && (
-                      <span className="text-xs text-muted-foreground ml-1">
-                        +{acceptedParticipants.length - 5}
-                      </span>
-                    )}
-                  </div>
-
-                  {isPending ? (
-                    <div className="flex gap-2">
+                      <Badge variant="outline" className="bg-warning/20 text-warning border-warning/30">
+                        Aguardando
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2 mt-4">
                       <Button
                         size="sm"
                         className="flex-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAcceptInvite(ranking.id);
-                        }}
+                        onClick={() => handleAcceptInvite(ranking.id)}
                       >
                         <Check className="h-4 w-4 mr-1" />
                         Aceitar
@@ -419,31 +409,22 @@ export default function RankingPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeclineInvite(ranking.id);
-                        }}
+                        onClick={() => handleDeclineInvite(ranking.id)}
                       >
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
-                  ) : (
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        {ranking.status === "active" && (
-                          <Progress
-                            value={
-                              (acceptedParticipants.find((p) => p.user_id === user?.id)
-                                ?.total_points || 0) / 10
-                            }
-                            className="h-1.5"
-                          />
-                        )}
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground ml-2" />
-                    </div>
-                  )}
-                </div>
+                  </div>
+                );
+              }
+
+              return (
+                <RankingListCard
+                  key={ranking.id}
+                  ranking={ranking}
+                  currentUserId={user?.id}
+                  onOpenDetails={(r) => setSelectedRanking(r)}
+                />
               );
             })}
           </div>
