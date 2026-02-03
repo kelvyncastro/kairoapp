@@ -131,7 +131,7 @@ export function RankingCard({ ranking, onSelect }: RankingCardProps) {
               <Target className="h-3 w-3" />
               {ranking.goals.length} meta{ranking.goals.length !== 1 ? 's' : ''}
             </div>
-            {ranking.bet_description && (
+            {(ranking.bet_description || ranking.bet_amount) && (
               <div className="flex items-center gap-1 text-yellow-500">
                 <Coins className="h-3 w-3" />
                 Aposta
