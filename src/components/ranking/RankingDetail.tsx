@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
   Trophy, Calendar, Target, Users, Coins, ArrowLeft, 
   Check, ChevronLeft, ChevronRight, Crown, Medal, Pencil, Sparkles, Trash2
@@ -24,6 +24,7 @@ import { RankingWithDetails, RankingGoalLog } from "@/types/ranking";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRankings } from "@/hooks/useRankings";
 import { CreateRankingDialog } from "./CreateRankingDialog";
+import { RankingWinnerCelebration } from "./RankingWinnerCelebration";
 import { format, addDays, subDays, isWithinInterval, parseISO, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -55,6 +56,8 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [requestingDeletion, setRequestingDeletion] = useState(false);
+  const [showWinnerCelebration, setShowWinnerCelebration] = useState(false);
+  const celebrationShownRef = useRef(false);
 
   const startDate = parseISO(ranking.start_date);
   const endDate = parseISO(ranking.end_date);
@@ -77,6 +80,20 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
   const leaderboard = [...ranking.participants]
     .filter(p => p.status === 'accepted')
     .sort((a, b) => b.total_points - a.total_points);
+
+  const winner = leaderboard.length > 0 ? leaderboard[0] : null;
+
+  // Show celebration when ranking is completed
+  useEffect(() => {
+    if (ranking.status === 'completed' && winner && !celebrationShownRef.current) {
+      // Small delay to let the page render first
+      const timer = setTimeout(() => {
+        setShowWinnerCelebration(true);
+        celebrationShownRef.current = true;
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [ranking.status, winner]);
 
   useEffect(() => {
     const loadGoalLogs = async () => {
@@ -145,7 +162,16 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
   const canNavigateNext = selectedDate < endDate;
 
   return (
-    <div className="space-y-6">
+    <>
+      {/* Winner Celebration Modal */}
+      <RankingWinnerCelebration
+        winner={showWinnerCelebration ? winner : null}
+        podium={leaderboard}
+        rankingName={ranking.name}
+        onClose={() => setShowWinnerCelebration(false)}
+      />
+
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={onBack}>
@@ -591,5 +617,6 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
         </div>
       </div>
     </div>
+    </>
   );
 }
