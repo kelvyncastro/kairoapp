@@ -36,10 +36,15 @@ interface RankingDetailProps {
 
 export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetailProps) {
   const { user } = useAuth();
-  const { toggleGoalCompletion, getGoalLogs, fetchRankings, rankings } = useRankings();
+  const { toggleGoalCompletion, getGoalLogs, fetchRankings, rankings, deleteRanking } = useRankings();
   
   // Get the latest ranking data from the hook
   const ranking = rankings.find(r => r.id === initialRanking.id) || initialRanking;
+  
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [goalLogs, setGoalLogs] = useState<RankingGoalLog[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [goalLogs, setGoalLogs] = useState<RankingGoalLog[]>([]);
