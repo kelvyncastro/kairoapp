@@ -22,7 +22,12 @@ export function NotificationBell() {
   const handleNotificationClick = (notification: typeof notifications[0]) => {
     markAsRead(notification.id);
     
-    if (notification.type === 'ranking_invite' && notification.data?.ranking_id) {
+    // For ranking notifications, navigate to ranking page
+    // The Ranking page will handle showing the pending tab
+    if (notification.type === 'ranking_invite' || 
+        notification.type === 'ranking_started' || 
+        notification.type === 'ranking_ended' || 
+        notification.type === 'ranking_update') {
       setOpen(false);
       navigate('/ranking');
     }
