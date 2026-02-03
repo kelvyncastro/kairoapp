@@ -417,6 +417,24 @@ export function useRankings() {
     if (!user) return;
 
     try {
+      const ranking = rankings.find(r => r.id === rankingId);
+      if (!ranking) return false;
+
+      // If ranking is active, check if all participants have consented
+      if (ranking.status === 'active') {
+        const acceptedParticipants = ranking.participants.filter(p => p.status === 'accepted');
+        const allConsented = acceptedParticipants.every(p => p.deletion_consent === true);
+        
+        if (!allConsented) {
+          toast({
+            title: "Não é possível excluir",
+            description: "Todos os participantes precisam consentir com a exclusão.",
+            variant: "destructive"
+          });
+          return false;
+        }
+      }
+
       // Delete ranking (cascade will handle participants, goals, and logs)
       const { error } = await supabase
         .from('rankings')
@@ -443,6 +461,132 @@ export function useRankings() {
     }
   };
 
+  const requestDeletion = async (rankingId: string) => {
+    if (!user) return false;
+
+    try {
+      const ranking = rankings.find(r => r.id === rankingId);
+      if (!ranking || ranking.creator_id !== user.id) return false;
+
+      // Mark ranking as deletion requested
+      const { error: updateError } = await supabase
+        .from('rankings')
+        .update({
+          deletion_requested: true,
+          deletion_requested_at: new Date().toISOString()
+        })
+        .eq('id', rankingId)
+        .eq('creator_id', user.id);
+
+      if (updateError) throw updateError;
+
+      // Set creator's consent to true
+      await supabase
+        .from('ranking_participants')
+        .update({ deletion_consent: true })
+        .eq('ranking_id', rankingId)
+        .eq('user_id', user.id);
+
+      // Notify all other participants
+      const otherParticipants = ranking.participants.filter(
+        p => p.user_id !== user.id && p.status === 'accepted'
+      );
+
+      for (const participant of otherParticipants) {
+        await supabase
+          .from('notifications')
+          .insert({
+            user_id: participant.user_id,
+            type: 'ranking_update',
+            title: 'Solicitação de Exclusão',
+            message: `O criador do ranking "${ranking.name}" está solicitando a exclusão. Seu consentimento é necessário.`,
+            data: { ranking_id: rankingId, action: 'deletion_request' }
+          });
+      }
+
+      toast({
+        title: "Solicitação enviada!",
+        description: "Aguardando consentimento dos outros participantes."
+      });
+
+      await fetchRankings();
+      return true;
+    } catch (error) {
+      console.error('Error requesting deletion:', error);
+      toast({
+        title: "Erro ao solicitar exclusão",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
+  const consentToDeletion = async (rankingId: string, consent: boolean) => {
+    if (!user) return false;
+
+    try {
+      const { error } = await supabase
+        .from('ranking_participants')
+        .update({ deletion_consent: consent })
+        .eq('ranking_id', rankingId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: consent ? "Consentimento registrado" : "Consentimento negado",
+        description: consent 
+          ? "Você concordou com a exclusão do ranking."
+          : "Você recusou a exclusão do ranking."
+      });
+
+      await fetchRankings();
+      return true;
+    } catch (error) {
+      console.error('Error consenting to deletion:', error);
+      toast({
+        title: "Erro ao registrar consentimento",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
+  const cancelDeletionRequest = async (rankingId: string) => {
+    if (!user) return false;
+
+    try {
+      // Reset deletion request
+      const { error: updateError } = await supabase
+        .from('rankings')
+        .update({
+          deletion_requested: false,
+          deletion_requested_at: null
+        })
+        .eq('id', rankingId)
+        .eq('creator_id', user.id);
+
+      if (updateError) throw updateError;
+
+      // Reset all consents
+      await supabase
+        .from('ranking_participants')
+        .update({ deletion_consent: false })
+        .eq('ranking_id', rankingId);
+
+      toast({
+        title: "Solicitação cancelada",
+        description: "A solicitação de exclusão foi cancelada."
+      });
+
+      await fetchRankings();
+      return true;
+    } catch (error) {
+      console.error('Error canceling deletion request:', error);
+      return false;
+    }
+  };
+
   return {
     rankings,
     loading,
@@ -453,6 +597,9 @@ export function useRankings() {
     toggleGoalCompletion,
     getGoalLogs,
     startRanking,
-    deleteRanking
+    deleteRanking,
+    requestDeletion,
+    consentToDeletion,
+    cancelDeletionRequest
   };
 }

@@ -22,6 +22,7 @@ export interface RankingParticipant {
   status: 'pending' | 'accepted' | 'rejected';
   accepted_bet: boolean;
   total_points: number;
+  deletion_consent: boolean;
   joined_at: string | null;
   created_at: string;
   // Joined data
