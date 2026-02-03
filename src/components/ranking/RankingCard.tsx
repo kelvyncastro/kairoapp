@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { RankingWithDetails } from "@/types/ranking";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRankings } from "@/hooks/useRankings";
+import { useRankingsStore } from "@/contexts/RankingsContext";
 import { format, differenceInDays, isAfter, isBefore, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -20,7 +20,7 @@ interface RankingCardProps {
 
 export function RankingCard({ ranking, onSelect }: RankingCardProps) {
   const { user } = useAuth();
-  const { respondToInvite, startRanking } = useRankings();
+  const { respondToInvite, startRanking } = useRankingsStore();
   const [respondingInvite, setRespondingInvite] = useState(false);
 
   const isCreator = ranking.creator_id === user?.id;

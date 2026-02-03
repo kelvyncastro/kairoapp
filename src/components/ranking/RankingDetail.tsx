@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { RankingWithDetails, RankingGoalLog } from "@/types/ranking";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRankings } from "@/hooks/useRankings";
+import { useRankingsStore } from "@/contexts/RankingsContext";
 import { CreateRankingDialog } from "./CreateRankingDialog";
 import { RankingWinnerCelebration } from "./RankingWinnerCelebration";
 import { format, addDays, subDays, isWithinInterval, parseISO, isSameDay } from "date-fns";
@@ -46,7 +46,7 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
     requestDeletion,
     consentToDeletion,
     cancelDeletionRequest
-  } = useRankings();
+  } = useRankingsStore();
   
   // Get the latest ranking data from the hook
   const ranking = rankings.find(r => r.id === initialRanking.id) || initialRanking;
@@ -103,7 +103,7 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
       setLoading(false);
     };
     loadGoalLogs();
-  }, [selectedDate, ranking.id]);
+  }, [selectedDate, ranking.id, getGoalLogs]);
 
   const handleToggleGoal = async (goalId: string, completed: boolean) => {
     if (!canEditGoals || !user) return;
