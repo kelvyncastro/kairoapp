@@ -142,6 +142,35 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
               }
             />
           )}
+          {canDelete && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive">
+                  <Trash2 className="h-4 w-4" />
+                  Excluir
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir Ranking</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza que deseja excluir o ranking "{ranking.name}"? 
+                    Esta ação não pode ser desfeita e todos os dados serão perdidos.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleDeleteRanking}
+                    disabled={deleting}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {deleting ? "Excluindo..." : "Excluir"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
           <Badge className={cn(
             ranking.status === 'active' && "bg-green-500/20 text-green-500",
             ranking.status === 'pending' && "bg-yellow-500/20 text-yellow-500",
