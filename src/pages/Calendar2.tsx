@@ -256,6 +256,7 @@ export default function Calendar2() {
               blocks={blocks}
               onDayClick={handleDayClick}
               onBlockClick={handleBlockClick}
+              onBlockMove={moveBlock}
             />
           )}
         </div>
