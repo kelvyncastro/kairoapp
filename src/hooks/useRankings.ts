@@ -185,96 +185,97 @@ export function useRankings() {
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase
-      .channel("rankings-realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "rankings" },
-        (payload) => {
-          if (payload.eventType === "UPDATE" && payload.new) {
-            // Optimistic update for ranking changes - no refetch needed
-            setRankings((prev) =>
-              prev.map((r) =>
-                r.id === payload.new.id ? { ...r, ...payload.new } : r
-              )
-            );
-          } else if (payload.eventType === "INSERT") {
-            // New ranking - debounced fetch
-            fetchRankings();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    try {
+      channel = supabase
+        .channel("rankings-realtime")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "rankings" },
+          (payload) => {
+            if (payload.eventType === "UPDATE" && payload.new) {
+              setRankings((prev) =>
+                prev.map((r) =>
+                  r.id === payload.new.id ? { ...r, ...payload.new } : r
+                )
+              );
+            } else if (payload.eventType === "INSERT") {
+              fetchRankings();
+            }
           }
-          // DELETE events handled by debounced fetch
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "ranking_participants" },
-        (payload) => {
-          if (payload.eventType === "UPDATE" && payload.new) {
-            // Optimistic update for participant changes - no refetch
-            setRankings((prev) =>
-              prev.map((r) => ({
-                ...r,
-                participants: r.participants.map((p) =>
-                  p.id === payload.new.id ? { ...p, ...payload.new } : p
-                ),
-              }))
-            );
-          } else {
-            // INSERT/DELETE - debounced fetch
-            fetchRankings();
-          }
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "ranking_goals" },
-        () => {
-          fetchRankings();
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "ranking_goal_logs" },
-        (payload) => {
-          if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
-            // Optimistic update for points
-            const log = payload.new as { 
-              ranking_id: string; 
-              user_id: string; 
-              points_earned: number;
-              completed: boolean;
-            };
-            
-            setRankings((prev) =>
-              prev.map((r) => {
-                if (r.id !== log.ranking_id) return r;
-                return {
+        )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "ranking_participants" },
+          (payload) => {
+            if (payload.eventType === "UPDATE" && payload.new) {
+              setRankings((prev) =>
+                prev.map((r) => ({
                   ...r,
-                  participants: r.participants.map((p) => {
-                    if (p.user_id !== log.user_id) return p;
-                    // Update points immediately for responsive UI
-                    const pointsDelta = log.completed ? log.points_earned : -log.points_earned;
-                    return {
-                      ...p,
-                      total_points: Math.max(0, p.total_points + pointsDelta),
-                    };
-                  }),
-                };
-              })
-            );
-            
-            // Background sync for accurate totals (debounced)
+                  participants: r.participants.map((p) =>
+                    p.id === payload.new.id ? { ...p, ...payload.new } : p
+                  ),
+                }))
+              );
+            } else {
+              fetchRankings();
+            }
+          }
+        )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "ranking_goals" },
+          () => {
             fetchRankings();
           }
-        }
-      )
-      .subscribe();
+        )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "ranking_goal_logs" },
+          (payload) => {
+            if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+              const log = payload.new as { 
+                ranking_id: string; 
+                user_id: string; 
+                points_earned: number;
+                completed: boolean;
+              };
+              
+              setRankings((prev) =>
+                prev.map((r) => {
+                  if (r.id !== log.ranking_id) return r;
+                  return {
+                    ...r,
+                    participants: r.participants.map((p) => {
+                      if (p.user_id !== log.user_id) return p;
+                      const pointsDelta = log.completed ? log.points_earned : -log.points_earned;
+                      return {
+                        ...p,
+                        total_points: Math.max(0, p.total_points + pointsDelta),
+                      };
+                    }),
+                  };
+                })
+              );
+              
+              fetchRankings();
+            }
+          }
+        )
+        .subscribe();
+    } catch (error) {
+      console.error("Error setting up realtime subscription:", error);
+    }
 
     return () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
       }
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [user, fetchRankings]);
 
