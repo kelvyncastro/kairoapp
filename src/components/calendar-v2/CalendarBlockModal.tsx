@@ -451,12 +451,6 @@ export function CalendarBlockModal({
                   Concluir
                 </Button>
               )}
-              {onDuplicate && (
-                <Button variant="outline" size="sm" onClick={handleDuplicate}>
-                  <Copy className="h-4 w-4 mr-1" />
-                  Duplicar
-                </Button>
-              )}
               {onDelete && (
                 <Button variant="destructive" size="sm" onClick={handleDelete}>
                   <Trash2 className="h-4 w-4 mr-1" />
