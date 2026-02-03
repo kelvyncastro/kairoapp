@@ -127,6 +127,20 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
     setDeleting(false);
   };
 
+  const handleRequestDeletion = async () => {
+    setRequestingDeletion(true);
+    await requestDeletion(ranking.id);
+    setRequestingDeletion(false);
+  };
+
+  const handleCancelDeletionRequest = async () => {
+    await cancelDeletionRequest(ranking.id);
+  };
+
+  const handleConsentToDeletion = async (consent: boolean) => {
+    await consentToDeletion(ranking.id, consent);
+  };
+
   const canNavigatePrev = selectedDate > startDate;
   const canNavigateNext = selectedDate < endDate;
 
