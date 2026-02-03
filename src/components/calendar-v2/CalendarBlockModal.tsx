@@ -60,16 +60,18 @@ interface CalendarBlockModalProps {
 }
 
 const COLORS = [
-  '#6366f1', // Indigo
-  '#8b5cf6', // Violet
-  '#ec4899', // Pink
-  '#ef4444', // Red
-  '#f97316', // Orange
-  '#eab308', // Yellow
-  '#22c55e', // Green
-  '#14b8a6', // Teal
-  '#3b82f6', // Blue
-  '#06b6d4', // Cyan
+  { value: '#3b82f6', name: 'Azul' },
+  { value: '#6366f1', name: 'Índigo' },
+  { value: '#8b5cf6', name: 'Violeta' },
+  { value: '#a855f7', name: 'Roxo' },
+  { value: '#ec4899', name: 'Rosa' },
+  { value: '#ef4444', name: 'Vermelho' },
+  { value: '#f97316', name: 'Laranja' },
+  { value: '#eab308', name: 'Amarelo' },
+  { value: '#22c55e', name: 'Verde' },
+  { value: '#14b8a6', name: 'Teal' },
+  { value: '#06b6d4', name: 'Ciano' },
+  { value: '#64748b', name: 'Cinza' },
 ];
 
 const DAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
