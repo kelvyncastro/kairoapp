@@ -710,6 +710,7 @@ export type Database = {
         Row: {
           accepted_bet: boolean | null
           created_at: string
+          deletion_consent: boolean | null
           id: string
           joined_at: string | null
           ranking_id: string
@@ -720,6 +721,7 @@ export type Database = {
         Insert: {
           accepted_bet?: boolean | null
           created_at?: string
+          deletion_consent?: boolean | null
           id?: string
           joined_at?: string | null
           ranking_id: string
@@ -730,6 +732,7 @@ export type Database = {
         Update: {
           accepted_bet?: boolean | null
           created_at?: string
+          deletion_consent?: boolean | null
           id?: string
           joined_at?: string | null
           ranking_id?: string
@@ -753,6 +756,8 @@ export type Database = {
           bet_description: string | null
           created_at: string
           creator_id: string
+          deletion_requested: boolean | null
+          deletion_requested_at: string | null
           description: string | null
           end_date: string
           id: string
@@ -767,6 +772,8 @@ export type Database = {
           bet_description?: string | null
           created_at?: string
           creator_id: string
+          deletion_requested?: boolean | null
+          deletion_requested_at?: string | null
           description?: string | null
           end_date: string
           id?: string
@@ -781,6 +788,8 @@ export type Database = {
           bet_description?: string | null
           created_at?: string
           creator_id?: string
+          deletion_requested?: boolean | null
+          deletion_requested_at?: string | null
           description?: string | null
           end_date?: string
           id?: string
