@@ -565,15 +565,15 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
 
           {/* Bet Info */}
           {ranking.bet_description && (
-            <Card className="border-yellow-500/30 bg-yellow-500/5">
+            <Card className="border-yellow-500/30 bg-yellow-500/5 overflow-hidden">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2 text-yellow-500">
-                  <Coins className="h-4 w-4" />
-                  Aposta: {ranking.bet_amount}
+                  <Coins className="h-4 w-4 shrink-0" />
+                  <span className="break-words">Aposta: {ranking.bet_amount}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">{ranking.bet_description}</p>
+                <p className="text-sm text-muted-foreground break-words whitespace-pre-wrap">{ranking.bet_description}</p>
               </CardContent>
             </Card>
           )}
