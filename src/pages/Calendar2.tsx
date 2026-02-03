@@ -126,7 +126,9 @@ export default function Calendar2() {
       case 'day':
         return format(currentDate, "d 'de' MMMM, yyyy", { locale: ptBR });
       case 'week':
-        return format(currentDate, "'Semana de' d 'de' MMMM", { locale: ptBR });
+        const weekOfMonth = Math.ceil(currentDate.getDate() / 7);
+        const monthName = format(currentDate, 'MMMM', { locale: ptBR });
+        return `${weekOfMonth}ª Semana de ${monthName.charAt(0).toUpperCase() + monthName.slice(1)}`;
       case 'month':
         return format(currentDate, "MMMM 'de' yyyy", { locale: ptBR });
     }
