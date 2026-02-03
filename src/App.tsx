@@ -23,7 +23,6 @@ import ChatFinanceiro from "./pages/ChatFinanceiro";
 import Ebook from "./pages/Ebook";
 import Configuracoes from "./pages/Configuracoes";
 import Agenda from "./pages/Agenda";
-import Ranking from "./pages/Ranking";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -75,7 +74,6 @@ const App = () => (
                 <Route path="/chat-financeiro" element={<ChatFinanceiro />} />
                 <Route path="/ebook" element={<AdminRoute><Ebook /></AdminRoute>} />
                 <Route path="/agenda" element={<Agenda />} />
-                <Route path="/ranking" element={<Ranking />} />
                 <Route path="/configuracoes" element={<Configuracoes />} />
               </Route>
               <Route path="*" element={<NotFound />} />

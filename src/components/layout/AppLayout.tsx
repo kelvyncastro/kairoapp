@@ -23,7 +23,6 @@ import {
   Menu,
   PanelLeftClose,
   PanelLeft,
-  Trophy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import kairoLogo from "@/assets/kairo-logo.png";
@@ -43,7 +42,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 const mainNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -51,7 +49,6 @@ const mainNavItems = [
   { path: "/habitos", label: "Hábitos", icon: CalendarCheck },
   { path: "/metas", label: "Metas", icon: Target },
   { path: "/consistencia", label: "Consistência", icon: Flame },
-  { path: "/ranking", label: "Ranking", icon: Trophy },
   { path: "/chat-financeiro", label: "Chat Financeiro", icon: MessageSquare },
   { path: "/financas", label: "Finanças", icon: Wallet },
   { path: "/configuracoes", label: "Configurações", icon: Settings },
@@ -397,10 +394,6 @@ export default function AppLayout() {
             <div className="hidden md:block" />
 
             <div className="flex items-center gap-2">
-              {/* Notifications */}
-              <NotificationBell />
-              
-              {/* Profile */}
               {/* Profile */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
