@@ -1,20 +1,18 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Ranking, RankingParticipant, RankingGoal, RankingGoalLog, RankingWithDetails } from "@/types/ranking";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
 
 export function useRankings() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [rankings, setRankings] = useState<RankingWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
-  const fetchingRef = useRef(false);
 
   const fetchRankings = useCallback(async () => {
-    if (!user || fetchingRef.current) return;
-    
-    fetchingRef.current = true;
+    if (!user) return;
     
     try {
       // Fetch rankings where user is creator or participant
@@ -25,79 +23,64 @@ export function useRankings() {
 
       if (rankingsError) throw rankingsError;
 
-      if (!rankingsData || rankingsData.length === 0) {
-        setRankings([]);
-        setLoading(false);
-        fetchingRef.current = false;
-        return;
-      }
+      // For each ranking, fetch participants and goals
+      const rankingsWithDetails: RankingWithDetails[] = await Promise.all(
+        (rankingsData || []).map(async (ranking) => {
+          const [participantsRes, goalsRes] = await Promise.all([
+            supabase
+              .from('ranking_participants')
+              .select('*')
+              .eq('ranking_id', ranking.id),
+            supabase
+              .from('ranking_goals')
+              .select('*')
+              .eq('ranking_id', ranking.id)
+              .order('order_index', { ascending: true })
+          ]);
 
-      const rankingIds = rankingsData.map(r => r.id);
-      const creatorIds = [...new Set(rankingsData.map(r => r.creator_id))];
+          // Fetch user profiles for participants
+          const participantsWithProfiles = await Promise.all(
+            (participantsRes.data || []).map(async (participant) => {
+              const { data: profileData } = await supabase
+                .from('user_profiles')
+                .select('first_name, last_name, avatar_url, public_id')
+                .eq('user_id', participant.user_id)
+                .single();
 
-      // Batch fetch participants, goals, and profiles in parallel
-      const [participantsRes, goalsRes, creatorProfilesRes] = await Promise.all([
-        supabase
-          .from('ranking_participants')
-          .select('*')
-          .in('ranking_id', rankingIds),
-        supabase
-          .from('ranking_goals')
-          .select('*')
-          .in('ranking_id', rankingIds)
-          .order('order_index', { ascending: true }),
-        supabase
-          .from('user_profiles')
-          .select('user_id, first_name, last_name, avatar_url, public_id')
-          .in('user_id', creatorIds)
-      ]);
+              return {
+                ...participant,
+                user_profile: profileData || undefined
+              } as RankingParticipant;
+            })
+          );
 
-      const allParticipants = participantsRes.data || [];
-      const allGoals = goalsRes.data || [];
-      const creatorProfiles = creatorProfilesRes.data || [];
-
-      // Get unique participant user IDs for profile fetching
-      const participantUserIds = [...new Set(allParticipants.map(p => p.user_id))];
-      
-      // Fetch all participant profiles in one query
-      const { data: participantProfiles } = participantUserIds.length > 0 
-        ? await supabase
+          // Fetch creator profile
+          const { data: creatorProfile } = await supabase
             .from('user_profiles')
-            .select('user_id, first_name, last_name, avatar_url, public_id')
-            .in('user_id', participantUserIds)
-        : { data: [] };
+            .select('first_name, last_name, avatar_url')
+            .eq('user_id', ranking.creator_id)
+            .single();
 
-      const profilesMap = new Map((participantProfiles || []).map(p => [p.user_id, p]));
-      const creatorProfilesMap = new Map(creatorProfiles.map(p => [p.user_id, p]));
-
-      // Build rankings with details
-      const rankingsWithDetails: RankingWithDetails[] = rankingsData.map((ranking) => {
-        const participants = allParticipants
-          .filter(p => p.ranking_id === ranking.id)
-          .map(p => ({
-            ...p,
-            user_profile: profilesMap.get(p.user_id) || undefined
-          } as RankingParticipant));
-
-        const goals = allGoals.filter(g => g.ranking_id === ranking.id);
-        const creatorProfile = creatorProfilesMap.get(ranking.creator_id);
-
-        return {
-          ...ranking,
-          participants,
-          goals,
-          creator_profile: creatorProfile || undefined
-        } as RankingWithDetails;
-      });
+          return {
+            ...ranking,
+            participants: participantsWithProfiles,
+            goals: goalsRes.data || [],
+            creator_profile: creatorProfile || undefined
+          } as RankingWithDetails;
+        })
+      );
 
       setRankings(rankingsWithDetails);
     } catch (error) {
       console.error('Error fetching rankings:', error);
+      toast({
+        title: "Erro ao carregar rankings",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
-      fetchingRef.current = false;
     }
-  }, [user]);
+  }, [user, toast]);
 
   useEffect(() => {
     fetchRankings();
