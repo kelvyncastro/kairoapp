@@ -146,9 +146,9 @@ export function useCalendarBlocks({ view, currentDate }: UseCalendarBlocksOption
           end_time: new Date(currentStart.getTime() + duration).toISOString(),
           demand_type: block.demand_type,
           priority: block.priority,
-          status: 'pending',
+          status: 'pending' as const,
           color: block.color,
-          recurrence_type: 'none',
+          recurrence_type: 'none' as const,
           recurrence_parent_id: parentId,
         });
       }
