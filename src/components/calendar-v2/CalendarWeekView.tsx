@@ -112,6 +112,13 @@ export function CalendarWeekView({
   const [moveTargetMinutes, setMoveTargetMinutes] = useState(0);
   const [moveOffsetMinutes, setMoveOffsetMinutes] = useState(0);
 
+  // Click vs drag detection
+  const [pendingDragBlock, setPendingDragBlock] = useState<CalendarBlock | null>(null);
+  const [dragStartPos, setDragStartPos] = useState<{ x: number; y: number } | null>(null);
+  const [dragStartTime, setDragStartTime] = useState<number>(0);
+  const DRAG_THRESHOLD = 5; // pixels
+  const DRAG_TIME_THRESHOLD = 150; // ms
+
   // Recurrence dialog state
   const [recurrenceDialogOpen, setRecurrenceDialogOpen] = useState(false);
   const [pendingMove, setPendingMove] = useState<{
@@ -197,23 +204,46 @@ export function CalendarWeekView({
     setDragEndMinutes(minutes + 15);
   }, [getMinutesFromY, movingBlock]);
 
-  // Block drag start
-  const handleBlockDragStart = useCallback((e: React.MouseEvent, block: CalendarBlock) => {
+  // Block mousedown - start tracking potential drag
+  const handleBlockMouseDown = useCallback((e: React.MouseEvent, block: CalendarBlock) => {
     if (e.button !== 0) return;
     e.preventDefault();
     e.stopPropagation();
 
+    // Store initial state for click vs drag detection
+    setPendingDragBlock(block);
+    setDragStartPos({ x: e.clientX, y: e.clientY });
+    setDragStartTime(Date.now());
+  }, []);
+
+  // Actually start moving the block (called when drag threshold is met)
+  const startBlockMove = useCallback((block: CalendarBlock, clientY: number) => {
     const blockStartTime = new Date(block.start_time);
     const blockStartMinutes = blockStartTime.getHours() * 60 + blockStartTime.getMinutes();
-    const clickMinutes = getMinutesFromY(e.clientY);
+    const clickMinutes = getMinutesFromY(clientY);
     
     setMovingBlock(block);
     setMoveOffsetMinutes(clickMinutes - blockStartMinutes);
     setMoveTargetDay(blockStartTime);
     setMoveTargetMinutes(blockStartMinutes);
+    setPendingDragBlock(null);
+    setDragStartPos(null);
   }, [getMinutesFromY]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    // Check if we should start dragging a block (click vs drag detection)
+    if (pendingDragBlock && dragStartPos) {
+      const dx = Math.abs(e.clientX - dragStartPos.x);
+      const dy = Math.abs(e.clientY - dragStartPos.y);
+      const elapsed = Date.now() - dragStartTime;
+      
+      // Start drag if moved enough OR held long enough while moving
+      if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD || (elapsed > DRAG_TIME_THRESHOLD && (dx > 2 || dy > 2))) {
+        startBlockMove(pendingDragBlock, e.clientY);
+      }
+      return;
+    }
+
     // Handle block moving
     if (movingBlock) {
       const targetDay = getDayFromX(e.clientX);
@@ -231,9 +261,17 @@ export function CalendarWeekView({
     if (!isDragging || !dragDay) return;
     const minutes = getMinutesFromY(e.clientY);
     setDragEndMinutes(minutes);
-  }, [isDragging, dragDay, getMinutesFromY, movingBlock, getDayFromX, moveOffsetMinutes]);
+  }, [isDragging, dragDay, getMinutesFromY, movingBlock, getDayFromX, moveOffsetMinutes, pendingDragBlock, dragStartPos, dragStartTime, startBlockMove]);
 
-  const handleMouseUp = useCallback(async () => {
+  const handleMouseUp = useCallback(async (e?: React.MouseEvent | MouseEvent) => {
+    // If we had a pending drag that never started, treat as click
+    if (pendingDragBlock && !movingBlock) {
+      onBlockClick(pendingDragBlock);
+      setPendingDragBlock(null);
+      setDragStartPos(null);
+      return;
+    }
+
     // Handle block move completion
     if (movingBlock && moveTargetDay && onBlockMove) {
       const blockStart = new Date(movingBlock.start_time);
@@ -257,12 +295,16 @@ export function CalendarWeekView({
 
       setMovingBlock(null);
       setMoveTargetDay(null);
+      setPendingDragBlock(null);
+      setDragStartPos(null);
       return;
     }
 
     // Handle drag-to-create
     if (!isDragging || !dragDay) {
       setIsDragging(false);
+      setPendingDragBlock(null);
+      setDragStartPos(null);
       return;
     }
     
@@ -282,7 +324,9 @@ export function CalendarWeekView({
     
     setIsDragging(false);
     setDragDay(null);
-  }, [isDragging, dragDay, dragStartMinutes, dragEndMinutes, onSlotSelect, movingBlock, moveTargetDay, moveTargetMinutes, onBlockMove]);
+    setPendingDragBlock(null);
+    setDragStartPos(null);
+  }, [isDragging, dragDay, dragStartMinutes, dragEndMinutes, onSlotSelect, movingBlock, moveTargetDay, moveTargetMinutes, onBlockMove, pendingDragBlock, onBlockClick]);
 
   // Handle recurrence dialog confirmation
   const handleRecurrenceConfirm = async (scope: RecurrenceEditScope) => {
@@ -294,15 +338,15 @@ export function CalendarWeekView({
 
   // Global mouse up listener
   useEffect(() => {
-    const handleGlobalMouseUp = () => {
-      if (isDragging || movingBlock) {
-        handleMouseUp();
+    const handleGlobalMouseUp = (e: MouseEvent) => {
+      if (isDragging || movingBlock || pendingDragBlock) {
+        handleMouseUp(e);
       }
     };
     
     window.addEventListener('mouseup', handleGlobalMouseUp);
     return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
-  }, [isDragging, movingBlock, handleMouseUp]);
+  }, [isDragging, movingBlock, pendingDragBlock, handleMouseUp]);
 
   // Calculate block style
   const getBlockStyle = (block: CalendarBlock) => {
@@ -486,11 +530,7 @@ export function CalendarWeekView({
                           width: `calc(${layoutInfo.width}% - 4px)`,
                           backgroundColor: block.color || 'hsl(207, 90%, 54%)',
                         }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!movingBlock) onBlockClick(block);
-                        }}
-                        onMouseDown={(e) => handleBlockDragStart(e, block)}
+                        onMouseDown={(e) => handleBlockMouseDown(e, block)}
                       >
                         <div className="truncate font-semibold">{block.title}</div>
                         {height > 32 && (
