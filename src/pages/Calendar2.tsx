@@ -26,7 +26,7 @@ import {
 type ViewMode = 'day' | 'week' | 'month';
 
 export default function Calendar2() {
-  const [view, setView] = useState<ViewMode>('day');
+  const [view, setView] = useState<ViewMode>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedBlock, setSelectedBlock] = useState<CalendarBlock | null>(null);
