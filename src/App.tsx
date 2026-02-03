@@ -76,7 +76,9 @@ const App = () => (
                 <Route path="/chat-financeiro" element={<ChatFinanceiro />} />
                 <Route path="/ebook" element={<AdminRoute><Ebook /></AdminRoute>} />
                 <Route path="/agenda" element={<Agenda />} />
+                <Route path="/calendario" element={<Calendar2 />} />
                 <Route path="/ranking" element={<Ranking />} />
+                <Route path="/configuracoes" element={<Configuracoes />} />
                 <Route path="/configuracoes" element={<Configuracoes />} />
               </Route>
               <Route path="*" element={<NotFound />} />
