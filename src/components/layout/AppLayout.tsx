@@ -23,6 +23,7 @@ import {
   Menu,
   PanelLeftClose,
   PanelLeft,
+  Trophy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import kairoLogo from "@/assets/kairo-logo.png";
@@ -42,6 +43,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 const mainNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
