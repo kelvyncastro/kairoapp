@@ -18,6 +18,7 @@ import {
   MessageCircle,
   Brain,
   Tags,
+  Wallet,
 } from "lucide-react";
 import { FinanceChat } from "@/components/finance/FinanceChat";
 import { FinanceAnalysis } from "@/components/finance/FinanceAnalysis";
@@ -47,6 +48,7 @@ import { ptBR } from "date-fns/locale";
 import { FolderIconRenderer } from "@/components/tasks/FolderIconRenderer";
 import { ExpensesBySectorChart } from "@/components/finance/ExpensesBySectorChart";
 import { DailyExpensesChart } from "@/components/finance/DailyExpensesChart";
+import { InvestmentsTab } from "@/components/finance/InvestmentsTab";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -209,6 +211,7 @@ export default function Financas() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [addTransactionOpen, setAddTransactionOpen] = useState(false);
@@ -260,7 +263,7 @@ export default function Financas() {
     const monthStart = format(startOfMonth(currentMonth), "yyyy-MM-dd");
     const monthEnd = format(endOfMonth(currentMonth), "yyyy-MM-dd");
 
-    const [sectorsRes, transactionsRes] = await Promise.all([
+    const [sectorsRes, transactionsRes, allTransactionsRes] = await Promise.all([
       supabase.from("finance_sectors").select("*").eq("user_id", user.id).order("name"),
       supabase
         .from("finance_transactions")
@@ -269,6 +272,12 @@ export default function Financas() {
         .gte("date", monthStart)
         .lte("date", monthEnd)
         .order("date", { ascending: false }),
+      // Fetch all transactions for investment evolution chart
+      supabase
+        .from("finance_transactions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("date", { ascending: true }),
     ]);
 
     const sectorsData = (sectorsRes.data as Sector[]) || [];
@@ -283,6 +292,7 @@ export default function Financas() {
     }
     
     setTransactions((transactionsRes.data as Transaction[]) || []);
+    setAllTransactions((allTransactionsRes.data as Transaction[]) || []);
     setLoading(false);
   }, [user, currentMonth, createDefaultSectors]);
 
@@ -740,37 +750,53 @@ export default function Financas() {
         {/* Fixed: Tabs header */}
         <div className="flex-shrink-0 px-4 md:px-6 pt-3 pb-3">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
-            <TabsList className="grid w-full grid-cols-3 h-10 md:h-11 bg-muted/50 p-1 rounded-xl">
+            <TabsList className="grid w-full grid-cols-4 h-10 md:h-11 bg-muted/50 p-1 rounded-xl">
               <TabsTrigger 
                 value="overview" 
                 className={cn(
-                  "text-xs md:text-sm px-2 md:px-4 rounded-lg font-medium transition-all duration-200",
+                  "text-xs md:text-sm px-1 md:px-4 rounded-lg font-medium transition-all duration-200",
                   "data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground",
                   "data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground/80"
                 )}
               >
                 <span className="flex items-center gap-1.5">
                   <TrendingUp className="h-3.5 w-3.5 hidden md:inline" />
-                  Visão Geral
+                  <span className="hidden md:inline">Visão Geral</span>
+                  <span className="md:hidden">Geral</span>
+                </span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="investments" 
+                className={cn(
+                  "text-xs md:text-sm px-1 md:px-4 rounded-lg font-medium transition-all duration-200",
+                  "data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground",
+                  "data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground/80"
+                )}
+              >
+                <span className="flex items-center gap-1.5">
+                  <Wallet className="h-3.5 w-3.5 hidden md:inline" />
+                  <span className="hidden md:inline">Investimentos</span>
+                  <span className="md:hidden">Invest.</span>
                 </span>
               </TabsTrigger>
               <TabsTrigger 
                 value="transactions" 
                 className={cn(
-                  "text-xs md:text-sm px-2 md:px-4 rounded-lg font-medium transition-all duration-200",
+                  "text-xs md:text-sm px-1 md:px-4 rounded-lg font-medium transition-all duration-200",
                   "data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground",
                   "data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground/80"
                 )}
               >
                 <span className="flex items-center gap-1.5">
                   <PiggyBank className="h-3.5 w-3.5 hidden md:inline" />
-                  Transações
+                  <span className="hidden md:inline">Transações</span>
+                  <span className="md:hidden">Trans.</span>
                 </span>
               </TabsTrigger>
               <TabsTrigger 
                 value="sectors" 
                 className={cn(
-                  "text-xs md:text-sm px-2 md:px-4 rounded-lg font-medium transition-all duration-200",
+                  "text-xs md:text-sm px-1 md:px-4 rounded-lg font-medium transition-all duration-200",
                   "data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground",
                   "data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground/80"
                 )}
@@ -802,6 +828,17 @@ export default function Financas() {
               <ExpensesBySectorChart 
                 sectors={sectors}
                 transactions={transactions}
+              />
+            </TabsContent>
+
+            <TabsContent value="investments" className="mt-0">
+              <InvestmentsTab
+                sectors={sectors}
+                transactions={transactions}
+                allTransactions={allTransactions}
+                onEditTransaction={(t) => setEditingTransaction(t)}
+                onDeleteTransaction={handleDeleteTransaction}
+                currentMonth={currentMonth}
               />
             </TabsContent>
 
@@ -884,13 +921,14 @@ export default function Financas() {
                           const sector = sectors.find(s => s.id === t.sector_id);
                           const isExpense = t.value < 0;
                           const effectiveStatus = getEffectiveStatus(t);
+                          const isInvestment = sector?.name.toLowerCase().includes("investimento") || sector?.name.toLowerCase().includes("investment");
                           return (
                             <tr key={t.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors group">
                               <td className="p-4">
                                 <div className="flex items-center gap-3">
                                   <div className={cn(
                                     "w-2 h-2 rounded-full flex-shrink-0",
-                                    isExpense ? "bg-red-500" : "bg-emerald-500"
+                                    isInvestment ? "bg-blue-500" : (isExpense ? "bg-red-500" : "bg-emerald-500")
                                   )} />
                                   <span className="text-sm font-medium">{t.name}</span>
                                 </div>
@@ -898,7 +936,7 @@ export default function Financas() {
                               <td className="p-4">
                                 <span className={cn(
                                   "text-sm font-semibold",
-                                  isExpense ? "text-red-500" : "text-emerald-500"
+                                  isInvestment ? "text-blue-500" : (isExpense ? "text-red-500" : "text-emerald-500")
                                 )}>
                                   {isExpense ? "- " : "+ "}R$ {Math.abs(t.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                 </span>
@@ -920,16 +958,20 @@ export default function Financas() {
                               <td className="p-4">
                                 <span className={cn(
                                   "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
-                                  isExpense 
-                                    ? "bg-red-500/10 text-red-500" 
-                                    : "bg-emerald-500/10 text-emerald-500"
+                                  isInvestment
+                                    ? "bg-blue-500/10 text-blue-500"
+                                    : isExpense 
+                                      ? "bg-red-500/10 text-red-500" 
+                                      : "bg-emerald-500/10 text-emerald-500"
                                 )}>
-                                  {isExpense ? (
+                                  {isInvestment ? (
+                                    <Wallet className="h-3 w-3" />
+                                  ) : isExpense ? (
                                     <TrendingDown className="h-3 w-3" />
                                   ) : (
                                     <TrendingUp className="h-3 w-3" />
                                   )}
-                                  {isExpense ? "Despesa" : "Receita"}
+                                  {isInvestment ? "Investimento" : isExpense ? "Despesa" : "Receita"}
                                 </span>
                               </td>
                               <td className="p-4">
