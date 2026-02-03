@@ -7,7 +7,7 @@ import { CalendarDayView } from '@/components/calendar-v2/CalendarDayView';
 import { CalendarWeekView } from '@/components/calendar-v2/CalendarWeekView';
 import { CalendarMonthView } from '@/components/calendar-v2/CalendarMonthView';
 import { CalendarBlockModal } from '@/components/calendar-v2/CalendarBlockModal';
-import { CalendarProductivityPanel } from '@/components/calendar-v2/CalendarProductivityPanel';
+
 import { CalendarBlock } from '@/types/calendar-blocks';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
