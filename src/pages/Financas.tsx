@@ -943,19 +943,32 @@ export default function Financas() {
                                 )}
                               </td>
                               <td className="p-4">
-                                <span className={cn(
-                                  "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
-                                  isExpense 
-                                    ? "bg-red-500/10 text-red-500" 
-                                    : "bg-emerald-500/10 text-emerald-500"
-                                )}>
-                                  {isExpense ? (
-                                    <TrendingDown className="h-3 w-3" />
-                                  ) : (
-                                    <TrendingUp className="h-3 w-3" />
-                                  )}
-                                  {isExpense ? "Despesa" : "Receita"}
-                                </span>
+                                {(() => {
+                                  const isInvestment = sector?.name.toLowerCase().includes("investimento");
+                                  if (isInvestment) {
+                                    return (
+                                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-500">
+                                        <ChartLine className="h-3 w-3" />
+                                        Investimento
+                                      </span>
+                                    );
+                                  }
+                                  return (
+                                    <span className={cn(
+                                      "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
+                                      isExpense 
+                                        ? "bg-red-500/10 text-red-500" 
+                                        : "bg-emerald-500/10 text-emerald-500"
+                                    )}>
+                                      {isExpense ? (
+                                        <TrendingDown className="h-3 w-3" />
+                                      ) : (
+                                        <TrendingUp className="h-3 w-3" />
+                                      )}
+                                      {isExpense ? "Despesa" : "Receita"}
+                                    </span>
+                                  );
+                                })()}
                               </td>
                               <td className="p-4">
                                 <span className={cn(
