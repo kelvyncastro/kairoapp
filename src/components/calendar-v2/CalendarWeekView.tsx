@@ -263,7 +263,15 @@ export function CalendarWeekView({
     setDragEndMinutes(minutes);
   }, [isDragging, dragDay, getMinutesFromY, movingBlock, getDayFromX, moveOffsetMinutes, pendingDragBlock, dragStartPos, dragStartTime, startBlockMove]);
 
-  const handleMouseUp = useCallback(async () => {
+  const handleMouseUp = useCallback(async (e?: React.MouseEvent | MouseEvent) => {
+    // If we had a pending drag that never started, treat as click
+    if (pendingDragBlock && !movingBlock) {
+      onBlockClick(pendingDragBlock);
+      setPendingDragBlock(null);
+      setDragStartPos(null);
+      return;
+    }
+
     // Handle block move completion
     if (movingBlock && moveTargetDay && onBlockMove) {
       const blockStart = new Date(movingBlock.start_time);
@@ -287,12 +295,16 @@ export function CalendarWeekView({
 
       setMovingBlock(null);
       setMoveTargetDay(null);
+      setPendingDragBlock(null);
+      setDragStartPos(null);
       return;
     }
 
     // Handle drag-to-create
     if (!isDragging || !dragDay) {
       setIsDragging(false);
+      setPendingDragBlock(null);
+      setDragStartPos(null);
       return;
     }
     
@@ -312,7 +324,9 @@ export function CalendarWeekView({
     
     setIsDragging(false);
     setDragDay(null);
-  }, [isDragging, dragDay, dragStartMinutes, dragEndMinutes, onSlotSelect, movingBlock, moveTargetDay, moveTargetMinutes, onBlockMove]);
+    setPendingDragBlock(null);
+    setDragStartPos(null);
+  }, [isDragging, dragDay, dragStartMinutes, dragEndMinutes, onSlotSelect, movingBlock, moveTargetDay, moveTargetMinutes, onBlockMove, pendingDragBlock, onBlockClick]);
 
   // Handle recurrence dialog confirmation
   const handleRecurrenceConfirm = async (scope: RecurrenceEditScope) => {
