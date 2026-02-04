@@ -95,23 +95,22 @@ export function RankingCard({ ranking, onSelect }: RankingCardProps) {
                   <Trophy className="h-5 w-5 text-primary" />
                 )}
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex items-center gap-2">
                 <CardTitle className="text-lg truncate">{ranking.name}</CardTitle>
-                {ranking.creator_profile && (
-                  <p className="text-xs text-muted-foreground">
-                    por {ranking.creator_profile.first_name || 'Usuário'}
-                  </p>
+                {hasBet && (
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-yellow-500/40 text-yellow-500 bg-yellow-500/10 shrink-0">
+                    <span>💰</span>
+                    <span className="hidden sm:inline ml-1">Aposta</span>
+                  </Badge>
                 )}
               </div>
-            </div>
-            <div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
-              {getStatusBadge()}
-              {hasBet && (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-yellow-500/40 text-yellow-500 bg-yellow-500/10">
-                  💰 Aposta
-                </Badge>
+              {ranking.creator_profile && (
+                <p className="text-xs text-muted-foreground">
+                  por {ranking.creator_profile.first_name || 'Usuário'}
+                </p>
               )}
             </div>
+            {getStatusBadge()}
           </div>
         </CardHeader>
         
