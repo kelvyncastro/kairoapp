@@ -572,13 +572,15 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
           {ranking.bet_description && (
             <Card className="border-yellow-500/30 bg-yellow-500/5 overflow-hidden">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2 text-yellow-500">
-                  <Coins className="h-4 w-4 shrink-0" />
-                  💰 Aposta: {ranking.bet_amount}
+                <CardTitle className="text-base flex items-start gap-2 text-yellow-500">
+                  <Coins className="h-4 w-4 shrink-0 mt-0.5" />
+                  <span className="min-w-0 break-words [overflow-wrap:anywhere]">
+                    💰 Aposta{ranking.bet_amount ? `: ${ranking.bet_amount}` : ""}
+                  </span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{ranking.bet_description}</p>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{ranking.bet_description}</p>
               </CardContent>
             </Card>
           )}
