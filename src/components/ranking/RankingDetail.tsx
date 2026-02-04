@@ -220,35 +220,37 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
 
       <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4">
-        {/* Title row */}
+      <div className="space-y-4">
+        {/* Top row - Back button, title, and status */}
         <div className="flex items-start gap-3">
-          <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0">
+          <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0 mt-0.5">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
-              <Trophy className="h-5 w-5 md:h-6 md:w-6 text-primary shrink-0" />
-              <span className="truncate">{ranking.name}</span>
-            </h1>
-            <p className="text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2 break-words">
+                <Trophy className="h-5 w-5 md:h-6 md:w-6 text-primary shrink-0" />
+                <span className="break-words">{ranking.name}</span>
+              </h1>
+              <Badge className={cn(
+                "shrink-0",
+                ranking.status === 'active' && "bg-green-500/20 text-green-500",
+                ranking.status === 'pending' && "bg-yellow-500/20 text-yellow-500",
+                ranking.status === 'completed' && "bg-muted text-muted-foreground"
+              )}>
+                {ranking.status === 'active' && 'Ativo'}
+                {ranking.status === 'pending' && 'Aguardando'}
+                {ranking.status === 'completed' && 'Finalizado'}
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">
               {format(startDate, "dd MMM", { locale: ptBR })} - {format(endDate, "dd MMM yyyy", { locale: ptBR })}
             </p>
           </div>
-          <Badge className={cn(
-            "shrink-0",
-            ranking.status === 'active' && "bg-green-500/20 text-green-500",
-            ranking.status === 'pending' && "bg-yellow-500/20 text-yellow-500",
-            ranking.status === 'completed' && "bg-muted text-muted-foreground"
-          )}>
-            {ranking.status === 'active' && 'Ativo'}
-            {ranking.status === 'pending' && 'Aguardando'}
-            {ranking.status === 'completed' && 'Finalizado'}
-          </Badge>
         </div>
 
-        {/* Action buttons - wrapped row */}
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Action buttons row - wraps on mobile */}
+        <div className="flex flex-wrap items-center gap-2 pl-11 md:pl-12">
           {canEdit && (
             <CreateRankingDialog
               editMode
@@ -259,18 +261,19 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
               trigger={
                 <Button variant="outline" size="sm" className="gap-2">
                   <Pencil className="h-4 w-4" />
-                  Editar
+                  <span className="hidden sm:inline">Editar</span>
                 </Button>
               }
             />
           )}
+          
           {/* Direct delete for pending/completed rankings */}
           {canDeleteDirectly && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive">
                   <Trash2 className="h-4 w-4" />
-                  Excluir
+                  <span className="hidden sm:inline">Excluir</span>
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -301,7 +304,7 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
               <AlertDialogTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive">
                   <Trash2 className="h-4 w-4" />
-                  Solicitar Exclusão
+                  <span className="hidden sm:inline">Solicitar Exclusão</span>
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -328,13 +331,13 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
 
           {/* Show deletion request status for creator */}
           {isCreator && ranking.deletion_requested && (
-            <>
+            <div className="flex flex-wrap items-center gap-2">
               {allConsented ? (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" size="sm" className="gap-2">
                       <Trash2 className="h-4 w-4" />
-                      Confirmar Exclusão
+                      <span className="hidden sm:inline">Confirmar Exclusão</span>
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
@@ -358,26 +361,26 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
                 </AlertDialog>
               ) : (
                 <>
-                  <Badge variant="outline" className="text-yellow-500 border-yellow-500">
-                    Aguardando consentimento ({consentCount}/{acceptedParticipants.length})
+                  <Badge variant="outline" className="text-yellow-500 border-yellow-500 text-xs">
+                    Aguardando ({consentCount}/{acceptedParticipants.length})
                   </Badge>
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     onClick={handleCancelDeletionRequest}
-                    className="text-muted-foreground"
+                    className="text-muted-foreground text-xs"
                   >
-                    Cancelar solicitação
+                    Cancelar
                   </Button>
                 </>
               )}
-            </>
+            </div>
           )}
 
           {/* Show consent buttons for non-creator participants */}
           {!isCreator && ranking.deletion_requested && !userHasConsented && (
-            <>
-              <Badge variant="outline" className="text-yellow-500 border-yellow-500">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline" className="text-yellow-500 border-yellow-500 text-xs">
                 Exclusão solicitada
               </Badge>
               <Button 
@@ -395,12 +398,12 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
               >
                 Recusar
               </Button>
-            </>
+            </div>
           )}
 
           {/* Show consent status for non-creator who already consented */}
           {!isCreator && ranking.deletion_requested && userHasConsented && (
-            <Badge variant="outline" className="text-muted-foreground">
+            <Badge variant="outline" className="text-muted-foreground text-xs">
               Você concordou com a exclusão
             </Badge>
           )}
@@ -414,7 +417,7 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
               onClick={() => setShowWinnerCelebration(true)}
             >
               <Trophy className="h-4 w-4" />
-              Ver Celebração
+              <span className="hidden sm:inline">Ver Celebração</span>
             </Button>
           )}
         </div>
@@ -570,17 +573,17 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
 
           {/* Bet Info */}
           {ranking.bet_description && (
-            <Card className="border-yellow-500/30 bg-yellow-500/5 overflow-hidden">
+            <Card className="border-yellow-500/30 bg-yellow-500/5">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-start gap-2 text-yellow-500">
-                  <Coins className="h-4 w-4 shrink-0 mt-0.5" />
-                  <span className="min-w-0 break-words [overflow-wrap:anywhere]">
-                    💰 Aposta{ranking.bet_amount ? `: ${ranking.bet_amount}` : ""}
-                  </span>
+                <CardTitle className="text-base text-yellow-500">
+                  <div className="flex items-start gap-2">
+                    <Coins className="h-4 w-4 shrink-0 mt-0.5" />
+                    <span className="break-all">💰 Aposta: {ranking.bet_amount}</span>
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{ranking.bet_description}</p>
+                <p className="text-sm text-muted-foreground break-all">{ranking.bet_description}</p>
               </CardContent>
             </Card>
           )}

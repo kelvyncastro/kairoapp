@@ -27,7 +27,6 @@ export function RankingCard({ ranking, onSelect }: RankingCardProps) {
   const userParticipation = ranking.participants.find(p => p.user_id === user?.id);
   const isPending = userParticipation?.status === 'pending';
   const isAccepted = userParticipation?.status === 'accepted' || isCreator;
-  const hasBet = Boolean(ranking.bet_description || ranking.bet_amount);
   
   const acceptedParticipants = ranking.participants.filter(p => p.status === 'accepted');
   const pendingParticipants = ranking.participants.filter(p => p.status === 'pending');
@@ -81,34 +80,35 @@ export function RankingCard({ ranking, onSelect }: RankingCardProps) {
     >
       <Card className="overflow-hidden hover:shadow-lg transition-shadow">
         <CardHeader className="pb-3">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
               <div className={cn(
                 "h-10 w-10 rounded-xl flex items-center justify-center",
-                hasBet 
+                (ranking.bet_description || ranking.bet_amount) 
                   ? "bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 ring-1 ring-yellow-500/30" 
                   : "bg-primary/10"
               )}>
-                {hasBet ? (
+                {(ranking.bet_description || ranking.bet_amount) ? (
                   <Coins className="h-5 w-5 text-yellow-500" />
                 ) : (
                   <Trophy className="h-5 w-5 text-primary" />
                 )}
               </div>
-              <div className="min-w-0 flex items-center gap-2">
-                <CardTitle className="text-lg truncate">{ranking.name}</CardTitle>
-                {hasBet && (
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-yellow-500/40 text-yellow-500 bg-yellow-500/10 shrink-0">
-                    <span>💰</span>
-                    <span className="hidden sm:inline ml-1">Aposta</span>
-                  </Badge>
+              <div>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-lg">{ranking.name}</CardTitle>
+                  {(ranking.bet_description || ranking.bet_amount) && (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-yellow-500/40 text-yellow-500 bg-yellow-500/10">
+                      💰 Aposta
+                    </Badge>
+                  )}
+                </div>
+                {ranking.creator_profile && (
+                  <p className="text-xs text-muted-foreground">
+                    por {ranking.creator_profile.first_name || 'Usuário'}
+                  </p>
                 )}
               </div>
-              {ranking.creator_profile && (
-                <p className="text-xs text-muted-foreground">
-                  por {ranking.creator_profile.first_name || 'Usuário'}
-                </p>
-              )}
             </div>
             {getStatusBadge()}
           </div>
@@ -135,7 +135,7 @@ export function RankingCard({ ranking, onSelect }: RankingCardProps) {
           </div>
 
           {/* Stats */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <div className="flex items-center gap-1">
               <Users className="h-3 w-3" />
               {acceptedParticipants.length} participante{acceptedParticipants.length !== 1 ? 's' : ''}
@@ -147,7 +147,7 @@ export function RankingCard({ ranking, onSelect }: RankingCardProps) {
               <Target className="h-3 w-3" />
               {ranking.goals.length} meta{ranking.goals.length !== 1 ? 's' : ''}
             </div>
-            {hasBet && (
+            {(ranking.bet_description || ranking.bet_amount) && (
               <div className="flex items-center gap-1 text-yellow-500">
                 <Coins className="h-3 w-3" />
                 Aposta
@@ -189,16 +189,14 @@ export function RankingCard({ ranking, onSelect }: RankingCardProps) {
           )}
 
           {/* Bet Info */}
-          {hasBet && (
-            <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 overflow-hidden">
+          {(ranking.bet_description || ranking.bet_amount) && (
+            <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
               <div className="flex items-start gap-2 text-yellow-500 text-xs font-medium mb-1">
                 <Coins className="h-3 w-3 shrink-0 mt-0.5" />
-                <span className="min-w-0 break-words [overflow-wrap:anywhere]">
-                  {ranking.bet_amount ? `💰 Aposta: ${ranking.bet_amount}` : '💰 Com Aposta'}
-                </span>
+                <span className="break-all">{ranking.bet_amount ? `💰 Aposta: ${ranking.bet_amount}` : '💰 Com Aposta'}</span>
               </div>
               {ranking.bet_description && (
-                <p className="text-xs text-muted-foreground whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{ranking.bet_description}</p>
+                <p className="text-xs text-muted-foreground break-all">{ranking.bet_description}</p>
               )}
             </div>
           )}
