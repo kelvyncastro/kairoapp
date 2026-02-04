@@ -99,7 +99,7 @@ export function RankingCard({ ranking, onSelect }: RankingCardProps) {
                   <CardTitle className="text-lg">{ranking.name}</CardTitle>
                   {(ranking.bet_description || ranking.bet_amount) && (
                     <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-yellow-500/40 text-yellow-500 bg-yellow-500/10">
-                      💰 Aposta
+                      💰<span className="hidden sm:inline"> Aposta</span>
                     </Badge>
                   )}
                 </div>
