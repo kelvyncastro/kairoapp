@@ -66,7 +66,6 @@ const bottomNavItems = [
 ];
 
 const devNavItems = [
-  { path: "/agenda", label: "Agenda", icon: Calendar },
   { path: "/treino", label: "Treino", icon: Dumbbell },
   { path: "/dieta", label: "Dieta", icon: UtensilsCrossed },
   { path: "/ebook", label: "Ebook", icon: BookOpen },
