@@ -595,113 +595,19 @@ export default function RankingPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Ranking Detail Dialog */}
-      <Dialog
-        open={!!selectedRanking}
-        onOpenChange={() => setSelectedRanking(null)}
-      >
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          {selectedRanking && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-primary" />
-                  {selectedRanking.name}
-                </DialogTitle>
-              </DialogHeader>
-
-              <div className="space-y-4">
-                {selectedRanking.description && (
-                  <p className="text-sm text-muted-foreground">
-                    {selectedRanking.description}
-                  </p>
-                )}
-
-                <div className="flex items-center gap-4 text-sm">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    {format(new Date(selectedRanking.start_date), "dd MMM", {
-                      locale: ptBR,
-                    })}{" "}
-                    -{" "}
-                    {format(new Date(selectedRanking.end_date), "dd MMM yyyy", {
-                      locale: ptBR,
-                    })}
-                  </div>
-                  {selectedRanking.bet_amount && (
-                    <div className="flex items-center gap-1">
-                      <Coins className="h-4 w-4 text-warning" />
-                      R$ {selectedRanking.bet_amount}
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <h4 className="font-semibold mb-2 flex items-center gap-2">
-                    <Target className="h-4 w-4" />
-                    Metas ({selectedRanking.goals.length})
-                  </h4>
-                  <div className="space-y-1">
-                    {selectedRanking.goals.map((goal) => (
-                      <div
-                        key={goal.id}
-                        className="text-sm p-2 bg-secondary/50 rounded"
-                      >
-                        {goal.title}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold mb-2 flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    Ranking
-                  </h4>
-                  <div className="space-y-2">
-                    {selectedRanking.participants
-                      .filter((p) => p.status === "accepted")
-                      .sort((a, b) => b.total_points - a.total_points)
-                      .map((participant, index) => (
-                        <div
-                          key={participant.id}
-                          className={cn(
-                            "flex items-center gap-3 p-2 rounded",
-                            index === 0 && "bg-warning/10 border border-warning/30"
-                          )}
-                        >
-                          <span className="font-bold text-sm w-5">
-                            {index + 1}º
-                          </span>
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage
-                              src={participant.profile?.avatar_url || undefined}
-                            />
-                            <AvatarFallback>
-                              {participant.profile?.first_name?.[0] || "?"}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <p className="font-medium text-sm">
-                              {participant.profile?.first_name}{" "}
-                              {participant.profile?.last_name}
-                              {participant.user_id === user?.id && (
-                                <span className="text-muted-foreground"> (você)</span>
-                              )}
-                            </p>
-                          </div>
-                          <div className="font-bold text-primary">
-                            {participant.total_points} pts
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
+
+  // If a ranking is selected, show the detail view
+  if (selectedRanking) {
+    return (
+      <RankingDetail
+        ranking={selectedRanking}
+        onBack={() => setSelectedRanking(null)}
+        onRefetch={refetch}
+      />
+    );
+  }
+
+  return mainContent;
 }
