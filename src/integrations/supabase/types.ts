@@ -1421,30 +1421,7 @@ export type Database = {
       }
     }
     Views: {
-      public_user_profiles: {
-        Row: {
-          avatar_url: string | null
-          first_name: string | null
-          id: string | null
-          public_id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          first_name?: string | null
-          id?: string | null
-          public_id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          first_name?: string | null
-          id?: string | null
-          public_id?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       create_default_finance_sectors: {
@@ -1452,6 +1429,16 @@ export type Database = {
         Returns: undefined
       }
       generate_public_id: { Args: never; Returns: string }
+      get_public_user_profiles: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          first_name: string
+          id: string
+          public_id: string
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
