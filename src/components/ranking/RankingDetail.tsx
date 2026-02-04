@@ -350,16 +350,24 @@ export function RankingDetail({ ranking, onBack, onEdit, onDelete, onRefetch }: 
                     const isProcessing = processingGoal === goal.id;
                     const canToggle = isActive && isToday && !isProcessing;
 
-                    return (
+                      // Calculate subtle gradient based on index
+                      const gradientOpacity = 0.03 + (index * 0.015);
+                      
+                      return (
                       <div
                         key={goal.id}
                         className={cn(
-                          "flex items-center gap-4 p-4 rounded-xl border transition-all duration-300",
+                          "flex items-center gap-4 p-4 rounded-xl border transition-all duration-300 relative overflow-hidden",
                           isCompleted
-                            ? "bg-primary/5 border-primary/30 shadow-sm shadow-primary/10"
-                            : "bg-muted/20 border-border/30 hover:border-border/50 hover:bg-muted/30",
+                            ? "border-primary/30 shadow-sm shadow-primary/10"
+                            : "border-border/30 hover:border-border/50",
                           canToggle && "cursor-pointer"
                         )}
+                        style={{
+                          background: isCompleted 
+                            ? `linear-gradient(135deg, hsl(var(--primary) / 0.08) 0%, hsl(var(--primary) / 0.02) 100%)`
+                            : `linear-gradient(135deg, hsl(var(--primary) / ${gradientOpacity}) 0%, transparent 100%)`
+                        }}
                         onClick={() => canToggle && handleToggleGoal(goal.id)}
                       >
                         <div className={cn(
