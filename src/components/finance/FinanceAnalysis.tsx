@@ -55,9 +55,9 @@ export function FinanceAnalysis({
     setIsLoading(true);
     
     try {
+      // Note: userId is not sent in body - it's extracted from JWT on server-side
       const { data, error } = await supabase.functions.invoke("finance-analysis", {
         body: {
-          userId,
           transactions,
           sectors,
           income,
