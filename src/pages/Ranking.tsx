@@ -335,12 +335,42 @@ export default function RankingPage() {
     );
   }
 
+  // Handle edit ranking
+  const handleEditRanking = () => {
+    // TODO: Implement edit dialog
+    toast({ title: "Funcionalidade de edição em breve!" });
+  };
+
+  // Handle delete ranking
+  const handleDeleteRanking = async () => {
+    if (!selectedRanking || !user) return;
+    
+    try {
+      const { error } = await supabase
+        .from("rankings")
+        .delete()
+        .eq("id", selectedRanking.id)
+        .eq("creator_id", user.id);
+
+      if (error) throw error;
+
+      toast({ title: "Ranking excluído com sucesso!" });
+      setSelectedRanking(null);
+      await refetch();
+    } catch (error) {
+      console.error("Error deleting ranking:", error);
+      toast({ title: "Erro ao excluir ranking", variant: "destructive" });
+    }
+  };
+
   // If a ranking is selected, show the detail view
   if (selectedRanking) {
     return (
       <RankingDetail
         ranking={selectedRanking}
         onBack={() => setSelectedRanking(null)}
+        onEdit={handleEditRanking}
+        onDelete={handleDeleteRanking}
         onRefetch={refetch}
       />
     );
