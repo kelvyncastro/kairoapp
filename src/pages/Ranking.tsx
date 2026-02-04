@@ -608,17 +608,4 @@ export default function RankingPage() {
 
     </div>
   );
-
-  // If a ranking is selected, show the detail view
-  if (selectedRanking) {
-    return (
-      <RankingDetail
-        ranking={selectedRanking}
-        onBack={() => setSelectedRanking(null)}
-        onRefetch={refetch}
-      />
-    );
-  }
-
-  return mainContent;
 }
