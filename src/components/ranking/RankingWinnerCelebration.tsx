@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import { Trophy, Crown, Medal, Star, X, Sparkles } from "lucide-react";
@@ -14,6 +14,45 @@ interface RankingWinnerCelebrationProps {
   onClose: () => void;
 }
 
+// Function to play celebration sound
+async function playCelebrationSound() {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-sfx`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ 
+          prompt: "Epic orchestral victory music with magical sparkles and triumphant horns, uplifting celebration melody",
+          duration: 5
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      console.error("Failed to generate celebration sound:", response.status);
+      return;
+    }
+
+    const audioBlob = await response.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const audio = new Audio(audioUrl);
+    audio.volume = 0.7;
+    await audio.play();
+    
+    // Clean up the object URL after playing
+    audio.onended = () => {
+      URL.revokeObjectURL(audioUrl);
+    };
+  } catch (error) {
+    console.error("Error playing celebration sound:", error);
+  }
+}
+
 export function RankingWinnerCelebration({ 
   winner, 
   podium, 
@@ -22,10 +61,17 @@ export function RankingWinnerCelebration({
 }: RankingWinnerCelebrationProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [showPodium, setShowPodium] = useState(false);
+  const soundPlayedRef = useRef(false);
 
   useEffect(() => {
     if (winner) {
       setIsVisible(true);
+      
+      // Play celebration sound (only once)
+      if (!soundPlayedRef.current) {
+        soundPlayedRef.current = true;
+        playCelebrationSound();
+      }
       
       // Delay podium animation
       setTimeout(() => setShowPodium(true), 800);
@@ -92,6 +138,7 @@ export function RankingWinnerCelebration({
   const handleClose = () => {
     setIsVisible(false);
     setShowPodium(false);
+    soundPlayedRef.current = false; // Reset so sound can play again if reopened
     setTimeout(onClose, 300);
   };
 

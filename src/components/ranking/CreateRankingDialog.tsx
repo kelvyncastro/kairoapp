@@ -15,7 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useRankings } from "@/hooks/useRankings";
+import { useRankingsStore } from "@/contexts/RankingsContext";
 import { RankingWithDetails } from "@/types/ranking";
 import { supabase } from "@/integrations/supabase/client";
 import { format, addDays, parseISO } from "date-fns";
@@ -46,7 +46,7 @@ interface CreateRankingDialogProps {
 }
 
 export function CreateRankingDialog({ trigger, editMode = false, rankingToEdit, onSuccess }: CreateRankingDialogProps) {
-  const { createRanking, updateRanking } = useRankings();
+  const { createRanking, updateRanking } = useRankingsStore();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const goalInputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -109,6 +109,11 @@ export function CreateRankingDialog({ trigger, editMode = false, rankingToEdit, 
     }
   }, []);
 
+  // Get existing participants for edit mode
+  const existingParticipants = editMode && rankingToEdit 
+    ? rankingToEdit.participants.filter(p => p.user_id !== rankingToEdit.creator_id)
+    : [];
+
   // Populate form when editing
   useEffect(() => {
     if (editMode && rankingToEdit && open) {
@@ -124,6 +129,8 @@ export function CreateRankingDialog({ trigger, editMode = false, rankingToEdit, 
           ? rankingToEdit.goals.map(g => ({ title: g.title, description: g.description || "" }))
           : [{ title: "", description: "" }]
       );
+      // Reset invitees for new additions in edit mode
+      setInvitees([{ publicId: "", profile: null, loading: false, notFound: false }]);
     }
   }, [editMode, rankingToEdit, open]);
 
@@ -246,6 +253,7 @@ export function CreateRankingDialog({ trigger, editMode = false, rankingToEdit, 
           bet_description: hasBet && betDescription.trim() ? betDescription : undefined,
           bet_amount: hasBet ? betAmount : undefined,
           goals: validGoals,
+          newInvitees: validInvitees,
         });
       } else {
         await createRanking({
@@ -449,125 +457,171 @@ export function CreateRankingDialog({ trigger, editMode = false, rankingToEdit, 
             </div>
           </div>
 
-          {/* Invitees - Only show in create mode */}
-          {!editMode && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  Convidar Participantes
-                </div>
-                <Button variant="outline" size="sm" onClick={addInvitee} className="gap-1.5">
-                  <Plus className="h-3 w-3" />
-                  Novo Participante
-                </Button>
+          {/* Invitees - Show in both create and edit mode */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                {editMode ? 'Participantes' : 'Convidar Participantes'}
               </div>
-              <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/5 via-muted/30 to-transparent border border-blue-500/10">
-                <p className="text-xs text-muted-foreground mb-4 flex items-center gap-1.5">
-                  <Sparkles className="h-3 w-3 text-blue-500" />
-                  Pressione <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono">Enter</kbd> para adicionar outro participante
-                </p>
-                <div className="space-y-2">
-                  <AnimatePresence mode="popLayout">
-                    {invitees.map((invitee, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, x: -20, scale: 0.95 }}
-                        transition={{ duration: 0.2 }}
-                        className="group relative"
+              <Button variant="outline" size="sm" onClick={addInvitee} className="gap-1.5">
+                <Plus className="h-3 w-3" />
+                {editMode ? 'Convidar Mais' : 'Novo Participante'}
+              </Button>
+            </div>
+            <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/5 via-muted/30 to-transparent border border-blue-500/10">
+              {/* Show existing participants in edit mode */}
+              {editMode && existingParticipants.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-xs text-muted-foreground mb-2 font-medium">Participantes atuais:</p>
+                  <div className="space-y-2">
+                    {existingParticipants.map((participant) => (
+                      <div
+                        key={participant.id}
+                        className={cn(
+                          "flex items-center gap-2 p-2 rounded-lg",
+                          "bg-background/80 border",
+                          participant.status === 'accepted' && "border-green-500/30 bg-green-500/5",
+                          participant.status === 'pending' && "border-yellow-500/30 bg-yellow-500/5",
+                          participant.status === 'rejected' && "border-red-500/30 bg-red-500/5"
+                        )}
                       >
-                        <div className={cn(
-                          "flex items-center gap-2 p-2 rounded-lg transition-all duration-200",
-                          "bg-background/80 border border-border/50",
-                          "hover:border-blue-500/30 hover:shadow-sm",
-                          invitee.profile && "border-green-500/30 bg-green-500/5",
-                          invitee.notFound && invitee.publicId.length === 8 && "border-red-500/30 bg-red-500/5"
+                        <Avatar className="h-9 w-9">
+                          <AvatarImage src={participant.user_profile?.avatar_url || undefined} />
+                          <AvatarFallback className="text-xs">
+                            {participant.user_profile?.first_name?.charAt(0) || '?'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {participant.user_profile?.first_name} {participant.user_profile?.last_name}
+                          </p>
+                          <p className="text-xs text-muted-foreground font-mono">
+                            {participant.user_profile?.public_id}
+                          </p>
+                        </div>
+                        <span className={cn(
+                          "text-xs px-2 py-0.5 rounded-full",
+                          participant.status === 'accepted' && "bg-green-500/20 text-green-500",
+                          participant.status === 'pending' && "bg-yellow-500/20 text-yellow-500",
+                          participant.status === 'rejected' && "bg-red-500/20 text-red-500"
                         )}>
-                          {/* Avatar or placeholder */}
-                          <div className="flex items-center justify-center h-9 w-9 rounded-lg shrink-0 overflow-hidden">
-                            {invitee.loading ? (
-                              <div className="h-full w-full flex items-center justify-center bg-muted">
-                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                              </div>
-                            ) : invitee.profile ? (
-                              <Avatar className="h-9 w-9">
-                                <AvatarImage src={invitee.profile.avatar_url || undefined} />
-                                <AvatarFallback className="text-xs bg-green-500/20 text-green-600">
-                                  {invitee.profile.first_name?.charAt(0) || '?'}
-                                </AvatarFallback>
-                              </Avatar>
-                            ) : (
-                              <div className={cn(
-                                "h-full w-full flex items-center justify-center rounded-lg",
-                                invitee.notFound && invitee.publicId.length === 8 
-                                  ? "bg-red-500/10 text-red-500" 
-                                  : "bg-gradient-to-br from-blue-500/20 to-blue-500/10 text-blue-500"
-                              )}>
-                                <User className="h-4 w-4" />
-                              </div>
-                            )}
-                          </div>
-                          
-                          {/* Input and name display */}
-                          <div className="flex-1 min-w-0">
-                            <Input
-                              ref={(el) => { inviteeInputRefs.current[index] = el; }}
-                              placeholder="Digite o ID (8 caracteres)"
-                              value={invitee.publicId}
-                              onChange={(e) => updateInvitee(index, e.target.value)}
-                              onKeyDown={(e) => handleInviteeKeyDown(index, e)}
-                              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50 uppercase font-mono"
-                              maxLength={8}
-                            />
-                            {invitee.profile && (
-                              <motion.p 
-                                initial={{ opacity: 0, y: -5 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="text-xs text-green-600 font-medium px-3 -mt-1 flex items-center gap-1"
-                              >
-                                <CheckCircle className="h-3 w-3" />
-                                {invitee.profile.first_name} {invitee.profile.last_name}
-                              </motion.p>
-                            )}
-                            {invitee.notFound && invitee.publicId.length === 8 && (
-                              <motion.p 
-                                initial={{ opacity: 0, y: -5 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="text-xs text-red-500 px-3 -mt-1"
-                              >
-                                Usuário não encontrado
-                              </motion.p>
-                            )}
-                          </div>
-                          
-                          {invitees.length > 1 && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => removeInvitee(index)}
-                              className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </Button>
+                          {participant.status === 'accepted' && 'Aceito'}
+                          {participant.status === 'pending' && 'Pendente'}
+                          {participant.status === 'rejected' && 'Recusou'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="my-4 border-t border-border/50" />
+                  <p className="text-xs text-muted-foreground mb-2 font-medium">Adicionar novos participantes:</p>
+                </div>
+              )}
+              
+              <p className="text-xs text-muted-foreground mb-4 flex items-center gap-1.5">
+                <Sparkles className="h-3 w-3 text-blue-500" />
+                Pressione <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono">Enter</kbd> para adicionar outro participante
+              </p>
+              <div className="space-y-2">
+                <AnimatePresence mode="popLayout">
+                  {invitees.map((invitee, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, x: -20, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="group relative"
+                    >
+                      <div className={cn(
+                        "flex items-center gap-2 p-2 rounded-lg transition-all duration-200",
+                        "bg-background/80 border border-border/50",
+                        "hover:border-blue-500/30 hover:shadow-sm",
+                        invitee.profile && "border-green-500/30 bg-green-500/5",
+                        invitee.notFound && invitee.publicId.length === 8 && "border-red-500/30 bg-red-500/5"
+                      )}>
+                        {/* Avatar or placeholder */}
+                        <div className="flex items-center justify-center h-9 w-9 rounded-lg shrink-0 overflow-hidden">
+                          {invitee.loading ? (
+                            <div className="h-full w-full flex items-center justify-center bg-muted">
+                              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                            </div>
+                          ) : invitee.profile ? (
+                            <Avatar className="h-9 w-9">
+                              <AvatarImage src={invitee.profile.avatar_url || undefined} />
+                              <AvatarFallback className="text-xs bg-green-500/20 text-green-600">
+                                {invitee.profile.first_name?.charAt(0) || '?'}
+                              </AvatarFallback>
+                            </Avatar>
+                          ) : (
+                            <div className={cn(
+                              "h-full w-full flex items-center justify-center rounded-lg",
+                              invitee.notFound && invitee.publicId.length === 8 
+                                ? "bg-red-500/10 text-red-500" 
+                                : "bg-gradient-to-br from-blue-500/20 to-blue-500/10 text-blue-500"
+                            )}>
+                              <User className="h-4 w-4" />
+                            </div>
                           )}
                         </div>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-                {validInviteesCount > 0 && (
-                  <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1.5">
-                      <CheckCircle className="h-3 w-3 text-green-500" />
-                      {validInviteesCount} participante(s) encontrado(s)
-                    </span>
-                  </div>
-                )}
+                        
+                        {/* Input and name display */}
+                        <div className="flex-1 min-w-0">
+                          <Input
+                            ref={(el) => { inviteeInputRefs.current[index] = el; }}
+                            placeholder="Digite o ID (8 caracteres)"
+                            value={invitee.publicId}
+                            onChange={(e) => updateInvitee(index, e.target.value)}
+                            onKeyDown={(e) => handleInviteeKeyDown(index, e)}
+                            className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50 uppercase font-mono"
+                            maxLength={8}
+                          />
+                          {invitee.profile && (
+                            <motion.p 
+                              initial={{ opacity: 0, y: -5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="text-xs text-green-600 font-medium px-3 -mt-1 flex items-center gap-1"
+                            >
+                              <CheckCircle className="h-3 w-3" />
+                              {invitee.profile.first_name} {invitee.profile.last_name}
+                            </motion.p>
+                          )}
+                          {invitee.notFound && invitee.publicId.length === 8 && (
+                            <motion.p 
+                              initial={{ opacity: 0, y: -5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="text-xs text-red-500 px-3 -mt-1"
+                            >
+                              Usuário não encontrado
+                            </motion.p>
+                          )}
+                        </div>
+                        
+                        {invitees.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeInvitee(index)}
+                            className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
+              {validInviteesCount > 0 && (
+                <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5">
+                    <CheckCircle className="h-3 w-3 text-green-500" />
+                    {validInviteesCount} novo(s) participante(s) a convidar
+                  </span>
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Bet */}
           <div className="space-y-3">

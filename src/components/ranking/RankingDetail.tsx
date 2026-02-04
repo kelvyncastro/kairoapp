@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { 
   Trophy, Calendar, Target, Users, Coins, ArrowLeft, 
   Check, ChevronLeft, ChevronRight, Crown, Medal, Pencil, Sparkles, Trash2
@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { RankingWithDetails, RankingGoalLog } from "@/types/ranking";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRankings } from "@/hooks/useRankings";
+import { useRankingsStore } from "@/contexts/RankingsContext";
 import { CreateRankingDialog } from "./CreateRankingDialog";
 import { RankingWinnerCelebration } from "./RankingWinnerCelebration";
 import { format, addDays, subDays, isWithinInterval, parseISO, isSameDay } from "date-fns";
@@ -46,7 +46,7 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
     requestDeletion,
     consentToDeletion,
     cancelDeletionRequest
-  } = useRankings();
+  } = useRankingsStore();
   
   // Get the latest ranking data from the hook
   const ranking = rankings.find(r => r.id === initialRanking.id) || initialRanking;
@@ -57,6 +57,7 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
   const [deleting, setDeleting] = useState(false);
   const [requestingDeletion, setRequestingDeletion] = useState(false);
   const [showWinnerCelebration, setShowWinnerCelebration] = useState(false);
+  const processingGoalsRef = useRef<Set<string>>(new Set());
   const celebrationShownRef = useRef(false);
 
   const startDate = parseISO(ranking.start_date);
@@ -103,23 +104,69 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
       setLoading(false);
     };
     loadGoalLogs();
-  }, [selectedDate, ranking.id]);
+  }, [selectedDate, ranking.id, getGoalLogs]);
 
-  const handleToggleGoal = async (goalId: string, completed: boolean) => {
-    if (!canEditGoals) return;
+  const handleToggleGoal = useCallback(async (goalId: string, completed: boolean) => {
+    if (!canEditGoals || !user) return;
     
-    await toggleGoalCompletion(
-      ranking.id,
-      goalId,
-      format(selectedDate, 'yyyy-MM-dd'),
-      completed
-    );
+    // Prevent double-clicks: if this goal is already being processed, ignore
+    if (processingGoalsRef.current.has(goalId)) {
+      return;
+    }
     
-    // Refresh goal logs
-    const logs = await getGoalLogs(ranking.id, format(selectedDate, 'yyyy-MM-dd'));
-    setGoalLogs(logs);
-    await fetchRankings();
-  };
+    // Mark this goal as being processed
+    processingGoalsRef.current.add(goalId);
+    
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    const totalGoals = ranking.goals.length;
+    const pointsPerGoal = totalGoals > 0 ? 10 / totalGoals : 0;
+    
+    // OPTIMISTIC UPDATE: Update UI immediately
+    setGoalLogs(prev => {
+      const existingIndex = prev.findIndex(log => log.goal_id === goalId);
+      if (existingIndex >= 0) {
+        // Update existing log
+        const updated = [...prev];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          completed,
+          points_earned: completed ? pointsPerGoal : 0
+        };
+        return updated;
+      } else {
+        // Add new log optimistically
+        return [...prev, {
+          id: `temp-${goalId}-${dateStr}`,
+          ranking_id: ranking.id,
+          goal_id: goalId,
+          user_id: user.id,
+          date: dateStr,
+          completed,
+          points_earned: completed ? pointsPerGoal : 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }];
+      }
+    });
+    
+    // Execute in background (non-blocking)
+    try {
+      await toggleGoalCompletion(
+        ranking.id,
+        goalId,
+        dateStr,
+        completed
+      );
+      // Refresh goal logs in background to sync with server
+      const logs = await getGoalLogs(ranking.id, dateStr);
+      setGoalLogs(logs);
+    } finally {
+      // Remove from processing set after a small delay to prevent rapid re-clicks
+      setTimeout(() => {
+        processingGoalsRef.current.delete(goalId);
+      }, 300);
+    }
+  }, [canEditGoals, user, selectedDate, ranking.id, ranking.goals.length, toggleGoalCompletion, getGoalLogs]);
 
   const isGoalCompleted = (goalId: string) => {
     return goalLogs.some(log => log.goal_id === goalId && log.completed);
@@ -191,7 +238,9 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
             <CreateRankingDialog
               editMode
               rankingToEdit={ranking}
-              onSuccess={() => fetchRankings()}
+              onSuccess={async () => {
+                await fetchRankings();
+              }}
               trigger={
                 <Button variant="outline" size="sm" className="gap-2">
                   <Pencil className="h-4 w-4" />
@@ -339,6 +388,19 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
             <Badge variant="outline" className="text-muted-foreground">
               Você concordou com a exclusão
             </Badge>
+          )}
+
+          {/* Button to replay winner celebration */}
+          {ranking.status === 'completed' && winner && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2 border-yellow-500/30 text-yellow-500 hover:bg-yellow-500/10"
+              onClick={() => setShowWinnerCelebration(true)}
+            >
+              <Trophy className="h-4 w-4" />
+              Ver Celebração
+            </Button>
           )}
 
           <Badge className={cn(
