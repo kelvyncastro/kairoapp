@@ -12,17 +12,55 @@ serve(async (req) => {
   }
 
   try {
-    const { userId, transactions, sectors, income, expenses, balance } = await req.json();
+    // Validate JWT authentication
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: "Não autorizado. Faça login para continuar." 
+        }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Create Supabase client with auth header
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // Validate JWT and get user ID from claims
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: "Token inválido. Faça login novamente." 
+        }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Use userId from validated JWT claims, NOT from request body
+    const userId = claimsData.claims.sub;
     
     if (!userId) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: "Usuário não fornecido." 
+          message: "Usuário não identificado." 
         }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Get request body for other data (transactions, sectors, etc.)
+    const { transactions, sectors, income, expenses, balance } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
