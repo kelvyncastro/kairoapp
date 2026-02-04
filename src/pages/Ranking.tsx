@@ -335,6 +335,17 @@ export default function RankingPage() {
     );
   }
 
+  // If a ranking is selected, show the detail view
+  if (selectedRanking) {
+    return (
+      <RankingDetail
+        ranking={selectedRanking}
+        onBack={() => setSelectedRanking(null)}
+        onRefetch={refetch}
+      />
+    );
+  }
+
   return (
     <div className="h-full flex flex-col -m-4 md:-m-6 bg-background overflow-hidden">
       {/* Header */}
