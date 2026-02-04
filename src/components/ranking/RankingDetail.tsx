@@ -232,33 +232,38 @@ export function RankingDetail({ ranking, onBack, onEdit, onDelete, onRefetch }: 
   return (
     <div className="h-full flex flex-col -m-4 md:-m-6 bg-background overflow-hidden">
       {/* Header */}
-      <div className="px-4 md:px-6 py-3 border-b border-border/30 flex-shrink-0">
+      <div className="px-4 md:px-6 py-4 border-b border-border/30 flex-shrink-0">
         <div className="flex items-start gap-3">
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 mt-0.5"
+            className="h-9 w-9 mt-0.5 hover:bg-muted/50"
             onClick={onBack}
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-5 w-5" />
           </Button>
           
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <Trophy className="h-5 w-5 text-primary flex-shrink-0" />
-              <h1 className="text-lg md:text-xl font-bold truncate">{ranking.name}</h1>
+              <h1 className="text-xl md:text-2xl font-bold tracking-tight">{ranking.name}</h1>
               {getStatusBadge()}
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-sm text-muted-foreground mt-1">
               {format(startDate, "dd MMM", { locale: ptBR })} - {format(endDate, "dd MMM yyyy", { locale: ptBR })}
             </p>
             
-            {/* Action buttons */}
+            {/* Action buttons - styled like reference */}
             {isCreator && (
-              <div className="flex items-center gap-2 mt-2">
+              <div className="flex items-center gap-2 mt-3">
                 {onEdit && (
-                  <Button variant="outline" size="sm" className="h-8 gap-1.5" onClick={onEdit}>
-                    <Pencil className="h-3.5 w-3.5" />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-9 gap-2 border-border/50 hover:bg-muted/50" 
+                    onClick={onEdit}
+                  >
+                    <Pencil className="h-4 w-4" />
                     Editar
                   </Button>
                 )}
@@ -266,10 +271,10 @@ export function RankingDetail({ ranking, onBack, onEdit, onDelete, onRefetch }: 
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 gap-1.5 text-destructive hover:text-destructive"
+                    className="h-9 gap-2 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
                     onClick={onDelete}
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <Trash2 className="h-4 w-4" />
                     Excluir
                   </Button>
                 )}
@@ -281,66 +286,70 @@ export function RankingDetail({ ranking, onBack, onEdit, onDelete, onRefetch }: 
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 md:p-6">
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid gap-6 lg:grid-cols-3">
           {/* Main content - Goals */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-6">
             {/* Date Navigator */}
-            {isActive && (
-              <div className="cave-card p-4">
-                <div className="flex items-center justify-between">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={goToPreviousDay}
-                    disabled={!canNavigateBack}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  
-                  <div className="text-center">
-                    <p className="text-xs text-muted-foreground">
-                      {format(selectedDate, "EEEE", { locale: ptBR })}
-                    </p>
-                    <p className="font-semibold">
-                      {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
-                    </p>
-                  </div>
-                  
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={goToNextDay}
-                    disabled={!canNavigateForward}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
+            <div className="cave-card p-5 rounded-xl">
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 hover:bg-muted/50"
+                  onClick={goToPreviousDay}
+                  disabled={!canNavigateBack}
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    {format(selectedDate, "EEEE", { locale: ptBR })}
+                  </p>
+                  <p className="text-lg font-semibold mt-0.5">
+                    {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
+                  </p>
                 </div>
+                
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 hover:bg-muted/50"
+                  onClick={goToNextDay}
+                  disabled={!canNavigateForward}
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
               </div>
-            )}
+            </div>
 
             {/* Goals Section */}
-            <div className="cave-card p-4">
+            <div className="cave-card p-5 rounded-xl">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Target className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-semibold text-sm">Metas do Dia</span>
+                  <Target className="h-5 w-5 text-muted-foreground" />
+                  <span className="font-semibold">Metas do Dia</span>
                 </div>
-                {isActive && (
-                  <div className="text-right">
-                    <span className="text-xl font-bold text-primary">{earnedToday.toFixed(1)}</span>
-                    <span className="text-xs text-muted-foreground ml-1">de {dailyTotalPoints} pontos</span>
-                  </div>
-                )}
+                <div className="text-right">
+                  <span className="text-2xl font-bold text-primary">{earnedToday.toFixed(1)}</span>
+                  <span className="text-sm text-muted-foreground ml-1.5">de {dailyTotalPoints} pontos</span>
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              <div className="h-1 bg-muted/30 rounded-full mb-5 overflow-hidden">
+                <div 
+                  className="h-full bg-primary rounded-full transition-all duration-300"
+                  style={{ width: `${(earnedToday / dailyTotalPoints) * 100}%` }}
+                />
               </div>
 
               {loadingLogs ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-7 w-7 animate-spin text-muted-foreground" />
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {ranking.goals.map((goal, index) => {
                     const log = goalLogs.find((l) => l.goal_id === goal.id);
                     const isCompleted = log?.completed || false;
@@ -352,25 +361,25 @@ export function RankingDetail({ ranking, onBack, onEdit, onDelete, onRefetch }: 
                       <div
                         key={goal.id}
                         className={cn(
-                          "flex items-center gap-3 p-3 rounded-lg border transition-colors",
+                          "flex items-center gap-4 p-4 rounded-xl border transition-all duration-200",
                           isCompleted
                             ? "bg-primary/5 border-primary/20"
-                            : "bg-muted/30 border-border/30",
-                          canToggle && "cursor-pointer hover:bg-muted/50"
+                            : "bg-muted/20 border-border/30 hover:border-border/50",
+                          canToggle && "cursor-pointer"
                         )}
                         onClick={() => canToggle && handleToggleGoal(goal.id)}
                       >
-                        <div className="flex items-center justify-center h-8 w-8 rounded-full bg-muted/50 text-sm font-medium text-muted-foreground">
+                        <div className="flex items-center justify-center h-10 w-10 rounded-full bg-muted/50 text-base font-semibold text-muted-foreground">
                           {index + 1}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className={cn(
-                            "font-medium text-sm",
+                            "font-medium",
                             isCompleted && "text-foreground"
                           )}>
                             {goal.title}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-muted-foreground mt-0.5">
                             {pointsPerGoal} pts
                           </p>
                         </div>
@@ -378,7 +387,8 @@ export function RankingDetail({ ranking, onBack, onEdit, onDelete, onRefetch }: 
                           checked={isCompleted}
                           disabled={!canToggle}
                           className={cn(
-                            "h-5 w-5",
+                            "h-6 w-6 rounded-md border-2",
+                            isCompleted && "bg-primary border-primary",
                             isProcessing && "opacity-50"
                           )}
                         />
@@ -390,9 +400,9 @@ export function RankingDetail({ ranking, onBack, onEdit, onDelete, onRefetch }: 
 
               {/* Not started message */}
               {isPending && (
-                <div className="text-center py-8">
-                  <Target className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">
+                <div className="text-center py-10 mt-4">
+                  <Target className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-muted-foreground">
                     O ranking ainda não foi iniciado.
                   </p>
                 </div>
@@ -400,9 +410,9 @@ export function RankingDetail({ ranking, onBack, onEdit, onDelete, onRefetch }: 
 
               {/* Ended message */}
               {isEnded && (
-                <div className="text-center py-8">
-                  <Trophy className="h-10 w-10 text-warning/50 mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">
+                <div className="text-center py-10 mt-4">
+                  <Trophy className="h-12 w-12 text-warning/50 mx-auto mb-3" />
+                  <p className="text-muted-foreground">
                     O ranking foi finalizado.
                   </p>
                 </div>
@@ -411,27 +421,27 @@ export function RankingDetail({ ranking, onBack, onEdit, onDelete, onRefetch }: 
           </div>
 
           {/* Sidebar - Ranking & Participants */}
-          <div className="space-y-4">
+          <div className="space-y-6">
             {/* Classification */}
-            <div className="cave-card p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Crown className="h-4 w-4 text-warning" />
-                <span className="font-semibold text-sm">Classificação</span>
+            <div className="cave-card p-5 rounded-xl">
+              <div className="flex items-center gap-2 mb-4">
+                <Crown className="h-5 w-5 text-warning" />
+                <span className="font-semibold">Classificação</span>
               </div>
 
               {currentUserParticipant && (
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border/30">
-                  <div className="flex items-center justify-center h-8 w-8 rounded-full bg-warning/20">
-                    <Crown className="h-4 w-4 text-warning" />
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/20 border border-border/30">
+                  <div className="flex items-center justify-center h-10 w-10 rounded-full bg-warning/20">
+                    <Crown className="h-5 w-5 text-warning" />
                   </div>
-                  <Avatar className="h-10 w-10">
+                  <Avatar className="h-11 w-11 border-2 border-primary/30">
                     <AvatarImage src={currentUserParticipant.profile?.avatar_url || undefined} />
-                    <AvatarFallback>
+                    <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                       {currentUserParticipant.profile?.first_name?.[0] || "?"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm">
+                    <p className="font-medium">
                       {currentUserParticipant.profile?.first_name || "Você"}{" "}
                       <span className="text-muted-foreground text-xs">(você)</span>
                     </p>
@@ -440,31 +450,31 @@ export function RankingDetail({ ranking, onBack, onEdit, onDelete, onRefetch }: 
                     </p>
                   </div>
                   <div className="text-right">
-                    <span className="text-lg font-bold text-primary">
+                    <span className="text-xl font-bold text-primary">
                       {currentUserParticipant.total_points.toFixed(1)}
                     </span>
-                    <p className="text-[10px] text-muted-foreground">pontos</p>
+                    <p className="text-[11px] text-muted-foreground">pontos</p>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Participants */}
-            <div className="cave-card p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="font-semibold text-sm">Participantes</span>
+            <div className="cave-card p-5 rounded-xl">
+              <div className="flex items-center gap-2 mb-4">
+                <Users className="h-5 w-5 text-muted-foreground" />
+                <span className="font-semibold">Participantes</span>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {ranking.participants.map((participant) => (
                   <div
                     key={participant.id}
                     className="flex items-center gap-3 py-2"
                   >
-                    <Avatar className="h-8 w-8">
+                    <Avatar className="h-9 w-9">
                       <AvatarImage src={participant.profile?.avatar_url || undefined} />
-                      <AvatarFallback className="text-xs">
+                      <AvatarFallback className="text-sm bg-muted">
                         {participant.profile?.first_name?.[0] || "?"}
                       </AvatarFallback>
                     </Avatar>
