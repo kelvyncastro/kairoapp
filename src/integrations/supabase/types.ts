@@ -1421,7 +1421,30 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_user_profiles: {
+        Row: {
+          avatar_url: string | null
+          first_name: string | null
+          id: string | null
+          public_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          first_name?: string | null
+          id?: string | null
+          public_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          first_name?: string | null
+          id?: string | null
+          public_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       create_default_finance_sectors: {
