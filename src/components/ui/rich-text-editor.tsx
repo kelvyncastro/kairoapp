@@ -52,14 +52,14 @@ const TEXT_COLORS = [
 
 const HIGHLIGHT_COLORS = [
   { name: 'Sem destaque', color: '' },
-  { name: 'Amarelo', color: '#fef08a' },
-  { name: 'Verde', color: '#bbf7d0' },
-  { name: 'Azul', color: '#bfdbfe' },
-  { name: 'Roxo', color: '#e9d5ff' },
-  { name: 'Rosa', color: '#fbcfe8' },
-  { name: 'Laranja', color: '#fed7aa' },
-  { name: 'Vermelho', color: '#fecaca' },
-  { name: 'Cinza', color: '#e5e7eb' },
+  { name: 'Amarelo', color: '#fef9c3' },
+  { name: 'Verde', color: '#dcfce7' },
+  { name: 'Azul', color: '#dbeafe' },
+  { name: 'Roxo', color: '#f3e8ff' },
+  { name: 'Rosa', color: '#fce7f3' },
+  { name: 'Laranja', color: '#ffedd5' },
+  { name: 'Vermelho', color: '#fee2e2' },
+  { name: 'Cinza', color: '#f3f4f6' },
 ];
 
 export function RichTextEditor({
