@@ -103,30 +103,36 @@ export default function RankingPage() {
         );
       }
 
-      // Invite participants by public_id
+      // Invite participants by public_id using secure RPC function
       const validInvites = newRanking.invites.filter((i) => i.trim());
-      for (const publicId of validInvites) {
-        const { data: profile } = await supabase
-          .from("user_profiles")
-          .select("user_id")
-          .eq("public_id", publicId.toUpperCase())
-          .single();
+      if (validInvites.length > 0) {
+        // Fetch all public profiles using secure function
+        const { data: allPublicProfiles } = await supabase
+          .rpc("get_public_user_profiles");
 
-        if (profile && profile.user_id !== user.id) {
-          await supabase.from("ranking_participants").insert({
-            ranking_id: rankingData.id,
-            user_id: profile.user_id,
-            status: "pending",
-          });
+        for (const publicId of validInvites) {
+          // Find matching profile from secure data
+          const profile = (allPublicProfiles || []).find(
+            (p: { public_id: string | null }) => 
+              p.public_id?.toUpperCase() === publicId.toUpperCase()
+          );
 
-          // Send notification
-          await supabase.from("notifications").insert({
-            user_id: profile.user_id,
-            type: "ranking_invite",
-            title: "Convite para Ranking",
-            message: `Você foi convidado para participar do ranking "${newRanking.name}"`,
-            data: { ranking_id: rankingData.id },
-          });
+          if (profile && profile.user_id !== user.id) {
+            await supabase.from("ranking_participants").insert({
+              ranking_id: rankingData.id,
+              user_id: profile.user_id,
+              status: "pending",
+            });
+
+            // Send notification
+            await supabase.from("notifications").insert({
+              user_id: profile.user_id,
+              type: "ranking_invite",
+              title: "Convite para Ranking",
+              message: `Você foi convidado para participar do ranking "${newRanking.name}"`,
+              data: { ranking_id: rankingData.id },
+            });
+          }
         }
       }
 
