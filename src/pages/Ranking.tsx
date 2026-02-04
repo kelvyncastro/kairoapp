@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
-import { Trophy, Users, Clock, CheckCircle, Copy, Check, Inbox } from "lucide-react";
+import { useState } from "react";
+import { Trophy, Users, Clock, CheckCircle, Plus, Copy, Check } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RankingsProvider, useRankingsStore } from "@/contexts/RankingsContext";
+import { useRankings } from "@/hooks/useRankings";
 import { useUserProfile } from "@/contexts/UserProfileContext";
 import { useNotifications } from "@/hooks/useNotifications";
 import { RankingCard } from "@/components/ranking/RankingCard";
@@ -14,8 +14,8 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
-function RankingInner() {
-  const { rankings, loading, respondToInvite, fetchRankings, checkAndFinalizeExpiredRankings } = useRankingsStore();
+export default function Ranking() {
+  const { rankings, loading, respondToInvite } = useRankings();
   const { profile } = useUserProfile();
   const { notifications, markAsRead } = useNotifications();
   const { toast } = useToast();
@@ -23,18 +23,6 @@ function RankingInner() {
   const [selectedRanking, setSelectedRanking] = useState<RankingWithDetails | null>(null);
   const [activeTab, setActiveTab] = useState("active");
   const [copied, setCopied] = useState(false);
-
-  // Check for expired rankings on mount and periodically
-  useEffect(() => {
-    checkAndFinalizeExpiredRankings();
-    
-    // Also check every minute
-    const interval = setInterval(() => {
-      checkAndFinalizeExpiredRankings();
-    }, 60000);
-
-    return () => clearInterval(interval);
-  }, [checkAndFinalizeExpiredRankings]);
 
   const activeRankings = rankings.filter(r => r.status === 'active');
   const pendingRankings = rankings.filter(r => r.status === 'pending');
@@ -57,34 +45,12 @@ function RankingInner() {
     }
   };
 
-  // Handle notification click - redirect to Aguardando tab
-  const handleNotificationClick = useCallback((notification: Notification) => {
-    markAsRead(notification.id);
-    
-    // Change to pending tab
-    setActiveTab("pending");
-    
-    // If there's a ranking_id, try to find and highlight it
-    if (notification.data?.ranking_id) {
-      const targetRanking = pendingRankings.find(
-        r => r.id === notification.data?.ranking_id
-      );
-      if (targetRanking) {
-        setSelectedRanking(targetRanking);
-      }
-    }
-  }, [markAsRead, pendingRankings]);
-
   if (selectedRanking) {
     return (
       <div className="h-full overflow-y-auto">
         <RankingDetail 
           ranking={selectedRanking} 
-          onBack={() => {
-            setSelectedRanking(null);
-            // Refetch to ensure we have latest data
-            fetchRankings();
-          }} 
+          onBack={() => setSelectedRanking(null)} 
         />
       </div>
     );
@@ -103,7 +69,7 @@ function RankingInner() {
             Compita com seus amigos e alcance suas metas juntos
           </p>
         </div>
-        <CreateRankingDialog onSuccess={() => fetchRankings()} />
+        <CreateRankingDialog />
       </div>
 
       {/* User ID Card */}
@@ -148,7 +114,7 @@ function RankingInner() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => handleNotificationClick(notification)}
+                  onClick={() => markAsRead(notification.id)}
                 >
                   Ver
                 </Button>
@@ -238,10 +204,10 @@ function RankingInner() {
             </AnimatePresence>
           </div>
           {activeRankings.length === 0 && (
-            <EmptyStateSimple 
+            <EmptyState 
               icon={<Trophy className="h-12 w-12 text-muted-foreground/50" />}
               title="Nenhum ranking ativo"
-              description="Crie um novo ranking na aba 'Aguardando' ou aguarde convites de amigos"
+              description="Crie um novo ranking ou aguarde convites de amigos"
             />
           )}
         </TabsContent>
@@ -263,7 +229,6 @@ function RankingInner() {
               icon={<Clock className="h-12 w-12 text-muted-foreground/50" />}
               title="Nenhum ranking aguardando"
               description="Rankings criados aparecem aqui até todos aceitarem"
-              onSuccess={() => fetchRankings()}
             />
           )}
         </TabsContent>
@@ -281,7 +246,7 @@ function RankingInner() {
             </AnimatePresence>
           </div>
           {completedRankings.length === 0 && (
-            <EmptyStateSimple 
+            <EmptyState 
               icon={<CheckCircle className="h-12 w-12 text-muted-foreground/50" />}
               title="Nenhum ranking finalizado"
               description="Rankings concluídos aparecem aqui"
@@ -293,26 +258,16 @@ function RankingInner() {
   );
 }
 
-export default function Ranking() {
-  return (
-    <RankingsProvider>
-      <RankingInner />
-    </RankingsProvider>
-  );
-}
-
-// Empty state WITH create button (only for Aguardando tab)
-function EmptyState({ icon, title, description, onSuccess }: { icon: React.ReactNode; title: string; description: string; onSuccess?: () => void }) {
+function EmptyState({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
       {icon}
       <h3 className="mt-4 text-lg font-semibold">{title}</h3>
       <p className="mt-1 text-sm text-muted-foreground max-w-sm">{description}</p>
       <CreateRankingDialog 
-        onSuccess={onSuccess}
         trigger={
           <Button className="mt-4 gap-2">
-            <Trophy className="h-4 w-4" />
+            <Plus className="h-4 w-4" />
             Criar Ranking
           </Button>
         }
@@ -320,15 +275,3 @@ function EmptyState({ icon, title, description, onSuccess }: { icon: React.React
     </div>
   );
 }
-
-// Empty state WITHOUT create button (for Ativos and Finalizados tabs)
-function EmptyStateSimple({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      {icon}
-      <h3 className="mt-4 text-lg font-semibold">{title}</h3>
-      <p className="mt-1 text-sm text-muted-foreground max-w-sm">{description}</p>
-    </div>
-  );
-}
-

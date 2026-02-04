@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { RankingWithDetails } from "@/types/ranking";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRankingsStore } from "@/contexts/RankingsContext";
+import { useRankings } from "@/hooks/useRankings";
 import { format, differenceInDays, isAfter, isBefore, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -20,7 +20,7 @@ interface RankingCardProps {
 
 export function RankingCard({ ranking, onSelect }: RankingCardProps) {
   const { user } = useAuth();
-  const { respondToInvite, startRanking } = useRankingsStore();
+  const { respondToInvite, startRanking } = useRankings();
   const [respondingInvite, setRespondingInvite] = useState(false);
 
   const isCreator = ranking.creator_id === user?.id;
@@ -95,7 +95,14 @@ export function RankingCard({ ranking, onSelect }: RankingCardProps) {
                 )}
               </div>
               <div>
-                <CardTitle className="text-lg">{ranking.name}</CardTitle>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-lg">{ranking.name}</CardTitle>
+                  {(ranking.bet_description || ranking.bet_amount) && (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-yellow-500/40 text-yellow-500 bg-yellow-500/10">
+                      💰 Aposta
+                    </Badge>
+                  )}
+                </div>
                 {ranking.creator_profile && (
                   <p className="text-xs text-muted-foreground">
                     por {ranking.creator_profile.first_name || 'Usuário'}
@@ -103,14 +110,7 @@ export function RankingCard({ ranking, onSelect }: RankingCardProps) {
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              {(ranking.bet_description || ranking.bet_amount) && (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-yellow-500/40 text-yellow-500 bg-yellow-500/10">
-                  💰<span className="hidden sm:inline"> Aposta</span>
-                </Badge>
-              )}
-              {getStatusBadge()}
-            </div>
+            {getStatusBadge()}
           </div>
         </CardHeader>
         
@@ -191,12 +191,12 @@ export function RankingCard({ ranking, onSelect }: RankingCardProps) {
           {/* Bet Info */}
           {(ranking.bet_description || ranking.bet_amount) && (
             <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
-              <div className="flex items-start gap-2 text-yellow-500 text-xs font-medium mb-1">
-                <Coins className="h-3 w-3 shrink-0 mt-0.5" />
-                <span className="break-all">{ranking.bet_amount ? `💰 Aposta: ${ranking.bet_amount}` : '💰 Com Aposta'}</span>
+              <div className="flex items-center gap-2 text-yellow-500 text-xs font-medium mb-1">
+                <Coins className="h-3 w-3" />
+                {ranking.bet_amount ? `Aposta: ${ranking.bet_amount}` : 'Com Aposta'}
               </div>
               {ranking.bet_description && (
-                <p className="text-xs text-muted-foreground break-all">{ranking.bet_description}</p>
+                <p className="text-xs text-muted-foreground line-clamp-2">{ranking.bet_description}</p>
               )}
             </div>
           )}

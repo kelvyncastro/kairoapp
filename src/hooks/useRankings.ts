@@ -211,7 +211,6 @@ export function useRankings() {
       bet_description?: string;
       bet_amount?: string;
       goals: { title: string; description?: string }[];
-      newInvitees?: string[]; // New participants to invite
     }
   ) => {
     if (!user) return null;
@@ -256,55 +255,9 @@ export function useRankings() {
         if (goalsError) throw goalsError;
       }
 
-      // Invite new participants if any
-      if (data.newInvitees && data.newInvitees.length > 0) {
-        for (const invitee of data.newInvitees) {
-          // Find user by public_id
-          const { data: profileByPublicId } = await supabase
-            .from('user_profiles')
-            .select('user_id')
-            .eq('public_id', invitee.toUpperCase())
-            .single();
-
-          if (profileByPublicId && profileByPublicId.user_id !== user.id) {
-            // Check if participant already exists
-            const { data: existingParticipant } = await supabase
-              .from('ranking_participants')
-              .select('id')
-              .eq('ranking_id', rankingId)
-              .eq('user_id', profileByPublicId.user_id)
-              .single();
-
-            if (!existingParticipant) {
-              // Add participant
-              await supabase
-                .from('ranking_participants')
-                .insert({
-                  ranking_id: rankingId,
-                  user_id: profileByPublicId.user_id,
-                  status: 'pending'
-                });
-
-              // Create notification
-              await supabase
-                .from('notifications')
-                .insert({
-                  user_id: profileByPublicId.user_id,
-                  type: 'ranking_invite',
-                  title: 'Convite para Ranking',
-                  message: `Você foi convidado para participar do ranking "${data.name}"`,
-                  data: { ranking_id: rankingId }
-                });
-            }
-          }
-        }
-      }
-
       toast({
         title: "Ranking atualizado!",
-        description: data.newInvitees && data.newInvitees.length > 0 
-          ? "Alterações salvas e convites enviados."
-          : "As alterações foram salvas com sucesso."
+        description: "As alterações foram salvas com sucesso."
       });
 
       await fetchRankings();
@@ -357,30 +310,14 @@ export function useRankings() {
   ) => {
     if (!user) return;
 
-    // Get ranking to calculate points
-    const ranking = rankings.find(r => r.id === rankingId);
-    if (!ranking) return;
-
-    // Prevent changes if ranking is completed
-    if (ranking.status === 'completed') {
-      toast({
-        title: "Ranking finalizado",
-        description: "Não é possível alterar metas de um ranking finalizado.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const totalGoals = ranking.goals.length;
-    const pointsPerGoal = totalGoals > 0 ? 10 / totalGoals : 0;
-
-    // OPTIMISTIC UPDATE: Update UI immediately before database operation
-    const previousRankings = [...rankings];
-    
-    // We don't have goal logs in the state, but we trigger a visual update by forcing re-render
-    // The actual UI component should handle optimistic state locally
-
     try {
+      // Get ranking to calculate points
+      const ranking = rankings.find(r => r.id === rankingId);
+      if (!ranking) return;
+
+      const totalGoals = ranking.goals.length;
+      const pointsPerGoal = totalGoals > 0 ? 10 / totalGoals : 0;
+
       // Check if log exists
       const { data: existingLog } = await supabase
         .from('ranking_goal_logs')
@@ -392,7 +329,7 @@ export function useRankings() {
 
       if (existingLog) {
         // Update existing log
-        const { error: updateError } = await supabase
+        await supabase
           .from('ranking_goal_logs')
           .update({
             completed,
@@ -400,11 +337,9 @@ export function useRankings() {
             updated_at: new Date().toISOString()
           })
           .eq('id', existingLog.id);
-
-        if (updateError) throw updateError;
       } else {
         // Create new log
-        const { error: insertError } = await supabase
+        await supabase
           .from('ranking_goal_logs')
           .insert({
             ranking_id: rankingId,
@@ -414,8 +349,6 @@ export function useRankings() {
             completed,
             points_earned: completed ? pointsPerGoal : 0
           });
-
-        if (insertError) throw insertError;
       }
 
       // Update total points for participant
@@ -433,17 +366,9 @@ export function useRankings() {
         .eq('ranking_id', rankingId)
         .eq('user_id', user.id);
 
-      // Background refetch (non-blocking)
-      fetchRankings();
+      await fetchRankings();
     } catch (error) {
       console.error('Error toggling goal:', error);
-      // Revert on error
-      setRankings(previousRankings);
-      toast({
-        title: "Erro ao atualizar meta",
-        description: "Ocorreu um erro ao marcar/desmarcar a meta.",
-        variant: "destructive"
-      });
     }
   };
 
@@ -662,43 +587,6 @@ export function useRankings() {
     }
   };
 
-  // Check and finalize expired rankings
-  const checkAndFinalizeExpiredRankings = useCallback(async () => {
-    if (!user) return;
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // Find active rankings that have passed their end_date
-    const expiredRankings = rankings.filter(r => {
-      if (r.status !== 'active') return false;
-      const endDate = new Date(r.end_date);
-      endDate.setHours(23, 59, 59, 999);
-      return today > endDate;
-    });
-
-    if (expiredRankings.length === 0) return;
-
-    // Update each expired ranking to completed
-    for (const ranking of expiredRankings) {
-      try {
-        const { error } = await supabase
-          .from('rankings')
-          .update({ status: 'completed' })
-          .eq('id', ranking.id);
-
-        if (error) {
-          console.error('Error finalizing ranking:', error);
-        }
-      } catch (error) {
-        console.error('Error finalizing ranking:', error);
-      }
-    }
-
-    // Refetch to update UI
-    await fetchRankings();
-  }, [user, rankings, fetchRankings]);
-
   return {
     rankings,
     loading,
@@ -712,7 +600,6 @@ export function useRankings() {
     deleteRanking,
     requestDeletion,
     consentToDeletion,
-    cancelDeletionRequest,
-    checkAndFinalizeExpiredRankings
+    cancelDeletionRequest
   };
 }

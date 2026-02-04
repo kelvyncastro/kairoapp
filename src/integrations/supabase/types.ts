@@ -1156,7 +1156,6 @@ export type Database = {
           last_name: string | null
           onboarding_completed: boolean
           public_id: string | null
-          subscription_status: string
           updated_at: string
           user_id: string
         }
@@ -1170,7 +1169,6 @@ export type Database = {
           last_name?: string | null
           onboarding_completed?: boolean
           public_id?: string | null
-          subscription_status?: string
           updated_at?: string
           user_id: string
         }
@@ -1184,7 +1182,6 @@ export type Database = {
           last_name?: string | null
           onboarding_completed?: boolean
           public_id?: string | null
-          subscription_status?: string
           updated_at?: string
           user_id?: string
         }

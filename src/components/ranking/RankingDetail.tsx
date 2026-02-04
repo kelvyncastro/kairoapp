@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
   Trophy, Calendar, Target, Users, Coins, ArrowLeft, 
   Check, ChevronLeft, ChevronRight, Crown, Medal, Pencil, Sparkles, Trash2
@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { RankingWithDetails, RankingGoalLog } from "@/types/ranking";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRankingsStore } from "@/contexts/RankingsContext";
+import { useRankings } from "@/hooks/useRankings";
 import { CreateRankingDialog } from "./CreateRankingDialog";
 import { RankingWinnerCelebration } from "./RankingWinnerCelebration";
 import { format, addDays, subDays, isWithinInterval, parseISO, isSameDay } from "date-fns";
@@ -46,7 +46,7 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
     requestDeletion,
     consentToDeletion,
     cancelDeletionRequest
-  } = useRankingsStore();
+  } = useRankings();
   
   // Get the latest ranking data from the hook
   const ranking = rankings.find(r => r.id === initialRanking.id) || initialRanking;
@@ -57,7 +57,6 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
   const [deleting, setDeleting] = useState(false);
   const [requestingDeletion, setRequestingDeletion] = useState(false);
   const [showWinnerCelebration, setShowWinnerCelebration] = useState(false);
-  const processingGoalsRef = useRef<Set<string>>(new Set());
   const celebrationShownRef = useRef(false);
 
   const startDate = parseISO(ranking.start_date);
@@ -104,69 +103,23 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
       setLoading(false);
     };
     loadGoalLogs();
-  }, [selectedDate, ranking.id, getGoalLogs]);
+  }, [selectedDate, ranking.id]);
 
-  const handleToggleGoal = useCallback(async (goalId: string, completed: boolean) => {
-    if (!canEditGoals || !user) return;
+  const handleToggleGoal = async (goalId: string, completed: boolean) => {
+    if (!canEditGoals) return;
     
-    // Prevent double-clicks: if this goal is already being processed, ignore
-    if (processingGoalsRef.current.has(goalId)) {
-      return;
-    }
+    await toggleGoalCompletion(
+      ranking.id,
+      goalId,
+      format(selectedDate, 'yyyy-MM-dd'),
+      completed
+    );
     
-    // Mark this goal as being processed
-    processingGoalsRef.current.add(goalId);
-    
-    const dateStr = format(selectedDate, 'yyyy-MM-dd');
-    const totalGoals = ranking.goals.length;
-    const pointsPerGoal = totalGoals > 0 ? 10 / totalGoals : 0;
-    
-    // OPTIMISTIC UPDATE: Update UI immediately
-    setGoalLogs(prev => {
-      const existingIndex = prev.findIndex(log => log.goal_id === goalId);
-      if (existingIndex >= 0) {
-        // Update existing log
-        const updated = [...prev];
-        updated[existingIndex] = {
-          ...updated[existingIndex],
-          completed,
-          points_earned: completed ? pointsPerGoal : 0
-        };
-        return updated;
-      } else {
-        // Add new log optimistically
-        return [...prev, {
-          id: `temp-${goalId}-${dateStr}`,
-          ranking_id: ranking.id,
-          goal_id: goalId,
-          user_id: user.id,
-          date: dateStr,
-          completed,
-          points_earned: completed ? pointsPerGoal : 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }];
-      }
-    });
-    
-    // Execute in background (non-blocking)
-    try {
-      await toggleGoalCompletion(
-        ranking.id,
-        goalId,
-        dateStr,
-        completed
-      );
-      // Refresh goal logs in background to sync with server
-      const logs = await getGoalLogs(ranking.id, dateStr);
-      setGoalLogs(logs);
-    } finally {
-      // Remove from processing set after a small delay to prevent rapid re-clicks
-      setTimeout(() => {
-        processingGoalsRef.current.delete(goalId);
-      }, 300);
-    }
-  }, [canEditGoals, user, selectedDate, ranking.id, ranking.goals.length, toggleGoalCompletion, getGoalLogs]);
+    // Refresh goal logs
+    const logs = await getGoalLogs(ranking.id, format(selectedDate, 'yyyy-MM-dd'));
+    setGoalLogs(logs);
+    await fetchRankings();
+  };
 
   const isGoalCompleted = (goalId: string) => {
     return goalLogs.some(log => log.goal_id === goalId && log.completed);
@@ -220,60 +173,40 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
 
       <div className="space-y-6">
       {/* Header */}
-      <div className="space-y-4">
-        {/* Top row - Back button, title, and status */}
-        <div className="flex items-start gap-3">
-          <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0 mt-0.5">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2 break-words">
-                <Trophy className="h-5 w-5 md:h-6 md:w-6 text-primary shrink-0" />
-                <span className="break-words">{ranking.name}</span>
-              </h1>
-              <Badge className={cn(
-                "shrink-0",
-                ranking.status === 'active' && "bg-green-500/20 text-green-500",
-                ranking.status === 'pending' && "bg-yellow-500/20 text-yellow-500",
-                ranking.status === 'completed' && "bg-muted text-muted-foreground"
-              )}>
-                {ranking.status === 'active' && 'Ativo'}
-                {ranking.status === 'pending' && 'Aguardando'}
-                {ranking.status === 'completed' && 'Finalizado'}
-              </Badge>
-            </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              {format(startDate, "dd MMM", { locale: ptBR })} - {format(endDate, "dd MMM yyyy", { locale: ptBR })}
-            </p>
-          </div>
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={onBack}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Trophy className="h-6 w-6 text-primary" />
+            {ranking.name}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {format(startDate, "dd MMM", { locale: ptBR })} - {format(endDate, "dd MMM yyyy", { locale: ptBR })}
+          </p>
         </div>
-
-        {/* Action buttons row - wraps on mobile */}
-        <div className="flex flex-wrap items-center gap-2 pl-11 md:pl-12">
+        <div className="flex items-center gap-2">
           {canEdit && (
             <CreateRankingDialog
               editMode
               rankingToEdit={ranking}
-              onSuccess={async () => {
-                await fetchRankings();
-              }}
+              onSuccess={() => fetchRankings()}
               trigger={
                 <Button variant="outline" size="sm" className="gap-2">
                   <Pencil className="h-4 w-4" />
-                  <span className="hidden sm:inline">Editar</span>
+                  Editar
                 </Button>
               }
             />
           )}
-          
           {/* Direct delete for pending/completed rankings */}
           {canDeleteDirectly && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive">
                   <Trash2 className="h-4 w-4" />
-                  <span className="hidden sm:inline">Excluir</span>
+                  Excluir
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -304,7 +237,7 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
               <AlertDialogTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive">
                   <Trash2 className="h-4 w-4" />
-                  <span className="hidden sm:inline">Solicitar Exclusão</span>
+                  Solicitar Exclusão
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -331,13 +264,13 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
 
           {/* Show deletion request status for creator */}
           {isCreator && ranking.deletion_requested && (
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2">
               {allConsented ? (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" size="sm" className="gap-2">
                       <Trash2 className="h-4 w-4" />
-                      <span className="hidden sm:inline">Confirmar Exclusão</span>
+                      Confirmar Exclusão
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
@@ -361,16 +294,16 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
                 </AlertDialog>
               ) : (
                 <>
-                  <Badge variant="outline" className="text-yellow-500 border-yellow-500 text-xs">
-                    Aguardando ({consentCount}/{acceptedParticipants.length})
+                  <Badge variant="outline" className="text-yellow-500 border-yellow-500">
+                    Aguardando consentimento ({consentCount}/{acceptedParticipants.length})
                   </Badge>
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     onClick={handleCancelDeletionRequest}
-                    className="text-muted-foreground text-xs"
+                    className="text-muted-foreground"
                   >
-                    Cancelar
+                    Cancelar solicitação
                   </Button>
                 </>
               )}
@@ -379,8 +312,8 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
 
           {/* Show consent buttons for non-creator participants */}
           {!isCreator && ranking.deletion_requested && !userHasConsented && (
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="text-yellow-500 border-yellow-500 text-xs">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-yellow-500 border-yellow-500">
                 Exclusão solicitada
               </Badge>
               <Button 
@@ -403,23 +336,20 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
 
           {/* Show consent status for non-creator who already consented */}
           {!isCreator && ranking.deletion_requested && userHasConsented && (
-            <Badge variant="outline" className="text-muted-foreground text-xs">
+            <Badge variant="outline" className="text-muted-foreground">
               Você concordou com a exclusão
             </Badge>
           )}
 
-          {/* Button to replay winner celebration */}
-          {ranking.status === 'completed' && winner && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="gap-2 border-yellow-500/30 text-yellow-500 hover:bg-yellow-500/10"
-              onClick={() => setShowWinnerCelebration(true)}
-            >
-              <Trophy className="h-4 w-4" />
-              <span className="hidden sm:inline">Ver Celebração</span>
-            </Button>
-          )}
+          <Badge className={cn(
+            ranking.status === 'active' && "bg-green-500/20 text-green-500",
+            ranking.status === 'pending' && "bg-yellow-500/20 text-yellow-500",
+            ranking.status === 'completed' && "bg-muted text-muted-foreground"
+          )}>
+            {ranking.status === 'active' && 'Ativo'}
+            {ranking.status === 'pending' && 'Aguardando'}
+            {ranking.status === 'completed' && 'Finalizado'}
+          </Badge>
         </div>
       </div>
 
@@ -575,15 +505,13 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
           {ranking.bet_description && (
             <Card className="border-yellow-500/30 bg-yellow-500/5">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base text-yellow-500">
-                  <div className="flex items-start gap-2">
-                    <Coins className="h-4 w-4 shrink-0 mt-0.5" />
-                    <span className="break-all">💰 Aposta: {ranking.bet_amount}</span>
-                  </div>
+                <CardTitle className="text-base flex items-center gap-2 text-yellow-500">
+                  <Coins className="h-4 w-4" />
+                  Aposta: {ranking.bet_amount}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground break-all">{ranking.bet_description}</p>
+                <p className="text-sm text-muted-foreground">{ranking.bet_description}</p>
               </CardContent>
             </Card>
           )}
