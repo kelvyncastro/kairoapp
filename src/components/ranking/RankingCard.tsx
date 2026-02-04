@@ -95,14 +95,7 @@ export function RankingCard({ ranking, onSelect }: RankingCardProps) {
                 )}
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <CardTitle className="text-lg">{ranking.name}</CardTitle>
-                  {(ranking.bet_description || ranking.bet_amount) && (
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-yellow-500/40 text-yellow-500 bg-yellow-500/10">
-                      💰<span className="hidden sm:inline"> Aposta</span>
-                    </Badge>
-                  )}
-                </div>
+                <CardTitle className="text-lg">{ranking.name}</CardTitle>
                 {ranking.creator_profile && (
                   <p className="text-xs text-muted-foreground">
                     por {ranking.creator_profile.first_name || 'Usuário'}
@@ -110,7 +103,14 @@ export function RankingCard({ ranking, onSelect }: RankingCardProps) {
                 )}
               </div>
             </div>
-            {getStatusBadge()}
+            <div className="flex items-center gap-1.5">
+              {(ranking.bet_description || ranking.bet_amount) && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-yellow-500/40 text-yellow-500 bg-yellow-500/10">
+                  💰<span className="hidden sm:inline"> Aposta</span>
+                </Badge>
+              )}
+              {getStatusBadge()}
+            </div>
           </div>
         </CardHeader>
         
