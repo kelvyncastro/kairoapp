@@ -570,11 +570,11 @@ export default function Landing() {
                     </motion.li>
                   ))}
                 </ul>
-                <Link to="/auth" className="block">
+                <a href="https://pay.kirvano.com/cb78dfd0-c8e0-40bb-a16b-951ba74a0a02" target="_blank" rel="noopener noreferrer" className="block">
                   <Button variant="outline" className="w-full h-12 backdrop-blur-sm bg-background/50">
                     Começar Agora
                   </Button>
-                </Link>
+                </a>
               </div>
             </motion.div>
 
@@ -617,14 +617,14 @@ export default function Landing() {
                     </motion.li>
                   ))}
                 </ul>
-                <Link to="/auth" className="block">
+                <a href="https://pay.kirvano.com/44bf7ce3-3b3b-442b-9983-9f612db21135" target="_blank" rel="noopener noreferrer" className="block">
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button className="w-full h-12 bg-foreground text-background hover:bg-foreground/90">
                       Começar Agora
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </motion.div>
-                </Link>
+                </a>
               </div>
             </motion.div>
           </div>
