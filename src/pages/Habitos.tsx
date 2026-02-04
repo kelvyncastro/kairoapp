@@ -64,16 +64,16 @@ export default function Habitos() {
       {/* Content - Scrollable */}
       <div className="flex-1 overflow-y-auto">
         {/* Progress Chart */}
-        <div className="px-4 md:px-6 py-2 md:py-3">
-          <h2 className="text-sm md:text-base font-bold text-foreground uppercase tracking-wider mb-2 md:mb-3">
-            Progresso do Mês
+        <div className="px-4 md:px-6 py-3 md:py-4">
+          <h2 className="text-sm md:text-base font-bold text-foreground tracking-wider mb-3 md:mb-4">
+            Progresso Geral dos Hábitos
           </h2>
           <HabitProgressChart dailyScores={dailyScores} />
         </div>
 
         {/* Habits Grid */}
-        <div className="px-4 md:px-6 py-2 md:py-3 border-t border-border/30">
-          <h2 className="text-sm md:text-base font-bold text-foreground uppercase tracking-wider mb-2 md:mb-3">
+        <div className="px-4 md:px-6 py-3 md:py-4 border-t border-border/30">
+          <h2 className="text-sm md:text-base font-bold text-foreground tracking-wider mb-3 md:mb-4">
             Grade de Hábitos
           </h2>
           <HabitGrid
