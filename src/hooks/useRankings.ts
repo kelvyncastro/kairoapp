@@ -113,15 +113,23 @@ export function useRankings() {
       );
 
       // Single batch fetch for ALL profiles needed (creators + participants)
+      // Using secure RPC function that only exposes safe public fields
       if (uncachedUserIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from("user_profiles")
-          .select("user_id, first_name, last_name, avatar_url, public_id")
-          .in("user_id", uncachedUserIds);
+        const { data: allPublicProfiles } = await supabase
+          .rpc("get_public_user_profiles");
 
-        // Update cache
-        (profiles || []).forEach((p) => {
-          profilesCacheRef.current.set(p.user_id, p as UserProfile);
+        // Filter to only the user IDs we need and update cache
+        const neededProfiles = (allPublicProfiles || [])
+          .filter((p: { user_id: string }) => uncachedUserIds.includes(p.user_id));
+        
+        neededProfiles.forEach((p: { user_id: string; first_name: string | null; avatar_url: string | null; public_id: string | null }) => {
+          profilesCacheRef.current.set(p.user_id, {
+            user_id: p.user_id,
+            first_name: p.first_name,
+            last_name: null, // Not exposed in secure function
+            avatar_url: p.avatar_url,
+            public_id: p.public_id,
+          } as UserProfile);
         });
       }
 
