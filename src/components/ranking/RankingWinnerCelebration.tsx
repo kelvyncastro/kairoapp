@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { RankingParticipant } from "@/types/ranking";
 import { cn } from "@/lib/utils";
+import { playVictoryCelebrationSound } from "@/lib/sounds/victoryCelebration";
 
 interface RankingWinnerCelebrationProps {
   winner: RankingParticipant | null;
@@ -14,44 +15,10 @@ interface RankingWinnerCelebrationProps {
   onClose: () => void;
 }
 
-// Function to play celebration sound
-async function playCelebrationSound() {
-  try {
-    // Start audio generation immediately - don't await
-    const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-sfx`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({ 
-          prompt: "Crowd cheering celebration with party horns, confetti sounds and happy applause, festive victory moment",
-          duration: 4
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      console.error("Failed to generate celebration sound:", response.status);
-      return;
-    }
-
-    const audioBlob = await response.blob();
-    const audioUrl = URL.createObjectURL(audioBlob);
-    const audio = new Audio(audioUrl);
-    audio.volume = 0.7;
-    await audio.play();
-    
-    // Clean up the object URL after playing
-    audio.onended = () => {
-      URL.revokeObjectURL(audioUrl);
-    };
-  } catch (error) {
-    console.error("Error playing celebration sound:", error);
-  }
+// Instant (no-network) victory sound to avoid perceived delay.
+function playCelebrationSoundInstant() {
+  // fire-and-forget
+  void playVictoryCelebrationSound({ volume: 0.8 });
 }
 
 export function RankingWinnerCelebration({ 
@@ -69,7 +36,7 @@ export function RankingWinnerCelebration({
       // Play celebration sound IMMEDIATELY when animation starts (fire and forget)
       if (!soundPlayedRef.current) {
         soundPlayedRef.current = true;
-        playCelebrationSound();
+        playCelebrationSoundInstant();
       }
       
       setIsVisible(true);
