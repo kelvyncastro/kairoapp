@@ -2,7 +2,7 @@ export type CheckSoundOptions = {
   volume?: number; // 0..1
 };
 
-// Subtle, gentle "ping" check sound - soft and minimal.
+// Calm, soothing chime - comfortable and relaxing.
 // Volume set to 15% for unobtrusive feedback.
 // Uses Web Audio API for instant playback.
 export function playCheckSound(options: CheckSoundOptions = {}): void {
@@ -25,23 +25,34 @@ export function playCheckSound(options: CheckSoundOptions = {}): void {
 
     const now = ctx.currentTime;
 
-    // Soft bubble/water drop sound - very gentle
-    const drop = ctx.createOscillator();
-    const dropGain = ctx.createGain();
-    drop.type = "sine";
-    drop.frequency.setValueAtTime(1400, now);
-    drop.frequency.exponentialRampToValueAtTime(600, now + 0.08);
-    dropGain.gain.setValueAtTime(0.4, now);
-    dropGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1);
-    drop.connect(dropGain);
-    dropGain.connect(master);
-    drop.start(now);
-    drop.stop(now + 0.12);
+    // Soft warm bell/chime - low frequency, gentle fade
+    const bell = ctx.createOscillator();
+    const bellGain = ctx.createGain();
+    bell.type = "sine";
+    bell.frequency.setValueAtTime(523, now); // C5 - pleasant middle tone
+    bellGain.gain.setValueAtTime(0.35, now);
+    bellGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+    bell.connect(bellGain);
+    bellGain.connect(master);
+    bell.start(now);
+    bell.stop(now + 0.3);
+
+    // Gentle lower octave for warmth
+    const warmth = ctx.createOscillator();
+    const warmthGain = ctx.createGain();
+    warmth.type = "sine";
+    warmth.frequency.setValueAtTime(262, now); // C4 - one octave below
+    warmthGain.gain.setValueAtTime(0.15, now);
+    warmthGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+    warmth.connect(warmthGain);
+    warmthGain.connect(master);
+    warmth.start(now);
+    warmth.stop(now + 0.25);
 
     // Cleanup
     setTimeout(() => {
       ctx.close().catch(() => undefined);
-    }, 200);
+    }, 350);
   } catch {
     // best-effort; no-op
   }
