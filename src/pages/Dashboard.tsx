@@ -192,16 +192,20 @@ export default function Dashboard() {
       last30Days.push({ date, isActive: dayData?.is_active || false });
     }
 
-    const goals = goalsRes.data || [];
-    const goalsCompleted = goals.filter((g) => g.current_value >= g.target_value).length;
-    const activeGoals = goals.slice(0, 3).map((g) => ({
+  const goals = goalsRes.data || [];
+  const goalsCompleted = goals.filter((g) => g.current_value >= g.target_value).length;
+  const activeGoals = goals.slice(0, 3).map((g) => {
+    const categoryData = g.category_id ? categoriesMap.get(g.category_id) : null;
+    return {
       id: g.id,
       title: g.title,
       current: g.current_value,
       target: g.target_value,
       unit: g.unit_label || "",
-      category: g.category || "PERSONAL",
-    }));
+      categoryName: categoryData?.name || "Sem categoria",
+      categoryColor: categoryData?.color || DEFAULT_CATEGORY_COLOR,
+    };
+  });
 
     const habits = habitsRes.data || [];
     const habitLogs = habitLogsRes.data || [];
