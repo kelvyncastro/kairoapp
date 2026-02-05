@@ -93,6 +93,7 @@ import {
 import { GoalDetailModal } from "@/components/goals/GoalDetailModal";
 import { CreateCategoryDialog } from "@/components/goals/CreateCategoryDialog";
 import { ManageCategoriesDialog } from "@/components/goals/ManageCategoriesDialog";
+import { useSound } from "@/contexts/SoundContext";
 
 interface Goal {
   id: string;
@@ -187,6 +188,7 @@ function getCategoryIcon(iconKey: string, className = "h-4 w-4") {
 export default function Metas() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { playCheck } = useSound();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [categories, setCategories] = useState<GoalCategoryData[]>([]);
   const [progressHistory, setProgressHistory] = useState<Record<string, ProgressEntry[]>>({});
@@ -508,6 +510,7 @@ export default function Metas() {
     }
 
     if (completed && goal.status !== "COMPLETED") {
+      playCheck();
       confetti({
         particleCount: 150,
         spread: 70,
@@ -527,6 +530,7 @@ export default function Metas() {
       }, 200);
       toast({ title: "🎯 Meta alcançada!", description: goal.title });
     } else {
+      playCheck();
       toast({ title: "Progresso registrado!" });
     }
 
