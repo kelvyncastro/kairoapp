@@ -20,16 +20,12 @@ const Rotina = lazy(() => import("./pages/Rotina"));
 const Habitos = lazy(() => import("./pages/Habitos"));
 const Metas = lazy(() => import("./pages/Metas"));
 const Consistencia = lazy(() => import("./pages/Consistencia"));
-const Treino = lazy(() => import("./pages/Treino"));
-const Dieta = lazy(() => import("./pages/Dieta"));
 const Financas = lazy(() => import("./pages/Financas"));
 const ChatFinanceiro = lazy(() => import("./pages/ChatFinanceiro"));
-const Ebook = lazy(() => import("./pages/Ebook"));
 const Configuracoes = lazy(() => import("./pages/Configuracoes"));
-const Agenda = lazy(() => import("./pages/Agenda"));
 const Ranking = lazy(() => import("./pages/Ranking"));
- const Calendario = lazy(() => import("./pages/Calendario"));
- const Admin = lazy(() => import("./pages/Admin"));
+const Calendario = lazy(() => import("./pages/Calendario"));
+const Admin = lazy(() => import("./pages/Admin"));
 
 // Loading fallback for lazy-loaded routes
 const PageLoader = () => (
