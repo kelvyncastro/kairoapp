@@ -396,17 +396,14 @@ export default function Dashboard() {
                     <div className="h-full max-h-[160px] overflow-y-auto pr-1 space-y-4">
                       {stats.activeGoals.map((goal) => {
                         const progress = Math.min(100, Math.round((goal.current / goal.target) * 100));
-                        const color = CATEGORY_COLORS[goal.category] || CATEGORY_COLORS.PERSONAL;
                         return (
                           <div key={goal.id} className="space-y-2">
                             <div className="flex items-center justify-between">
                               <span 
                                 className="text-xs font-medium px-2 py-0.5 rounded"
-                                style={{ backgroundColor: `${color}20`, color }}
+                                style={{ backgroundColor: `${goal.categoryColor}20`, color: goal.categoryColor }}
                               >
-                                {goal.category === "FINANCIAL" ? "Financeira" : 
-                                 goal.category === "FITNESS" ? "Fitness" : 
-                                 goal.category === "HEALTH" ? "Saúde" : "Pessoal"}
+                                {goal.categoryName}
                               </span>
                               <span className="text-xs text-muted-foreground">{progress}%</span>
                             </div>
@@ -414,7 +411,7 @@ export default function Dashboard() {
                             <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
                               <div 
                                 className="h-full rounded-full transition-all"
-                                style={{ width: `${progress}%`, backgroundColor: color }}
+                                style={{ width: `${progress}%`, backgroundColor: goal.categoryColor }}
                               />
                             </div>
                             <p className="text-xs text-muted-foreground">
