@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { HabitWithLogs } from '@/types/habits';
 import { format, isSameDay, getDay, startOfWeek, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useSound } from '@/contexts/SoundContext';
 
 interface HabitGridProps {
   habits: HabitWithLogs[];
@@ -100,6 +101,7 @@ const HabitGrid = React.memo(function HabitGrid({
   const editInputRef = React.useRef<HTMLInputElement>(null);
   const gridRef = React.useRef<HTMLDivElement>(null);
   const today = new Date();
+  const { playCheck } = useSound();
 
   const weeks = React.useMemo(() => groupDaysByWeek(daysInMonth), [daysInMonth]);
 
@@ -337,6 +339,10 @@ const HabitGrid = React.memo(function HabitGrid({
                             type="button"
                             onClick={() => {
                               if (status !== 'future') {
+                              // Play check sound when completing (not when uncompleting)
+                              if (status !== 'done') {
+                                playCheck();
+                              }
                                 onToggleLog(habit.id, day);
                               }
                             }}
