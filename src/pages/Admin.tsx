@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,61 +68,6 @@ export default function Admin() {
   useEffect(() => {
     fetchUsers();
     fetchUserRoles();
-
-    // Setup realtime subscription for new users and role changes
-    const channel: RealtimeChannel = supabase
-      .channel('admin-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_profiles',
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setUsers((prev) => [payload.new as UserProfile, ...prev]);
-          } else if (payload.eventType === 'UPDATE') {
-            setUsers((prev) =>
-              prev.map((user) =>
-                user.id === (payload.new as UserProfile).id
-                  ? (payload.new as UserProfile)
-                  : user
-              )
-            );
-          } else if (payload.eventType === 'DELETE') {
-            setUsers((prev) =>
-              prev.filter((user) => user.id !== (payload.old as UserProfile).id)
-            );
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_roles',
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const newRole = payload.new as UserRole;
-            setUserRoles((prev) => [...prev, newRole]);
-          } else if (payload.eventType === 'DELETE') {
-            const oldRole = payload.old as UserRole;
-            setUserRoles((prev) =>
-              prev.filter(
-                (r) => !(r.user_id === oldRole.user_id && r.role === oldRole.role)
-              )
-            );
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, []);
 
   const fetchUsers = async () => {
