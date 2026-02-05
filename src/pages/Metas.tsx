@@ -624,13 +624,7 @@ export default function Metas() {
           </p>
         </div>
 
-        <Button onClick={() => {
-          // Pre-select category if filtering by a specific one
-          if (activeCategory !== "ALL") {
-            setNewGoal(prev => ({ ...prev, category_id: activeCategory }));
-          }
-          setDialogOpen(true);
-        }} size="sm" className="md:size-default">
+        <Button onClick={() => setDialogOpen(true)} size="sm" className="md:size-default">
           <Plus className="h-4 w-4 md:mr-2" />
           <span className="hidden md:inline">Nova Meta</span>
         </Button>
@@ -697,13 +691,7 @@ export default function Metas() {
           <p className="empty-state-description">
             Crie sua primeira meta para começar a acompanhar seu progresso
           </p>
-          <Button onClick={() => {
-            // Pre-select category if filtering by a specific one
-            if (activeCategory !== "ALL") {
-              setNewGoal(prev => ({ ...prev, category_id: activeCategory }));
-            }
-            setDialogOpen(true);
-          }}>
+          <Button onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Criar Meta
           </Button>
