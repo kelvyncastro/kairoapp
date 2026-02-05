@@ -230,10 +230,8 @@ export default function Admin() {
   }
 
   return (
-    <div className="h-full flex flex-col -m-4 md:-m-6 overflow-hidden">
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
-        {/* Header */}
+    <div className="space-y-6">
+      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Shield className="h-6 w-6 text-primary" />
@@ -532,7 +530,6 @@ export default function Admin() {
           </div>
         </CardContent>
       </Card>
-      </div>
     </div>
   );
 }
