@@ -5,17 +5,20 @@
  import { Textarea } from "@/components/ui/textarea";
  import { Label } from "@/components/ui/label";
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
- import { CalendarBlock } from "@/pages/Calendario";
+ import { CalendarBlockData } from "@/hooks/useCalendarBlocks";
  import { format, parseISO } from "date-fns";
  import { Trash2 } from "lucide-react";
+ import { Database } from "@/integrations/supabase/types";
+ 
+ type Priority = Database["public"]["Enums"]["calendar_priority"];
  
  interface BlockModalProps {
    open: boolean;
    onOpenChange: (open: boolean) => void;
-   block: CalendarBlock | null;
+   block: CalendarBlockData | null;
    defaultStart: Date | null;
    defaultEnd: Date | null;
-   onSave: (data: Partial<CalendarBlock>) => void;
+   onSave: (data: Partial<CalendarBlockData>) => void;
    onDelete: (id: string) => void;
  }
  
@@ -30,7 +33,7 @@
    const [startTime, setStartTime] = useState("");
    const [endTime, setEndTime] = useState("");
    const [color, setColor] = useState(COLORS[0]);
-   const [priority, setPriority] = useState("medium");
+   const [priority, setPriority] = useState<Priority>("medium");
  
    useEffect(() => {
      if (block) {
@@ -39,7 +42,7 @@
        setStartTime(format(parseISO(block.start_time), "yyyy-MM-dd'T'HH:mm"));
        setEndTime(format(parseISO(block.end_time), "yyyy-MM-dd'T'HH:mm"));
        setColor(block.color || COLORS[0]);
-       setPriority(block.priority || "medium");
+       setPriority(block.priority ?? "medium");
      } else if (defaultStart && defaultEnd) {
        setTitle("");
        setDescription("");
