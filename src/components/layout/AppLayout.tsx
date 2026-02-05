@@ -18,6 +18,7 @@ import {
   ChevronDown,
   LogOut,
   Calendar,
+   CalendarClock,
   Construction,
   MessageSquare,
   Menu,
@@ -47,6 +48,7 @@ import {
 const mainNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { path: "/rotina", label: "Tarefas", icon: ListTodo },
+   { path: "/calendario", label: "Calendário", icon: CalendarClock },
   { path: "/agenda", label: "Agenda", icon: Calendar },
   { path: "/habitos", label: "Hábitos", icon: CalendarCheck },
   { path: "/metas", label: "Metas", icon: Target },
