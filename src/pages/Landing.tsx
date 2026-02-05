@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import kairoLogo from "@/assets/kairo-logo.png";
 import mockupIpad from "@/assets/mockup-ipad.png";
+import { AppScreenshotCarousel } from "@/components/landing/AppScreenshotCarousel";
 
 // Floating particle component with scroll-based movement
 function FloatingParticle({ delay, duration, size, startX, startY }: {
