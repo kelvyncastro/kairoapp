@@ -248,7 +248,7 @@ export default function Landing() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <img src={kairoLogo} alt="Kairo" className="h-8 w-8 rounded-lg" />
+              <img src={kairoLogo} alt="Kairo" width={32} height={32} className="h-8 w-8 rounded-lg" />
               <span className="text-xl font-bold">Kairo</span>
             </motion.div>
             <motion.div 
