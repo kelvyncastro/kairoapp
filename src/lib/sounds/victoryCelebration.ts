@@ -31,74 +31,118 @@ export async function playVictoryCelebrationSound(
 
     const now = ctx.currentTime;
 
-    // Quick "ta-da" arpeggio + chord
-    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5 E5 G5 C6
-    const step = 0.09;
-    const noteLen = 0.22;
+    // Epic victory fanfare - triumphant brass-like sound
+    // Opening flourish (fast ascending notes)
+    const flourish = [392, 440, 523.25, 587.33, 659.25]; // G4 A4 C5 D5 E5
+    const flourishStep = 0.06;
+    const flourishLen = 0.12;
 
-    for (let i = 0; i < notes.length; i++) {
-      const t = now + i * step;
-
+    flourish.forEach((freq, i) => {
+      const t = now + i * flourishStep;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(notes[i], t);
-
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(freq, t);
       gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.exponentialRampToValueAtTime(0.5, t + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + noteLen);
-
+      gain.gain.exponentialRampToValueAtTime(0.25, t + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + flourishLen);
       osc.connect(gain);
       gain.connect(master);
-
       osc.start(t);
-      osc.stop(t + noteLen + 0.02);
+      osc.stop(t + flourishLen + 0.02);
+    });
+
+    // Main victory chord hit (big brass-like chord)
+    const chordStart = now + flourish.length * flourishStep + 0.05;
+    const victoryChord = [261.63, 329.63, 392, 523.25, 659.25]; // C4 E4 G4 C5 E5
+    
+    victoryChord.forEach((freq) => {
+      // Layer 1: Square wave for punch
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "square";
+      osc.frequency.setValueAtTime(freq, chordStart);
+      gain.gain.setValueAtTime(0.0001, chordStart);
+      gain.gain.exponentialRampToValueAtTime(0.15, chordStart + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.08, chordStart + 0.3);
+      gain.gain.exponentialRampToValueAtTime(0.0001, chordStart + 0.8);
+      osc.connect(gain);
+      gain.connect(master);
+      osc.start(chordStart);
+      osc.stop(chordStart + 0.85);
+
+      // Layer 2: Sawtooth for brightness
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = "sawtooth";
+      osc2.frequency.setValueAtTime(freq, chordStart);
+      gain2.gain.setValueAtTime(0.0001, chordStart);
+      gain2.gain.exponentialRampToValueAtTime(0.1, chordStart + 0.02);
+      gain2.gain.exponentialRampToValueAtTime(0.05, chordStart + 0.25);
+      gain2.gain.exponentialRampToValueAtTime(0.0001, chordStart + 0.7);
+      osc2.connect(gain2);
+      gain2.connect(master);
+      osc2.start(chordStart);
+      osc2.stop(chordStart + 0.75);
+    });
+
+    // Cymbal/shimmer effect
+    const shimmerStart = chordStart;
+    const shimmerDur = 0.6;
+    const shimmerSize = Math.floor(ctx.sampleRate * shimmerDur);
+    const shimmerBuffer = ctx.createBuffer(1, shimmerSize, ctx.sampleRate);
+    const shimmerData = shimmerBuffer.getChannelData(0);
+    for (let i = 0; i < shimmerSize; i++) {
+      const env = Math.exp(-i / (ctx.sampleRate * 0.15));
+      shimmerData[i] = (Math.random() * 2 - 1) * env * 0.4;
     }
+    const shimmer = ctx.createBufferSource();
+    shimmer.buffer = shimmerBuffer;
+    const shimmerGain = ctx.createGain();
+    shimmerGain.gain.setValueAtTime(0.3, shimmerStart);
+    shimmerGain.gain.exponentialRampToValueAtTime(0.0001, shimmerStart + shimmerDur);
+    shimmer.connect(shimmerGain);
+    shimmerGain.connect(master);
+    shimmer.start(shimmerStart);
+    shimmer.stop(shimmerStart + shimmerDur);
 
-    // Add a short sparkle/noise burst
-    const noiseDur = 0.18;
-    const bufferSize = Math.floor(ctx.sampleRate * noiseDur);
-    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = noiseBuffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      // White noise with fast decay
-      const decay = 1 - i / bufferSize;
-      data[i] = (Math.random() * 2 - 1) * decay * 0.35;
-    }
+    // Second hit for emphasis (slightly delayed)
+    const hit2Start = chordStart + 0.35;
+    const hit2Notes = [392, 523.25, 783.99]; // G4 C5 G5
+    hit2Notes.forEach((freq) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, hit2Start);
+      gain.gain.setValueAtTime(0.0001, hit2Start);
+      gain.gain.exponentialRampToValueAtTime(0.2, hit2Start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, hit2Start + 0.5);
+      osc.connect(gain);
+      gain.connect(master);
+      osc.start(hit2Start);
+      osc.stop(hit2Start + 0.55);
+    });
 
-    const noise = ctx.createBufferSource();
-    noise.buffer = noiseBuffer;
-
-    const noiseGain = ctx.createGain();
-    noiseGain.gain.setValueAtTime(0.0001, now + 0.03);
-    noiseGain.gain.exponentialRampToValueAtTime(0.25, now + 0.05);
-    noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.03 + noiseDur);
-
-    noise.connect(noiseGain);
-    noiseGain.connect(master);
-    noise.start(now + 0.03);
-    noise.stop(now + 0.03 + noiseDur);
-
-    // Final chord sustain
-    const chord = [523.25, 659.25, 783.99];
-    chord.forEach((freq) => {
-      const t = now + notes.length * step + 0.02;
+    // Final triumphant note
+    const finalStart = chordStart + 0.7;
+    const finalNotes = [523.25, 659.25, 783.99, 1046.5]; // C5 E5 G5 C6
+    finalNotes.forEach((freq) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = "sine";
-      osc.frequency.setValueAtTime(freq, t);
-      gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.exponentialRampToValueAtTime(0.18, t + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
+      osc.frequency.setValueAtTime(freq, finalStart);
+      gain.gain.setValueAtTime(0.0001, finalStart);
+      gain.gain.exponentialRampToValueAtTime(0.12, finalStart + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.06, finalStart + 0.4);
+      gain.gain.exponentialRampToValueAtTime(0.0001, finalStart + 1.0);
       osc.connect(gain);
       gain.connect(master);
-      osc.start(t);
-      osc.stop(t + 0.6);
+      osc.start(finalStart);
+      osc.stop(finalStart + 1.05);
     });
 
     // Cleanup
-    const totalMs = 1100;
+    const totalMs = 2200;
     window.setTimeout(() => {
       ctx.close().catch(() => undefined);
     }, totalMs);
