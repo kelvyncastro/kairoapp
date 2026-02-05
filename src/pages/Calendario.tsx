@@ -1,4 +1,4 @@
- import { useState, useEffect, useMemo, useCallback } from "react";
+ import { useState, useMemo } from "react";
  import { useCalendarBlocks } from "@/hooks/useCalendarBlocks";
  import { CalendarHeader } from "@/components/calendario/CalendarHeader";
  import { CalendarDayView } from "@/components/calendario/CalendarDayView";
@@ -11,19 +11,9 @@
  
  export type CalendarViewMode = "day" | "week" | "month";
  
- export interface CalendarBlock {
-   id: string;
-   title: string;
-   description?: string;
-   start_time: string;
-   end_time: string;
-   color: string;
-   status: string;
-   priority: string;
-   recurrence_type: string;
-   recurrence_parent_id?: string;
-   is_recurrence_paused?: boolean;
- }
+ import { CalendarBlockData } from "@/hooks/useCalendarBlocks";
+ 
+ export type CalendarBlock = CalendarBlockData;
  
  export default function Calendario() {
    const [viewMode, setViewMode] = useState<CalendarViewMode>("week");

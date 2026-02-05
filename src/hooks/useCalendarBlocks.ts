@@ -2,20 +2,27 @@
  import { supabase } from "@/integrations/supabase/client";
  import { useAuth } from "@/contexts/AuthContext";
  import { useToast } from "@/hooks/use-toast";
- import { format } from "date-fns";
+ import { Database } from "@/integrations/supabase/types";
+ 
+ type CalendarBlockRow = Database["public"]["Tables"]["calendar_blocks"]["Row"];
+ type CalendarBlockInsert = Database["public"]["Tables"]["calendar_blocks"]["Insert"];
+ type CalendarBlockUpdate = Database["public"]["Tables"]["calendar_blocks"]["Update"];
+ type Priority = Database["public"]["Enums"]["calendar_priority"];
+ type Status = Database["public"]["Enums"]["calendar_block_status"];
+ type RecurrenceType = Database["public"]["Enums"]["calendar_recurrence_type"];
  
  export interface CalendarBlockData {
    id: string;
    title: string;
-   description?: string;
+   description?: string | null;
    start_time: string;
    end_time: string;
    color: string;
-   status: string;
-   priority: string;
-   recurrence_type: string;
-   recurrence_parent_id?: string;
-   is_recurrence_paused?: boolean;
+   status: Status;
+   priority: Priority;
+   recurrence_type: RecurrenceType;
+   recurrence_parent_id?: string | null;
+   is_recurrence_paused?: boolean | null;
  }
  
  export function useCalendarBlocks(startDate: Date, endDate: Date) {
@@ -28,21 +35,37 @@
      if (!user) return;
      setLoading(true);
  
-     const startISO = new Date(startDate.setHours(0, 0, 0, 0)).toISOString();
-     const endISO = new Date(endDate.setHours(23, 59, 59, 999)).toISOString();
+     const startCopy = new Date(startDate);
+     startCopy.setHours(0, 0, 0, 0);
+     const endCopy = new Date(endDate);
+     endCopy.setHours(23, 59, 59, 999);
  
      const { data, error } = await supabase
        .from("calendar_blocks")
        .select("*")
-       .gte("start_time", startISO)
-       .lte("start_time", endISO)
+       .gte("start_time", startCopy.toISOString())
+       .lte("start_time", endCopy.toISOString())
        .order("start_time", { ascending: true });
  
      if (error) {
        console.error("Error fetching blocks:", error);
        toast({ title: "Erro ao carregar blocos", variant: "destructive" });
      } else {
-       setBlocks(data || []);
+       setBlocks(
+         (data || []).map((row) => ({
+           id: row.id,
+           title: row.title,
+           description: row.description,
+           start_time: row.start_time,
+           end_time: row.end_time,
+           color: row.color || "#6366f1",
+           status: row.status,
+           priority: row.priority,
+           recurrence_type: row.recurrence_type,
+           recurrence_parent_id: row.recurrence_parent_id,
+           is_recurrence_paused: row.is_recurrence_paused,
+         }))
+       );
      }
      setLoading(false);
    }, [user, startDate, endDate, toast]);
@@ -54,17 +77,19 @@
    const createBlock = async (blockData: Partial<CalendarBlockData>) => {
      if (!user) return;
  
-     const { error } = await supabase.from("calendar_blocks").insert({
+     const insertData: CalendarBlockInsert = {
        user_id: user.id,
        title: blockData.title || "Novo Bloco",
-       description: blockData.description,
-       start_time: blockData.start_time,
-       end_time: blockData.end_time,
+       description: blockData.description ?? null,
+       start_time: blockData.start_time!,
+       end_time: blockData.end_time!,
        color: blockData.color || "#6366f1",
-       status: blockData.status || "pending",
-       priority: blockData.priority || "medium",
-       recurrence_type: blockData.recurrence_type || "none",
-     });
+       status: (blockData.status as Status) || "pending",
+       priority: (blockData.priority as Priority) || "medium",
+       recurrence_type: (blockData.recurrence_type as RecurrenceType) || "none",
+     };
+ 
+     const { error } = await supabase.from("calendar_blocks").insert(insertData);
  
      if (error) {
        console.error("Error creating block:", error);
@@ -76,9 +101,19 @@
    };
  
    const updateBlock = async (id: string, updates: Partial<CalendarBlockData>) => {
+     const updateData: CalendarBlockUpdate = {};
+     if (updates.title !== undefined) updateData.title = updates.title;
+     if (updates.description !== undefined) updateData.description = updates.description;
+     if (updates.start_time !== undefined) updateData.start_time = updates.start_time;
+     if (updates.end_time !== undefined) updateData.end_time = updates.end_time;
+     if (updates.color !== undefined) updateData.color = updates.color;
+     if (updates.status !== undefined) updateData.status = updates.status;
+     if (updates.priority !== undefined) updateData.priority = updates.priority;
+     if (updates.recurrence_type !== undefined) updateData.recurrence_type = updates.recurrence_type;
+ 
      const { error } = await supabase
        .from("calendar_blocks")
-       .update(updates)
+       .update(updateData)
        .eq("id", id);
  
      if (error) {
