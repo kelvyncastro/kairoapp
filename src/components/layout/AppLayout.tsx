@@ -25,6 +25,7 @@ import {
   PanelLeftClose,
   PanelLeft,
   Trophy,
+   Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import kairoLogo from "@/assets/kairo-logo.png";
