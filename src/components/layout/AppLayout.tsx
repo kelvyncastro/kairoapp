@@ -18,12 +18,14 @@ import {
   ChevronDown,
   LogOut,
   Calendar,
+   CalendarClock,
   Construction,
   MessageSquare,
   Menu,
   PanelLeftClose,
   PanelLeft,
   Trophy,
+   Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import kairoLogo from "@/assets/kairo-logo.png";
@@ -47,6 +49,7 @@ import {
 const mainNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { path: "/rotina", label: "Tarefas", icon: ListTodo },
+   { path: "/calendario", label: "Calendário", icon: CalendarClock },
   { path: "/agenda", label: "Agenda", icon: Calendar },
   { path: "/habitos", label: "Hábitos", icon: CalendarCheck },
   { path: "/metas", label: "Metas", icon: Target },
@@ -69,6 +72,7 @@ const devNavItems = [
   { path: "/treino", label: "Treino", icon: Dumbbell },
   { path: "/dieta", label: "Dieta", icon: UtensilsCrossed },
   { path: "/ebook", label: "Ebook", icon: BookOpen },
+   { path: "/admin", label: "Painel Admin", icon: Shield },
 ];
 
 export default function AppLayout() {

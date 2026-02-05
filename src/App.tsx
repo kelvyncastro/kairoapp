@@ -28,6 +28,8 @@ const Ebook = lazy(() => import("./pages/Ebook"));
 const Configuracoes = lazy(() => import("./pages/Configuracoes"));
 const Agenda = lazy(() => import("./pages/Agenda"));
 const Ranking = lazy(() => import("./pages/Ranking"));
+ const Calendario = lazy(() => import("./pages/Calendario"));
+ const Admin = lazy(() => import("./pages/Admin"));
 
 // Loading fallback for lazy-loaded routes
 const PageLoader = () => (
@@ -87,6 +89,8 @@ const App = () => (
                 <Route path="/ebook" element={<AdminRoute><Suspense fallback={<PageLoader />}><Ebook /></Suspense></AdminRoute>} />
                 <Route path="/agenda" element={<Suspense fallback={<PageLoader />}><Agenda /></Suspense>} />
                 <Route path="/configuracoes" element={<Suspense fallback={<PageLoader />}><Configuracoes /></Suspense>} />
+                 <Route path="/calendario" element={<Suspense fallback={<PageLoader />}><Calendario /></Suspense>} />
+                 <Route path="/admin" element={<AdminRoute><Suspense fallback={<PageLoader />}><Admin /></Suspense></AdminRoute>} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
