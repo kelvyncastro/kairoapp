@@ -12,7 +12,6 @@ import {
   Flame,
   Wallet,
   Settings,
-  ChevronDown,
   LogOut,
   CalendarClock,
   MessageSquare,
