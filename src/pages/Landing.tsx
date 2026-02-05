@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
+import { useState, useEffect, useMemo } from "react";
 import { 
   CheckCircle2, 
   Target, 
@@ -156,9 +157,34 @@ const particlesData = Array.from({ length: 30 }, (_, i) => ({
 }));
 
 export default function Landing() {
+  const prefersReducedMotion = useReducedMotion();
+  const [isClient, setIsClient] = useState(false);
+  
+  // Defer scroll animations to avoid forced reflow on initial paint
+  useEffect(() => {
+    // Use requestIdleCallback if available, otherwise setTimeout
+    const deferAnimation = window.requestIdleCallback || ((cb: () => void) => setTimeout(cb, 1));
+    const handle = deferAnimation(() => setIsClient(true));
+    return () => {
+      if (window.cancelIdleCallback) {
+        window.cancelIdleCallback(handle as number);
+      } else {
+        clearTimeout(handle as number);
+      }
+    };
+  }, []);
+
   const { scrollY } = useScroll();
-  const backgroundY = useTransform(scrollY, [0, 2000], [0, -200]);
-  const gridY = useTransform(scrollY, [0, 2000], [0, 100]);
+  const backgroundY = useTransform(scrollY, [0, 2000], [0, prefersReducedMotion ? 0 : -200]);
+  const gridY = useTransform(scrollY, [0, 2000], [0, prefersReducedMotion ? 0 : 100]);
+  
+  // Memoize particles to avoid recreating during scroll
+  const particles = useMemo(() => {
+    if (!isClient || prefersReducedMotion) return null;
+    return particlesData.map((p) => (
+      <FloatingParticle key={p.id} {...p} />
+    ));
+  }, [isClient, prefersReducedMotion]);
   
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
@@ -190,9 +216,7 @@ export default function Landing() {
         <GlowingOrb x={85} y={20} size={350} delay={9} scrollY={scrollY} />
         
         {/* Floating particles */}
-        {particlesData.map((p) => (
-          <FloatingParticle key={p.id} {...p} />
-        ))}
+        {particles}
         
         {/* Subtle grid overlay with parallax */}
         <motion.div 
