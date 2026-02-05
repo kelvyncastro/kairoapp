@@ -20,16 +20,12 @@ const Rotina = lazy(() => import("./pages/Rotina"));
 const Habitos = lazy(() => import("./pages/Habitos"));
 const Metas = lazy(() => import("./pages/Metas"));
 const Consistencia = lazy(() => import("./pages/Consistencia"));
-const Treino = lazy(() => import("./pages/Treino"));
-const Dieta = lazy(() => import("./pages/Dieta"));
 const Financas = lazy(() => import("./pages/Financas"));
 const ChatFinanceiro = lazy(() => import("./pages/ChatFinanceiro"));
-const Ebook = lazy(() => import("./pages/Ebook"));
 const Configuracoes = lazy(() => import("./pages/Configuracoes"));
-const Agenda = lazy(() => import("./pages/Agenda"));
 const Ranking = lazy(() => import("./pages/Ranking"));
- const Calendario = lazy(() => import("./pages/Calendario"));
- const Admin = lazy(() => import("./pages/Admin"));
+const Calendario = lazy(() => import("./pages/Calendario"));
+const Admin = lazy(() => import("./pages/Admin"));
 
 // Loading fallback for lazy-loaded routes
 const PageLoader = () => (
@@ -82,12 +78,8 @@ const App = () => (
                 <Route path="/metas" element={<Suspense fallback={<PageLoader />}><Metas /></Suspense>} />
                 <Route path="/consistencia" element={<Suspense fallback={<PageLoader />}><Consistencia /></Suspense>} />
                 <Route path="/ranking" element={<Suspense fallback={<PageLoader />}><Ranking /></Suspense>} />
-                <Route path="/treino" element={<AdminRoute><Suspense fallback={<PageLoader />}><Treino /></Suspense></AdminRoute>} />
-                <Route path="/dieta" element={<AdminRoute><Suspense fallback={<PageLoader />}><Dieta /></Suspense></AdminRoute>} />
                 <Route path="/financas" element={<Suspense fallback={<PageLoader />}><Financas /></Suspense>} />
                 <Route path="/chat-financeiro" element={<Suspense fallback={<PageLoader />}><ChatFinanceiro /></Suspense>} />
-                <Route path="/ebook" element={<AdminRoute><Suspense fallback={<PageLoader />}><Ebook /></Suspense></AdminRoute>} />
-                <Route path="/agenda" element={<Suspense fallback={<PageLoader />}><Agenda /></Suspense>} />
                 <Route path="/configuracoes" element={<Suspense fallback={<PageLoader />}><Configuracoes /></Suspense>} />
                  <Route path="/calendario" element={<Suspense fallback={<PageLoader />}><Calendario /></Suspense>} />
                  <Route path="/admin" element={<AdminRoute><Suspense fallback={<PageLoader />}><Admin /></Suspense></AdminRoute>} />
