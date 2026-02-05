@@ -54,12 +54,7 @@ interface DashboardStats {
   activeGoals: Array<{ id: string; title: string; current: number; target: number; unit: string; category: string }>;
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
-  FINANCIAL: "#22c55e",
-  FITNESS: "#f59e0b",
-  HEALTH: "#ef4444",
-  PERSONAL: "#8b5cf6",
-};
+const DEFAULT_CATEGORY_COLOR = "#8b5cf6";
 
 export default function Dashboard() {
   const { user } = useAuth();

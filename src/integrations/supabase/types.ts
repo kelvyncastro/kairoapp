@@ -1155,6 +1155,7 @@ export type Database = {
           id: string
           last_name: string | null
           onboarding_completed: boolean
+          phone_number: string | null
           public_id: string | null
           subscription_status: string
           updated_at: string
@@ -1169,6 +1170,7 @@ export type Database = {
           id?: string
           last_name?: string | null
           onboarding_completed?: boolean
+          phone_number?: string | null
           public_id?: string | null
           subscription_status?: string
           updated_at?: string
@@ -1183,6 +1185,7 @@ export type Database = {
           id?: string
           last_name?: string | null
           onboarding_completed?: boolean
+          phone_number?: string | null
           public_id?: string | null
           subscription_status?: string
           updated_at?: string
