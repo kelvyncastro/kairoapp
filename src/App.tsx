@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { UserProfileProvider, useUserProfile } from "@/contexts/UserProfileContext";
+import { SoundProvider } from "@/contexts/SoundContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import AppLayout from "@/components/layout/AppLayout";
@@ -48,36 +49,38 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <UserProfileProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route
-                element={
-                  <ProtectedRoute>
-                    <AppWithOnboarding />
-                  </ProtectedRoute>
-                }
-              >
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/rotina" element={<Rotina />} />
-                <Route path="/habitos" element={<Habitos />} />
-                <Route path="/metas" element={<Metas />} />
-                <Route path="/consistencia" element={<Consistencia />} />
-                <Route path="/financas" element={<Financas />} />
-                <Route path="/chat-financeiro" element={<ChatFinanceiro />} />
-                <Route path="/calendario" element={<Calendar2 />} />
-                <Route path="/ranking" element={<Ranking />} />
-                <Route path="/configuracoes" element={<Configuracoes />} />
-                <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
-              </Route>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+        <SoundProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route
+                  element={
+                    <ProtectedRoute>
+                      <AppWithOnboarding />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/rotina" element={<Rotina />} />
+                  <Route path="/habitos" element={<Habitos />} />
+                  <Route path="/metas" element={<Metas />} />
+                  <Route path="/consistencia" element={<Consistencia />} />
+                  <Route path="/financas" element={<Financas />} />
+                  <Route path="/chat-financeiro" element={<ChatFinanceiro />} />
+                  <Route path="/calendario" element={<Calendar2 />} />
+                  <Route path="/ranking" element={<Ranking />} />
+                  <Route path="/configuracoes" element={<Configuracoes />} />
+                  <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+                </Route>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </SoundProvider>
       </UserProfileProvider>
     </AuthProvider>
   </QueryClientProvider>
