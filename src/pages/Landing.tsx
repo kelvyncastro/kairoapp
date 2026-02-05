@@ -611,8 +611,8 @@ export default function Landing() {
               <div className="relative z-10">
                 <div className="text-sm font-medium text-muted-foreground mb-2">Mensal</div>
                 <div className="flex items-baseline gap-1 mb-4">
-                  <span className="text-4xl font-bold">R$39,90</span>
-                  <span className="text-muted-foreground">/mês</span>
+                   <span className="text-4xl font-bold">R$29,90</span>
+                   <span className="text-muted-foreground">/mês</span>
                 </div>
                 <p className="text-muted-foreground mb-6">Pague mês a mês, cancele quando quiser</p>
                 <ul className="space-y-3 mb-8">
