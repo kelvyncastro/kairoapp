@@ -134,30 +134,37 @@ export function AppScreenshotCarousel() {
         onTouchStart={() => setIsPaused(true)}
         onTouchEnd={() => setIsPaused(false)}
       >
-        {/* Image Container with black border */}
-        <div className="relative overflow-hidden rounded-2xl border-4 border-black bg-black shadow-2xl">
-          <div className="relative aspect-[16/10] cursor-grab active:cursor-grabbing">
-            <AnimatePresence initial={false} custom={direction} mode="wait">
-              <motion.img
-                key={currentIndex}
-                src={screenshots[currentIndex].src}
-                alt={screenshots[currentIndex].title}
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{
-                  x: { type: "spring", stiffness: 300, damping: 30 },
-                  opacity: { duration: 0.2 },
-                }}
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={0.2}
-                onDragEnd={handleDragEnd}
-                className="absolute inset-0 w-full h-full object-cover object-top"
-              />
-            </AnimatePresence>
+        {/* Image Container with animated neon border */}
+        <div className="relative p-[3px] rounded-2xl overflow-hidden">
+          {/* Animated neon glow border */}
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-[neon-flow_3s_linear_infinite] opacity-80" />
+          <div className="absolute inset-[2px] rounded-2xl bg-gradient-to-r from-primary/50 via-accent/50 to-primary/50 bg-[length:200%_100%] animate-[neon-flow_3s_linear_infinite] blur-md" />
+          
+          {/* Inner container */}
+          <div className="relative overflow-hidden rounded-2xl bg-background">
+            <div className="relative aspect-[16/10] cursor-grab active:cursor-grabbing">
+              <AnimatePresence initial={false} custom={direction} mode="wait">
+                <motion.img
+                  key={currentIndex}
+                  src={screenshots[currentIndex].src}
+                  alt={screenshots[currentIndex].title}
+                  custom={direction}
+                  variants={slideVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{
+                    x: { type: "spring", stiffness: 300, damping: 30 },
+                    opacity: { duration: 0.2 },
+                  }}
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.2}
+                  onDragEnd={handleDragEnd}
+                  className="absolute inset-0 w-full h-full object-cover object-top"
+                />
+              </AnimatePresence>
+            </div>
           </div>
         </div>
 
