@@ -120,7 +120,7 @@
  
            <div className="space-y-2">
              <Label>Prioridade</Label>
-             <Select value={priority} onValueChange={setPriority}>
+           <Select value={priority} onValueChange={(v) => setPriority(v as Priority)}>
                <SelectTrigger>
                  <SelectValue />
                </SelectTrigger>

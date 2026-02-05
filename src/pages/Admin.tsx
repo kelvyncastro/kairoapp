@@ -264,7 +264,7 @@
                          <div>
                            <p className="font-medium flex items-center gap-2">
                              {profile.first_name || "Sem nome"} {profile.last_name || ""}
-                             {isSupremo && <Crown className="h-4 w-4 text-yellow-500" />}
+                              {isSupremo && <Crown className="h-4 w-4 text-amber-500" />}
                            </p>
                            <p className="text-xs text-muted-foreground">
                              Cadastro: {format(new Date(profile.created_at), "dd/MM/yyyy")}
