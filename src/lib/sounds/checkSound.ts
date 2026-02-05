@@ -2,7 +2,7 @@ export type CheckSoundOptions = {
   volume?: number; // 0..1
 };
 
-// Soft, satisfying click - gentle and pleasant.
+// Gentle "blip" - soft digital confirmation.
 // Volume set to 15% for unobtrusive feedback.
 // Uses Web Audio API for instant playback.
 export function playCheckSound(options: CheckSoundOptions = {}): void {
@@ -25,31 +25,30 @@ export function playCheckSound(options: CheckSoundOptions = {}): void {
 
     const now = ctx.currentTime;
 
-    // Soft "tock" - like a gentle wood tap
-    const tock = ctx.createOscillator();
-    const tockGain = ctx.createGain();
-    tock.type = "sine";
-    tock.frequency.setValueAtTime(800, now);
-    tock.frequency.exponentialRampToValueAtTime(300, now + 0.04);
-    tockGain.gain.setValueAtTime(0.5, now);
-    tockGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
-    tock.connect(tockGain);
-    tockGain.connect(master);
-    tock.start(now);
-    tock.stop(now + 0.08);
+    // Soft ascending blip - gentle two-tone
+    const note1 = ctx.createOscillator();
+    const note1Gain = ctx.createGain();
+    note1.type = "sine";
+    note1.frequency.setValueAtTime(587, now); // D5
+    note1Gain.gain.setValueAtTime(0.3, now);
+    note1Gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.07);
+    note1.connect(note1Gain);
+    note1Gain.connect(master);
+    note1.start(now);
+    note1.stop(now + 0.1);
 
-    // Soft resonance tail - warmth after click
-    const tail = ctx.createOscillator();
-    const tailGain = ctx.createGain();
-    tail.type = "sine";
-    tail.frequency.setValueAtTime(440, now + 0.02); // A4
-    tailGain.gain.setValueAtTime(0.0001, now);
-    tailGain.gain.linearRampToValueAtTime(0.2, now + 0.03);
-    tailGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
-    tail.connect(tailGain);
-    tailGain.connect(master);
-    tail.start(now);
-    tail.stop(now + 0.15);
+    // Second note - slightly higher, delayed
+    const note2 = ctx.createOscillator();
+    const note2Gain = ctx.createGain();
+    note2.type = "sine";
+    note2.frequency.setValueAtTime(784, now + 0.06); // G5
+    note2Gain.gain.setValueAtTime(0.0001, now);
+    note2Gain.gain.linearRampToValueAtTime(0.25, now + 0.06);
+    note2Gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+    note2.connect(note2Gain);
+    note2Gain.connect(master);
+    note2.start(now);
+    note2.stop(now + 0.18);
 
     // Cleanup
     setTimeout(() => {
