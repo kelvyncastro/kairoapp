@@ -2,8 +2,8 @@ export type CheckSoundOptions = {
   volume?: number; // 0..1
 };
 
-// Quick, satisfying "check" / "ding" sound using Web Audio API.
-// Plays instantly (no network delay).
+// Satisfying soft "pop" check sound - inspired by popular productivity apps.
+// Uses Web Audio API for instant playback.
 export function playCheckSound(options: CheckSoundOptions = {}): void {
   try {
     const AudioContextCtor =
@@ -14,7 +14,6 @@ export function playCheckSound(options: CheckSoundOptions = {}): void {
 
     const ctx = new AudioContextCtor();
 
-    // Handle autoplay restrictions gracefully
     if (ctx.state === "suspended") {
       ctx.resume().catch(() => undefined);
     }
@@ -25,38 +24,49 @@ export function playCheckSound(options: CheckSoundOptions = {}): void {
 
     const now = ctx.currentTime;
 
-    // Main "ding" tone
-    const osc1 = ctx.createOscillator();
-    const gain1 = ctx.createGain();
-    osc1.type = "sine";
-    osc1.frequency.setValueAtTime(880, now); // A5
-    osc1.frequency.exponentialRampToValueAtTime(1318.5, now + 0.08); // E6
-    gain1.gain.setValueAtTime(0.0001, now);
-    gain1.gain.exponentialRampToValueAtTime(0.4, now + 0.02);
-    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
-    osc1.connect(gain1);
-    gain1.connect(master);
-    osc1.start(now);
-    osc1.stop(now + 0.3);
+    // Soft "pop" - low frequency thump
+    const pop = ctx.createOscillator();
+    const popGain = ctx.createGain();
+    pop.type = "sine";
+    pop.frequency.setValueAtTime(400, now);
+    pop.frequency.exponentialRampToValueAtTime(150, now + 0.08);
+    popGain.gain.setValueAtTime(0.5, now);
+    popGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1);
+    pop.connect(popGain);
+    popGain.connect(master);
+    pop.start(now);
+    pop.stop(now + 0.12);
 
-    // Harmonic overtone for richness
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
-    osc2.type = "sine";
-    osc2.frequency.setValueAtTime(1760, now); // A6
-    osc2.frequency.exponentialRampToValueAtTime(2637, now + 0.08); // E7
-    gain2.gain.setValueAtTime(0.0001, now);
-    gain2.gain.exponentialRampToValueAtTime(0.15, now + 0.02);
-    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
-    osc2.connect(gain2);
-    gain2.connect(master);
-    osc2.start(now);
-    osc2.stop(now + 0.22);
+    // Bright "tick" overlay - gives it that satisfying click
+    const tick = ctx.createOscillator();
+    const tickGain = ctx.createGain();
+    tick.type = "triangle";
+    tick.frequency.setValueAtTime(1800, now);
+    tick.frequency.exponentialRampToValueAtTime(1200, now + 0.03);
+    tickGain.gain.setValueAtTime(0.25, now);
+    tickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
+    tick.connect(tickGain);
+    tickGain.connect(master);
+    tick.start(now);
+    tick.stop(now + 0.06);
+
+    // Gentle harmonic tail - warmth
+    const tail = ctx.createOscillator();
+    const tailGain = ctx.createGain();
+    tail.type = "sine";
+    tail.frequency.setValueAtTime(600, now + 0.02);
+    tailGain.gain.setValueAtTime(0.0001, now);
+    tailGain.gain.linearRampToValueAtTime(0.12, now + 0.03);
+    tailGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+    tail.connect(tailGain);
+    tailGain.connect(master);
+    tail.start(now);
+    tail.stop(now + 0.18);
 
     // Cleanup
     setTimeout(() => {
       ctx.close().catch(() => undefined);
-    }, 400);
+    }, 250);
   } catch {
     // best-effort; no-op
   }
