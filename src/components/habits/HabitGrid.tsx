@@ -2,7 +2,6 @@ import * as React from 'react';
 import { Check, MoreHorizontal, Trash2, Edit2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,8 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { HabitWithLogs } from '@/types/habits';
-import { format, isSameDay, getDay, startOfWeek, addDays } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { format, isSameDay, getDay } from 'date-fns';
 
 interface HabitGridProps {
   habits: HabitWithLogs[];
@@ -38,49 +36,6 @@ const getMonthlyCompletionCount = (habit: HabitWithLogs, daysInMonth: Date[]): n
   }).length;
 };
 
-// Group days by week
-const groupDaysByWeek = (days: Date[]): { weekNumber: number; days: Date[] }[] => {
-  if (days.length === 0) return [];
-  
-  const weeks: { weekNumber: number; days: Date[] }[] = [];
-  let currentWeek: Date[] = [];
-  let weekNumber = 1;
-  
-  // Determine how many days to pad at the start to align with the first day
-  const firstDay = days[0];
-  const dayOfWeek = getDay(firstDay);
-  // We want Sunday (0) to be the start of the week for this visualization
-  const daysToFill = dayOfWeek;
-  
-  // Add empty slots for padding
-  for (let i = 0; i < daysToFill; i++) {
-    currentWeek.push(null as unknown as Date);
-  }
-  
-  days.forEach((day) => {
-    currentWeek.push(day);
-    
-    if (currentWeek.length === 7) {
-      weeks.push({ weekNumber, days: currentWeek });
-      currentWeek = [];
-      weekNumber++;
-    }
-  });
-  
-  // Push remaining days
-  if (currentWeek.length > 0) {
-    // Pad the end
-    while (currentWeek.length < 7) {
-      currentWeek.push(null as unknown as Date);
-    }
-    weeks.push({ weekNumber, days: currentWeek });
-  }
-  
-  return weeks;
-};
-
-const WEEKDAY_LABELS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
-
 const HabitGrid = React.memo(function HabitGrid({
   habits,
   daysInMonth,
@@ -92,6 +47,7 @@ const HabitGrid = React.memo(function HabitGrid({
   getHabitAdherence,
   getLogStatus,
 }: HabitGridProps) {
+  const CELL_WIDTH = 32; // reduced for smaller checkboxes
   const [newHabitName, setNewHabitName] = React.useState('');
   const [isAddingHabit, setIsAddingHabit] = React.useState(false);
   const [editingHabitId, setEditingHabitId] = React.useState<string | null>(null);
@@ -100,8 +56,6 @@ const HabitGrid = React.memo(function HabitGrid({
   const editInputRef = React.useRef<HTMLInputElement>(null);
   const gridRef = React.useRef<HTMLDivElement>(null);
   const today = new Date();
-
-  const weeks = React.useMemo(() => groupDaysByWeek(daysInMonth), [daysInMonth]);
 
   React.useEffect(() => {
     if (isAddingHabit && inputRef.current) {
@@ -115,19 +69,17 @@ const HabitGrid = React.memo(function HabitGrid({
     }
   }, [editingHabitId]);
 
-  // Scroll to current week on mount
+  // Scroll to today's column on mount
   React.useEffect(() => {
-    if (gridRef.current && weeks.length > 0) {
-      const currentWeekIndex = weeks.findIndex(week => 
-        week.days.some(day => day && isSameDay(day, today))
-      );
-      if (currentWeekIndex > 0) {
-        const weekWidth = 224; // approx width of each week column
-        const scrollPosition = Math.max(0, (currentWeekIndex - 1) * weekWidth);
+    if (gridRef.current && daysInMonth.length > 0) {
+      const todayIndex = daysInMonth.findIndex((d) => isSameDay(d, today));
+      if (todayIndex > 0) {
+        const cellWidth = CELL_WIDTH;
+        const scrollPosition = Math.max(0, (todayIndex - 5) * cellWidth);
         gridRef.current.scrollLeft = scrollPosition;
       }
     }
-  }, [weeks, monthKey, habits.length]);
+  }, [daysInMonth, monthKey, habits.length, CELL_WIDTH]);
 
   const handleAddHabit = () => {
     if (newHabitName.trim()) {
@@ -150,87 +102,85 @@ const HabitGrid = React.memo(function HabitGrid({
     setEditingName('');
   };
 
+  const isSunday = (date: Date) => getDay(date) === 0;
+
   return (
     <div className="flex flex-col w-full overflow-hidden">
       {/* Grid container */}
       <div className="flex w-full">
         {/* Fixed left column - Habit names */}
-        <div className="flex-shrink-0 w-48 md:w-56 border-r border-border/30 bg-background z-10">
-          {/* Header */}
-          <div className="h-16 border-b border-border/30 flex items-end px-3 pb-2">
-            <span className="text-sm font-semibold text-foreground">Hábito</span>
+        <div className="flex-shrink-0 w-48 md:w-64 border-r border-border/30 bg-background z-10">
+          {/* Header spacer */}
+          <div className="h-8 md:h-10 border-b border-border/30 flex items-center px-2 md:px-4">
+            <span className="text-xs md:text-sm font-medium text-muted-foreground uppercase tracking-wide">Hábitos</span>
           </div>
           
           {/* Habit rows */}
-          {habits.map((habit) => {
-            const adherence = getHabitAdherence(habit);
-            
-            return (
-              <div
-                key={habit.id}
-                className="h-14 px-3 flex items-center justify-between border-b border-border/20 group hover:bg-muted/20 transition-colors"
-              >
-                {editingHabitId === habit.id ? (
-                  <Input
-                    ref={editInputRef}
-                    value={editingName}
-                    onChange={(e) => setEditingName(e.target.value)}
-                    onBlur={handleSaveEdit}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleSaveEdit();
-                      if (e.key === 'Escape') {
-                        setEditingHabitId(null);
-                        setEditingName('');
-                      }
-                    }}
-                    className="h-8 text-sm"
-                  />
-                ) : (
-                  <>
-                    <div className="flex-1 min-w-0 pr-2">
-                      <p className="text-sm font-medium truncate text-foreground">{habit.name}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Progress 
-                          value={adherence} 
-                          className="h-1.5 w-16 bg-muted" 
-                        />
-                        <span className="text-xs font-medium text-primary">
-                          {adherence}%
-                        </span>
-                      </div>
+          {habits.map((habit) => (
+            <div
+              key={habit.id}
+              className="h-10 md:h-12 px-2 md:px-4 flex items-center justify-between border-b border-border/20 group hover:bg-muted/20 transition-colors"
+            >
+              {editingHabitId === habit.id ? (
+                <Input
+                  ref={editInputRef}
+                  value={editingName}
+                  onChange={(e) => setEditingName(e.target.value)}
+                  onBlur={handleSaveEdit}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveEdit();
+                    if (e.key === 'Escape') {
+                      setEditingHabitId(null);
+                      setEditingName('');
+                    }
+                  }}
+                  className="h-8 text-sm"
+                />
+              ) : (
+                <>
+                <div className="flex-1 min-w-0 pr-2">
+                    <p className="text-sm font-medium truncate text-foreground/90">{habit.name}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-muted-foreground">
+                        {getMonthlyCompletionCount(habit, daysInMonth)}x
+                      </span>
+                      <span className="text-xs text-muted-foreground">•</span>
+                      <span className="text-xs font-medium text-success">
+                        {getHabitAdherence(habit)}%
+                      </span>
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="z-50">
-                        <DropdownMenuItem onClick={() => handleEditHabit(habit)}>
-                          <Edit2 className="h-4 w-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          onClick={() => onDeleteHabit(habit.id)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Remover
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </>
-                )}
-              </div>
-            );
-          })}
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="z-50">
+                      <DropdownMenuItem onClick={() => handleEditHabit(habit)}>
+                        <Edit2 className="h-4 w-4 mr-2" />
+                        Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => onDeleteHabit(habit.id)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Remover
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
+              )}
+            </div>
+          ))}
 
           {/* Add habit row */}
-          <div className="h-14 px-3 flex items-center border-b border-border/20">
+          <div className="h-10 md:h-12 px-2 md:px-4 flex items-center border-b border-border/20">
             {isAddingHabit ? (
               <Input
                 ref={inputRef}
@@ -263,114 +213,78 @@ const HabitGrid = React.memo(function HabitGrid({
           </div>
         </div>
 
-        {/* Scrollable right section - Weeks grid */}
+        {/* Scrollable right section - Days grid */}
         <div ref={gridRef} className="flex-1 overflow-x-auto">
-          <div className="inline-flex">
-            {weeks.map((week, weekIndex) => (
-              <div 
-                key={week.weekNumber} 
-                className={cn(
-                  "flex-shrink-0",
-                  weekIndex < weeks.length - 1 && "border-r border-border/20"
-                )}
-              >
-                {/* Week header */}
-                <div className="h-16 border-b border-border/30 flex flex-col justify-end px-2 pb-1">
-                  <span className="text-xs font-semibold text-muted-foreground mb-1">
-                    Semana {week.weekNumber}
-                  </span>
-                  <div className="flex">
-                    {week.days.map((day, dayIndex) => {
-                      const isToday = day && isSameDay(day, today);
-                      const isSunday = day && getDay(day) === 0;
-                      
-                      return (
-                        <div
-                          key={dayIndex}
-                          className="w-8 flex flex-col items-center"
-                        >
-                          {day ? (
-                            <>
-                              <span
-                                className={cn(
-                                  'text-[10px] font-medium',
-                                  isToday ? 'text-primary' : 'text-muted-foreground'
-                                )}
-                              >
-                                {format(day, 'd')}
-                              </span>
-                              <span
-                                className={cn(
-                                  'text-[9px] uppercase',
-                                  isToday ? 'text-primary font-medium' : 'text-muted-foreground/70'
-                                )}
-                              >
-                                {format(day, 'EEE', { locale: ptBR }).slice(0, 3)}
-                              </span>
-                            </>
-                          ) : (
-                            <span className="text-[10px] text-transparent">-</span>
-                          )}
-                        </div>
-                      );
-                    })}
+          <div className="inline-flex flex-col w-max min-w-full">
+            {/* Days header */}
+            <div className="flex h-8 md:h-10 border-b border-border/30">
+              {daysInMonth.map((day) => {
+                const isToday = isSameDay(day, today);
+                const isSun = isSunday(day);
+
+                return (
+                  <div
+                    key={day.toISOString()}
+                    className={cn(
+                      'w-8 flex-shrink-0 flex items-center justify-center text-xs font-medium',
+                      isSun && 'text-destructive',
+                      isToday && 'text-foreground'
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'w-6 h-6 flex items-center justify-center rounded-full transition-colors text-xs',
+                        isToday && 'bg-destructive text-destructive-foreground font-bold'
+                      )}
+                    >
+                      {format(day, 'd')}
+                    </span>
                   </div>
-                </div>
+                );
+              })}
+            </div>
 
-                {/* Habit day cells for this week */}
-                {habits.map((habit) => (
-                  <div key={habit.id} className="flex h-14 border-b border-border/20 items-center px-0.5">
-                    {week.days.map((day, dayIndex) => {
-                      if (!day) {
-                        return <div key={dayIndex} className="w-8 h-8" />;
-                      }
-                      
-                      const status = getLogStatus(habit, day);
-                      const isToday = isSameDay(day, today);
+            {/* Habit day cells */}
+            {habits.map((habit) => (
+              <div key={habit.id} className="flex h-10 md:h-12 border-b border-border/20">
+                {daysInMonth.map((day) => {
+                  const status = getLogStatus(habit, day);
 
-                      return (
-                        <div
-                          key={day.toISOString()}
-                          className="w-8 flex items-center justify-center"
-                        >
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (status !== 'future') {
-                                onToggleLog(habit.id, day);
-                              }
-                            }}
-                            disabled={status === 'future'}
-                            className={cn(
-                              'w-6 h-6 rounded-full flex items-center justify-center transition-all duration-150',
-                              status === 'done' && 'bg-primary hover:brightness-110',
-                              (status === 'not_done' || status === 'not_planned') && 
-                                'border-2 border-muted-foreground/30 hover:border-primary/60 hover:bg-muted/30',
-                              status === 'pending' && 
-                                'border-2 border-primary/50 hover:bg-primary/10',
-                              status === 'future' && 
-                                'border border-muted-foreground/15 opacity-30 cursor-not-allowed',
-                              isToday && status !== 'done' && 'ring-2 ring-primary/30 ring-offset-1 ring-offset-background'
-                            )}
-                          >
-                            {status === 'done' && (
-                              <Check className="h-3.5 w-3.5 text-primary-foreground" />
-                            )}
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ))}
-
-                {/* Empty row for add habit alignment */}
-                <div className="flex h-14 border-b border-border/20">
-                  {week.days.map((day, dayIndex) => (
-                    <div key={dayIndex} className="w-8" />
-                  ))}
-                </div>
+                  return (
+                    <div
+                      key={day.toISOString()}
+                      className="w-8 flex-shrink-0 flex items-center justify-center"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (status !== 'future') {
+                            onToggleLog(habit.id, day);
+                          }
+                        }}
+                        disabled={status === 'future'}
+                        className={cn(
+                          'w-5 h-5 rounded flex items-center justify-center transition-all duration-150',
+                          status === 'done' && 'bg-success hover:brightness-110',
+                          (status === 'not_done' || status === 'not_planned') && 'border border-muted-foreground/30 hover:border-success/60 hover:bg-muted/30',
+                          status === 'pending' && 'border-2 border-destructive hover:bg-destructive/10',
+                          status === 'future' && 'border border-muted-foreground/15 opacity-30 cursor-not-allowed'
+                        )}
+                      >
+                        {status === 'done' && <Check className="h-3 w-3 text-black" />}
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             ))}
+
+            {/* Empty row for add habit alignment */}
+            <div className="flex h-10 md:h-12 border-b border-border/20">
+              {daysInMonth.map((day) => (
+                <div key={day.toISOString()} className="w-8 flex-shrink-0" />
+              ))}
+            </div>
           </div>
         </div>
       </div>
