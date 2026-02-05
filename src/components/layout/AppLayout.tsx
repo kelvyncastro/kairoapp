@@ -10,16 +10,11 @@ import {
   CalendarCheck,
   Target,
   Flame,
-  Dumbbell,
-  UtensilsCrossed,
   Wallet,
-  BookOpen,
   Settings,
   ChevronDown,
   LogOut,
-  Calendar,
   CalendarClock,
-  Construction,
   MessageSquare,
   Menu,
   PanelLeftClose,
@@ -68,16 +63,8 @@ const bottomNavItems = [
   { path: "/metas", label: "Metas", icon: Target },
 ];
 
-const devNavItems = [
-  { path: "/agenda", label: "Agenda", icon: Calendar },
-  { path: "/treino", label: "Treino", icon: Dumbbell },
-  { path: "/dieta", label: "Dieta", icon: UtensilsCrossed },
-  { path: "/ebook", label: "Ebook", icon: BookOpen },
-];
-
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
-  const [devMenuOpen, setDevMenuOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { user, signOut } = useAuth();
