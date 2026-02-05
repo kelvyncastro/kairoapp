@@ -2,7 +2,7 @@ export type CheckSoundOptions = {
   volume?: number; // 0..1
 };
 
-// Calm, soothing chime - comfortable and relaxing.
+// Soft, satisfying click - gentle and pleasant.
 // Volume set to 15% for unobtrusive feedback.
 // Uses Web Audio API for instant playback.
 export function playCheckSound(options: CheckSoundOptions = {}): void {
@@ -25,34 +25,36 @@ export function playCheckSound(options: CheckSoundOptions = {}): void {
 
     const now = ctx.currentTime;
 
-    // Soft warm bell/chime - low frequency, gentle fade
-    const bell = ctx.createOscillator();
-    const bellGain = ctx.createGain();
-    bell.type = "sine";
-    bell.frequency.setValueAtTime(523, now); // C5 - pleasant middle tone
-    bellGain.gain.setValueAtTime(0.35, now);
-    bellGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
-    bell.connect(bellGain);
-    bellGain.connect(master);
-    bell.start(now);
-    bell.stop(now + 0.3);
+    // Soft "tock" - like a gentle wood tap
+    const tock = ctx.createOscillator();
+    const tockGain = ctx.createGain();
+    tock.type = "sine";
+    tock.frequency.setValueAtTime(800, now);
+    tock.frequency.exponentialRampToValueAtTime(300, now + 0.04);
+    tockGain.gain.setValueAtTime(0.5, now);
+    tockGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+    tock.connect(tockGain);
+    tockGain.connect(master);
+    tock.start(now);
+    tock.stop(now + 0.08);
 
-    // Gentle lower octave for warmth
-    const warmth = ctx.createOscillator();
-    const warmthGain = ctx.createGain();
-    warmth.type = "sine";
-    warmth.frequency.setValueAtTime(262, now); // C4 - one octave below
-    warmthGain.gain.setValueAtTime(0.15, now);
-    warmthGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
-    warmth.connect(warmthGain);
-    warmthGain.connect(master);
-    warmth.start(now);
-    warmth.stop(now + 0.25);
+    // Soft resonance tail - warmth after click
+    const tail = ctx.createOscillator();
+    const tailGain = ctx.createGain();
+    tail.type = "sine";
+    tail.frequency.setValueAtTime(440, now + 0.02); // A4
+    tailGain.gain.setValueAtTime(0.0001, now);
+    tailGain.gain.linearRampToValueAtTime(0.2, now + 0.03);
+    tailGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+    tail.connect(tailGain);
+    tailGain.connect(master);
+    tail.start(now);
+    tail.stop(now + 0.15);
 
     // Cleanup
     setTimeout(() => {
       ctx.close().catch(() => undefined);
-    }, 350);
+    }, 200);
   } catch {
     // best-effort; no-op
   }
