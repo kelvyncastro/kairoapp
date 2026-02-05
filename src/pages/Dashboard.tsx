@@ -106,27 +106,29 @@ export default function Dashboard() {
     const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
     const monthEnd = format(endOfMonth(new Date()), "yyyy-MM-dd");
 
-    const [
-      todayTasksRes,
-      totalTasksRes,
-      settingsRes,
-      consistencyRes,
-      goalsRes,
-      habitsRes,
-      habitLogsRes,
-      transactionsRes,
-      foldersRes,
-    ] = await Promise.all([
-      supabase.from("daily_tasks").select("*").eq("user_id", user.id).or(`date.eq.${today},due_date.eq.${today}`),
-      supabase.from("daily_tasks").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("completed", true),
-      supabase.from("user_settings").select("created_at").eq("user_id", user.id).maybeSingle(),
-      supabase.from("consistency_days").select("*").eq("user_id", user.id).order("date", { ascending: false }).limit(60),
-      supabase.from("goals").select("*").eq("user_id", user.id).eq("status", "ACTIVE"),
-      supabase.from("habits").select("*").eq("user_id", user.id).eq("active", true),
-      supabase.from("habit_logs").select("*, habits!inner(user_id)").eq("habits.user_id", user.id).eq("date", today),
-      supabase.from("finance_transactions").select("*").eq("user_id", user.id).gte("date", monthStart).lte("date", monthEnd),
-      supabase.from("task_folders").select("id, name, color").eq("user_id", user.id),
-    ]);
+  const [
+    todayTasksRes,
+    totalTasksRes,
+    settingsRes,
+    consistencyRes,
+    goalsRes,
+    habitsRes,
+    habitLogsRes,
+    transactionsRes,
+    foldersRes,
+    goalCategoriesRes,
+  ] = await Promise.all([
+    supabase.from("daily_tasks").select("*").eq("user_id", user.id).or(`date.eq.${today},due_date.eq.${today}`),
+    supabase.from("daily_tasks").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("completed", true),
+    supabase.from("user_settings").select("created_at").eq("user_id", user.id).maybeSingle(),
+    supabase.from("consistency_days").select("*").eq("user_id", user.id).order("date", { ascending: false }).limit(60),
+    supabase.from("goals").select("*").eq("user_id", user.id).eq("status", "ACTIVE"),
+    supabase.from("habits").select("*").eq("user_id", user.id).eq("active", true),
+    supabase.from("habit_logs").select("*, habits!inner(user_id)").eq("habits.user_id", user.id).eq("date", today),
+    supabase.from("finance_transactions").select("*").eq("user_id", user.id).gte("date", monthStart).lte("date", monthEnd),
+    supabase.from("task_folders").select("id, name, color").eq("user_id", user.id),
+    supabase.from("goal_categories").select("id, name, color").eq("user_id", user.id),
+  ]);
 
     const folders = foldersRes.data || [];
     const foldersMap = new Map(folders.map(f => [f.id, { name: f.name, color: f.color }]));
