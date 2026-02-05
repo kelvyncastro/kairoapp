@@ -125,8 +125,11 @@ export default function Dashboard() {
     supabase.from("goal_categories").select("id, name, color").eq("user_id", user.id),
   ]);
 
-    const folders = foldersRes.data || [];
-    const foldersMap = new Map(folders.map(f => [f.id, { name: f.name, color: f.color }]));
+  const folders = foldersRes.data || [];
+  const foldersMap = new Map(folders.map(f => [f.id, { name: f.name, color: f.color }]));
+
+  const goalCategories = goalCategoriesRes.data || [];
+  const categoriesMap = new Map(goalCategories.map(c => [c.id, { name: c.name, color: c.color }]));
 
     const todayTasks = todayTasksRes.data || [];
     const completed = todayTasks.filter((t) => t.completed).length;
