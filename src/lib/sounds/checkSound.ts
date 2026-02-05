@@ -2,7 +2,7 @@ export type CheckSoundOptions = {
   volume?: number; // 0..1
 };
 
-// Satisfying soft "pop" check sound - inspired by popular productivity apps.
+// Subtle, gentle "ping" check sound - soft and minimal.
 // Uses Web Audio API for instant playback.
 export function playCheckSound(options: CheckSoundOptions = {}): void {
   try {
@@ -19,54 +19,40 @@ export function playCheckSound(options: CheckSoundOptions = {}): void {
     }
 
     const master = ctx.createGain();
-    master.gain.value = Math.max(0, Math.min(1, options.volume ?? 0.5));
+    master.gain.value = Math.max(0, Math.min(1, options.volume ?? 0.25));
     master.connect(ctx.destination);
 
     const now = ctx.currentTime;
 
-    // Soft "pop" - low frequency thump
-    const pop = ctx.createOscillator();
-    const popGain = ctx.createGain();
-    pop.type = "sine";
-    pop.frequency.setValueAtTime(400, now);
-    pop.frequency.exponentialRampToValueAtTime(150, now + 0.08);
-    popGain.gain.setValueAtTime(0.5, now);
-    popGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1);
-    pop.connect(popGain);
-    popGain.connect(master);
-    pop.start(now);
-    pop.stop(now + 0.12);
+    // Simple gentle "ping" - high pitched, short, subtle
+    const ping = ctx.createOscillator();
+    const pingGain = ctx.createGain();
+    ping.type = "sine";
+    ping.frequency.setValueAtTime(880, now); // A5 note
+    ping.frequency.exponentialRampToValueAtTime(1100, now + 0.06);
+    pingGain.gain.setValueAtTime(0.3, now);
+    pingGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+    ping.connect(pingGain);
+    pingGain.connect(master);
+    ping.start(now);
+    ping.stop(now + 0.15);
 
-    // Bright "tick" overlay - gives it that satisfying click
-    const tick = ctx.createOscillator();
-    const tickGain = ctx.createGain();
-    tick.type = "triangle";
-    tick.frequency.setValueAtTime(1800, now);
-    tick.frequency.exponentialRampToValueAtTime(1200, now + 0.03);
-    tickGain.gain.setValueAtTime(0.25, now);
-    tickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
-    tick.connect(tickGain);
-    tickGain.connect(master);
-    tick.start(now);
-    tick.stop(now + 0.06);
-
-    // Gentle harmonic tail - warmth
-    const tail = ctx.createOscillator();
-    const tailGain = ctx.createGain();
-    tail.type = "sine";
-    tail.frequency.setValueAtTime(600, now + 0.02);
-    tailGain.gain.setValueAtTime(0.0001, now);
-    tailGain.gain.linearRampToValueAtTime(0.12, now + 0.03);
-    tailGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
-    tail.connect(tailGain);
-    tailGain.connect(master);
-    tail.start(now);
-    tail.stop(now + 0.18);
+    // Soft harmonic - adds warmth
+    const harmonic = ctx.createOscillator();
+    const harmonicGain = ctx.createGain();
+    harmonic.type = "sine";
+    harmonic.frequency.setValueAtTime(1320, now); // E6 - perfect fifth above
+    harmonicGain.gain.setValueAtTime(0.1, now);
+    harmonicGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+    harmonic.connect(harmonicGain);
+    harmonicGain.connect(master);
+    harmonic.start(now);
+    harmonic.stop(now + 0.1);
 
     // Cleanup
     setTimeout(() => {
       ctx.close().catch(() => undefined);
-    }, 250);
+    }, 200);
   } catch {
     // best-effort; no-op
   }
