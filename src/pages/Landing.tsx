@@ -482,9 +482,14 @@ export default function Landing() {
               whileHover={{ scale: 1.02 }}
               className="relative lg:scale-125 lg:translate-x-4"
             >
-              <img 
-                src={mockupIpad} 
-                alt="Kairo no iPad" 
+              <img
+                src={mockupIpad}
+                alt="Kairo no iPad"
+                width={1500}
+                height={1125}
+                loading="lazy"
+                decoding="async"
+                fetchPriority="low"
                 className="relative rounded-xl w-full"
               />
             </motion.div>
