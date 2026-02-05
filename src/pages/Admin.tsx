@@ -200,7 +200,7 @@
            <CardHeader className="pb-2">
              <CardDescription>Assinaturas Ativas</CardDescription>
              <CardTitle className="text-3xl flex items-center gap-2">
-               <Crown className="h-6 w-6 text-yellow-500" />
+                <Crown className="h-6 w-6 text-amber-500" />
                {stats.active}
              </CardTitle>
            </CardHeader>
