@@ -51,7 +51,7 @@ interface DashboardStats {
   financeBalance: number;
   financeIncome: number;
   financeExpense: number;
-  activeGoals: Array<{ id: string; title: string; current: number; target: number; unit: string; category: string }>;
+  activeGoals: Array<{ id: string; title: string; current: number; target: number; unit: string; categoryName: string; categoryColor: string }>;
 }
 
 const DEFAULT_CATEGORY_COLOR = "#8b5cf6";
