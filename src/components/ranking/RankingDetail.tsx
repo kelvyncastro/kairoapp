@@ -29,6 +29,7 @@ import { format, addDays, subDays, isWithinInterval, parseISO, isSameDay } from 
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSound } from "@/contexts/SoundContext";
 
 interface RankingDetailProps {
   ranking: RankingWithDetails;
@@ -37,6 +38,7 @@ interface RankingDetailProps {
 
 export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetailProps) {
   const { user } = useAuth();
+  const { playCheck } = useSound();
   const { 
     toggleGoalCompletion, 
     getGoalLogs, 
@@ -533,7 +535,13 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
                         {/* Checkbox */}
                         <Checkbox
                           checked={completed}
-                          onCheckedChange={(checked) => handleToggleGoal(goal.id, !!checked)}
+                          onCheckedChange={(checked) => {
+                            // Play check sound when completing
+                            if (checked && !completed) {
+                              playCheck();
+                            }
+                            handleToggleGoal(goal.id, !!checked);
+                          }}
                           disabled={!canEditGoals || loading}
                           className={cn(
                             "h-6 w-6 rounded-lg border-2 transition-all duration-300",

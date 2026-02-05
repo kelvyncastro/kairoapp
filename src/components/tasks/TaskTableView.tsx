@@ -49,6 +49,7 @@ import { TaskProgressIndicator } from './TaskProgressIndicator';
 import { TaskTimer } from './TaskTimer';
 import { StatusSelectWithCreate } from './StatusSelectWithCreate';
 import { TaskSchedulePopoverContent } from './TaskSchedulePopoverContent';
+import { useSound } from '@/contexts/SoundContext';
 
 // Column configuration
 interface ColumnConfig {
@@ -879,6 +880,8 @@ function TaskTable({
   onUpdateStatus,
   onDeleteStatus,
 }: TaskTableProps) {
+  const { playCheck } = useSound();
+
   // Sort icon component
   const SortIcon = ({ columnId }: { columnId: string }) => {
     if (sortState.column !== columnId) {
@@ -1068,7 +1071,13 @@ function TaskTable({
           <div className="flex items-center justify-center">
             <Checkbox
               checked={task.completed}
-              onCheckedChange={() => onToggleComplete(task)}
+              onCheckedChange={() => {
+                // Play check sound when completing (not when uncompleting)
+                if (!task.completed) {
+                  playCheck();
+                }
+                onToggleComplete(task);
+              }}
             />
           </div>
 
