@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Eye, EyeOff, Sparkles, Clock, Target, Flame } from "lucide-react";
+ import { Loader2, Eye, EyeOff, Sparkles, Clock, Target, Flame, Phone } from "lucide-react";
 import kairoLogo from "@/assets/kairo-logo.png";
+ import { supabase } from "@/integrations/supabase/client";
 
 // Floating particle component
 function FloatingParticle({ delay, duration, size, startX, startY }: {
@@ -104,6 +105,7 @@ export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
@@ -135,6 +137,14 @@ export default function Auth() {
             variant: "destructive",
           });
         } else {
+          // Save phone number to user profile after signup
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await supabase.from('user_profiles').upsert({
+              user_id: user.id,
+              phone_number: phoneNumber,
+            }, { onConflict: 'user_id' });
+          }
           toast({
             title: "Conta criada",
             description: "Bem-vindo ao Kairo!",
@@ -328,6 +338,24 @@ export default function Auth() {
                     </motion.button>
                   </div>
                 </div>
+
+                {!isLogin && (
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-sm font-medium">Telefone</Label>
+                    <div className="relative">
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="(11) 99999-9999"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        required
+                        className="bg-background/50 border-border/50 h-11 rounded-xl pl-10 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                      />
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </div>
+                )}
 
                 <motion.div
                   whileHover={{ scale: 1.02 }}
