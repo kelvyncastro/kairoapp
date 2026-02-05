@@ -17,6 +17,7 @@ interface RankingWinnerCelebrationProps {
 // Function to play celebration sound
 async function playCelebrationSound() {
   try {
+    // Start audio generation immediately - don't await
     const response = await fetch(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-sfx`,
       {
@@ -27,8 +28,8 @@ async function playCelebrationSound() {
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
         body: JSON.stringify({ 
-          prompt: "Epic orchestral victory music with magical sparkles and triumphant horns, uplifting celebration melody",
-          duration: 5
+          prompt: "Crowd cheering celebration with party horns, confetti sounds and happy applause, festive victory moment",
+          duration: 4
         }),
       }
     );
@@ -65,13 +66,13 @@ export function RankingWinnerCelebration({
 
   useEffect(() => {
     if (winner) {
-      setIsVisible(true);
-      
-      // Play celebration sound (only once)
+      // Play celebration sound IMMEDIATELY when animation starts (fire and forget)
       if (!soundPlayedRef.current) {
         soundPlayedRef.current = true;
         playCelebrationSound();
       }
+      
+      setIsVisible(true);
       
       // Delay podium animation
       setTimeout(() => setShowPodium(true), 800);
