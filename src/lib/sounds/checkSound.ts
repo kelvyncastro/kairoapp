@@ -2,8 +2,8 @@ export type CheckSoundOptions = {
   volume?: number; // 0..1
 };
 
-// Gentle "blip" - soft digital confirmation.
-// Volume set to 15% for unobtrusive feedback.
+// Ultra-soft "pop" - barely audible confirmation.
+// Volume set to 8% for minimal, gentle feedback.
 // Uses Web Audio API for instant playback.
 export function playCheckSound(options: CheckSoundOptions = {}): void {
   try {
@@ -20,40 +20,28 @@ export function playCheckSound(options: CheckSoundOptions = {}): void {
     }
 
     const master = ctx.createGain();
-    master.gain.value = Math.max(0, Math.min(1, options.volume ?? 0.15));
+    master.gain.value = Math.max(0, Math.min(1, options.volume ?? 0.08));
     master.connect(ctx.destination);
 
     const now = ctx.currentTime;
 
-    // Soft ascending blip - gentle two-tone
+    // Ultra-soft single pop - gentle and minimal
     const note1 = ctx.createOscillator();
     const note1Gain = ctx.createGain();
     note1.type = "sine";
-    note1.frequency.setValueAtTime(587, now); // D5
-    note1Gain.gain.setValueAtTime(0.3, now);
-    note1Gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.07);
+    note1.frequency.setValueAtTime(440, now); // A4 - softer middle tone
+    note1.frequency.exponentialRampToValueAtTime(380, now + 0.08); // gentle pitch drop
+    note1Gain.gain.setValueAtTime(0.2, now);
+    note1Gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1);
     note1.connect(note1Gain);
     note1Gain.connect(master);
     note1.start(now);
-    note1.stop(now + 0.1);
-
-    // Second note - slightly higher, delayed
-    const note2 = ctx.createOscillator();
-    const note2Gain = ctx.createGain();
-    note2.type = "sine";
-    note2.frequency.setValueAtTime(784, now + 0.06); // G5
-    note2Gain.gain.setValueAtTime(0.0001, now);
-    note2Gain.gain.linearRampToValueAtTime(0.25, now + 0.06);
-    note2Gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
-    note2.connect(note2Gain);
-    note2Gain.connect(master);
-    note2.start(now);
-    note2.stop(now + 0.18);
+    note1.stop(now + 0.15);
 
     // Cleanup
     setTimeout(() => {
       ctx.close().catch(() => undefined);
-    }, 200);
+    }, 180);
   } catch {
     // best-effort; no-op
   }
