@@ -198,6 +198,21 @@ export function useCalendarBlocks({ view, currentDate }: UseCalendarBlocksOption
       if (recurrence_rule !== undefined) {
         dbUpdates.recurrence_rule = recurrence_rule as unknown as Record<string, unknown>;
       }
+     
+     // If color is being updated and this block is part of a recurring series,
+     // update color on all related blocks
+     if (updates.color) {
+       const block = blocks.find(b => b.id === id);
+       if (block) {
+         const parentId = block.recurrence_parent_id || id;
+         
+         // Update parent and all children with same color
+         await supabase
+           .from('calendar_blocks')
+           .update({ color: updates.color })
+           .or(`id.eq.${parentId},recurrence_parent_id.eq.${parentId}`);
+       }
+     }
       
       const { error } = await supabase
         .from('calendar_blocks')
