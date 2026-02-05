@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { RecurrenceDeleteDialog, RecurrenceDeleteScope } from './RecurrenceDeleteDialog';
 import {
   Dialog,
   DialogContent,
@@ -75,6 +76,10 @@ const COLORS = [
 
 const DAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
+// Quick preset buttons for recurrence days
+const WEEKDAY_PRESET = [1, 2, 3, 4, 5]; // Mon-Fri
+const WEEKEND_PRESET = [0, 6]; // Sun, Sat
+
 export function CalendarBlockModal({
   open,
   onClose,
@@ -102,6 +107,7 @@ export function CalendarBlockModal({
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [recurrenceInterval, setRecurrenceInterval] = useState(1);
   const [saving, setSaving] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   // Initialize form
   useEffect(() => {
@@ -198,10 +204,21 @@ export function CalendarBlockModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [open, handleSave]);
 
-  const handleDelete = async () => {
+  const handleDeleteClick = () => {
     if (!block || !onDelete) return;
     const hasRecurrence = Boolean(block.recurrence_parent_id) || block.recurrence_type !== 'none';
-    const success = await onDelete(block.id, hasRecurrence);
+    
+    if (hasRecurrence) {
+      setShowDeleteDialog(true);
+    } else {
+      // Non-recurring block, delete directly
+      handleConfirmDelete('this');
+    }
+  };
+
+  const handleConfirmDelete = async (scope: RecurrenceDeleteScope) => {
+    if (!block || !onDelete) return;
+    const success = await onDelete(block.id, scope === 'all');
     if (success) {
       onClose();
     }
@@ -211,6 +228,14 @@ export function CalendarBlockModal({
     if (!block || !onComplete) return;
     await onComplete(block.id);
     onClose();
+  };
+
+  const selectWeekdays = () => {
+    setSelectedDays(WEEKDAY_PRESET);
+  };
+
+  const selectWeekends = () => {
+    setSelectedDays(WEEKEND_PRESET);
   };
 
   const toggleDay = (day: number) => {
@@ -399,6 +424,26 @@ export function CalendarBlockModal({
                 {(recurrenceType === 'weekly' || recurrenceType === 'custom') && (
                   <div>
                     <span className="text-sm text-muted-foreground mb-2 block">Dias da semana:</span>
+                    <div className="flex gap-2 mb-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                        onClick={selectWeekdays}
+                      >
+                        Dias úteis
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                        onClick={selectWeekends}
+                      >
+                        Fins de semana
+                      </Button>
+                    </div>
                     <div className="flex gap-1">
                       {DAY_LABELS.map((label, i) => (
                         <button
@@ -468,7 +513,7 @@ export function CalendarBlockModal({
                 </Button>
               )}
               {onDelete && (
-                <Button variant="destructive" size="sm" onClick={handleDelete}>
+                <Button variant="destructive" size="sm" onClick={handleDeleteClick}>
                   <Trash2 className="h-4 w-4 mr-1" />
                   Excluir
                 </Button>
@@ -483,6 +528,12 @@ export function CalendarBlockModal({
           </div>
         </DialogFooter>
       </DialogContent>
+
+      <RecurrenceDeleteDialog
+        open={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={handleConfirmDelete}
+      />
     </Dialog>
   );
 }
