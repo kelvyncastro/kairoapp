@@ -16,13 +16,9 @@ import Rotina from "./pages/Rotina";
 import Habitos from "./pages/Habitos";
 import Metas from "./pages/Metas";
 import Consistencia from "./pages/Consistencia";
-import Treino from "./pages/Treino";
-import Dieta from "./pages/Dieta";
 import Financas from "./pages/Financas";
 import ChatFinanceiro from "./pages/ChatFinanceiro";
-import Ebook from "./pages/Ebook";
 import Configuracoes from "./pages/Configuracoes";
-import Agenda from "./pages/Agenda";
 import Calendar2 from "./pages/Calendar2";
 import Ranking from "./pages/Ranking";
 import Admin from "./pages/Admin";
@@ -71,12 +67,8 @@ const App = () => (
                 <Route path="/habitos" element={<Habitos />} />
                 <Route path="/metas" element={<Metas />} />
                 <Route path="/consistencia" element={<Consistencia />} />
-                <Route path="/treino" element={<AdminRoute><Treino /></AdminRoute>} />
-                <Route path="/dieta" element={<AdminRoute><Dieta /></AdminRoute>} />
                 <Route path="/financas" element={<Financas />} />
                 <Route path="/chat-financeiro" element={<ChatFinanceiro />} />
-                <Route path="/ebook" element={<AdminRoute><Ebook /></AdminRoute>} />
-                <Route path="/agenda" element={<Agenda />} />
                 <Route path="/calendario" element={<Calendar2 />} />
                 <Route path="/ranking" element={<Ranking />} />
                 <Route path="/configuracoes" element={<Configuracoes />} />
