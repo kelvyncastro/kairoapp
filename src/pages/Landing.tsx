@@ -657,10 +657,10 @@ export default function Landing() {
               <div className="relative z-10">
                 <div className="text-sm font-medium text-muted-foreground mb-2">Anual</div>
                 <div className="flex items-baseline gap-1 mb-1">
-                  <span className="text-4xl font-bold">R$397,90</span>
-                  <span className="text-muted-foreground">/ano</span>
+                   <span className="text-4xl font-bold">R$197,90</span>
+                   <span className="text-muted-foreground">/ano</span>
                 </div>
-                <p className="text-success text-sm font-medium mb-4">Economia de R$81 por ano</p>
+                <p className="text-success text-sm font-medium mb-4">Economia de R$160,90 por ano</p>
                 <p className="text-muted-foreground mb-6">Melhor custo-benefício para você</p>
                 <ul className="space-y-3 mb-8">
                   {["Tudo do plano mensal", "2 meses grátis", "Prioridade em novos recursos", "Suporte VIP"].map((item, i) => (
