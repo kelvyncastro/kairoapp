@@ -248,7 +248,7 @@ export default function Landing() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <img src={kairoLogo} alt="Kairo" className="h-8 w-8 rounded-lg" />
+              <img src={kairoLogo} alt="Kairo" width={32} height={32} className="h-8 w-8 rounded-lg" />
               <span className="text-xl font-bold">Kairo</span>
             </motion.div>
             <motion.div 
@@ -482,9 +482,14 @@ export default function Landing() {
               whileHover={{ scale: 1.02 }}
               className="relative lg:scale-125 lg:translate-x-4"
             >
-              <img 
-                src={mockupIpad} 
-                alt="Kairo no iPad" 
+              <img
+                src={mockupIpad}
+                alt="Kairo no iPad"
+                width={1500}
+                height={1125}
+                loading="lazy"
+                decoding="async"
+                fetchPriority="low"
                 className="relative rounded-xl w-full"
               />
             </motion.div>
