@@ -11,10 +11,10 @@ import AdminRoute from "@/components/AdminRoute";
 import AppLayout from "@/components/layout/AppLayout";
 import { WelcomePanel } from "@/components/onboarding/WelcomePanel";
 import Landing from "./pages/Landing";
-import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 // Lazy load routes that are not needed on initial page load
+const Auth = lazy(() => import("./pages/Auth"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Rotina = lazy(() => import("./pages/Rotina"));
 const Habitos = lazy(() => import("./pages/Habitos"));
@@ -66,7 +66,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Landing />} />
-              <Route path="/auth" element={<Auth />} />
+              <Route path="/auth" element={<Suspense fallback={<PageLoader />}><Auth /></Suspense>} />
               <Route
                 element={
                   <ProtectedRoute>
