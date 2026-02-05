@@ -51,15 +51,10 @@ interface DashboardStats {
   financeBalance: number;
   financeIncome: number;
   financeExpense: number;
-  activeGoals: Array<{ id: string; title: string; current: number; target: number; unit: string; category: string }>;
+  activeGoals: Array<{ id: string; title: string; current: number; target: number; unit: string; categoryName: string; categoryColor: string }>;
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
-  FINANCIAL: "#22c55e",
-  FITNESS: "#f59e0b",
-  HEALTH: "#ef4444",
-  PERSONAL: "#8b5cf6",
-};
+const DEFAULT_CATEGORY_COLOR = "#8b5cf6";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -106,30 +101,35 @@ export default function Dashboard() {
     const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
     const monthEnd = format(endOfMonth(new Date()), "yyyy-MM-dd");
 
-    const [
-      todayTasksRes,
-      totalTasksRes,
-      settingsRes,
-      consistencyRes,
-      goalsRes,
-      habitsRes,
-      habitLogsRes,
-      transactionsRes,
-      foldersRes,
-    ] = await Promise.all([
-      supabase.from("daily_tasks").select("*").eq("user_id", user.id).or(`date.eq.${today},due_date.eq.${today}`),
-      supabase.from("daily_tasks").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("completed", true),
-      supabase.from("user_settings").select("created_at").eq("user_id", user.id).maybeSingle(),
-      supabase.from("consistency_days").select("*").eq("user_id", user.id).order("date", { ascending: false }).limit(60),
-      supabase.from("goals").select("*").eq("user_id", user.id).eq("status", "ACTIVE"),
-      supabase.from("habits").select("*").eq("user_id", user.id).eq("active", true),
-      supabase.from("habit_logs").select("*, habits!inner(user_id)").eq("habits.user_id", user.id).eq("date", today),
-      supabase.from("finance_transactions").select("*").eq("user_id", user.id).gte("date", monthStart).lte("date", monthEnd),
-      supabase.from("task_folders").select("id, name, color").eq("user_id", user.id),
-    ]);
+  const [
+    todayTasksRes,
+    totalTasksRes,
+    settingsRes,
+    consistencyRes,
+    goalsRes,
+    habitsRes,
+    habitLogsRes,
+    transactionsRes,
+    foldersRes,
+    goalCategoriesRes,
+  ] = await Promise.all([
+    supabase.from("daily_tasks").select("*").eq("user_id", user.id).or(`date.eq.${today},due_date.eq.${today}`),
+    supabase.from("daily_tasks").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("completed", true),
+    supabase.from("user_settings").select("created_at").eq("user_id", user.id).maybeSingle(),
+    supabase.from("consistency_days").select("*").eq("user_id", user.id).order("date", { ascending: false }).limit(60),
+    supabase.from("goals").select("*").eq("user_id", user.id).eq("status", "ACTIVE"),
+    supabase.from("habits").select("*").eq("user_id", user.id).eq("active", true),
+    supabase.from("habit_logs").select("*, habits!inner(user_id)").eq("habits.user_id", user.id).eq("date", today),
+    supabase.from("finance_transactions").select("*").eq("user_id", user.id).gte("date", monthStart).lte("date", monthEnd),
+    supabase.from("task_folders").select("id, name, color").eq("user_id", user.id),
+    supabase.from("goal_categories").select("id, name, color").eq("user_id", user.id),
+  ]);
 
-    const folders = foldersRes.data || [];
-    const foldersMap = new Map(folders.map(f => [f.id, { name: f.name, color: f.color }]));
+  const folders = foldersRes.data || [];
+  const foldersMap = new Map(folders.map(f => [f.id, { name: f.name, color: f.color }]));
+
+  const goalCategories = goalCategoriesRes.data || [];
+  const categoriesMap = new Map(goalCategories.map(c => [c.id, { name: c.name, color: c.color }]));
 
     const todayTasks = todayTasksRes.data || [];
     const completed = todayTasks.filter((t) => t.completed).length;
@@ -192,16 +192,20 @@ export default function Dashboard() {
       last30Days.push({ date, isActive: dayData?.is_active || false });
     }
 
-    const goals = goalsRes.data || [];
-    const goalsCompleted = goals.filter((g) => g.current_value >= g.target_value).length;
-    const activeGoals = goals.slice(0, 3).map((g) => ({
+  const goals = goalsRes.data || [];
+  const goalsCompleted = goals.filter((g) => g.current_value >= g.target_value).length;
+  const activeGoals = goals.slice(0, 3).map((g) => {
+    const categoryData = g.category_id ? categoriesMap.get(g.category_id) : null;
+    return {
       id: g.id,
       title: g.title,
       current: g.current_value,
       target: g.target_value,
       unit: g.unit_label || "",
-      category: g.category || "PERSONAL",
-    }));
+      categoryName: categoryData?.name || "Sem categoria",
+      categoryColor: categoryData?.color || DEFAULT_CATEGORY_COLOR,
+    };
+  });
 
     const habits = habitsRes.data || [];
     const habitLogs = habitLogsRes.data || [];
@@ -392,17 +396,14 @@ export default function Dashboard() {
                     <div className="h-full max-h-[160px] overflow-y-auto pr-1 space-y-4">
                       {stats.activeGoals.map((goal) => {
                         const progress = Math.min(100, Math.round((goal.current / goal.target) * 100));
-                        const color = CATEGORY_COLORS[goal.category] || CATEGORY_COLORS.PERSONAL;
                         return (
                           <div key={goal.id} className="space-y-2">
                             <div className="flex items-center justify-between">
                               <span 
                                 className="text-xs font-medium px-2 py-0.5 rounded"
-                                style={{ backgroundColor: `${color}20`, color }}
+                                style={{ backgroundColor: `${goal.categoryColor}20`, color: goal.categoryColor }}
                               >
-                                {goal.category === "FINANCIAL" ? "Financeira" : 
-                                 goal.category === "FITNESS" ? "Fitness" : 
-                                 goal.category === "HEALTH" ? "Saúde" : "Pessoal"}
+                                {goal.categoryName}
                               </span>
                               <span className="text-xs text-muted-foreground">{progress}%</span>
                             </div>
@@ -410,7 +411,7 @@ export default function Dashboard() {
                             <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
                               <div 
                                 className="h-full rounded-full transition-all"
-                                style={{ width: `${progress}%`, backgroundColor: color }}
+                                style={{ width: `${progress}%`, backgroundColor: goal.categoryColor }}
                               />
                             </div>
                             <p className="text-xs text-muted-foreground">
