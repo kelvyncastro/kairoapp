@@ -551,10 +551,11 @@ export default function Landing() {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5" />
               <div className="relative z-10">
                 <div className="text-sm font-medium text-muted-foreground mb-2">Mensal</div>
-                <div className="flex items-baseline gap-1 mb-4">
-                  <span className="text-4xl font-bold">R$39,90</span>
+                <div className="flex items-baseline gap-1 mb-1">
+                  <span className="text-4xl font-bold">R$29,90</span>
                   <span className="text-muted-foreground">/mês</span>
                 </div>
+                <p className="text-muted-foreground line-through text-sm mb-4">R$39,90/mês</p>
                 <p className="text-muted-foreground mb-6">Pague mês a mês, cancele quando quiser</p>
                 <ul className="space-y-3 mb-8">
                   {["Acesso total a todas as funcionalidades", "Sincronização em tempo real", "Suporte prioritário", "Atualizações contínuas"].map((item, i) => (
@@ -570,11 +571,11 @@ export default function Landing() {
                     </motion.li>
                   ))}
                 </ul>
-                <Link to="/auth" className="block">
-                  <Button variant="outline" className="w-full h-12 backdrop-blur-sm bg-background/50">
-                    Começar Agora
-                  </Button>
-                </Link>
+                <a href="https://pay.kirvano.com/cb78dfd0-c8e0-40bb-a16b-951ba74a0a02" target="_blank" rel="noopener noreferrer" className="block">
+                   <Button variant="outline" className="w-full h-12 backdrop-blur-sm bg-background/50">
+                     Começar Agora
+                   </Button>
+                 </a>
               </div>
             </motion.div>
 
@@ -598,13 +599,14 @@ export default function Landing() {
               <div className="relative z-10">
                 <div className="text-sm font-medium text-muted-foreground mb-2">Anual</div>
                 <div className="flex items-baseline gap-1 mb-1">
-                  <span className="text-4xl font-bold">R$397,90</span>
+                  <span className="text-4xl font-bold">R$197,90</span>
                   <span className="text-muted-foreground">/ano</span>
                 </div>
-                <p className="text-success text-sm font-medium mb-4">Economia de R$81 por ano</p>
-                <p className="text-muted-foreground mb-6">Melhor custo-benefício para você</p>
+                <p className="text-muted-foreground line-through text-sm mb-2">R$397,90/ano</p>
+                <p className="text-success text-sm font-medium mb-4">Economize R$160,90 comparado ao plano mensal</p>
+                <p className="text-muted-foreground mb-6">Equivale a apenas R$16,49/mês — mais de 5 meses grátis!</p>
                 <ul className="space-y-3 mb-8">
-                  {["Tudo do plano mensal", "2 meses grátis", "Prioridade em novos recursos", "Suporte VIP"].map((item, i) => (
+                  {["Tudo do plano mensal", "45% de desconto", "Prioridade em novos recursos", "Suporte VIP"].map((item, i) => (
                     <motion.li 
                       key={i} 
                       className="flex items-center gap-3"
@@ -617,14 +619,14 @@ export default function Landing() {
                     </motion.li>
                   ))}
                 </ul>
-                <Link to="/auth" className="block">
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button className="w-full h-12 bg-foreground text-background hover:bg-foreground/90">
-                      Começar Agora
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </motion.div>
-                </Link>
+                <a href="https://pay.kirvano.com/44bf7ce3-3b3b-442b-9983-9f612db21135" target="_blank" rel="noopener noreferrer" className="block">
+                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                     <Button className="w-full h-12 bg-foreground text-background hover:bg-foreground/90">
+                       Começar Agora
+                       <ArrowRight className="ml-2 h-4 w-4" />
+                     </Button>
+                   </motion.div>
+                 </a>
               </div>
             </motion.div>
           </div>
