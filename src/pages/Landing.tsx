@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
-import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
-import { useState, useEffect, useMemo } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { 
   CheckCircle2, 
   Target, 
@@ -17,7 +16,6 @@ import {
 import { Button } from "@/components/ui/button";
 import kairoLogo from "@/assets/kairo-logo.png";
 import mockupIpad from "@/assets/mockup-ipad.png";
-import { AppScreenshotCarousel } from "@/components/landing/AppScreenshotCarousel";
 
 // Floating particle component with scroll-based movement
 function FloatingParticle({ delay, duration, size, startX, startY }: {
@@ -158,34 +156,9 @@ const particlesData = Array.from({ length: 30 }, (_, i) => ({
 }));
 
 export default function Landing() {
-  const prefersReducedMotion = useReducedMotion();
-  const [isClient, setIsClient] = useState(false);
-  
-  // Defer scroll animations to avoid forced reflow on initial paint
-  useEffect(() => {
-    // Use requestIdleCallback if available, otherwise setTimeout
-    const deferAnimation = window.requestIdleCallback || ((cb: () => void) => setTimeout(cb, 1));
-    const handle = deferAnimation(() => setIsClient(true));
-    return () => {
-      if (window.cancelIdleCallback) {
-        window.cancelIdleCallback(handle as number);
-      } else {
-        clearTimeout(handle as number);
-      }
-    };
-  }, []);
-
   const { scrollY } = useScroll();
-  const backgroundY = useTransform(scrollY, [0, 2000], [0, prefersReducedMotion ? 0 : -200]);
-  const gridY = useTransform(scrollY, [0, 2000], [0, prefersReducedMotion ? 0 : 100]);
-  
-  // Memoize particles to avoid recreating during scroll
-  const particles = useMemo(() => {
-    if (!isClient || prefersReducedMotion) return null;
-    return particlesData.map((p) => (
-      <FloatingParticle key={p.id} {...p} />
-    ));
-  }, [isClient, prefersReducedMotion]);
+  const backgroundY = useTransform(scrollY, [0, 2000], [0, -200]);
+  const gridY = useTransform(scrollY, [0, 2000], [0, 100]);
   
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
@@ -217,7 +190,9 @@ export default function Landing() {
         <GlowingOrb x={85} y={20} size={350} delay={9} scrollY={scrollY} />
         
         {/* Floating particles */}
-        {particles}
+        {particlesData.map((p) => (
+          <FloatingParticle key={p.id} {...p} />
+        ))}
         
         {/* Subtle grid overlay with parallax */}
         <motion.div 
@@ -249,7 +224,7 @@ export default function Landing() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <img src={kairoLogo} alt="Kairo" width={32} height={32} className="h-8 w-8 rounded-lg" />
+              <img src={kairoLogo} alt="Kairo" className="h-8 w-8 rounded-lg" />
               <span className="text-xl font-bold">Kairo</span>
             </motion.div>
             <motion.div 
@@ -357,35 +332,6 @@ export default function Landing() {
                 </motion.div>
               </a>
             </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* App Screenshots Carousel Section */}
-      <section id="mockups" className="relative z-10 py-24 px-4 sm:px-6 lg:px-8 bg-secondary/10 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Conheça o aplicativo
-            </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Navegue pelas telas e descubra todas as funcionalidades do Kairo
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <AppScreenshotCarousel />
           </motion.div>
         </div>
       </section>
@@ -512,14 +458,9 @@ export default function Landing() {
               whileHover={{ scale: 1.02 }}
               className="relative lg:scale-125 lg:translate-x-4"
             >
-              <img
-                src={mockupIpad}
-                alt="Kairo no iPad"
-                width={1500}
-                height={1125}
-                loading="lazy"
-                decoding="async"
-                fetchPriority="low"
+              <img 
+                src={mockupIpad} 
+                alt="Kairo no iPad" 
                 className="relative rounded-xl w-full"
               />
             </motion.div>
@@ -611,8 +552,8 @@ export default function Landing() {
               <div className="relative z-10">
                 <div className="text-sm font-medium text-muted-foreground mb-2">Mensal</div>
                 <div className="flex items-baseline gap-1 mb-4">
-                   <span className="text-4xl font-bold">R$29,90</span>
-                   <span className="text-muted-foreground">/mês</span>
+                  <span className="text-4xl font-bold">R$39,90</span>
+                  <span className="text-muted-foreground">/mês</span>
                 </div>
                 <p className="text-muted-foreground mb-6">Pague mês a mês, cancele quando quiser</p>
                 <ul className="space-y-3 mb-8">
@@ -629,11 +570,11 @@ export default function Landing() {
                     </motion.li>
                   ))}
                 </ul>
-                <a href="https://pay.kirvano.com/cb78dfd0-c8e0-40bb-a16b-951ba74a0a02" target="_blank" rel="noopener noreferrer" className="block">
+                <Link to="/auth" className="block">
                   <Button variant="outline" className="w-full h-12 backdrop-blur-sm bg-background/50">
                     Começar Agora
                   </Button>
-                </a>
+                </Link>
               </div>
             </motion.div>
 
@@ -657,10 +598,10 @@ export default function Landing() {
               <div className="relative z-10">
                 <div className="text-sm font-medium text-muted-foreground mb-2">Anual</div>
                 <div className="flex items-baseline gap-1 mb-1">
-                   <span className="text-4xl font-bold">R$197,90</span>
-                   <span className="text-muted-foreground">/ano</span>
+                  <span className="text-4xl font-bold">R$397,90</span>
+                  <span className="text-muted-foreground">/ano</span>
                 </div>
-                <p className="text-success text-sm font-medium mb-4">Economia de R$160,90 por ano</p>
+                <p className="text-success text-sm font-medium mb-4">Economia de R$81 por ano</p>
                 <p className="text-muted-foreground mb-6">Melhor custo-benefício para você</p>
                 <ul className="space-y-3 mb-8">
                   {["Tudo do plano mensal", "2 meses grátis", "Prioridade em novos recursos", "Suporte VIP"].map((item, i) => (
@@ -676,14 +617,14 @@ export default function Landing() {
                     </motion.li>
                   ))}
                 </ul>
-                <a href="https://pay.kirvano.com/44bf7ce3-3b3b-442b-9983-9f612db21135" target="_blank" rel="noopener noreferrer" className="block">
+                <Link to="/auth" className="block">
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button className="w-full h-12 bg-foreground text-background hover:bg-foreground/90">
                       Começar Agora
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </motion.div>
-                </a>
+                </Link>
               </div>
             </motion.div>
           </div>

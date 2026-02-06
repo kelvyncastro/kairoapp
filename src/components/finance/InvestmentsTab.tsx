@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
-import { format, startOfMonth, endOfMonth, subMonths, eachMonthOfInterval } from "date-fns";
+import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { format, parse, subMonths, startOfMonth, endOfMonth, eachMonthOfInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { TrendingUp, TrendingDown, Wallet, Edit2, Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { TrendingUp, TrendingDown, Edit2, Trash2, PiggyBank, ChartLine } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Sector {
   id: string;
@@ -25,114 +25,105 @@ interface Transaction {
 }
 
 interface InvestmentsTabProps {
-  sectors: Sector[];
   transactions: Transaction[];
-  allTransactions: Transaction[]; // All transactions across months for chart
+  sectors: Sector[];
+  allTransactions: Transaction[]; // All transactions for evolution chart
   onEditTransaction: (transaction: Transaction) => void;
   onDeleteTransaction: (id: string) => void;
-  currentMonth: Date;
 }
 
 export function InvestmentsTab({
-  sectors,
   transactions,
+  sectors,
   allTransactions,
   onEditTransaction,
   onDeleteTransaction,
-  currentMonth,
 }: InvestmentsTabProps) {
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const isMobile = useIsMobile();
 
-  // Find the investments sector
-  const investmentsSector = useMemo(() => {
-    return sectors.find(
-      (s) => s.name.toLowerCase().includes("investimento") || s.name.toLowerCase().includes("investment")
-    );
+  // Find the "Investimentos" sector
+  const investmentSector = useMemo(() => {
+    return sectors.find(s => s.name.toLowerCase().includes("investimento"));
   }, [sectors]);
 
-  // Filter transactions for investments sector (current month)
+  // Filter transactions from the investment sector (current month)
   const investmentTransactions = useMemo(() => {
-    if (!investmentsSector) return [];
-    return transactions
-      .filter((t) => t.sector_id === investmentsSector.id)
-      .sort((a, b) => {
-        const dateA = new Date(a.date).getTime();
-        const dateB = new Date(b.date).getTime();
-        return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
-      });
-  }, [transactions, investmentsSector, sortOrder]);
+    if (!investmentSector) return [];
+    return transactions.filter(t => t.sector_id === investmentSector.id);
+  }, [transactions, investmentSector]);
 
-  // Calculate total invested this month
+  // Calculate total invested in current month (expenses are negative)
   const totalInvestedThisMonth = useMemo(() => {
     return investmentTransactions.reduce((sum, t) => sum + Math.abs(t.value), 0);
   }, [investmentTransactions]);
 
-  // Calculate evolution chart data (last 12 months)
+  // Evolution chart data - last 6 months
   const evolutionData = useMemo(() => {
-    if (!investmentsSector) return [];
+    if (!investmentSector) return [];
 
-    const endMonth = endOfMonth(currentMonth);
-    const startMonth = startOfMonth(subMonths(currentMonth, 11));
-    const months = eachMonthOfInterval({ start: startMonth, end: endMonth });
+    const now = new Date();
+    const sixMonthsAgo = subMonths(startOfMonth(now), 5);
+    const months = eachMonthOfInterval({ start: sixMonthsAgo, end: endOfMonth(now) });
 
     let cumulativeTotal = 0;
 
-    // Get all investment transactions before the start of our 12-month window
-    const priorTransactions = allTransactions.filter((t) => {
-      if (t.sector_id !== investmentsSector.id) return false;
-      const txDate = new Date(t.date);
-      return txDate < startMonth;
+    // Calculate previous total before 6 months ago
+    allTransactions.forEach(t => {
+      if (t.sector_id === investmentSector.id) {
+        const transactionDate = parse(t.date, "yyyy-MM-dd", new Date());
+        if (transactionDate < sixMonthsAgo) {
+          cumulativeTotal += Math.abs(t.value);
+        }
+      }
     });
-
-    // Calculate initial cumulative from prior transactions
-    cumulativeTotal = priorTransactions.reduce((sum, t) => sum + Math.abs(t.value), 0);
 
     return months.map((month) => {
       const monthStart = format(startOfMonth(month), "yyyy-MM-dd");
       const monthEnd = format(endOfMonth(month), "yyyy-MM-dd");
 
-      const monthTransactions = allTransactions.filter((t) => {
-        if (t.sector_id !== investmentsSector.id) return false;
+      // Get investments for this month
+      const monthInvestments = allTransactions.filter(t => {
+        if (t.sector_id !== investmentSector.id) return false;
         return t.date >= monthStart && t.date <= monthEnd;
       });
 
-      const monthTotal = monthTransactions.reduce((sum, t) => sum + Math.abs(t.value), 0);
+      const monthTotal = monthInvestments.reduce((sum, t) => sum + Math.abs(t.value), 0);
       cumulativeTotal += monthTotal;
 
       return {
         month: format(month, "MMM", { locale: ptBR }),
         fullMonth: format(month, "MMMM yyyy", { locale: ptBR }),
+        invested: monthTotal,
         total: cumulativeTotal,
-        added: monthTotal,
       };
     });
-  }, [allTransactions, investmentsSector, currentMonth]);
+  }, [allTransactions, investmentSector]);
 
-  // Calculate growth percentage
-  const growthPercentage = useMemo(() => {
-    if (evolutionData.length < 2) return 0;
-    const lastMonth = evolutionData[evolutionData.length - 1]?.total || 0;
-    const previousMonth = evolutionData[evolutionData.length - 2]?.total || 0;
-    if (previousMonth === 0) return lastMonth > 0 ? 100 : 0;
-    return ((lastMonth - previousMonth) / previousMonth) * 100;
-  }, [evolutionData]);
-
-  const totalInvested = evolutionData[evolutionData.length - 1]?.total || 0;
+  const currentTotal = evolutionData.length > 0 ? evolutionData[evolutionData.length - 1].total : 0;
+  const previousTotal = evolutionData.length > 1 ? evolutionData[evolutionData.length - 2].total : 0;
+  const growth = previousTotal > 0 ? ((currentTotal - previousTotal) / previousTotal) * 100 : 0;
 
   const formatCurrency = (value: number) => {
-    return value.toLocaleString("pt-BR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
+    return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  if (!investmentsSector) {
+  const formatCurrencyShort = (value: number) => {
+    if (value >= 1000000) {
+      return `${(value / 1000000).toFixed(1)}M`;
+    }
+    if (value >= 1000) {
+      return `${(value / 1000).toFixed(1)}K`;
+    }
+    return value.toFixed(0);
+  };
+
+  if (!investmentSector) {
     return (
       <div className="cave-card p-6 text-center">
-        <Wallet className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-        <h3 className="font-bold text-lg mb-2">Setor de Investimentos não encontrado</h3>
+        <PiggyBank className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+        <h3 className="font-bold mb-2">Setor de Investimentos não encontrado</h3>
         <p className="text-sm text-muted-foreground">
-          Crie um setor chamado "Investimentos" para começar a acompanhar seus investimentos.
+          Crie um setor chamado "Investimentos" para acompanhar sua evolução.
         </p>
       </div>
     );
@@ -140,47 +131,40 @@ export function InvestmentsTab({
 
   return (
     <div className="space-y-4">
-      {/* Stats Cards */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-3">
         <div className="cave-card p-4">
           <div className="flex items-center gap-2 mb-2">
-            <Wallet className="h-4 w-4 text-blue-500" />
+            <ChartLine className="h-4 w-4 text-blue-500" />
             <span className="text-xs text-muted-foreground">Total Investido</span>
           </div>
           <p className="text-lg md:text-xl font-bold text-blue-500">
-            R$ {formatCurrency(totalInvested)}
+            R$ {formatCurrency(currentTotal)}
           </p>
         </div>
-
         <div className="cave-card p-4">
           <div className="flex items-center gap-2 mb-2">
-            {growthPercentage >= 0 ? (
+            {growth >= 0 ? (
               <TrendingUp className="h-4 w-4 text-success" />
             ) : (
               <TrendingDown className="h-4 w-4 text-destructive" />
             )}
             <span className="text-xs text-muted-foreground">Este Mês</span>
           </div>
-          <p className="text-lg md:text-xl font-bold">
+          <p className={cn(
+            "text-lg md:text-xl font-bold",
+            totalInvestedThisMonth > 0 ? "text-success" : "text-muted-foreground"
+          )}>
             R$ {formatCurrency(totalInvestedThisMonth)}
-          </p>
-          <p
-            className={cn(
-              "text-xs mt-1",
-              growthPercentage >= 0 ? "text-success" : "text-destructive"
-            )}
-          >
-            {growthPercentage >= 0 ? "+" : ""}
-            {growthPercentage.toFixed(1)}% vs mês anterior
           </p>
         </div>
       </div>
 
       {/* Evolution Chart */}
-      <div className="cave-card p-4 md:p-6">
+      <div className="cave-card p-4">
         <h3 className="font-bold text-sm md:text-base mb-4">Evolução dos Investimentos</h3>
-        {evolutionData.length > 0 && totalInvested > 0 ? (
-          <div className="h-48 md:h-64">
+        {evolutionData.length > 0 && currentTotal > 0 ? (
+          <div className="h-48 md:h-56">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={evolutionData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
@@ -189,21 +173,18 @@ export function InvestmentsTab({
                     <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.05} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                 <XAxis
                   dataKey="month"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: isMobile ? 10 : 12 }}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
-                  tickFormatter={(value) =>
-                    `${(value / 1000).toFixed(0)}k`
-                  }
-                  width={45}
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                  tickFormatter={(value) => formatCurrencyShort(value)}
+                  width={50}
                 />
                 <Tooltip
                   content={({ active, payload }) => {
@@ -211,17 +192,13 @@ export function InvestmentsTab({
                       const data = payload[0].payload;
                       return (
                         <div className="bg-background border border-border rounded-lg px-3 py-2 shadow-xl">
-                          <p className="text-xs font-medium text-muted-foreground capitalize mb-1">
-                            {data.fullMonth}
+                          <p className="text-xs text-muted-foreground mb-1 capitalize">{data.fullMonth}</p>
+                          <p className="text-sm font-semibold text-blue-500">
+                            Total: R$ {formatCurrency(data.total)}
                           </p>
-                          <p className="text-sm font-bold text-blue-500">
-                            R$ {formatCurrency(data.total)}
+                          <p className="text-xs text-muted-foreground">
+                            No mês: R$ {formatCurrency(data.invested)}
                           </p>
-                          {data.added > 0 && (
-                            <p className="text-xs text-success mt-1">
-                              +R$ {formatCurrency(data.added)} este mês
-                            </p>
-                          )}
                         </div>
                       );
                     }
@@ -245,71 +222,47 @@ export function InvestmentsTab({
         )}
       </div>
 
-      {/* Transactions List */}
-      <div className="cave-card p-4 md:p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-sm md:text-base">Transações de Investimento</h3>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-1"
-            onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
-          >
-            {sortOrder === "desc" ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronUp className="h-4 w-4" />
-            )}
-            <span className="text-xs">Data</span>
-          </Button>
-        </div>
-
+      {/* Investment Transactions List */}
+      <div className="cave-card p-4">
+        <h3 className="font-bold text-sm md:text-base mb-4">Transações de Investimento</h3>
         {investmentTransactions.length === 0 ? (
-          <div className="text-center py-8">
-            <Wallet className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-            <p className="text-sm text-muted-foreground">
-              Nenhum investimento registrado este mês.
-            </p>
+          <div className="py-8 text-center">
+            <PiggyBank className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Nenhum investimento neste mês</p>
           </div>
         ) : (
           <div className="space-y-2">
-            {investmentTransactions.map((transaction) => (
+            {investmentTransactions.map((t) => (
               <div
-                key={transaction.id}
+                key={t.id}
                 className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors group"
               >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-sm truncate">{transaction.name}</p>
-                    <Badge variant="secondary" className="bg-blue-500/10 text-blue-500 text-[10px]">
-                      Investimento
-                    </Badge>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm truncate">{t.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(parse(t.date, "yyyy-MM-dd", new Date()), "dd/MM/yyyy")}
+                    </p>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {format(new Date(transaction.date), "dd/MM/yyyy")}
-                  </p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <p className="font-bold text-blue-500">
-                    R$ {formatCurrency(Math.abs(transaction.value))}
-                  </p>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-blue-500 whitespace-nowrap">
+                    R$ {formatCurrency(Math.abs(t.value))}
+                  </span>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => onEditTransaction(transaction)}
+                    <button
+                      onClick={() => onEditTransaction(t)}
+                      className="p-1.5 hover:bg-secondary rounded"
                     >
                       <Edit2 className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-destructive hover:text-destructive"
-                      onClick={() => onDeleteTransaction(transaction.id)}
+                    </button>
+                    <button
+                      onClick={() => onDeleteTransaction(t.id)}
+                      className="p-1.5 hover:bg-red-500/10 rounded text-destructive"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                    </button>
                   </div>
                 </div>
               </div>

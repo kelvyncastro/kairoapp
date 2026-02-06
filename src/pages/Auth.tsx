@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Eye, EyeOff, Sparkles, Clock, Target, Flame } from "lucide-react";
+ import { Loader2, Eye, EyeOff, Sparkles, Clock, Target, Flame, Phone } from "lucide-react";
 import kairoLogo from "@/assets/kairo-logo.png";
+ import { supabase } from "@/integrations/supabase/client";
 
 // Floating particle component
 function FloatingParticle({ delay, duration, size, startX, startY }: {
@@ -104,8 +105,10 @@ export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [forgotPassword, setForgotPassword] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -115,6 +118,26 @@ export default function Auth() {
     setLoading(true);
 
     try {
+      if (forgotPassword) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/auth?reset=true`,
+        });
+        if (error) {
+          toast({
+            title: "Erro ao enviar email",
+            description: error.message,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Email enviado!",
+            description: "Verifique sua caixa de entrada para redefinir sua senha.",
+          });
+          setForgotPassword(false);
+        }
+        return;
+      }
+
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) {
@@ -135,6 +158,14 @@ export default function Auth() {
             variant: "destructive",
           });
         } else {
+          // Save phone number to user profile after signup
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await supabase.from('user_profiles').upsert({
+              user_id: user.id,
+              phone_number: phoneNumber,
+            }, { onConflict: 'user_id' });
+          }
           toast({
             title: "Conta criada",
             description: "Bem-vindo ao Kairo!",
@@ -277,14 +308,21 @@ export default function Auth() {
           >
             <AnimatePresence mode="wait">
               <motion.form 
-                key={isLogin ? "login" : "register"}
+                key={forgotPassword ? "forgot" : isLogin ? "login" : "register"}
                 onSubmit={handleSubmit} 
                 className="space-y-4"
-                initial={{ opacity: 0, x: isLogin ? -20 : 20 }}
+                initial={{ opacity: 0, x: forgotPassword ? 0 : isLogin ? -20 : 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: isLogin ? 20 : -20 }}
+                exit={{ opacity: 0, x: forgotPassword ? 0 : isLogin ? 20 : -20 }}
                 transition={{ duration: 0.3 }}
               >
+                {forgotPassword && (
+                  <div className="text-center mb-4">
+                    <h2 className="text-lg font-semibold">Recuperar Senha</h2>
+                    <p className="text-sm text-muted-foreground">Digite seu email para receber o link de recuperação</p>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm font-medium">Email</Label>
                   <motion.div whileFocus={{ scale: 1.02 }}>
@@ -300,34 +338,67 @@ export default function Auth() {
                   </motion.div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-medium">Senha</Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      minLength={6}
-                      className="bg-background/50 border-border/50 h-11 rounded-xl pr-10 focus:border-primary/50 focus:ring-primary/20 transition-all"
-                    />
+                {!forgotPassword && (
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-sm font-medium">Senha</Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        minLength={6}
+                        className="bg-background/50 border-border/50 h-11 rounded-xl pr-10 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                      />
+                      <motion.button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </motion.button>
+                    </div>
+                  </div>
+                )}
+
+                {isLogin && !forgotPassword && (
+                  <div className="text-right">
                     <motion.button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setForgotPassword(true)}
+                      className="text-xs text-primary hover:underline"
+                      whileHover={{ scale: 1.02 }}
                     >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
+                      Esqueceu a senha?
                     </motion.button>
                   </div>
-                </div>
+                )}
+
+                {!isLogin && (
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-sm font-medium">Telefone</Label>
+                    <div className="relative">
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="(11) 99999-9999"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        required
+                        className="bg-background/50 border-border/50 h-11 rounded-xl pl-10 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                      />
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </div>
+                )}
 
                 <motion.div
                   whileHover={{ scale: 1.02 }}
@@ -345,6 +416,8 @@ export default function Auth() {
                       >
                         <Loader2 className="h-5 w-5" />
                       </motion.div>
+                    ) : forgotPassword ? (
+                      "Enviar Email"
                     ) : isLogin ? (
                       "Entrar"
                     ) : (
@@ -363,11 +436,19 @@ export default function Auth() {
             >
               <motion.button
                 type="button"
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => {
+                  if (forgotPassword) {
+                    setForgotPassword(false);
+                  } else {
+                    setIsLogin(!isLogin);
+                  }
+                }}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 whileHover={{ scale: 1.02 }}
               >
-                {isLogin
+                {forgotPassword
+                  ? "Voltar ao login"
+                  : isLogin
                   ? "Não tem conta? Criar agora"
                   : "Já tem conta? Entrar"}
               </motion.button>

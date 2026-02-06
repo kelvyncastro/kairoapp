@@ -3,36 +3,27 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { lazy, Suspense } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { UserProfileProvider, useUserProfile } from "@/contexts/UserProfileContext";
+import { SoundProvider } from "@/contexts/SoundContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import AppLayout from "@/components/layout/AppLayout";
 import { WelcomePanel } from "@/components/onboarding/WelcomePanel";
 import Landing from "./pages/Landing";
+import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
+import Rotina from "./pages/Rotina";
+import Habitos from "./pages/Habitos";
+import Metas from "./pages/Metas";
+import Consistencia from "./pages/Consistencia";
+import Financas from "./pages/Financas";
+import ChatFinanceiro from "./pages/ChatFinanceiro";
+import Configuracoes from "./pages/Configuracoes";
+import Calendar2 from "./pages/Calendar2";
+import Ranking from "./pages/Ranking";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
-
-// Lazy load routes that are not needed on initial page load
-const Auth = lazy(() => import("./pages/Auth"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Rotina = lazy(() => import("./pages/Rotina"));
-const Habitos = lazy(() => import("./pages/Habitos"));
-const Metas = lazy(() => import("./pages/Metas"));
-const Consistencia = lazy(() => import("./pages/Consistencia"));
-const Financas = lazy(() => import("./pages/Financas"));
-const ChatFinanceiro = lazy(() => import("./pages/ChatFinanceiro"));
-const Configuracoes = lazy(() => import("./pages/Configuracoes"));
-const Ranking = lazy(() => import("./pages/Ranking"));
-const Calendario = lazy(() => import("./pages/Calendario"));
-const Admin = lazy(() => import("./pages/Admin"));
-
-// Loading fallback for lazy-loaded routes
-const PageLoader = () => (
-  <div className="h-screen flex items-center justify-center bg-background">
-    <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-  </div>
-);
 
 const queryClient = new QueryClient();
 
@@ -58,36 +49,38 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <UserProfileProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/auth" element={<Suspense fallback={<PageLoader />}><Auth /></Suspense>} />
-              <Route
-                element={
-                  <ProtectedRoute>
-                    <AppWithOnboarding />
-                  </ProtectedRoute>
-                }
-              >
-                <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
-                <Route path="/rotina" element={<Suspense fallback={<PageLoader />}><Rotina /></Suspense>} />
-                <Route path="/habitos" element={<Suspense fallback={<PageLoader />}><Habitos /></Suspense>} />
-                <Route path="/metas" element={<Suspense fallback={<PageLoader />}><Metas /></Suspense>} />
-                <Route path="/consistencia" element={<Suspense fallback={<PageLoader />}><Consistencia /></Suspense>} />
-                <Route path="/ranking" element={<Suspense fallback={<PageLoader />}><Ranking /></Suspense>} />
-                <Route path="/financas" element={<Suspense fallback={<PageLoader />}><Financas /></Suspense>} />
-                <Route path="/chat-financeiro" element={<Suspense fallback={<PageLoader />}><ChatFinanceiro /></Suspense>} />
-                <Route path="/configuracoes" element={<Suspense fallback={<PageLoader />}><Configuracoes /></Suspense>} />
-                 <Route path="/calendario" element={<Suspense fallback={<PageLoader />}><Calendario /></Suspense>} />
-                 <Route path="/admin" element={<AdminRoute><Suspense fallback={<PageLoader />}><Admin /></Suspense></AdminRoute>} />
-              </Route>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+        <SoundProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route
+                  element={
+                    <ProtectedRoute>
+                      <AppWithOnboarding />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/rotina" element={<Rotina />} />
+                  <Route path="/habitos" element={<Habitos />} />
+                  <Route path="/metas" element={<Metas />} />
+                  <Route path="/consistencia" element={<Consistencia />} />
+                  <Route path="/financas" element={<Financas />} />
+                  <Route path="/chat-financeiro" element={<ChatFinanceiro />} />
+                  <Route path="/calendario" element={<Calendar2 />} />
+                  <Route path="/ranking" element={<Ranking />} />
+                  <Route path="/configuracoes" element={<Configuracoes />} />
+                  <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+                </Route>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </SoundProvider>
       </UserProfileProvider>
     </AuthProvider>
   </QueryClientProvider>

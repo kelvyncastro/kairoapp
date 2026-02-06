@@ -10,22 +10,16 @@ import {
   CalendarCheck,
   Target,
   Flame,
-  Dumbbell,
-  UtensilsCrossed,
   Wallet,
-  BookOpen,
   Settings,
-  ChevronDown,
   LogOut,
-  Calendar,
-   CalendarClock,
-  Construction,
+  CalendarClock,
   MessageSquare,
   Menu,
   PanelLeftClose,
   PanelLeft,
   Trophy,
-   Shield,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import kairoLogo from "@/assets/kairo-logo.png";
@@ -45,6 +39,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { SoundToggleButton } from "@/components/layout/SoundToggleButton";
 
 const mainNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -67,13 +63,8 @@ const bottomNavItems = [
   { path: "/metas", label: "Metas", icon: Target },
 ];
 
-const devNavItems = [
-  { path: "/admin", label: "Painel Admin", icon: Shield },
-];
-
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
-  const [devMenuOpen, setDevMenuOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { user, signOut } = useAuth();
@@ -156,105 +147,70 @@ export default function AppLayout() {
         );
       })}
 
-      {/* Em Desenvolvimento - Admin Only */}
+      {/* Admin Link - Only for Admins */}
       {isAdmin && (
         <div className="pt-4">
+          <AnimatePresence mode="wait">
+            {(mobile || !collapsed) && (
+              <motion.p
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                className="px-3 mb-3 text-[10px] font-bold text-muted-foreground/60 uppercase tracking-[0.2em]"
+              >
+                Administração
+              </motion.p>
+            )}
+          </AnimatePresence>
+
           <Tooltip>
             <TooltipTrigger asChild>
-              <motion.button
-                onClick={() => setDevMenuOpen(!devMenuOpen)}
-                whileHover={{ scale: 1.02 }}
+              <Link
+                to="/admin"
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 text-muted-foreground hover:bg-sidebar-accent",
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 relative overflow-hidden group",
+                  location.pathname === '/admin'
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                  mobile && "py-3",
                   !mobile && collapsed && "justify-center px-2"
                 )}
               >
-                <Construction className="h-4 w-4 shrink-0" />
+                <motion.div
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
+                  <Shield className={cn(
+                    "h-4 w-4 shrink-0 transition-all relative z-10",
+                    location.pathname === '/admin' && "drop-shadow-sm"
+                  )} />
+                </motion.div>
                 <AnimatePresence mode="wait">
                   {(mobile || !collapsed) && (
-                    <motion.div
+                    <motion.span
                       initial={{ opacity: 0, width: 0 }}
                       animate={{ opacity: 1, width: 'auto' }}
                       exit={{ opacity: 0, width: 0 }}
-                      className="flex items-center gap-2 flex-1 overflow-hidden"
+                      className={cn(
+                        "font-semibold whitespace-nowrap overflow-hidden relative z-10",
+                        location.pathname === '/admin' && "text-primary-foreground"
+                      )}
                     >
-                      <span className="flex-1 text-left font-medium whitespace-nowrap">Em desenvolvimento</span>
-                      <motion.div
-                        animate={{ rotate: devMenuOpen ? 180 : 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <ChevronDown className="h-4 w-4" />
-                      </motion.div>
-                    </motion.div>
+                      Painel Admin
+                    </motion.span>
                   )}
                 </AnimatePresence>
-              </motion.button>
+              </Link>
             </TooltipTrigger>
             {!mobile && collapsed && (
               <TooltipContent side="right" sideOffset={8} className="font-medium bg-popover border shadow-lg">
-                <p>Em desenvolvimento</p>
+                <p>Painel Admin</p>
               </TooltipContent>
             )}
           </Tooltip>
-          
-          <AnimatePresence>
-            {devMenuOpen && (
-              <motion.div 
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className={cn("mt-1 space-y-1 overflow-hidden", (mobile || !collapsed) && "ml-3 border-l-2 border-primary/20 pl-2")}
-              >
-                {devNavItems.map((item, index) => {
-                  const isActive = location.pathname === item.path;
-                  return (
-                    <Tooltip key={item.path}>
-                      <TooltipTrigger asChild>
-                        <motion.div
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.05 }}
-                        >
-                          <Link
-                            to={item.path}
-                            className={cn(
-                              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200",
-                              isActive
-                                ? "bg-muted/60 text-foreground"
-                                : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                              mobile && "py-2.5",
-                              !mobile && collapsed && "justify-center px-2"
-                            )}
-                          >
-                            <item.icon className="h-4 w-4 shrink-0" />
-                            <AnimatePresence mode="wait">
-                              {(mobile || !collapsed) && (
-                                <motion.span
-                                  initial={{ opacity: 0, width: 0 }}
-                                  animate={{ opacity: 1, width: 'auto' }}
-                                  exit={{ opacity: 0, width: 0 }}
-                                  className="whitespace-nowrap overflow-hidden"
-                                >
-                                  {item.label}
-                                </motion.span>
-                              )}
-                            </AnimatePresence>
-                          </Link>
-                        </motion.div>
-                      </TooltipTrigger>
-                      {!mobile && collapsed && (
-                        <TooltipContent side="right" sideOffset={8} className="font-medium bg-popover border shadow-lg">
-                          <p>{item.label}</p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  );
-                })}
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
       )}
+
     </nav>
   );
 
@@ -396,6 +352,13 @@ export default function AppLayout() {
             <div className="hidden md:block" />
 
             <div className="flex items-center gap-2">
+              {/* Sound Toggle */}
+              <SoundToggleButton />
+              
+              {/* Notifications */}
+              <NotificationBell />
+              
+              {/* Profile */}
               {/* Profile */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

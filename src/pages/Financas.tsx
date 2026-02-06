@@ -18,7 +18,7 @@ import {
   MessageCircle,
   Brain,
   Tags,
-  Wallet,
+  ChartLine,
 } from "lucide-react";
 import { FinanceChat } from "@/components/finance/FinanceChat";
 import { FinanceAnalysis } from "@/components/finance/FinanceAnalysis";
@@ -211,7 +211,7 @@ export default function Financas() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
+  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]); // For investment evolution
   const [loading, setLoading] = useState(true);
   
   const [addTransactionOpen, setAddTransactionOpen] = useState(false);
@@ -272,7 +272,7 @@ export default function Financas() {
         .gte("date", monthStart)
         .lte("date", monthEnd)
         .order("date", { ascending: false }),
-      // Fetch all transactions for investment evolution chart
+      // Get all transactions for investment evolution chart
       supabase
         .from("finance_transactions")
         .select("*")
@@ -540,7 +540,7 @@ export default function Financas() {
             onClick={() => setAnalysisOpen(!analysisOpen)}
           >
             <Brain className={cn("h-4 w-4", !analysisOpen && "text-primary")} />
-            <span className="hidden md:inline text-xs font-medium">Análise IA</span>
+            <span className="text-xs font-medium">Análise IA</span>
           </Button>
           <Link to="/chat-financeiro">
             <Button
@@ -766,20 +766,6 @@ export default function Financas() {
                 </span>
               </TabsTrigger>
               <TabsTrigger 
-                value="investments" 
-                className={cn(
-                  "text-xs md:text-sm px-1 md:px-4 rounded-lg font-medium transition-all duration-200",
-                  "data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground",
-                  "data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground/80"
-                )}
-              >
-                <span className="flex items-center gap-1.5">
-                  <Wallet className="h-3.5 w-3.5 hidden md:inline" />
-                  <span className="hidden md:inline">Investimentos</span>
-                  <span className="md:hidden">Invest.</span>
-                </span>
-              </TabsTrigger>
-              <TabsTrigger 
                 value="transactions" 
                 className={cn(
                   "text-xs md:text-sm px-1 md:px-4 rounded-lg font-medium transition-all duration-200",
@@ -789,8 +775,21 @@ export default function Financas() {
               >
                 <span className="flex items-center gap-1.5">
                   <PiggyBank className="h-3.5 w-3.5 hidden md:inline" />
-                  <span className="hidden md:inline">Transações</span>
-                  <span className="md:hidden">Trans.</span>
+                  Transações
+                </span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="investments" 
+                className={cn(
+                  "text-xs md:text-sm px-1 md:px-4 rounded-lg font-medium transition-all duration-200",
+                  "data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground",
+                  "data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground/80"
+                )}
+              >
+                <span className="flex items-center gap-1.5">
+                  <ChartLine className="h-3.5 w-3.5 hidden md:inline" />
+                  <span className="hidden md:inline">Investimentos</span>
+                  <span className="md:hidden">Invest.</span>
                 </span>
               </TabsTrigger>
               <TabsTrigger 
@@ -828,17 +827,6 @@ export default function Financas() {
               <ExpensesBySectorChart 
                 sectors={sectors}
                 transactions={transactions}
-              />
-            </TabsContent>
-
-            <TabsContent value="investments" className="mt-0">
-              <InvestmentsTab
-                sectors={sectors}
-                transactions={transactions}
-                allTransactions={allTransactions}
-                onEditTransaction={(t) => setEditingTransaction(t)}
-                onDeleteTransaction={handleDeleteTransaction}
-                currentMonth={currentMonth}
               />
             </TabsContent>
 
@@ -921,14 +909,13 @@ export default function Financas() {
                           const sector = sectors.find(s => s.id === t.sector_id);
                           const isExpense = t.value < 0;
                           const effectiveStatus = getEffectiveStatus(t);
-                          const isInvestment = sector?.name.toLowerCase().includes("investimento") || sector?.name.toLowerCase().includes("investment");
                           return (
                             <tr key={t.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors group">
                               <td className="p-4">
                                 <div className="flex items-center gap-3">
                                   <div className={cn(
                                     "w-2 h-2 rounded-full flex-shrink-0",
-                                    isInvestment ? "bg-blue-500" : (isExpense ? "bg-red-500" : "bg-emerald-500")
+                                    isExpense ? "bg-red-500" : "bg-emerald-500"
                                   )} />
                                   <span className="text-sm font-medium">{t.name}</span>
                                 </div>
@@ -936,7 +923,7 @@ export default function Financas() {
                               <td className="p-4">
                                 <span className={cn(
                                   "text-sm font-semibold",
-                                  isInvestment ? "text-blue-500" : (isExpense ? "text-red-500" : "text-emerald-500")
+                                  isExpense ? "text-red-500" : "text-emerald-500"
                                 )}>
                                   {isExpense ? "- " : "+ "}R$ {Math.abs(t.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                 </span>
@@ -956,23 +943,32 @@ export default function Financas() {
                                 )}
                               </td>
                               <td className="p-4">
-                                <span className={cn(
-                                  "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
-                                  isInvestment
-                                    ? "bg-blue-500/10 text-blue-500"
-                                    : isExpense 
-                                      ? "bg-red-500/10 text-red-500" 
-                                      : "bg-emerald-500/10 text-emerald-500"
-                                )}>
-                                  {isInvestment ? (
-                                    <Wallet className="h-3 w-3" />
-                                  ) : isExpense ? (
-                                    <TrendingDown className="h-3 w-3" />
-                                  ) : (
-                                    <TrendingUp className="h-3 w-3" />
-                                  )}
-                                  {isInvestment ? "Investimento" : isExpense ? "Despesa" : "Receita"}
-                                </span>
+                                {(() => {
+                                  const isInvestment = sector?.name.toLowerCase().includes("investimento");
+                                  if (isInvestment) {
+                                    return (
+                                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-500">
+                                        <ChartLine className="h-3 w-3" />
+                                        Investimento
+                                      </span>
+                                    );
+                                  }
+                                  return (
+                                    <span className={cn(
+                                      "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
+                                      isExpense 
+                                        ? "bg-red-500/10 text-red-500" 
+                                        : "bg-emerald-500/10 text-emerald-500"
+                                    )}>
+                                      {isExpense ? (
+                                        <TrendingDown className="h-3 w-3" />
+                                      ) : (
+                                        <TrendingUp className="h-3 w-3" />
+                                      )}
+                                      {isExpense ? "Despesa" : "Receita"}
+                                    </span>
+                                  );
+                                })()}
                               </td>
                               <td className="p-4">
                                 <span className={cn(
@@ -1012,6 +1008,17 @@ export default function Financas() {
                   </div>
                 </div>
               )}
+            </TabsContent>
+
+            {/* Investments Tab */}
+            <TabsContent value="investments" className="mt-0">
+              <InvestmentsTab
+                transactions={transactions}
+                sectors={sectors}
+                allTransactions={allTransactions}
+                onEditTransaction={setEditingTransaction}
+                onDeleteTransaction={handleDeleteTransaction}
+              />
             </TabsContent>
 
             {/* Sectors Tab */}

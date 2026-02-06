@@ -1,510 +1,692 @@
-import { useState, useEffect, useCallback } from "react";
-import { format, addDays, subDays, isSameDay, isAfter, isBefore, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import {
-  ArrowLeft,
-  ChevronLeft,
-  ChevronRight,
-  Crown,
-  Pencil,
-  Trash2,
-  Target,
-  Users,
-  Trophy,
-  Loader2,
-  Check,
+import { useState, useEffect, useRef, useCallback } from "react";
+import { 
+  Trophy, Calendar, Target, Users, Coins, ArrowLeft, 
+  Check, ChevronLeft, ChevronRight, Crown, Medal, Pencil, Sparkles, Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { RankingWithDetails, RankingGoalLog } from "@/types/ranking";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
-import type { Ranking } from "@/hooks/useRankings";
+import { useRankingsStore } from "@/contexts/RankingsContext";
+import { CreateRankingDialog } from "./CreateRankingDialog";
+import { RankingWinnerCelebration } from "./RankingWinnerCelebration";
+import { format, addDays, subDays, isWithinInterval, parseISO, isSameDay } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import { useSound } from "@/contexts/SoundContext";
 
 interface RankingDetailProps {
-  ranking: Ranking;
+  ranking: RankingWithDetails;
   onBack: () => void;
-  onEdit?: () => void;
-  onDelete?: () => void;
-  onRefetch: () => Promise<void>;
 }
 
-interface GoalLog {
-  id: string;
-  goal_id: string;
-  date: string;
-  completed: boolean;
-  points_earned: number;
-}
-
-export function RankingDetail({ ranking, onBack, onEdit, onDelete, onRefetch }: RankingDetailProps) {
+export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetailProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
+  const { playCheck } = useSound();
+  const { 
+    toggleGoalCompletion, 
+    getGoalLogs, 
+    fetchRankings, 
+    rankings, 
+    deleteRanking,
+    requestDeletion,
+    consentToDeletion,
+    cancelDeletionRequest
+  } = useRankingsStore();
+  
+  // Get the latest ranking data from the hook
+  const ranking = rankings.find(r => r.id === initialRanking.id) || initialRanking;
+  
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [goalLogs, setGoalLogs] = useState<GoalLog[]>([]);
-  const [loadingLogs, setLoadingLogs] = useState(false);
-  const [processingGoal, setProcessingGoal] = useState<string | null>(null);
-  
-  const isCreator = ranking.creator_id === user?.id;
-  const isActive = ranking.status === "active";
-  const isEnded = ranking.status === "ended";
-  const isPending = ranking.status === "pending";
-  
+  const [goalLogs, setGoalLogs] = useState<RankingGoalLog[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [requestingDeletion, setRequestingDeletion] = useState(false);
+  const [showWinnerCelebration, setShowWinnerCelebration] = useState(false);
+  const processingGoalsRef = useRef<Set<string>>(new Set());
+  const celebrationShownRef = useRef(false);
+
   const startDate = parseISO(ranking.start_date);
   const endDate = parseISO(ranking.end_date);
+  const isActive = ranking.status === 'active';
+  const isCreator = ranking.creator_id === user?.id;
+  const canEdit = isCreator && ranking.status === 'pending';
+  const canDeleteDirectly = isCreator && (ranking.status === 'pending' || ranking.status === 'completed');
+  const canRequestDeletion = isCreator && ranking.status === 'active' && !ranking.deletion_requested;
   
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Check deletion consent status
+  const acceptedParticipants = ranking.participants.filter(p => p.status === 'accepted');
+  const allConsented = acceptedParticipants.every(p => p.deletion_consent === true);
+  const currentUserParticipant = ranking.participants.find(p => p.user_id === user?.id);
+  const userHasConsented = currentUserParticipant?.deletion_consent === true;
+  const consentCount = acceptedParticipants.filter(p => p.deletion_consent).length;
+  
+  const isDateInRange = isWithinInterval(selectedDate, { start: startDate, end: endDate });
+  const canEditGoals = isActive && isDateInRange;
 
-  const canNavigateBack = isAfter(selectedDate, startDate);
-  const canNavigateForward = isBefore(selectedDate, endDate) && isBefore(selectedDate, today);
-  const isToday = isSameDay(selectedDate, today);
+  const leaderboard = [...ranking.participants]
+    .filter(p => p.status === 'accepted')
+    .sort((a, b) => b.total_points - a.total_points);
 
-  const currentUserParticipant = ranking.participants.find((p) => p.user_id === user?.id);
+  const winner = leaderboard.length > 0 ? leaderboard[0] : null;
 
-  // Fetch goal logs for selected date
-  const fetchGoalLogs = useCallback(async () => {
-    if (!user || !isActive) return;
-    
-    setLoadingLogs(true);
-    try {
-      const dateStr = format(selectedDate, "yyyy-MM-dd");
-      const { data, error } = await supabase
-        .from("ranking_goal_logs")
-        .select("*")
-        .eq("ranking_id", ranking.id)
-        .eq("user_id", user.id)
-        .eq("date", dateStr);
-
-      if (error) throw error;
-      setGoalLogs(data || []);
-    } catch (error) {
-      console.error("Error fetching goal logs:", error);
-    } finally {
-      setLoadingLogs(false);
+  // Show celebration when ranking is completed
+  useEffect(() => {
+    if (ranking.status === 'completed' && winner && !celebrationShownRef.current) {
+      // Small delay to let the page render first
+      const timer = setTimeout(() => {
+        setShowWinnerCelebration(true);
+        celebrationShownRef.current = true;
+      }, 500);
+      return () => clearTimeout(timer);
     }
-  }, [user, ranking.id, selectedDate, isActive]);
+  }, [ranking.status, winner]);
 
   useEffect(() => {
-    fetchGoalLogs();
-  }, [fetchGoalLogs]);
+    const loadGoalLogs = async () => {
+      setLoading(true);
+      const logs = await getGoalLogs(ranking.id, format(selectedDate, 'yyyy-MM-dd'));
+      setGoalLogs(logs);
+      setLoading(false);
+    };
+    loadGoalLogs();
+  }, [selectedDate, ranking.id, getGoalLogs]);
 
-  const handleToggleGoal = async (goalId: string) => {
-    if (!user || !isActive || !isToday || processingGoal) return;
-
-    setProcessingGoal(goalId);
-    const dateStr = format(selectedDate, "yyyy-MM-dd");
-    const existingLog = goalLogs.find((l) => l.goal_id === goalId);
-    const pointsPerGoal = 10 / ranking.goals.length;
-
-    try {
-      if (existingLog) {
-        if (existingLog.completed) {
-          await supabase
-            .from("ranking_goal_logs")
-            .update({ completed: false, points_earned: 0 })
-            .eq("id", existingLog.id);
-
-          await supabase
-            .from("ranking_participants")
-            .update({ total_points: Math.max(0, (currentUserParticipant?.total_points || 0) - pointsPerGoal) })
-            .eq("ranking_id", ranking.id)
-            .eq("user_id", user.id);
-
-          setGoalLogs((prev) =>
-            prev.map((l) => (l.id === existingLog.id ? { ...l, completed: false, points_earned: 0 } : l))
-          );
-        } else {
-          await supabase
-            .from("ranking_goal_logs")
-            .update({ completed: true, points_earned: pointsPerGoal })
-            .eq("id", existingLog.id);
-
-          await supabase
-            .from("ranking_participants")
-            .update({ total_points: (currentUserParticipant?.total_points || 0) + pointsPerGoal })
-            .eq("ranking_id", ranking.id)
-            .eq("user_id", user.id);
-
-          setGoalLogs((prev) =>
-            prev.map((l) => (l.id === existingLog.id ? { ...l, completed: true, points_earned: pointsPerGoal } : l))
-          );
-        }
+  const handleToggleGoal = useCallback(async (goalId: string, completed: boolean) => {
+    if (!canEditGoals || !user) return;
+    
+    // Prevent double-clicks: if this goal is already being processed, ignore
+    if (processingGoalsRef.current.has(goalId)) {
+      return;
+    }
+    
+    // Mark this goal as being processed
+    processingGoalsRef.current.add(goalId);
+    
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    const totalGoals = ranking.goals.length;
+    const pointsPerGoal = totalGoals > 0 ? 10 / totalGoals : 0;
+    
+    // OPTIMISTIC UPDATE: Update UI immediately
+    setGoalLogs(prev => {
+      const existingIndex = prev.findIndex(log => log.goal_id === goalId);
+      if (existingIndex >= 0) {
+        // Update existing log
+        const updated = [...prev];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          completed,
+          points_earned: completed ? pointsPerGoal : 0
+        };
+        return updated;
       } else {
-        const { data, error } = await supabase
-          .from("ranking_goal_logs")
-          .insert({
-            ranking_id: ranking.id,
-            goal_id: goalId,
-            user_id: user.id,
-            date: dateStr,
-            completed: true,
-            points_earned: pointsPerGoal,
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        await supabase
-          .from("ranking_participants")
-          .update({ total_points: (currentUserParticipant?.total_points || 0) + pointsPerGoal })
-          .eq("ranking_id", ranking.id)
-          .eq("user_id", user.id);
-
-        setGoalLogs((prev) => [...prev, data]);
+        // Add new log optimistically
+        return [...prev, {
+          id: `temp-${goalId}-${dateStr}`,
+          ranking_id: ranking.id,
+          goal_id: goalId,
+          user_id: user.id,
+          date: dateStr,
+          completed,
+          points_earned: completed ? pointsPerGoal : 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }];
       }
-
-      await onRefetch();
-    } catch (error) {
-      console.error("Error toggling goal:", error);
-      toast({ title: "Erro ao atualizar meta", variant: "destructive" });
+    });
+    
+    // Execute in background (non-blocking)
+    try {
+      await toggleGoalCompletion(
+        ranking.id,
+        goalId,
+        dateStr,
+        completed
+      );
+      // Refresh goal logs in background to sync with server
+      const logs = await getGoalLogs(ranking.id, dateStr);
+      setGoalLogs(logs);
     } finally {
-      setTimeout(() => setProcessingGoal(null), 300);
+      // Remove from processing set after a small delay to prevent rapid re-clicks
+      setTimeout(() => {
+        processingGoalsRef.current.delete(goalId);
+      }, 300);
     }
+  }, [canEditGoals, user, selectedDate, ranking.id, ranking.goals.length, toggleGoalCompletion, getGoalLogs]);
+
+  const isGoalCompleted = (goalId: string) => {
+    return goalLogs.some(log => log.goal_id === goalId && log.completed);
   };
 
-  const goToPreviousDay = () => {
-    if (canNavigateBack) {
-      setSelectedDate((prev) => subDays(prev, 1));
-    }
+  const completedGoalsCount = goalLogs.filter(log => log.completed).length;
+  const dailyProgress = ranking.goals.length > 0 
+    ? (completedGoalsCount / ranking.goals.length) * 100 
+    : 0;
+  const dailyPoints = (dailyProgress / 100) * 10;
+
+  const navigateDate = (direction: 'prev' | 'next') => {
+    setSelectedDate(prev => direction === 'prev' ? subDays(prev, 1) : addDays(prev, 1));
   };
 
-  const goToNextDay = () => {
-    if (canNavigateForward) {
-      setSelectedDate((prev) => addDays(prev, 1));
+  const handleDeleteRanking = async () => {
+    setDeleting(true);
+    const success = await deleteRanking(ranking.id);
+    if (success) {
+      onBack();
     }
+    setDeleting(false);
   };
 
-  const getStatusBadge = () => {
-    if (isActive) {
-      return (
-        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/30">
-          Ativo
-        </Badge>
-      );
-    }
-    if (isEnded) {
-      return (
-        <Badge className="bg-zinc-500/20 text-zinc-400 border-zinc-500/30">
-          Finalizado
-        </Badge>
-      );
-    }
-    return (
-      <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
-        Aguardando
-      </Badge>
-    );
+  const handleRequestDeletion = async () => {
+    setRequestingDeletion(true);
+    await requestDeletion(ranking.id);
+    setRequestingDeletion(false);
   };
 
-  const getParticipantStatusBadge = (status: string) => {
-    if (status === "accepted") {
-      return (
-        <Badge className="text-[10px] px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border-emerald-500/30 font-medium">
-          Aceito
-        </Badge>
-      );
-    }
-    return (
-      <Badge className="text-[10px] px-2.5 py-1 bg-amber-500/20 text-amber-400 border-amber-500/30 font-medium">
-        Pendente
-      </Badge>
-    );
+  const handleCancelDeletionRequest = async () => {
+    await cancelDeletionRequest(ranking.id);
   };
 
-  const dailyTotalPoints = 10;
-  const earnedToday = goalLogs.reduce((acc, l) => acc + l.points_earned, 0);
+  const handleConsentToDeletion = async (consent: boolean) => {
+    await consentToDeletion(ranking.id, consent);
+  };
+
+  const canNavigatePrev = selectedDate > startDate;
+  const canNavigateNext = selectedDate < endDate;
 
   return (
-    <div className="h-full flex flex-col -m-4 md:-m-6 bg-background overflow-hidden">
+    <>
+      {/* Winner Celebration Modal */}
+      <RankingWinnerCelebration
+        winner={showWinnerCelebration ? winner : null}
+        podium={leaderboard}
+        rankingName={ranking.name}
+        onClose={() => setShowWinnerCelebration(false)}
+      />
+
+      <div className="space-y-6">
       {/* Header */}
-      <div className="px-4 md:px-6 py-5 border-b border-border/20 flex-shrink-0 bg-gradient-to-b from-muted/30 to-transparent">
-        <div className="flex items-start gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10 rounded-xl hover:bg-muted/60 transition-colors"
-            onClick={onBack}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={onBack}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Trophy className="h-6 w-6 text-primary" />
+            {ranking.name}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {format(startDate, "dd MMM", { locale: ptBR })} - {format(endDate, "dd MMM yyyy", { locale: ptBR })}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {canEdit && (
+            <CreateRankingDialog
+              editMode
+              rankingToEdit={ranking}
+              onSuccess={async () => {
+                await fetchRankings();
+              }}
+              trigger={
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Pencil className="h-4 w-4" />
+                  Editar
+                </Button>
+              }
+            />
+          )}
+          {/* Direct delete for pending/completed rankings */}
+          {canDeleteDirectly && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive">
+                  <Trash2 className="h-4 w-4" />
+                  Excluir
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir Ranking</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza que deseja excluir o ranking "{ranking.name}"? 
+                    Esta ação não pode ser desfeita e todos os dados serão perdidos.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleDeleteRanking}
+                    disabled={deleting}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {deleting ? "Excluindo..." : "Excluir"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
           
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-primary/10">
-                <Trophy className="h-4 w-4 text-primary" />
-              </div>
-              <h1 className="text-xl md:text-2xl font-bold tracking-tight uppercase">{ranking.name}</h1>
-              {getStatusBadge()}
-            </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              {format(startDate, "dd MMM", { locale: ptBR })} - {format(endDate, "dd MMM yyyy", { locale: ptBR })}
-            </p>
-            
-            {/* Action buttons */}
-            {isCreator && (
-              <div className="flex items-center gap-3 mt-4">
-                {onEdit && (
+          {/* Request deletion for active rankings */}
+          {canRequestDeletion && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive">
+                  <Trash2 className="h-4 w-4" />
+                  Solicitar Exclusão
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Solicitar Exclusão</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Como este ranking está ativo, todos os participantes precisam consentir com a exclusão.
+                    Será enviada uma notificação para cada participante solicitando o consentimento.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleRequestDeletion}
+                    disabled={requestingDeletion}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {requestingDeletion ? "Enviando..." : "Solicitar"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+
+          {/* Show deletion request status for creator */}
+          {isCreator && ranking.deletion_requested && (
+            <div className="flex items-center gap-2">
+              {allConsented ? (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm" className="gap-2">
+                      <Trash2 className="h-4 w-4" />
+                      Confirmar Exclusão
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Todos Consentiram</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Todos os participantes concordaram com a exclusão. Deseja prosseguir?
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={handleDeleteRanking}
+                        disabled={deleting}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {deleting ? "Excluindo..." : "Excluir Definitivamente"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              ) : (
+                <>
+                  <Badge variant="outline" className="text-yellow-500 border-yellow-500">
+                    Aguardando consentimento ({consentCount}/{acceptedParticipants.length})
+                  </Badge>
                   <Button 
-                    variant="outline" 
+                    variant="ghost" 
                     size="sm" 
-                    className="h-9 gap-2 rounded-lg border-border/40 bg-muted/30 hover:bg-muted/60 transition-colors" 
-                    onClick={onEdit}
+                    onClick={handleCancelDeletionRequest}
+                    className="text-muted-foreground"
                   >
-                    <Pencil className="h-4 w-4" />
-                    Editar
+                    Cancelar solicitação
                   </Button>
-                )}
-                {onDelete && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 gap-2 rounded-lg border-destructive/40 text-destructive bg-destructive/10 hover:bg-destructive/20 transition-colors"
-                    onClick={onDelete}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Excluir
-                  </Button>
-                )}
-              </div>
-            )}
-          </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Show consent buttons for non-creator participants */}
+          {!isCreator && ranking.deletion_requested && !userHasConsented && (
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-yellow-500 border-yellow-500">
+                Exclusão solicitada
+              </Badge>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => handleConsentToDeletion(true)}
+                className="text-destructive hover:text-destructive"
+              >
+                Concordar
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => handleConsentToDeletion(false)}
+              >
+                Recusar
+              </Button>
+            </div>
+          )}
+
+          {/* Show consent status for non-creator who already consented */}
+          {!isCreator && ranking.deletion_requested && userHasConsented && (
+            <Badge variant="outline" className="text-muted-foreground">
+              Você concordou com a exclusão
+            </Badge>
+          )}
+
+          {/* Button to replay winner celebration */}
+          {ranking.status === 'completed' && winner && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2 border-yellow-500/30 text-yellow-500 hover:bg-yellow-500/10"
+              onClick={() => setShowWinnerCelebration(true)}
+            >
+              <Trophy className="h-4 w-4" />
+              Ver Celebração
+            </Button>
+          )}
+
+          <Badge className={cn(
+            ranking.status === 'active' && "bg-green-500/20 text-green-500",
+            ranking.status === 'pending' && "bg-yellow-500/20 text-yellow-500",
+            ranking.status === 'completed' && "bg-muted text-muted-foreground"
+          )}>
+            {ranking.status === 'active' && 'Ativo'}
+            {ranking.status === 'pending' && 'Aguardando'}
+            {ranking.status === 'completed' && 'Finalizado'}
+          </Badge>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6">
-        <div className="grid gap-6 lg:grid-cols-3 max-w-7xl mx-auto">
-          {/* Main content - Goals */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Date Navigator */}
-            <div className="rounded-2xl border border-border/30 bg-card/50 backdrop-blur-sm p-6">
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Main Content - Goals */}
+        <div className="lg:col-span-2 space-y-4">
+          {/* Date Navigator */}
+          <Card>
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-10 w-10 rounded-xl hover:bg-muted/60 transition-colors"
-                  onClick={goToPreviousDay}
-                  disabled={!canNavigateBack}
+                  onClick={() => navigateDate('prev')}
+                  disabled={!canNavigatePrev}
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </Button>
-                
                 <div className="text-center">
-                  <p className="text-sm text-muted-foreground capitalize">
+                  <p className="text-sm text-muted-foreground">
                     {format(selectedDate, "EEEE", { locale: ptBR })}
                   </p>
-                  <p className="text-xl font-semibold mt-1">
+                  <p className="text-lg font-semibold">
                     {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
                   </p>
                 </div>
-                
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-10 w-10 rounded-xl hover:bg-muted/60 transition-colors"
-                  onClick={goToNextDay}
-                  disabled={!canNavigateForward}
+                  onClick={() => navigateDate('next')}
+                  disabled={!canNavigateNext}
                 >
                   <ChevronRight className="h-5 w-5" />
                 </Button>
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Goals Section */}
-            <div className="rounded-2xl border border-border/30 bg-card/50 backdrop-blur-sm p-6">
-              <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-muted/50">
-                    <Target className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <span className="font-semibold text-lg">Metas do Dia</span>
-                </div>
+          {/* Daily Progress */}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Target className="h-4 w-4 text-muted-foreground" />
+                  Metas do Dia
+                </CardTitle>
                 <div className="text-right">
-                  <span className="text-3xl font-bold text-primary">{earnedToday.toFixed(1)}</span>
-                  <span className="text-sm text-muted-foreground ml-2">de {dailyTotalPoints} pontos</span>
+                  <p className="text-2xl font-bold text-primary">{dailyPoints.toFixed(1)}</p>
+                  <p className="text-xs text-muted-foreground">de 10 pontos</p>
                 </div>
               </div>
-
-              {/* Progress bar */}
-              <div className="h-1.5 bg-muted/40 rounded-full mb-6 overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full transition-all duration-500 ease-out"
-                  style={{ width: `${(earnedToday / dailyTotalPoints) * 100}%` }}
-                />
-              </div>
-
-              {loadingLogs ? (
-                <div className="flex items-center justify-center py-16">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary/50" />
-                </div>
-              ) : (
-                <div className="space-y-3">
+              <Progress value={dailyProgress} className="h-2 mt-2" />
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="space-y-3">
+                <AnimatePresence mode="popLayout">
                   {ranking.goals.map((goal, index) => {
-                    const log = goalLogs.find((l) => l.goal_id === goal.id);
-                    const isCompleted = log?.completed || false;
-                    const pointsPerGoal = (10 / ranking.goals.length).toFixed(1);
-                    const isProcessing = processingGoal === goal.id;
-                    const canToggle = isActive && isToday && !isProcessing;
-
-                      // Calculate subtle gradient based on index
-                      const gradientOpacity = 0.03 + (index * 0.015);
-                      
-                      return (
-                      <div
+                    const completed = isGoalCompleted(goal.id);
+                    const pointsPerGoal = 10 / ranking.goals.length;
+                    
+                    return (
+                      <motion.div
                         key={goal.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ delay: index * 0.05 }}
                         className={cn(
-                          "flex items-center gap-4 p-4 rounded-xl border transition-all duration-300 relative overflow-hidden",
-                          isCompleted
-                            ? "border-primary/30 shadow-sm shadow-primary/10"
-                            : "border-border/30 hover:border-border/50",
-                          canToggle && "cursor-pointer"
+                          "group relative flex items-center gap-4 p-4 rounded-xl transition-all duration-300",
+                          "border-2",
+                          completed 
+                            ? "bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/30 shadow-sm" 
+                            : "bg-gradient-to-r from-muted/50 via-muted/30 to-transparent border-border/50 hover:border-primary/20",
+                          !canEditGoals && "opacity-60 pointer-events-none"
                         )}
-                        style={{
-                          background: isCompleted 
-                            ? `linear-gradient(135deg, hsl(var(--primary) / 0.08) 0%, hsl(var(--primary) / 0.02) 100%)`
-                            : `linear-gradient(135deg, hsl(var(--primary) / ${gradientOpacity}) 0%, transparent 100%)`
-                        }}
-                        onClick={() => canToggle && handleToggleGoal(goal.id)}
                       >
+                        {/* Goal Number Badge */}
                         <div className={cn(
-                          "flex items-center justify-center h-11 w-11 rounded-xl text-base font-bold transition-colors",
-                          isCompleted 
-                            ? "bg-primary/20 text-primary" 
-                            : "bg-muted/60 text-muted-foreground"
+                          "flex items-center justify-center h-10 w-10 rounded-xl shrink-0 transition-all duration-300",
+                          "text-sm font-bold",
+                          completed 
+                            ? "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20" 
+                            : "bg-gradient-to-br from-muted to-muted/60 text-muted-foreground"
                         )}>
-                          {index + 1}
+                          {completed ? <Check className="h-5 w-5" /> : index + 1}
                         </div>
+
+                        {/* Goal Content */}
                         <div className="flex-1 min-w-0">
                           <p className={cn(
-                            "font-semibold text-base transition-colors",
-                            isCompleted ? "text-foreground" : "text-foreground/80"
+                            "font-semibold text-base transition-all duration-300",
+                            completed && "text-primary"
                           )}>
                             {goal.title}
                           </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {pointsPerGoal} pts
-                          </p>
+                          {goal.description && (
+                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                              {goal.description}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <span className={cn(
+                              "text-[10px] px-2 py-0.5 rounded-full font-medium",
+                              completed 
+                                ? "bg-primary/20 text-primary" 
+                                : "bg-muted text-muted-foreground"
+                            )}>
+                              {completed ? `+${pointsPerGoal.toFixed(1)} pts` : `${pointsPerGoal.toFixed(1)} pts`}
+                            </span>
+                            {completed && (
+                              <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                                <Sparkles className="h-3 w-3 text-primary" />
+                                Completo
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <div className={cn(
-                          "flex items-center justify-center h-7 w-7 rounded-lg border-2 transition-all duration-300",
-                          isCompleted 
-                            ? "bg-primary border-primary" 
-                            : "bg-transparent border-muted-foreground/30",
-                          isProcessing && "opacity-50"
-                        )}>
-                          {isCompleted && <Check className="h-4 w-4 text-primary-foreground" />}
-                        </div>
-                      </div>
+
+                        {/* Checkbox */}
+                        <Checkbox
+                          checked={completed}
+                          onCheckedChange={(checked) => {
+                            // Play check sound when completing
+                            if (checked && !completed) {
+                              playCheck();
+                            }
+                            handleToggleGoal(goal.id, !!checked);
+                          }}
+                          disabled={!canEditGoals || loading}
+                          className={cn(
+                            "h-6 w-6 rounded-lg border-2 transition-all duration-300",
+                            completed 
+                              ? "border-primary bg-primary data-[state=checked]:bg-primary" 
+                              : "border-muted-foreground/30 hover:border-primary/50"
+                          )}
+                        />
+                      </motion.div>
                     );
                   })}
-                </div>
-              )}
+                </AnimatePresence>
 
-              {/* Not started message */}
-              {isPending && (
-                <div className="text-center py-12">
-                  <div className="flex items-center justify-center h-16 w-16 rounded-2xl bg-muted/30 mx-auto mb-4">
-                    <Target className="h-8 w-8 text-muted-foreground/50" />
+                {!isActive && (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <div className="h-12 w-12 rounded-full bg-muted/50 flex items-center justify-center mb-3">
+                      <Target className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {ranking.status === 'pending' 
+                        ? 'O ranking ainda não foi iniciado.' 
+                        : 'O ranking foi finalizado.'}
+                    </p>
                   </div>
-                  <p className="text-muted-foreground text-lg">
-                    O ranking ainda não foi iniciado.
-                  </p>
-                </div>
-              )}
-
-              {/* Ended message */}
-              {isEnded && (
-                <div className="text-center py-12">
-                  <div className="flex items-center justify-center h-16 w-16 rounded-2xl bg-amber-500/10 mx-auto mb-4">
-                    <Trophy className="h-8 w-8 text-amber-500/70" />
-                  </div>
-                  <p className="text-muted-foreground text-lg">
-                    O ranking foi finalizado.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Sidebar - Ranking & Participants */}
-          <div className="space-y-6">
-            {/* Classification */}
-            <div className="rounded-2xl border border-border/30 bg-card/50 backdrop-blur-sm p-5">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-amber-500/10">
-                  <Crown className="h-4 w-4 text-amber-500" />
-                </div>
-                <span className="font-semibold text-lg">Classificação</span>
+                )}
               </div>
+            </CardContent>
+          </Card>
 
-              {currentUserParticipant && (
-                <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/30 border border-border/30">
-                  <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-amber-500/20">
-                    <Crown className="h-5 w-5 text-amber-500" />
+          {/* Bet Info */}
+          {ranking.bet_description && (
+            <Card className="border-yellow-500/30 bg-yellow-500/5">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2 text-yellow-500">
+                  <Coins className="h-4 w-4" />
+                  Aposta: {ranking.bet_amount}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">{ranking.bet_description}</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Sidebar - Leaderboard */}
+        <div className="space-y-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Crown className="h-4 w-4 text-yellow-500" />
+                Classificação
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {leaderboard.map((participant, index) => (
+                <motion.div
+                  key={participant.id}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className={cn(
+                    "flex items-center gap-3 p-3 rounded-lg transition-all",
+                    participant.user_id === user?.id && "bg-primary/10 border border-primary/20",
+                    index === 0 && participant.total_points > 0 && "bg-yellow-500/10"
+                  )}
+                >
+                  <div className={cn(
+                    "h-8 w-8 rounded-full flex items-center justify-center font-bold text-sm",
+                    index === 0 && "bg-yellow-500/20 text-yellow-500",
+                    index === 1 && "bg-gray-400/20 text-gray-400",
+                    index === 2 && "bg-orange-600/20 text-orange-600",
+                    index > 2 && "bg-muted text-muted-foreground"
+                  )}>
+                    {index === 0 ? <Crown className="h-4 w-4" /> : index + 1}
                   </div>
-                  <Avatar className="h-12 w-12 border-2 border-primary/40 ring-2 ring-primary/10">
-                    <AvatarImage src={currentUserParticipant.profile?.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary/10 text-primary font-bold text-lg">
-                      {currentUserParticipant.profile?.first_name?.[0] || "?"}
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={participant.user_profile?.avatar_url || undefined} />
+                    <AvatarFallback className="text-xs">
+                      {participant.user_profile?.first_name?.charAt(0) || '?'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold">
-                      {currentUserParticipant.profile?.first_name || "Você"}{" "}
-                      <span className="text-muted-foreground text-xs font-normal">(você)</span>
+                    <p className="font-medium text-sm truncate">
+                      {participant.user_profile?.first_name || 'Usuário'}
+                      {participant.user_id === user?.id && (
+                        <span className="text-muted-foreground ml-1">(você)</span>
+                      )}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      ID: {currentUserParticipant.profile?.public_id || "—"}
+                    <p className="text-xs text-muted-foreground">
+                      ID: {participant.user_profile?.public_id || '—'}
                     </p>
                   </div>
                   <div className="text-right">
-                    <span className="text-2xl font-bold text-primary">
-                      {currentUserParticipant.total_points.toFixed(1)}
-                    </span>
-                    <p className="text-xs text-muted-foreground">pontos</p>
+                    <p className="font-bold text-primary">{participant.total_points.toFixed(1)}</p>
+                    <p className="text-[10px] text-muted-foreground">pontos</p>
                   </div>
-                </div>
+                </motion.div>
+              ))}
+
+              {leaderboard.length === 0 && (
+                <p className="text-sm text-center text-muted-foreground py-4">
+                  Nenhum participante ainda
+                </p>
               )}
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Participants */}
-            <div className="rounded-2xl border border-border/30 bg-card/50 backdrop-blur-sm p-5">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-muted/50">
-                  <Users className="h-4 w-4 text-muted-foreground" />
+          {/* Participants */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                Participantes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {ranking.participants.map((participant) => (
+                <div key={participant.id} className="flex items-center gap-2 text-sm">
+                  <Avatar className="h-6 w-6">
+                    <AvatarImage src={participant.user_profile?.avatar_url || undefined} />
+                    <AvatarFallback className="text-[10px]">
+                      {participant.user_profile?.first_name?.charAt(0) || '?'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="flex-1 truncate">
+                    {participant.user_profile?.first_name || 'Usuário'}
+                  </span>
+                  <Badge variant="outline" className={cn(
+                    "text-[10px]",
+                    participant.status === 'accepted' && "text-green-500 border-green-500/30",
+                    participant.status === 'pending' && "text-yellow-500 border-yellow-500/30",
+                    participant.status === 'rejected' && "text-red-500 border-red-500/30"
+                  )}>
+                    {participant.status === 'accepted' && 'Aceito'}
+                    {participant.status === 'pending' && 'Pendente'}
+                    {participant.status === 'rejected' && 'Recusado'}
+                  </Badge>
                 </div>
-                <span className="font-semibold text-lg">Participantes</span>
-              </div>
-
-              <div className="space-y-3">
-                {ranking.participants.map((participant) => (
-                  <div
-                    key={participant.id}
-                    className="flex items-center gap-3 py-2"
-                  >
-                    <Avatar className="h-10 w-10 border border-border/30">
-                      <AvatarImage src={participant.profile?.avatar_url || undefined} />
-                      <AvatarFallback className="text-sm bg-muted font-medium">
-                        {participant.profile?.first_name?.[0] || "?"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">
-                        {participant.profile?.first_name || "Usuário"}
-                      </p>
-                    </div>
-                    {getParticipantStatusBadge(participant.status)}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+              ))}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
+    </>
   );
 }
