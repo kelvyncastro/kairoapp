@@ -602,7 +602,7 @@ export default function Landing() {
                   <span className="text-4xl font-bold">R$197,90</span>
                   <span className="text-muted-foreground">/ano</span>
                 </div>
-                <p className="text-muted-foreground line-through text-sm mb-2">R$358,80/ano</p>
+                <p className="text-muted-foreground line-through text-sm mb-2">R$397,90/ano</p>
                 <p className="text-success text-sm font-medium mb-4">Economize R$160,90 comparado ao plano mensal</p>
                 <p className="text-muted-foreground mb-6">Equivale a apenas R$16,49/mês — mais de 5 meses grátis!</p>
                 <ul className="space-y-3 mb-8">
