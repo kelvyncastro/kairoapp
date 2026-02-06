@@ -617,14 +617,14 @@ export default function Landing() {
                     </motion.li>
                   ))}
                 </ul>
-                <Link to="/auth" className="block">
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button className="w-full h-12 bg-foreground text-background hover:bg-foreground/90">
-                      Começar Agora
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </motion.div>
-                </Link>
+                <a href="https://pay.kirvano.com/44bf7ce3-3b3b-442b-9983-9f612db21135" target="_blank" rel="noopener noreferrer" className="block">
+                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                     <Button className="w-full h-12 bg-foreground text-background hover:bg-foreground/90">
+                       Começar Agora
+                       <ArrowRight className="ml-2 h-4 w-4" />
+                     </Button>
+                   </motion.div>
+                 </a>
               </div>
             </motion.div>
           </div>
