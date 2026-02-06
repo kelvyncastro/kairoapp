@@ -551,10 +551,11 @@ export default function Landing() {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5" />
               <div className="relative z-10">
                 <div className="text-sm font-medium text-muted-foreground mb-2">Mensal</div>
-                <div className="flex items-baseline gap-1 mb-4">
+                <div className="flex items-baseline gap-1 mb-1">
                   <span className="text-4xl font-bold">R$29,90</span>
                   <span className="text-muted-foreground">/mês</span>
                 </div>
+                <p className="text-muted-foreground line-through text-sm mb-4">R$49,90/mês</p>
                 <p className="text-muted-foreground mb-6">Pague mês a mês, cancele quando quiser</p>
                 <ul className="space-y-3 mb-8">
                   {["Acesso total a todas as funcionalidades", "Sincronização em tempo real", "Suporte prioritário", "Atualizações contínuas"].map((item, i) => (
