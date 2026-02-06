@@ -199,21 +199,116 @@ export function useCalendarBlocks({ view, currentDate }: UseCalendarBlocksOption
         dbUpdates.recurrence_rule = recurrence_rule as unknown as Record<string, unknown>;
       }
      
-     // If color is being updated and this block is part of a recurring series,
-     // update color on all related blocks
-     if (updates.color) {
-       const block = blocks.find(b => b.id === id);
-       if (block) {
-         const parentId = block.recurrence_parent_id || id;
-         
-         // Update parent and all children with same color
-         await supabase
-           .from('calendar_blocks')
-           .update({ color: updates.color })
-           .or(`id.eq.${parentId},recurrence_parent_id.eq.${parentId}`);
-       }
-     }
+      const block = blocks.find(b => b.id === id);
+      const isPartOfSeries = block && (block.recurrence_parent_id || block.recurrence_type !== 'none');
       
+      // For blocks that are part of a recurring series, sync relevant fields to all instances
+      if (isPartOfSeries && block) {
+        const parentId = block.recurrence_parent_id || id;
+        
+        // Build sync updates for recurring series (color, title, description, recurrence config)
+        const syncUpdates: Record<string, unknown> = {};
+        
+        if (updates.color !== undefined) {
+          syncUpdates.color = updates.color;
+        }
+        if (updates.title !== undefined) {
+          syncUpdates.title = updates.title;
+        }
+        if (updates.description !== undefined) {
+          syncUpdates.description = updates.description;
+        }
+        if (updates.priority !== undefined) {
+          syncUpdates.priority = updates.priority;
+        }
+        if (updates.demand_type !== undefined) {
+          syncUpdates.demand_type = updates.demand_type;
+        }
+        
+        // If time is being updated, calculate the time difference and apply to all
+        if (updates.start_time && updates.end_time) {
+          const oldStart = new Date(block.start_time);
+          const oldEnd = new Date(block.end_time);
+          const newStart = new Date(updates.start_time);
+          const newEnd = new Date(updates.end_time);
+          const timeDiff = newStart.getTime() - oldStart.getTime();
+          const durationDiff = (newEnd.getTime() - newStart.getTime()) - (oldEnd.getTime() - oldStart.getTime());
+          
+          // Get all related blocks and update their times
+          const { data: relatedBlocks } = await supabase
+            .from('calendar_blocks')
+            .select('*')
+            .or(`id.eq.${parentId},recurrence_parent_id.eq.${parentId}`);
+          
+          if (relatedBlocks) {
+            for (const relBlock of relatedBlocks) {
+              const relOldStart = new Date(relBlock.start_time);
+              const relOldEnd = new Date(relBlock.end_time);
+              const relNewStart = new Date(relOldStart.getTime() + timeDiff);
+              const relNewEnd = new Date(relOldEnd.getTime() + timeDiff + durationDiff);
+              
+              const blockUpdate: Record<string, unknown> = {
+                start_time: relNewStart.toISOString(),
+                end_time: relNewEnd.toISOString(),
+                ...syncUpdates,
+              };
+              
+              // Also sync recurrence settings to parent
+              if (relBlock.id === parentId) {
+                if (updates.recurrence_type !== undefined) {
+                  blockUpdate.recurrence_type = updates.recurrence_type;
+                }
+                if (recurrence_rule !== undefined) {
+                  blockUpdate.recurrence_rule = recurrence_rule as unknown as Record<string, unknown>;
+                }
+                if (updates.recurrence_end_date !== undefined) {
+                  blockUpdate.recurrence_end_date = updates.recurrence_end_date;
+                }
+              }
+              
+              await supabase
+                .from('calendar_blocks')
+                .update(blockUpdate)
+                .eq('id', relBlock.id);
+            }
+            
+            await fetchBlocks();
+            toast.success('Demanda atualizada!');
+            return true;
+          }
+        }
+        
+        // If only non-time fields are being updated, sync to all blocks in series
+        if (Object.keys(syncUpdates).length > 0) {
+          await supabase
+            .from('calendar_blocks')
+            .update(syncUpdates)
+            .or(`id.eq.${parentId},recurrence_parent_id.eq.${parentId}`);
+        }
+        
+        // Update recurrence settings only on parent
+        if (updates.recurrence_type !== undefined || recurrence_rule !== undefined || updates.recurrence_end_date !== undefined) {
+          const parentUpdates: Record<string, unknown> = {};
+          if (updates.recurrence_type !== undefined) {
+            parentUpdates.recurrence_type = updates.recurrence_type;
+          }
+          if (recurrence_rule !== undefined) {
+            parentUpdates.recurrence_rule = recurrence_rule as unknown as Record<string, unknown>;
+          }
+          if (updates.recurrence_end_date !== undefined) {
+            parentUpdates.recurrence_end_date = updates.recurrence_end_date;
+          }
+          
+          if (Object.keys(parentUpdates).length > 0) {
+            await supabase
+              .from('calendar_blocks')
+              .update(parentUpdates)
+              .eq('id', parentId);
+          }
+        }
+      }
+      
+      // Always update the specific block being edited
       const { error } = await supabase
         .from('calendar_blocks')
         .update(dbUpdates)
