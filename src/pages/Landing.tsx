@@ -552,7 +552,7 @@ export default function Landing() {
               <div className="relative z-10">
                 <div className="text-sm font-medium text-muted-foreground mb-2">Mensal</div>
                 <div className="flex items-baseline gap-1 mb-4">
-                  <span className="text-4xl font-bold">R$39,90</span>
+                  <span className="text-4xl font-bold">R$29,90</span>
                   <span className="text-muted-foreground">/mês</span>
                 </div>
                 <p className="text-muted-foreground mb-6">Pague mês a mês, cancele quando quiser</p>
@@ -598,13 +598,17 @@ export default function Landing() {
               <div className="relative z-10">
                 <div className="text-sm font-medium text-muted-foreground mb-2">Anual</div>
                 <div className="flex items-baseline gap-1 mb-1">
-                  <span className="text-4xl font-bold">R$397,90</span>
+                  <span className="text-4xl font-bold">R$197,90</span>
                   <span className="text-muted-foreground">/ano</span>
                 </div>
-                <p className="text-success text-sm font-medium mb-4">Economia de R$81 por ano</p>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-muted-foreground line-through text-sm">R$358,80</span>
+                  <span className="bg-success/20 text-success text-xs font-semibold px-2 py-0.5 rounded">-45% OFF</span>
+                </div>
+                <p className="text-success text-sm font-medium mb-4">Economia de R$160,90 por ano</p>
                 <p className="text-muted-foreground mb-6">Melhor custo-benefício para você</p>
                 <ul className="space-y-3 mb-8">
-                  {["Tudo do plano mensal", "2 meses grátis", "Prioridade em novos recursos", "Suporte VIP"].map((item, i) => (
+                  {["Tudo do plano mensal", "Mais de 5 meses grátis", "Prioridade em novos recursos", "Suporte VIP"].map((item, i) => (
                     <motion.li 
                       key={i} 
                       className="flex items-center gap-3"
