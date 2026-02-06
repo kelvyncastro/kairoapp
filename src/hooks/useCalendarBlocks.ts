@@ -200,121 +200,137 @@ export function useCalendarBlocks({ view, currentDate }: UseCalendarBlocksOption
       }
      
       const block = blocks.find(b => b.id === id);
+      
+      // Check if recurrence settings changed (need to regenerate children)
+      const recurrenceChanged = 
+        updates.recurrence_type !== undefined || 
+        recurrence_rule !== undefined ||
+        (updates.recurrence_rule !== undefined && JSON.stringify(updates.recurrence_rule) !== JSON.stringify(block?.recurrence_rule));
+      
       const isPartOfSeries = block && (block.recurrence_parent_id || block.recurrence_type !== 'none');
       
-      // For blocks that are part of a recurring series, sync relevant fields to all instances
-      if (isPartOfSeries && block) {
-        const parentId = block.recurrence_parent_id || id;
+      // If this block is part of a series or recurrence changed, handle specially
+      if (isPartOfSeries || recurrenceChanged) {
+        const parentId = block?.recurrence_parent_id || id;
         
-        // Build sync updates for recurring series (color, title, description, recurrence config)
-        const syncUpdates: Record<string, unknown> = {};
-        
-        if (updates.color !== undefined) {
-          syncUpdates.color = updates.color;
-        }
-        if (updates.title !== undefined) {
-          syncUpdates.title = updates.title;
-        }
-        if (updates.description !== undefined) {
-          syncUpdates.description = updates.description;
-        }
-        if (updates.priority !== undefined) {
-          syncUpdates.priority = updates.priority;
-        }
-        if (updates.demand_type !== undefined) {
-          syncUpdates.demand_type = updates.demand_type;
-        }
-        
-        // If time is being updated, calculate the time difference and apply to all
-        if (updates.start_time && updates.end_time) {
-          const oldStart = new Date(block.start_time);
-          const oldEnd = new Date(block.end_time);
-          const newStart = new Date(updates.start_time);
-          const newEnd = new Date(updates.end_time);
-          const timeDiff = newStart.getTime() - oldStart.getTime();
-          const durationDiff = (newEnd.getTime() - newStart.getTime()) - (oldEnd.getTime() - oldStart.getTime());
-          
-          // Get all related blocks and update their times
-          const { data: relatedBlocks } = await supabase
-            .from('calendar_blocks')
-            .select('*')
-            .or(`id.eq.${parentId},recurrence_parent_id.eq.${parentId}`);
-          
-          if (relatedBlocks) {
-            for (const relBlock of relatedBlocks) {
-              const relOldStart = new Date(relBlock.start_time);
-              const relOldEnd = new Date(relBlock.end_time);
-              const relNewStart = new Date(relOldStart.getTime() + timeDiff);
-              const relNewEnd = new Date(relOldEnd.getTime() + timeDiff + durationDiff);
-              
-              const blockUpdate: Record<string, unknown> = {
-                start_time: relNewStart.toISOString(),
-                end_time: relNewEnd.toISOString(),
-                ...syncUpdates,
-              };
-              
-              // Also sync recurrence settings to parent
-              if (relBlock.id === parentId) {
-                if (updates.recurrence_type !== undefined) {
-                  blockUpdate.recurrence_type = updates.recurrence_type;
-                }
-                if (recurrence_rule !== undefined) {
-                  blockUpdate.recurrence_rule = recurrence_rule as unknown as Record<string, unknown>;
-                }
-                if (updates.recurrence_end_date !== undefined) {
-                  blockUpdate.recurrence_end_date = updates.recurrence_end_date;
-                }
-              }
-              
-              await supabase
-                .from('calendar_blocks')
-                .update(blockUpdate)
-                .eq('id', relBlock.id);
-            }
-            
-            await fetchBlocks();
-            toast.success('Demanda atualizada!');
-            return true;
-          }
-        }
-        
-        // If only non-time fields are being updated, sync to all blocks in series
-        if (Object.keys(syncUpdates).length > 0) {
+        // If recurrence settings changed, we need to delete old children and regenerate
+        if (recurrenceChanged && block) {
+          // Delete all existing child blocks
           await supabase
             .from('calendar_blocks')
-            .update(syncUpdates)
-            .or(`id.eq.${parentId},recurrence_parent_id.eq.${parentId}`);
-        }
-        
-        // Update recurrence settings only on parent
-        if (updates.recurrence_type !== undefined || recurrence_rule !== undefined || updates.recurrence_end_date !== undefined) {
-          const parentUpdates: Record<string, unknown> = {};
-          if (updates.recurrence_type !== undefined) {
-            parentUpdates.recurrence_type = updates.recurrence_type;
-          }
-          if (recurrence_rule !== undefined) {
-            parentUpdates.recurrence_rule = recurrence_rule as unknown as Record<string, unknown>;
-          }
-          if (updates.recurrence_end_date !== undefined) {
-            parentUpdates.recurrence_end_date = updates.recurrence_end_date;
+            .delete()
+            .eq('recurrence_parent_id', parentId);
+          
+          // Update the parent block (or current block if it's the parent)
+          const parentUpdates: Record<string, unknown> = { ...dbUpdates };
+          
+          const { error: updateError } = await supabase
+            .from('calendar_blocks')
+            .update(parentUpdates)
+            .eq('id', parentId);
+          
+          if (updateError) throw updateError;
+          
+          // Regenerate children if recurrence is enabled
+          const newRecurrenceType = updates.recurrence_type ?? block.recurrence_type;
+          const newRecurrenceRule = recurrence_rule ?? block.recurrence_rule;
+          
+          if (newRecurrenceType !== 'none' && newRecurrenceRule) {
+            const updatedBlock = {
+              ...block,
+              ...updates,
+              start_time: updates.start_time ?? block.start_time,
+              end_time: updates.end_time ?? block.end_time,
+              recurrence_type: newRecurrenceType,
+              recurrence_rule: newRecurrenceRule,
+            };
+            await generateRecurringInstances(parentId, updatedBlock as any);
           }
           
-          if (Object.keys(parentUpdates).length > 0) {
+          await fetchBlocks();
+          toast.success('Demanda atualizada!');
+          return true;
+        }
+        
+        // If not recurrence change but part of series, sync relevant fields
+        if (isPartOfSeries && block) {
+          // Build sync updates for recurring series (color, title, description, etc.)
+          const syncUpdates: Record<string, unknown> = {};
+          
+          if (updates.color !== undefined) {
+            syncUpdates.color = updates.color;
+          }
+          if (updates.title !== undefined) {
+            syncUpdates.title = updates.title;
+          }
+          if (updates.description !== undefined) {
+            syncUpdates.description = updates.description;
+          }
+          if (updates.priority !== undefined) {
+            syncUpdates.priority = updates.priority;
+          }
+          if (updates.demand_type !== undefined) {
+            syncUpdates.demand_type = updates.demand_type;
+          }
+          
+          // If time is being updated, calculate the time difference and apply to all
+          if (updates.start_time && updates.end_time) {
+            const oldStart = new Date(block.start_time);
+            const oldEnd = new Date(block.end_time);
+            const newStart = new Date(updates.start_time);
+            const newEnd = new Date(updates.end_time);
+            const timeDiff = newStart.getTime() - oldStart.getTime();
+            const durationDiff = (newEnd.getTime() - newStart.getTime()) - (oldEnd.getTime() - oldStart.getTime());
+            
+            // Get all related blocks and update their times
+            const { data: relatedBlocks } = await supabase
+              .from('calendar_blocks')
+              .select('*')
+              .or(`id.eq.${parentId},recurrence_parent_id.eq.${parentId}`);
+            
+            if (relatedBlocks) {
+              for (const relBlock of relatedBlocks) {
+                const relOldStart = new Date(relBlock.start_time);
+                const relOldEnd = new Date(relBlock.end_time);
+                const relNewStart = new Date(relOldStart.getTime() + timeDiff);
+                const relNewEnd = new Date(relOldEnd.getTime() + timeDiff + durationDiff);
+                
+                const blockUpdate: Record<string, unknown> = {
+                  start_time: relNewStart.toISOString(),
+                  end_time: relNewEnd.toISOString(),
+                  ...syncUpdates,
+                };
+                
+                await supabase
+                  .from('calendar_blocks')
+                  .update(blockUpdate)
+                  .eq('id', relBlock.id);
+              }
+              
+              await fetchBlocks();
+              toast.success('Demanda atualizada!');
+              return true;
+            }
+          }
+          
+          // If only non-time fields are being updated, sync to all blocks in series
+          if (Object.keys(syncUpdates).length > 0) {
             await supabase
               .from('calendar_blocks')
-              .update(parentUpdates)
-              .eq('id', parentId);
+              .update(syncUpdates)
+              .or(`id.eq.${parentId},recurrence_parent_id.eq.${parentId}`);
           }
         }
       }
       
-      // Always update the specific block being edited
+      // Always update the specific block being edited (for non-recurring or single updates)
       const { error } = await supabase
         .from('calendar_blocks')
         .update(dbUpdates)
         .eq('id', id);
 
       if (error) throw error;
+      await fetchBlocks();
       toast.success('Demanda atualizada!');
       return true;
     } catch (error) {
