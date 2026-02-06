@@ -570,11 +570,11 @@ export default function Landing() {
                     </motion.li>
                   ))}
                 </ul>
-                <Link to="/auth" className="block">
-                  <Button variant="outline" className="w-full h-12 backdrop-blur-sm bg-background/50">
-                    Começar Agora
-                  </Button>
-                </Link>
+                <a href="https://pay.kirvano.com/cb78dfd0-c8e0-40bb-a16b-951ba74a0a02" target="_blank" rel="noopener noreferrer" className="block">
+                   <Button variant="outline" className="w-full h-12 backdrop-blur-sm bg-background/50">
+                     Começar Agora
+                   </Button>
+                 </a>
               </div>
             </motion.div>
 
