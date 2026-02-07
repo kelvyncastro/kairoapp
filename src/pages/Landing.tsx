@@ -139,7 +139,7 @@ const testimonials = [
 ];
 
 const stats = [
-  { value: "10K+", label: "Usuários Ativos" },
+  { value: "2K+", label: "Usuários Ativos" },
   { value: "500K+", label: "Tarefas Concluídas" },
   { value: "98%", label: "Satisfação" },
   { value: "4.9", label: "Avaliação" }
