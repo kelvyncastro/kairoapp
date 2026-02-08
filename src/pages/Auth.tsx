@@ -381,25 +381,23 @@ export default function Auth() {
               </motion.form>
             </AnimatePresence>
 
-            <motion.div 
-              className="mt-4 text-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-            >
-              <motion.button
-                type="button"
-                onClick={() => {
-                  if (forgotPassword) {
-                    setForgotPassword(false);
-                  } else {
-                    setIsLogin(!isLogin);
-                  }
-                }}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                whileHover={{ scale: 1.02 }}
+            {forgotPassword && (
+              <motion.div 
+                className="mt-4 text-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
               >
-                {forgotPassword
+                <motion.button
+                  type="button"
+                  onClick={() => setForgotPassword(false)}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  Voltar ao login
+                </motion.button>
+              </motion.div>
+            )}
                   ? "Voltar ao login"
                   : isLogin
                   ? "Não tem conta? Criar agora"
