@@ -341,7 +341,7 @@ export default function Auth() {
                   </div>
                 )}
 
-                {isLogin && !forgotPassword && (
+                {!forgotPassword && (
                   <div className="text-right">
                     <motion.button
                       type="button"
