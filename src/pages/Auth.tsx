@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
- import { Loader2, Eye, EyeOff, Sparkles, Clock, Target, Flame, Phone } from "lucide-react";
+ import { Loader2, Eye, EyeOff, Sparkles, Clock, Target, Flame } from "lucide-react";
 import kairoLogo from "@/assets/kairo-logo.png";
  import { supabase } from "@/integrations/supabase/client";
 
