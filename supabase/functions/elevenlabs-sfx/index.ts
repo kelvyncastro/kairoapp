@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,6 +13,43 @@ serve(async (req) => {
   }
 
   try {
+    // STEP 1: Validate Authorization header
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Não autorizado. Faça login para usar esta funcionalidade." }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    
+    // STEP 2: Create client with user's auth context
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // STEP 3: Validate JWT and extract user ID from claims
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: "Sessão inválida. Faça login novamente." }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const userId = claimsData.claims.sub;
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: "Usuário não identificado." }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // STEP 4: Proceed with ElevenLabs API call
     const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
     
     if (!ELEVENLABS_API_KEY) {
@@ -24,7 +62,7 @@ serve(async (req) => {
       throw new Error("Prompt is required");
     }
 
-    console.log(`Generating sound effect: "${prompt}" with duration: ${duration || 'auto'}`);
+    console.log(`User ${userId} generating sound effect: "${prompt}" with duration: ${duration || 'auto'}`);
 
     const response = await fetch(
       "https://api.elevenlabs.io/v1/sound-generation",
@@ -50,7 +88,7 @@ serve(async (req) => {
 
     const audioBuffer = await response.arrayBuffer();
 
-    console.log(`Sound effect generated successfully, size: ${audioBuffer.byteLength} bytes`);
+    console.log(`Sound effect generated successfully for user ${userId}, size: ${audioBuffer.byteLength} bytes`);
 
     return new Response(audioBuffer, {
       headers: {
