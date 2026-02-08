@@ -12,6 +12,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import { WelcomePanel } from "@/components/onboarding/WelcomePanel";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
+import Obrigado from "./pages/Obrigado";
 import Dashboard from "./pages/Dashboard";
 import Rotina from "./pages/Rotina";
 import Habitos from "./pages/Habitos";
@@ -57,6 +58,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Landing />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/obrigado" element={<Obrigado />} />
                 <Route
                   element={
                     <ProtectedRoute>
