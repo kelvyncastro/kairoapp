@@ -398,12 +398,6 @@ export default function Auth() {
                 </motion.button>
               </motion.div>
             )}
-                  ? "Voltar ao login"
-                  : isLogin
-                  ? "Não tem conta? Criar agora"
-                  : "Já tem conta? Entrar"}
-              </motion.button>
-            </motion.div>
           </motion.div>
 
           {/* Quote */}
