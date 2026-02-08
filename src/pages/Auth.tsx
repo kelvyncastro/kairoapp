@@ -354,23 +354,6 @@ export default function Auth() {
                   </div>
                 )}
 
-                {!isLogin && (
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-sm font-medium">Telefone</Label>
-                    <div className="relative">
-                      <Input
-                        id="phone"
-                        type="tel"
-                        placeholder="(11) 99999-9999"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        required
-                        className="bg-background/50 border-border/50 h-11 rounded-xl pl-10 focus:border-primary/50 focus:ring-primary/20 transition-all"
-                      />
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    </div>
-                  </div>
-                )}
 
                 <motion.div
                   whileHover={{ scale: 1.02 }}
