@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
- import { Loader2, Eye, EyeOff, Sparkles, Clock, Target, Flame, Phone } from "lucide-react";
+ import { Loader2, Eye, EyeOff, Sparkles, Clock, Target, Flame } from "lucide-react";
 import kairoLogo from "@/assets/kairo-logo.png";
  import { supabase } from "@/integrations/supabase/client";
 
@@ -102,17 +102,14 @@ function FeatureIcon({ icon: Icon, label, delay }: {
 }
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [forgotPassword, setForgotPassword] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -138,40 +135,15 @@ export default function Auth() {
         return;
       }
 
-      if (isLogin) {
-        const { error } = await signIn(email, password);
-        if (error) {
-          toast({
-            title: "Erro ao entrar",
-            description: error.message,
-            variant: "destructive",
-          });
-        } else {
-          navigate("/dashboard");
-        }
+      const { error } = await signIn(email, password);
+      if (error) {
+        toast({
+          title: "Erro ao entrar",
+          description: error.message,
+          variant: "destructive",
+        });
       } else {
-        const { error } = await signUp(email, password);
-        if (error) {
-          toast({
-            title: "Erro ao criar conta",
-            description: error.message,
-            variant: "destructive",
-          });
-        } else {
-          // Save phone number to user profile after signup
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            await supabase.from('user_profiles').upsert({
-              user_id: user.id,
-              phone_number: phoneNumber,
-            }, { onConflict: 'user_id' });
-          }
-          toast({
-            title: "Conta criada",
-            description: "Bem-vindo ao Kairo!",
-          });
-          navigate("/dashboard");
-        }
+        navigate("/dashboard");
       }
     } finally {
       setLoading(false);
@@ -308,12 +280,12 @@ export default function Auth() {
           >
             <AnimatePresence mode="wait">
               <motion.form 
-                key={forgotPassword ? "forgot" : isLogin ? "login" : "register"}
+                key={forgotPassword ? "forgot" : "login"}
                 onSubmit={handleSubmit} 
                 className="space-y-4"
-                initial={{ opacity: 0, x: forgotPassword ? 0 : isLogin ? -20 : 20 }}
+                initial={{ opacity: 0, x: 0 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: forgotPassword ? 0 : isLogin ? 20 : -20 }}
+                exit={{ opacity: 0, x: 0 }}
                 transition={{ duration: 0.3 }}
               >
                 {forgotPassword && (
@@ -369,7 +341,7 @@ export default function Auth() {
                   </div>
                 )}
 
-                {isLogin && !forgotPassword && (
+                {!forgotPassword && (
                   <div className="text-right">
                     <motion.button
                       type="button"
@@ -382,23 +354,6 @@ export default function Auth() {
                   </div>
                 )}
 
-                {!isLogin && (
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-sm font-medium">Telefone</Label>
-                    <div className="relative">
-                      <Input
-                        id="phone"
-                        type="tel"
-                        placeholder="(11) 99999-9999"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        required
-                        className="bg-background/50 border-border/50 h-11 rounded-xl pl-10 focus:border-primary/50 focus:ring-primary/20 transition-all"
-                      />
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    </div>
-                  </div>
-                )}
 
                 <motion.div
                   whileHover={{ scale: 1.02 }}
@@ -418,41 +373,31 @@ export default function Auth() {
                       </motion.div>
                     ) : forgotPassword ? (
                       "Enviar Email"
-                    ) : isLogin ? (
-                      "Entrar"
                     ) : (
-                      "Criar Conta"
+                      "Entrar"
                     )}
                   </Button>
                 </motion.div>
               </motion.form>
             </AnimatePresence>
 
-            <motion.div 
-              className="mt-4 text-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-            >
-              <motion.button
-                type="button"
-                onClick={() => {
-                  if (forgotPassword) {
-                    setForgotPassword(false);
-                  } else {
-                    setIsLogin(!isLogin);
-                  }
-                }}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                whileHover={{ scale: 1.02 }}
+            {forgotPassword && (
+              <motion.div 
+                className="mt-4 text-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
               >
-                {forgotPassword
-                  ? "Voltar ao login"
-                  : isLogin
-                  ? "Não tem conta? Criar agora"
-                  : "Já tem conta? Entrar"}
-              </motion.button>
-            </motion.div>
+                <motion.button
+                  type="button"
+                  onClick={() => setForgotPassword(false)}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  Voltar ao login
+                </motion.button>
+              </motion.div>
+            )}
           </motion.div>
 
           {/* Quote */}
