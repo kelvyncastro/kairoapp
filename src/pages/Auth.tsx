@@ -373,10 +373,8 @@ export default function Auth() {
                       </motion.div>
                     ) : forgotPassword ? (
                       "Enviar Email"
-                    ) : isLogin ? (
-                      "Entrar"
                     ) : (
-                      "Criar Conta"
+                      "Entrar"
                     )}
                   </Button>
                 </motion.div>
