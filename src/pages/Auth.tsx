@@ -135,40 +135,15 @@ export default function Auth() {
         return;
       }
 
-      if (isLogin) {
-        const { error } = await signIn(email, password);
-        if (error) {
-          toast({
-            title: "Erro ao entrar",
-            description: error.message,
-            variant: "destructive",
-          });
-        } else {
-          navigate("/dashboard");
-        }
+      const { error } = await signIn(email, password);
+      if (error) {
+        toast({
+          title: "Erro ao entrar",
+          description: error.message,
+          variant: "destructive",
+        });
       } else {
-        const { error } = await signUp(email, password);
-        if (error) {
-          toast({
-            title: "Erro ao criar conta",
-            description: error.message,
-            variant: "destructive",
-          });
-        } else {
-          // Save phone number to user profile after signup
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            await supabase.from('user_profiles').upsert({
-              user_id: user.id,
-              phone_number: phoneNumber,
-            }, { onConflict: 'user_id' });
-          }
-          toast({
-            title: "Conta criada",
-            description: "Bem-vindo ao Kairo!",
-          });
-          navigate("/dashboard");
-        }
+        navigate("/dashboard");
       }
     } finally {
       setLoading(false);
