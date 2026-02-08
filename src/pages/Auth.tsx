@@ -283,9 +283,9 @@ export default function Auth() {
                 key={forgotPassword ? "forgot" : "login"}
                 onSubmit={handleSubmit} 
                 className="space-y-4"
-                initial={{ opacity: 0, x: forgotPassword ? 0 : isLogin ? -20 : 20 }}
+                initial={{ opacity: 0, x: 0 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: forgotPassword ? 0 : isLogin ? 20 : -20 }}
+                exit={{ opacity: 0, x: 0 }}
                 transition={{ duration: 0.3 }}
               >
                 {forgotPassword && (
