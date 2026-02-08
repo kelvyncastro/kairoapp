@@ -12,17 +12,55 @@ serve(async (req) => {
   }
 
   try {
-    const { userId, transactions, sectors, income, expenses, balance } = await req.json();
+    // STEP 1: Validate Authorization header
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: "Não autorizado. Faça login novamente." 
+        }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    
+    // STEP 2: Create client with user's auth context
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // STEP 3: Validate JWT and extract user ID from claims (NOT from request body)
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+    
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: "Sessão inválida. Faça login novamente." 
+        }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // STEP 4: Use userId from validated JWT claims
+    const userId = claimsData.claims.sub;
     
     if (!userId) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: "Usuário não fornecido." 
+          message: "Usuário não identificado." 
         }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // STEP 5: Parse request body (userId no longer needed from client)
+    const { transactions, sectors, income, expenses, balance } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
