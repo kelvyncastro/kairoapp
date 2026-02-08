@@ -280,7 +280,7 @@ export default function Auth() {
           >
             <AnimatePresence mode="wait">
               <motion.form 
-                key={forgotPassword ? "forgot" : isLogin ? "login" : "register"}
+                key={forgotPassword ? "forgot" : "login"}
                 onSubmit={handleSubmit} 
                 className="space-y-4"
                 initial={{ opacity: 0, x: forgotPassword ? 0 : isLogin ? -20 : 20 }}
