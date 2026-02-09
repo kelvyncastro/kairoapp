@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 interface NeonCheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label?: React.ReactNode;
   size?: number;
+  rounded?: boolean;
+  onCheckedChange?: (checked: boolean) => void;
 }
 
 const NeonCheckbox: React.FC<NeonCheckboxProps> = ({
@@ -12,7 +14,9 @@ const NeonCheckbox: React.FC<NeonCheckboxProps> = ({
   checked: controlledChecked,
   defaultChecked,
   onChange,
-  size = 24,
+  onCheckedChange,
+  size = 20,
+  rounded = true,
   ...props
 }) => {
   const [internalChecked, setInternalChecked] = useState(defaultChecked || false);
@@ -25,16 +29,14 @@ const NeonCheckbox: React.FC<NeonCheckboxProps> = ({
       setInternalChecked(e.target.checked);
     }
     onChange?.(e);
+    onCheckedChange?.(e.target.checked);
   };
 
-  const neonCheckboxStyles = {
-    '--size': `${size}px`,
-  } as React.CSSProperties;
+  const borderRadius = rounded ? 'rounded-full' : 'rounded-sm';
 
   return (
     <label
-      className={cn("inline-flex items-center gap-2 cursor-pointer select-none", className)}
-      style={neonCheckboxStyles}
+      className={cn("inline-flex items-center gap-2 cursor-pointer select-none shrink-0", className)}
     >
       <input
         type="checkbox"
@@ -45,13 +47,14 @@ const NeonCheckbox: React.FC<NeonCheckboxProps> = ({
       />
 
       <div className="relative" style={{ width: `${size}px`, height: `${size}px` }}>
-        {/* Main checkbox circle */}
+        {/* Main checkbox shape */}
         <div
           className={cn(
-            "w-full h-full rounded-full border-2 transition-all duration-300 relative overflow-hidden",
+            "w-full h-full border-2 transition-all duration-300 relative overflow-hidden",
+            borderRadius,
             isChecked
-              ? "bg-primary border-primary shadow-[0_0_12px_hsl(var(--primary)/0.5)]"
-              : "border-muted-foreground/40 hover:border-primary/60"
+              ? "bg-primary border-primary shadow-[0_0_10px_hsl(var(--primary)/0.4)]"
+              : "border-muted-foreground/30 hover:border-primary/60"
           )}
         >
           {/* Checkmark */}
@@ -59,10 +62,8 @@ const NeonCheckbox: React.FC<NeonCheckboxProps> = ({
             viewBox="0 0 24 24"
             fill="none"
             className={cn(
-              "absolute inset-0 w-full h-full p-1 transition-all duration-300",
-              isChecked
-                ? "opacity-100 scale-100"
-                : "opacity-0 scale-50"
+              "absolute inset-0 w-full h-full p-0.5 transition-all duration-300",
+              isChecked ? "opacity-100 scale-100" : "opacity-0 scale-50"
             )}
           >
             <path
@@ -71,29 +72,26 @@ const NeonCheckbox: React.FC<NeonCheckboxProps> = ({
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className={cn(
-                "transition-all duration-500",
-                isChecked ? "neon-check-draw" : ""
-              )}
               style={{
                 strokeDasharray: 24,
                 strokeDashoffset: isChecked ? 0 : 24,
+                transition: 'stroke-dashoffset 0.4s ease-out 0.1s',
               }}
             />
           </svg>
 
           {/* Animated border flows */}
           {isChecked && (
-            <div className="absolute inset-0 rounded-full overflow-hidden">
+            <div className={cn("absolute inset-0 overflow-hidden", borderRadius)}>
               {[0, 1, 2, 3].map((i) => (
                 <div
                   key={i}
                   className="absolute bg-primary/60"
                   style={{
-                    ...(i === 0 ? { top: 0, left: '-100%', width: '100%', height: '2px', animation: 'borderFlow1 0.6s linear' } : {}),
-                    ...(i === 1 ? { top: '-100%', right: 0, width: '2px', height: '100%', animation: 'borderFlow2 0.6s linear 0.15s' } : {}),
-                    ...(i === 2 ? { bottom: 0, right: '-100%', width: '100%', height: '2px', animation: 'borderFlow3 0.6s linear 0.3s' } : {}),
-                    ...(i === 3 ? { bottom: '-100%', left: 0, width: '2px', height: '100%', animation: 'borderFlow4 0.6s linear 0.45s' } : {}),
+                    ...(i === 0 ? { top: 0, left: '-100%', width: '100%', height: '2px', animation: 'neonBorderFlow1 0.6s linear' } : {}),
+                    ...(i === 1 ? { top: '-100%', right: 0, width: '2px', height: '100%', animation: 'neonBorderFlow2 0.6s linear 0.15s' } : {}),
+                    ...(i === 2 ? { bottom: 0, right: '-100%', width: '100%', height: '2px', animation: 'neonBorderFlow3 0.6s linear 0.3s' } : {}),
+                    ...(i === 3 ? { bottom: '-100%', left: 0, width: '2px', height: '100%', animation: 'neonBorderFlow4 0.6s linear 0.45s' } : {}),
                   }}
                 />
               ))}
@@ -108,9 +106,9 @@ const NeonCheckbox: React.FC<NeonCheckboxProps> = ({
             {[0, 1, 2].map((i) => (
               <div
                 key={`ring-${i}`}
-                className="absolute inset-0 rounded-full border border-primary/40"
+                className={cn("absolute inset-0 border border-primary/40", borderRadius)}
                 style={{
-                  animation: `ringPulse 0.6s ease-out ${i * 0.1}s forwards`,
+                  animation: `neonRingPulse 0.6s ease-out ${i * 0.1}s forwards`,
                 }}
               />
             ))}
@@ -129,7 +127,7 @@ const NeonCheckbox: React.FC<NeonCheckboxProps> = ({
                     left: '50%',
                     '--x': `${Math.cos(rad) * distance}px`,
                     '--y': `${Math.sin(rad) * distance}px`,
-                    animation: `particleExplosion 0.5s ease-out ${i * 0.02}s forwards`,
+                    animation: `neonParticleExplosion 0.5s ease-out ${i * 0.02}s forwards`,
                   } as React.CSSProperties}
                 />
               );
@@ -142,7 +140,7 @@ const NeonCheckbox: React.FC<NeonCheckboxProps> = ({
                 className="absolute top-1/2 left-1/2 w-0.5 h-2 bg-primary/80 rounded-full"
                 style={{
                   '--r': `${i * 90}deg`,
-                  animation: `sparkFlash 0.4s ease-out ${i * 0.05}s forwards`,
+                  animation: `neonSparkFlash 0.4s ease-out ${i * 0.05}s forwards`,
                   transformOrigin: 'center',
                 } as React.CSSProperties}
               />
@@ -156,23 +154,23 @@ const NeonCheckbox: React.FC<NeonCheckboxProps> = ({
       )}
 
       <style>{`
-        @keyframes borderFlow1 {
+        @keyframes neonBorderFlow1 {
           0% { transform: translateX(0); }
           100% { transform: translateX(200%); }
         }
-        @keyframes borderFlow2 {
+        @keyframes neonBorderFlow2 {
           0% { transform: translateY(0); }
           100% { transform: translateY(200%); }
         }
-        @keyframes borderFlow3 {
+        @keyframes neonBorderFlow3 {
           0% { transform: translateX(0); }
           100% { transform: translateX(-200%); }
         }
-        @keyframes borderFlow4 {
+        @keyframes neonBorderFlow4 {
           0% { transform: translateY(0); }
           100% { transform: translateY(-200%); }
         }
-        @keyframes particleExplosion {
+        @keyframes neonParticleExplosion {
           0% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
           20% { opacity: 1; }
           100% {
@@ -183,11 +181,11 @@ const NeonCheckbox: React.FC<NeonCheckboxProps> = ({
             opacity: 0;
           }
         }
-        @keyframes ringPulse {
+        @keyframes neonRingPulse {
           0% { transform: scale(0); opacity: 1; }
           100% { transform: scale(2); opacity: 0; }
         }
-        @keyframes sparkFlash {
+        @keyframes neonSparkFlash {
           0% {
             transform: rotate(var(--r, 0deg)) translateX(0) scale(1);
             opacity: 1;
@@ -196,9 +194,6 @@ const NeonCheckbox: React.FC<NeonCheckboxProps> = ({
             transform: rotate(var(--r, 0deg)) translateX(${size}px) scale(0);
             opacity: 0;
           }
-        }
-        .neon-check-draw {
-          transition: stroke-dashoffset 0.4s ease-out 0.1s;
         }
       `}</style>
     </label>

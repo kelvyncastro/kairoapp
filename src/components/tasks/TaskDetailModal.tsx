@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { RichTextDisplay } from '@/components/ui/rich-text-display';
-import { Checkbox } from '@/components/ui/checkbox';
+import { NeonCheckbox } from '@/components/ui/animated-check-box';
 import { Progress } from '@/components/ui/progress';
 import {
   Dialog,
@@ -489,8 +489,9 @@ export function TaskDetailModal({
                 key={subtask.id}
                 className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-muted/30 group"
               >
-                <Checkbox
+                <NeonCheckbox
                   checked={subtask.completed}
+                  rounded={false}
                   onCheckedChange={async () => {
                     await toggleSubtask(subtask);
                     notifyDetailsChanged();
@@ -680,8 +681,9 @@ export function TaskDetailModal({
                           key={item.id}
                           className="flex items-center gap-3 px-2 py-1.5 rounded hover:bg-muted/30 group"
                         >
-                          <Checkbox
+                          <NeonCheckbox
                             checked={item.completed}
+                            rounded={false}
                             onCheckedChange={async () => {
                               await toggleChecklistItem(item);
                               notifyDetailsChanged();

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Plus, MoreHorizontal, Edit2, Trash2, Calendar, Clock, X, Check, AlertTriangle, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { NeonCheckbox } from '@/components/ui/animated-check-box';
 import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
@@ -308,10 +308,10 @@ export function TaskBoardView({
                     >
                       {/* Task header */}
                       <div className="flex items-start gap-2 mb-2">
-                        <Checkbox
+                        <NeonCheckbox
                           checked={task.completed}
+                          rounded={false}
                           onCheckedChange={() => onToggleComplete(task)}
-                          className="mt-0.5 shrink-0"
                         />
                         <span 
                           className={cn(

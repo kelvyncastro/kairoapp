@@ -16,7 +16,7 @@ import {
   EyeOff,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { NeonCheckbox } from '@/components/ui/animated-check-box';
 import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
@@ -1069,10 +1069,10 @@ function TaskTable({
         >
           {/* Checkbox */}
           <div className="flex items-center justify-center">
-            <Checkbox
+            <NeonCheckbox
               checked={task.completed}
+              rounded={false}
               onCheckedChange={() => {
-                // Play check sound when completing (not when uncompleting)
                 if (!task.completed) {
                   playCheck();
                 }
