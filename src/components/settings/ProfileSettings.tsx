@@ -300,26 +300,53 @@ export function ProfileSettings() {
 
           <SettingsSection 
             title="Preferências de Exibição" 
-            description="Personalize como o conteúdo é exibido"
+            description="Personalize como o conteúdo é exibido em cada dispositivo"
             icon={Monitor}
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 rounded-lg border border-border bg-muted/30 flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Monitor className="h-5 w-5 text-primary" />
+            <div className="space-y-6">
+              {/* Desktop Settings */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Monitor className="h-4 w-4 text-primary" />
+                  <h4 className="font-medium text-sm">Desktop</h4>
                 </div>
-                <div>
-                  <p className="font-medium text-sm">Desktop</p>
-                  <p className="text-xs text-muted-foreground">Sidebar expansível</p>
+                <div className="pl-6 space-y-1 border-l-2 border-border">
+                  <div className="p-3 rounded-lg bg-muted/30">
+                    <p className="text-sm text-muted-foreground">
+                      Sidebar lateral expansível com menu completo e tooltips no modo recolhido.
+                    </p>
+                  </div>
                 </div>
               </div>
-              <div className="p-4 rounded-lg border border-border bg-muted/30 flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Smartphone className="h-5 w-5 text-primary" />
+
+              {/* Mobile Settings */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="h-4 w-4 text-primary" />
+                  <h4 className="font-medium text-sm">Mobile</h4>
                 </div>
-                <div>
-                  <p className="font-medium text-sm">Mobile</p>
-                  <p className="text-xs text-muted-foreground">Navegação inferior</p>
+                <div className="pl-6 space-y-1 border-l-2 border-border">
+                  <div className="p-3 rounded-lg bg-muted/30">
+                    <p className="text-sm text-muted-foreground">
+                      Navegação inferior com efeito spotlight e menu lateral acessível pelo botão de hambúrguer.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Visual Preview */}
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                <div className="aspect-[4/3] rounded-lg border border-border bg-muted/20 p-3 flex flex-col">
+                  <div className="flex gap-2 flex-1">
+                    <div className="w-1/4 bg-primary/20 rounded-md" />
+                    <div className="flex-1 bg-muted/50 rounded-md" />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground text-center mt-2">Desktop</p>
+                </div>
+                <div className="aspect-[4/3] rounded-lg border border-border bg-muted/20 p-3 flex flex-col">
+                  <div className="flex-1 bg-muted/50 rounded-md" />
+                  <div className="h-3 bg-primary/20 rounded-md mt-2" />
+                  <p className="text-[10px] text-muted-foreground text-center mt-2">Mobile</p>
                 </div>
               </div>
             </div>
