@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   CheckSquare, 
-  Calendar,
+  Flame,
   MessageSquare,
   Wallet,
 } from 'lucide-react';
