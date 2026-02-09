@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, MessageCircle, Loader2, Sparkles, ArrowLeft, Mic, MicOff, Camera } from "lucide-react";
+import { AIVoiceInput } from "@/components/ui/ai-voice-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -455,27 +456,13 @@ export default function ChatFinanceiro() {
         <div className="px-4 md:px-6 py-3 md:py-4 border-t border-border/20">
           {/* Recording indicator */}
           {isRecording && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              className="flex items-center justify-center gap-3 mb-3 py-2.5 px-4 rounded-xl bg-destructive/15 border border-destructive/30"
-            >
-              <motion.div
-                className="w-3 h-3 rounded-full bg-destructive"
-                animate={{ opacity: [1, 0.3, 1] }}
-                transition={{ duration: 1, repeat: Infinity }}
-              />
-              <span className="text-sm text-destructive font-medium">Gravando {formatTime(recordingTime)}</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={stopRecording}
-                className="text-destructive hover:text-destructive hover:bg-destructive/20 ml-2"
-              >
-                <MicOff className="h-4 w-4 mr-1" />
-                Parar e enviar
-              </Button>
-            </motion.div>
+            <AIVoiceInput
+              isRecording={isRecording}
+              onStop={stopRecording}
+              onStart={startRecording}
+              visualizerBars={32}
+              className="py-2"
+            />
           )}
 
           <div className="flex gap-2 items-center">
