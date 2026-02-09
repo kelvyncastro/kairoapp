@@ -46,13 +46,13 @@ import { SpotlightNav } from "@/components/ui/spotlight-nav";
 const mainNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { path: "/rotina", label: "Tarefas", icon: ListTodo },
-  { path: "/calendario", label: "Calendário", icon: CalendarClock },
   { path: "/habitos", label: "Hábitos", icon: CalendarCheck },
   { path: "/metas", label: "Metas", icon: Target },
-  { path: "/consistencia", label: "Consistência", icon: Flame },
-  { path: "/ranking", label: "Ranking", icon: Trophy },
+  { path: "/calendario", label: "Agenda", icon: CalendarClock },
   { path: "/chat-financeiro", label: "Chat Financeiro", icon: MessageSquare },
   { path: "/financas", label: "Finanças", icon: Wallet },
+  { path: "/ranking", label: "Ranking", icon: Trophy },
+  { path: "/consistencia", label: "Consistência", icon: Flame },
   { path: "/configuracoes", label: "Configurações", icon: Settings },
 ];
 
