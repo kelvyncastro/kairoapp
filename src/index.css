@@ -251,29 +251,29 @@
 
   /* Blue Neon Theme */
   [data-theme="blue"] {
-    --background: 220 60% 4%;
-    --foreground: 210 100% 95%;
+    --background: 200 50% 4%;
+    --foreground: 200 100% 95%;
 
-    --card: 220 60% 8%;
-    --card-foreground: 210 100% 95%;
+    --card: 200 50% 8%;
+    --card-foreground: 200 100% 95%;
 
-    --popover: 220 60% 8%;
-    --popover-foreground: 210 100% 95%;
+    --popover: 200 50% 8%;
+    --popover-foreground: 200 100% 95%;
 
-    --primary: 215 100% 55%;
+    --primary: 197 100% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 60% 12%;
-    --secondary-foreground: 210 100% 95%;
+    --secondary: 200 50% 12%;
+    --secondary-foreground: 200 100% 95%;
 
-    --muted: 220 60% 15%;
-    --muted-foreground: 215 40% 55%;
+    --muted: 200 50% 15%;
+    --muted-foreground: 200 40% 55%;
 
-    --accent: 220 60% 18%;
-    --accent-foreground: 210 100% 95%;
+    --accent: 200 50% 18%;
+    --accent-foreground: 200 100% 95%;
 
     --destructive: 0 70% 50%;
-    --destructive-foreground: 210 100% 95%;
+    --destructive-foreground: 200 100% 95%;
 
     --success: 142 71% 45%;
     --success-foreground: 0 0% 4%;
@@ -281,18 +281,18 @@
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 4%;
 
-    --border: 220 60% 15%;
-    --input: 220 60% 15%;
-    --ring: 215 100% 55%;
+    --border: 200 50% 15%;
+    --input: 200 50% 15%;
+    --ring: 197 100% 50%;
 
-    --sidebar-background: 220 60% 6%;
-    --sidebar-foreground: 215 40% 55%;
-    --sidebar-primary: 215 100% 55%;
+    --sidebar-background: 200 50% 6%;
+    --sidebar-foreground: 200 40% 55%;
+    --sidebar-primary: 197 100% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 60% 12%;
-    --sidebar-accent-foreground: 210 100% 95%;
-    --sidebar-border: 220 60% 12%;
-    --sidebar-ring: 215 100% 55%;
+    --sidebar-accent: 200 50% 12%;
+    --sidebar-accent-foreground: 200 100% 95%;
+    --sidebar-border: 200 50% 12%;
+    --sidebar-ring: 197 100% 50%;
   }
 
   /* Fuchsia Theme */
