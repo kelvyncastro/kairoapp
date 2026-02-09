@@ -4,7 +4,6 @@ import { format, isSameDay, isToday, differenceInMinutes, setHours, setMinutes }
 import { ptBR } from 'date-fns/locale';
 import {
   CalendarBlock,
-  PRIORITY_COLORS,
 } from '@/types/calendar-blocks';
 import { Check, GripVertical } from 'lucide-react';
 import {
