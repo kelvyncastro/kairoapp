@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/tooltip";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { SoundToggleButton } from "@/components/layout/SoundToggleButton";
+import { SpotlightNav } from "@/components/ui/spotlight-nav";
 
 const mainNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -53,14 +54,6 @@ const mainNavItems = [
   { path: "/chat-financeiro", label: "Chat Financeiro", icon: MessageSquare },
   { path: "/financas", label: "Finanças", icon: Wallet },
   { path: "/configuracoes", label: "Configurações", icon: Settings },
-];
-
-// Bottom navigation items (mobile only - most used)
-const bottomNavItems = [
-  { path: "/dashboard", label: "Início", icon: LayoutDashboard },
-  { path: "/rotina", label: "Tarefas", icon: ListTodo },
-  { path: "/habitos", label: "Hábitos", icon: CalendarCheck },
-  { path: "/metas", label: "Metas", icon: Target },
 ];
 
 export default function AppLayout() {
@@ -399,52 +392,8 @@ export default function AppLayout() {
           </div>
         </main>
 
-        {/* Mobile Bottom Navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-sidebar/95 backdrop-blur border-t border-sidebar-border md:hidden safe-area-bottom">
-          <div className="flex items-center justify-around h-16">
-            {bottomNavItems.map((item) => {
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={cn(
-                    "flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all duration-200",
-                    isActive
-                      ? "text-primary"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <motion.div
-                    whileTap={{ scale: 0.9 }}
-                    className={cn(
-                      "p-1.5 rounded-xl transition-colors",
-                      isActive && "bg-primary/10"
-                    )}
-                  >
-                    <item.icon className={cn("h-5 w-5", isActive && "text-primary")} />
-                  </motion.div>
-                  <span className={cn(
-                    "text-[10px] font-medium",
-                    isActive && "text-primary"
-                  )}>
-                    {item.label}
-                  </span>
-                </Link>
-              );
-            })}
-            {/* More menu */}
-            <button
-              onClick={() => setMobileMenuOpen(true)}
-              className="flex flex-col items-center justify-center gap-1 flex-1 h-full text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <motion.div whileTap={{ scale: 0.9 }} className="p-1.5">
-                <Menu className="h-5 w-5" />
-              </motion.div>
-              <span className="text-[10px] font-medium">Mais</span>
-            </button>
-          </div>
-        </nav>
+        {/* Mobile Bottom Navigation with Spotlight Effect */}
+        <SpotlightNav />
       </div>
     </TooltipProvider>
   );
