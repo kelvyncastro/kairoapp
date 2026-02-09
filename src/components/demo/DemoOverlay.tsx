@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Clock, ListTodo, Target, MessageCircle, Wallet, BarChart3 } from 'lucide-react';
+import { X, Clock, ListTodo, Target, MessageCircle, Wallet, BarChart3, Sparkles, Rocket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { DemoTarefas } from './pages/DemoTarefas';
