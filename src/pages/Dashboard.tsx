@@ -348,7 +348,7 @@ export default function Dashboard() {
                 <Target className="h-4 md:h-5 w-4 md:w-5 text-muted-foreground" />
                 <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-xl md:text-2xl font-bold">{stats.goalsCompleted}/{stats.goalsActive}</p>
+              <p className="text-xl md:text-2xl font-bold"><AnimatedNumber value={stats.goalsCompleted} />/<AnimatedNumber value={stats.goalsActive} /></p>
               <p className="text-xs md:text-sm text-muted-foreground">Metas alcançadas</p>
               <Progress 
                 value={stats.goalsActive > 0 ? (stats.goalsCompleted / stats.goalsActive) * 100 : 0} 
