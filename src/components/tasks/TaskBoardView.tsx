@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Plus, MoreHorizontal, Edit2, Trash2, Calendar, Clock, X, Check, AlertTriangle, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { NeonCheckbox } from '@/components/ui/animated-check-box';
 import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
