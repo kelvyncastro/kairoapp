@@ -102,7 +102,6 @@ export function CalendarBlockModal({
       setEndTime(new Date(block.end_time));
       setDemandType(block.demand_type);
       setPriority(block.priority);
-      setColor(block.color || COLORS[0].value);
       setRecurrenceType(block.recurrence_type);
       setRecurrenceRule(block.recurrence_rule || null);
       if (block.recurrence_end_date) {
