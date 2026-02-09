@@ -314,8 +314,7 @@ export function CalendarMonthView({
                     {/* Moving block preview */}
                     {movingBlock && isMoveTarget && (
                       <div
-                        className="text-[10px] leading-tight px-1.5 py-0.5 rounded truncate mt-0.5 text-white font-medium shadow-lg ring-2 ring-white/50"
-                        style={{ backgroundColor: movingBlock.color || 'hsl(200, 70%, 50%)' }}
+                        className="text-[10px] leading-tight px-1.5 py-0.5 rounded truncate mt-0.5 font-medium shadow-lg ring-2 ring-white/50 bg-primary text-primary-foreground"
                       >
                         {format(new Date(movingBlock.start_time), 'HH:mm')} {movingBlock.title}
                       </div>
