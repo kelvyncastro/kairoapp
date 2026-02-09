@@ -490,7 +490,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-center gap-2 mb-4 md:mb-6">
                 <div className="flex items-center gap-1">
                   {getStreakIcon(stats.currentStreak)}
-                  <span className="text-3xl md:text-4xl font-bold">{stats.currentStreak}</span>
+                  <span className="text-3xl md:text-4xl font-bold"><AnimatedNumber value={stats.currentStreak} /></span>
                 </div>
                 <AnimatedFire streak={stats.currentStreak} size="md" />
               </div>
