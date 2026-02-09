@@ -56,14 +56,6 @@ const mainNavItems = [
   { path: "/configuracoes", label: "Configurações", icon: Settings },
 ];
 
-// Bottom navigation items (mobile only - most used)
-const bottomNavItems = [
-  { path: "/dashboard", label: "Início", icon: LayoutDashboard },
-  { path: "/rotina", label: "Tarefas", icon: ListTodo },
-  { path: "/habitos", label: "Hábitos", icon: CalendarCheck },
-  { path: "/metas", label: "Metas", icon: Target },
-];
-
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
