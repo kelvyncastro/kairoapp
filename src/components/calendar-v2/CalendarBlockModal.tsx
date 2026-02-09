@@ -263,10 +263,7 @@ export function CalendarBlockModal({
         <DialogContent className="max-w-md w-[95vw]">
           <DialogHeader className="pb-2">
             <div className="flex items-start gap-3">
-              <div 
-                className="w-4 h-full min-h-[40px] rounded-full flex-shrink-0"
-                style={{ backgroundColor: color }}
-              />
+              <div className="w-4 h-full min-h-[40px] rounded-full flex-shrink-0 bg-primary" />
               <div className="flex-1 min-w-0">
                 <DialogTitle className="text-xl font-bold leading-tight">
                   {title}
