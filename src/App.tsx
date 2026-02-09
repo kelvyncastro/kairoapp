@@ -23,6 +23,7 @@ import ChatFinanceiro from "./pages/ChatFinanceiro";
 import Configuracoes from "./pages/Configuracoes";
 import Calendar2 from "./pages/Calendar2";
 import Ranking from "./pages/Ranking";
+import Agenda from "./pages/Agenda";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
@@ -75,6 +76,7 @@ const App = () => (
                   <Route path="/chat-financeiro" element={<ChatFinanceiro />} />
                   <Route path="/calendario" element={<Calendar2 />} />
                   <Route path="/ranking" element={<Ranking />} />
+                  <Route path="/agenda" element={<Agenda />} />
                   <Route path="/configuracoes" element={<Configuracoes />} />
                   <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
                 </Route>
