@@ -470,7 +470,7 @@ export default function Dashboard() {
                       "text-xs md:text-sm font-bold",
                       stats.financeBalance >= 0 ? "text-success" : "text-destructive"
                     )}>
-                      R$ {stats.financeBalance.toFixed(2)}
+                      <AnimatedNumber value={stats.financeBalance} currency decimals={2} />
                     </span>
                   </div>
                 </div>
