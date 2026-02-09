@@ -521,11 +521,11 @@ export default function Dashboard() {
               <div className="mt-6 pt-4 border-t border-border/50">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <p className="text-2xl font-bold">{stats.last30Days.filter(d => d.isActive).length}</p>
+                    <p className="text-2xl font-bold"><AnimatedNumber value={stats.last30Days.filter(d => d.isActive).length} /></p>
                     <p className="text-xs text-muted-foreground">Dias ativos</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold">{Math.round((stats.last30Days.filter(d => d.isActive).length / 30) * 100)}%</p>
+                    <p className="text-2xl font-bold"><AnimatedNumber value={Math.round((stats.last30Days.filter(d => d.isActive).length / 30) * 100)} suffix="%" /></p>
                     <p className="text-xs text-muted-foreground">Taxa mensal</p>
                   </div>
                 </div>

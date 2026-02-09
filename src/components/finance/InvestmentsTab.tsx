@@ -156,7 +156,7 @@ export function InvestmentsTab({
             "text-lg md:text-xl font-bold",
             totalInvestedThisMonth > 0 ? "text-success" : "text-muted-foreground"
           )}>
-            R$ {formatCurrency(totalInvestedThisMonth)}
+            <AnimatedNumber value={totalInvestedThisMonth} currency decimals={2} />
           </p>
         </div>
       </div>

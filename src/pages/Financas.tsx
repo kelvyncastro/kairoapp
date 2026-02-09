@@ -742,7 +742,7 @@ export default function Financas() {
                 "text-xs md:text-lg font-bold truncate",
                 balance >= 0 ? "text-success" : "text-destructive"
               )}>
-                R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                <AnimatedNumber value={balance} currency decimals={0} />
               </p>
             </div>
           </div>
