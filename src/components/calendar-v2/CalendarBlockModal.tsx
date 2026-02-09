@@ -256,8 +256,6 @@ export function CalendarBlockModal({
 
   // VIEW MODE
   if (isViewMode && isEditing && block) {
-    const colorInfo = COLORS.find(c => c.value === color) || COLORS[0];
-    const statusInfo = STATUS_LABELS[block.status] || STATUS_LABELS.pending;
     const recurrenceDesc = getRecurrenceDescription();
 
     return (
