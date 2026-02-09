@@ -359,16 +359,14 @@ export default function Landing() {
                   </Button>
                 </motion.div>
               </a>
-              <a href="#mockups">
-                <motion.div
+              <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <Button size="lg" variant="outline" className="h-12 px-8 text-base backdrop-blur-sm bg-background/50">
+                  <Button size="lg" variant="outline" className="h-12 px-8 text-base backdrop-blur-sm bg-background/50" onClick={() => setDemoOpen(true)}>
                     Ver Demonstração
                   </Button>
                 </motion.div>
-              </a>
             </motion.div>
           </motion.div>
         </div>
