@@ -3,13 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   CheckSquare, 
-  Target, 
-  Flame,
   Calendar,
   MessageSquare,
   Wallet,
-  Trophy,
-  Settings
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
