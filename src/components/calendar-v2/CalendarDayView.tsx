@@ -358,14 +358,13 @@ export function CalendarDayView({
             {/* Moving block preview */}
             {movingBlock && movingBlockStyle && (
               <div
-                className="absolute left-2 right-4 rounded-lg px-3 py-1.5 pointer-events-none z-30 opacity-80 shadow-lg ring-2 ring-primary"
+                className="absolute left-2 right-4 rounded-lg px-3 py-1.5 pointer-events-none z-30 opacity-80 shadow-lg ring-2 ring-primary bg-primary text-primary-foreground"
                 style={{
                   top: movingBlockStyle.top,
                   height: movingBlockStyle.height,
-                  backgroundColor: movingBlock.color || 'hsl(207, 90%, 54%)',
                 }}
               >
-                <div className="truncate font-semibold text-white text-sm">{movingBlock.title}</div>
+                <div className="truncate font-semibold text-sm">{movingBlock.title}</div>
               </div>
             )}
 
