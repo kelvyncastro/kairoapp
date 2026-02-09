@@ -248,7 +248,7 @@ export default function Auth() {
             <div className="relative rounded-2xl backdrop-blur-xl bg-card/60 border border-border/30 p-6 shadow-2xl">
               {/* Inner pattern */}
               <div
-                className="absolute inset-0 rounded-2xl opacity-[0.02]"
+                className="absolute inset-0 rounded-2xl opacity-[0.02] pointer-events-none"
                 style={{
                   backgroundImage: `radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)`,
                   backgroundSize: '24px 24px',
