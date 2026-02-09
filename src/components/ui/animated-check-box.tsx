@@ -20,13 +20,27 @@ const NeonCheckbox: React.FC<NeonCheckboxProps> = ({
   ...props
 }) => {
   const [internalChecked, setInternalChecked] = useState(defaultChecked || false);
+  // Visual override: allows showing checked state immediately on click
+  // even when parent hasn't updated the controlled `checked` prop yet
+  const [visualOverride, setVisualOverride] = useState<boolean | null>(null);
 
   const isControlled = controlledChecked !== undefined;
-  const isChecked = isControlled ? controlledChecked : internalChecked;
+  const baseChecked = isControlled ? controlledChecked : internalChecked;
+  const isChecked = visualOverride !== null ? visualOverride : baseChecked;
+
+  // Sync visual override back when controlled value catches up
+  React.useEffect(() => {
+    if (visualOverride !== null && controlledChecked === visualOverride) {
+      setVisualOverride(null);
+    }
+  }, [controlledChecked, visualOverride]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!isControlled) {
       setInternalChecked(e.target.checked);
+    } else {
+      // Set visual override so animation plays immediately
+      setVisualOverride(e.target.checked);
     }
     onChange?.(e);
     onCheckedChange?.(e.target.checked);
