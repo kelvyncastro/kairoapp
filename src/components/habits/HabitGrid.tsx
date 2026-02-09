@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Check, MoreHorizontal, Trash2, Edit2, Plus } from 'lucide-react';
+import { MoreHorizontal, Trash2, Edit2, Plus } from 'lucide-react';
+import { NeonCheckbox } from '@/components/ui/animated-check-box';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
@@ -335,34 +336,24 @@ const HabitGrid = React.memo(function HabitGrid({
                           key={day.toISOString()}
                           className="w-8 flex items-center justify-center"
                         >
-                          <button
-                            type="button"
-                            onClick={() => {
+                          <NeonCheckbox
+                            size={24}
+                            checked={status === 'done'}
+                            disabled={status === 'future'}
+                            onChange={() => {
                               if (status !== 'future') {
-                              // Play check sound when completing (not when uncompleting)
-                              if (status !== 'done') {
-                                playCheck();
-                              }
+                                if (status !== 'done') {
+                                  playCheck();
+                                }
                                 onToggleLog(habit.id, day);
                               }
                             }}
-                            disabled={status === 'future'}
                             className={cn(
-                              'w-6 h-6 rounded-full flex items-center justify-center transition-all duration-150',
-                              status === 'done' && 'bg-primary hover:brightness-110',
-                              (status === 'not_done' || status === 'not_planned') && 
-                                'border-2 border-muted-foreground/30 hover:border-primary/60 hover:bg-muted/30',
-                              status === 'pending' && 
-                                'border-2 border-primary/50 hover:bg-primary/10',
-                              status === 'future' && 
-                                'border border-muted-foreground/15 opacity-30 cursor-not-allowed',
-                              isToday && status !== 'done' && 'ring-2 ring-primary/30 ring-offset-1 ring-offset-background'
+                              status === 'future' && 'opacity-30 cursor-not-allowed',
+                              status === 'pending' && '[&>div>div]:border-primary/50',
+                              isToday && status !== 'done' && '[&>div>div]:ring-2 [&>div>div]:ring-primary/30 [&>div>div]:ring-offset-1 [&>div>div]:ring-offset-background'
                             )}
-                          >
-                            {status === 'done' && (
-                              <Check className="h-3.5 w-3.5 text-primary-foreground" />
-                            )}
-                          </button>
+                          />
                         </div>
                       );
                     })}
