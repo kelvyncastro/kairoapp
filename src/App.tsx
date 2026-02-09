@@ -26,6 +26,8 @@ import Ranking from "./pages/Ranking";
 import Agenda from "./pages/Agenda";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import Privacidade from "./pages/Privacidade";
+import Termos from "./pages/Termos";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1 } },
@@ -62,6 +64,8 @@ const App = () => (
                 <Route path="/" element={<Landing />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/obrigado" element={<Obrigado />} />
+                <Route path="/privacidade" element={<Privacidade />} />
+                <Route path="/termos" element={<Termos />} />
                 <Route
                   element={
                     <ProtectedRoute>

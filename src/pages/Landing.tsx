@@ -728,12 +728,12 @@ export default function Landing() {
               © {new Date().getFullYear()} Kairo. Todos os direitos reservados.
             </p>
             <div className="flex items-center gap-6">
-              <a href="#" className="text-muted-foreground hover:text-foreground text-sm transition-colors">
+              <Link to="/privacidade" className="text-muted-foreground hover:text-foreground text-sm transition-colors">
                 Privacidade
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-foreground text-sm transition-colors">
+              </Link>
+              <Link to="/termos" className="text-muted-foreground hover:text-foreground text-sm transition-colors">
                 Termos
-              </a>
+              </Link>
               <a href="#" className="text-muted-foreground hover:text-foreground text-sm transition-colors">
                 Contato
               </a>
