@@ -10,12 +10,13 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const THEME_OPTIONS: { id: AppTheme; label: string; color: string; ring: string }[] = [
-  { id: 'dark', label: 'Preto/Cinza', color: 'bg-[#1a1a1a]', ring: 'ring-gray-500' },
+  { id: 'dark', label: 'Preto', color: 'bg-[#1a1a1a]', ring: 'ring-gray-500' },
   { id: 'light', label: 'Branco', color: 'bg-[#e5e5e5]', ring: 'ring-gray-300' },
-  { id: 'blue', label: 'Azul', color: 'bg-[#3b82f6]', ring: 'ring-blue-500' },
-  { id: 'pink', label: 'Rosa', color: 'bg-[#ec4899]', ring: 'ring-pink-500' },
-  { id: 'purple', label: 'Roxo', color: 'bg-[#8b5cf6]', ring: 'ring-purple-500' },
-  { id: 'red', label: 'Vermelho', color: 'bg-[#ef4444]', ring: 'ring-red-500' },
+  { id: 'violet', label: 'Violet', color: 'bg-[#7C3AED]', ring: 'ring-violet-500' },
+  { id: 'pink', label: 'Pink', color: 'bg-[#EC4899]', ring: 'ring-pink-500' },
+  { id: 'emerald', label: 'Emerald', color: 'bg-[#10B981]', ring: 'ring-emerald-500' },
+  { id: 'blue', label: 'Blue', color: 'bg-[#3B82F6]', ring: 'ring-blue-500' },
+  { id: 'fuchsia', label: 'Fuchsia', color: 'bg-[#D946EF]', ring: 'ring-fuchsia-500' },
 ];
 
 export function ProfileSettings() {
