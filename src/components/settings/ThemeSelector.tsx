@@ -73,12 +73,12 @@ const THEME_OPTIONS: ThemeOption[] = [
   },
   { 
     id: 'blue', 
-    label: 'Azul', 
-    description: 'Azul oceano vibrante',
+    label: 'Azul Neon', 
+    description: 'Azul elétrico e intenso',
     colors: {
-      primary: '#0EA5E9',
-      secondary: '#38BDF8',
-      accent: '#7DD3FC',
+      primary: '#00D4FF',
+      secondary: '#0099FF',
+      accent: '#00FFFF',
     },
     icon: Sparkles,
   },
