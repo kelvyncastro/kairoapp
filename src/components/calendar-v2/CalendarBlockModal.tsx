@@ -301,20 +301,6 @@ export function CalendarBlockModal({
               </div>
             )}
 
-            {/* Color */}
-            <div className="flex items-center gap-3 text-sm">
-              <div className="p-2 rounded-lg bg-muted">
-                <Palette className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div className="flex items-center gap-2">
-                <div 
-                  className="w-5 h-5 rounded-full"
-                  style={{ backgroundColor: color }}
-                />
-                <span className="text-muted-foreground">{colorInfo.name}</span>
-              </div>
-            </div>
-
             {/* Description */}
             {description && (
               <div className="flex items-start gap-3 text-sm">
