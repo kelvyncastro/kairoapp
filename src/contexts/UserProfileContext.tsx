@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode, useCallback 
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppTheme = 'dark' | 'light' | 'blue' | 'pink' | 'purple' | 'red';
+export type AppTheme = 'dark' | 'light' | 'violet' | 'pink' | 'emerald' | 'blue' | 'fuchsia';
 
 export interface UserProfile {
   id: string;

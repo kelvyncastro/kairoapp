@@ -12,10 +12,11 @@ import kairoLogo from "@/assets/kairo-logo.png";
 const THEME_OPTIONS: { id: AppTheme; label: string; color: string }[] = [
   { id: 'dark', label: 'Preto', color: 'bg-[#1a1a1a]' },
   { id: 'light', label: 'Branco', color: 'bg-[#e5e5e5]' },
-  { id: 'blue', label: 'Azul', color: 'bg-[#3b82f6]' },
-  { id: 'pink', label: 'Rosa', color: 'bg-[#ec4899]' },
-  { id: 'purple', label: 'Roxo', color: 'bg-[#8b5cf6]' },
-  { id: 'red', label: 'Vermelho', color: 'bg-[#ef4444]' },
+  { id: 'violet', label: 'Violet', color: 'bg-[#7C3AED]' },
+  { id: 'pink', label: 'Pink', color: 'bg-[#EC4899]' },
+  { id: 'emerald', label: 'Emerald', color: 'bg-[#10B981]' },
+  { id: 'blue', label: 'Blue', color: 'bg-[#3B82F6]' },
+  { id: 'fuchsia', label: 'Fuchsia', color: 'bg-[#D946EF]' },
 ];
 
 export function WelcomePanel() {
