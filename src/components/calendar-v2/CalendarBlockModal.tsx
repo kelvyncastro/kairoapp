@@ -38,9 +38,8 @@ import {
   X,
   Pencil,
   FileText,
-  Palette,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+
 
 interface CalendarBlockModalProps {
   open: boolean;
