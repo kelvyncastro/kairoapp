@@ -6,6 +6,7 @@ import { TrendingUp, TrendingDown, Edit2, Trash2, PiggyBank, ChartLine } from "l
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 
 interface Sector {
   id: string;
