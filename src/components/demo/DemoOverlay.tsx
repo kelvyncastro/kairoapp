@@ -144,12 +144,49 @@ export function DemoOverlay({ open, onClose }: DemoOverlayProps) {
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden relative">
               {activeTab === 'tarefas' && <DemoTarefas />}
               {activeTab === 'habitos' && <DemoHabitos />}
               {activeTab === 'metas' && <DemoMetas />}
               {activeTab === 'chat' && <DemoChatFinanceiro />}
               {activeTab === 'financas' && <DemoFinancas />}
+
+              {/* Disclaimer popup */}
+              <AnimatePresence>
+                {showDisclaimer && (
+                  <motion.div
+                    className="absolute inset-0 z-30 flex items-center justify-center bg-background/60 backdrop-blur-sm"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <motion.div
+                      className="bg-background border border-border rounded-2xl shadow-2xl p-6 md:p-8 max-w-md mx-4 text-center space-y-4"
+                      initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                      animate={{ scale: 1, opacity: 1, y: 0 }}
+                      exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                      transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                    >
+                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                        <Sparkles className="h-6 w-6 text-primary" />
+                      </div>
+                      <h3 className="text-lg font-bold">Modo Demonstração</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Esta é uma <span className="font-semibold text-foreground">versão simplificada</span> para você ter uma ideia de como o app funciona. 
+                        O aplicativo completo possui <span className="font-semibold text-foreground">muito mais funcionalidades</span>, integrações, 
+                        personalização e dados sincronizados em tempo real.
+                      </p>
+                      <div className="flex items-center gap-2 justify-center text-xs text-muted-foreground">
+                        <Rocket className="h-3.5 w-3.5 text-primary" />
+                        <span>Assine para desbloquear a experiência completa</span>
+                      </div>
+                      <Button className="w-full h-10" onClick={() => setShowDisclaimer(false)}>
+                        Entendi, quero explorar!
+                      </Button>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Bottom CTA */}
