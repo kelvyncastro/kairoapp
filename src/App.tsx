@@ -27,7 +27,9 @@ import Agenda from "./pages/Agenda";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: 1 } },
+});
 
 function AppWithOnboarding() {
   const { needsOnboarding, loading } = useUserProfile();
