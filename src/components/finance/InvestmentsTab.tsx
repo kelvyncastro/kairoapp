@@ -140,7 +140,7 @@ export function InvestmentsTab({
             <span className="text-xs text-muted-foreground">Total Investido</span>
           </div>
           <p className="text-lg md:text-xl font-bold text-blue-500">
-            R$ {formatCurrency(currentTotal)}
+            <AnimatedNumber value={currentTotal} currency decimals={2} />
           </p>
         </div>
         <div className="cave-card p-4">
