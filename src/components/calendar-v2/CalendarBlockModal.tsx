@@ -291,16 +291,13 @@ export function CalendarBlockModal({
           <DialogHeader className="pb-2">
             <div className="flex items-start gap-3">
               <div 
-                className="w-4 h-full min-h-[60px] rounded-full flex-shrink-0"
+                className="w-4 h-full min-h-[40px] rounded-full flex-shrink-0"
                 style={{ backgroundColor: color }}
               />
               <div className="flex-1 min-w-0">
-                <DialogTitle className="text-xl font-bold leading-tight mb-2">
+                <DialogTitle className="text-xl font-bold leading-tight">
                   {title}
                 </DialogTitle>
-                <Badge className={cn("text-xs", statusInfo.color)}>
-                  {statusInfo.label}
-                </Badge>
               </div>
             </div>
           </DialogHeader>
@@ -362,15 +359,7 @@ export function CalendarBlockModal({
             )}
           </div>
 
-          <DialogFooter className="flex-row gap-2 pt-4 border-t">
-            <div className="flex gap-2 flex-1">
-              {onComplete && block.status !== 'completed' && (
-                <Button variant="outline" size="sm" onClick={handleComplete} className="gap-1.5">
-                  <Check className="h-4 w-4" />
-                  Concluir
-                </Button>
-              )}
-            </div>
+          <DialogFooter className="flex-row gap-2 pt-4 border-t justify-end">
             <div className="flex gap-2">
               {onDelete && (
                 <Button variant="destructive" size="sm" onClick={handleDelete} className="gap-1.5">
