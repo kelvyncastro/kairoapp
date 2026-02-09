@@ -224,7 +224,7 @@ export default function Auth() {
             transition={{ delay: 0.4, duration: 0.6 }}
           >
             {/* Traveling light beam border */}
-            <div className="absolute -inset-px rounded-2xl overflow-hidden">
+            <div className="absolute -inset-px rounded-2xl overflow-hidden pointer-events-none">
               <motion.div
                 className="absolute inset-0"
                 animate={{ rotate: 360 }}
