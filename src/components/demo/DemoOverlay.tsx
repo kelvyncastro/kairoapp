@@ -33,6 +33,7 @@ export function DemoOverlay({ open, onClose }: DemoOverlayProps) {
   const handleClose = useCallback(() => {
     setTimeLeft(DEMO_DURATION);
     setActiveTab('tarefas');
+    setShowDisclaimer(true);
     onClose();
   }, [onClose]);
 
