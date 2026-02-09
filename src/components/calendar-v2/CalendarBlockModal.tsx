@@ -17,12 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { format, setHours, setMinutes, addMinutes } from 'date-fns';
+import { format, setHours, setMinutes, addMinutes, differenceInMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   CalendarBlock,
@@ -30,9 +28,6 @@ import {
   CalendarPriority,
   CalendarRecurrenceType,
   RecurrenceRule,
-  DEMAND_TYPE_LABELS,
-  PRIORITY_LABELS,
-  PRIORITY_COLORS,
 } from '@/types/calendar-blocks';
 import {
   CalendarIcon,
@@ -41,10 +36,11 @@ import {
   Trash2,
   Check,
   X,
-  Zap,
-  Target,
-  Timer,
+  Pencil,
+  FileText,
+  Palette,
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface CalendarBlockModalProps {
   open: boolean;
@@ -75,6 +71,22 @@ const COLORS = [
 
 const DAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
+const RECURRENCE_LABELS: Record<CalendarRecurrenceType, string> = {
+  none: 'Não repete',
+  daily: 'Diariamente',
+  weekly: 'Semanalmente',
+  monthly: 'Mensalmente',
+  custom: 'Personalizado',
+};
+
+const STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  pending: { label: 'Pendente', color: 'bg-yellow-500/20 text-yellow-500' },
+  in_progress: { label: 'Em andamento', color: 'bg-blue-500/20 text-blue-500' },
+  completed: { label: 'Concluído', color: 'bg-green-500/20 text-green-500' },
+  cancelled: { label: 'Cancelado', color: 'bg-red-500/20 text-red-500' },
+  postponed: { label: 'Adiado', color: 'bg-orange-500/20 text-orange-500' },
+};
+
 export function CalendarBlockModal({
   open,
   onClose,
@@ -87,6 +99,7 @@ export function CalendarBlockModal({
   onComplete,
 }: CalendarBlockModalProps) {
   const isEditing = !!block;
+  const [isViewMode, setIsViewMode] = useState(true);
 
   // Form state
   const [title, setTitle] = useState('');
@@ -124,8 +137,10 @@ export function CalendarBlockModal({
       if (block.recurrence_rule?.interval) {
         setRecurrenceInterval(block.recurrence_rule.interval);
       }
+      // Start in view mode when editing existing block
+      setIsViewMode(true);
     } else {
-      // New block defaults
+      // New block defaults - go straight to edit mode
       setTitle('');
       setDescription('');
       setStartTime(defaultStartTime || new Date());
@@ -138,6 +153,7 @@ export function CalendarBlockModal({
       setRecurrenceEndDate(undefined);
       setSelectedDays([]);
       setRecurrenceInterval(1);
+      setIsViewMode(false);
     }
   }, [block, defaultStartTime, defaultEndTime, open]);
 
@@ -179,13 +195,12 @@ export function CalendarBlockModal({
     } finally {
       setSaving(false);
     }
-  }, [title, saving, recurrenceType, recurrenceInterval, selectedDays, recurrenceEndDate, onSave, startTime, endTime, demandType, priority, block, color, onClose]);
+  }, [title, saving, recurrenceType, recurrenceInterval, selectedDays, recurrenceEndDate, onSave, startTime, endTime, demandType, priority, block, color, onClose, description]);
 
-  // Handle Enter key to save
+  // Handle Enter key to save (only in edit mode)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' && !e.shiftKey && open) {
-        // Don't trigger on textarea or when focus is on a button
+      if (e.key === 'Enter' && !e.shiftKey && open && !isViewMode) {
         const target = e.target as HTMLElement;
         if (target.tagName === 'TEXTAREA') return;
         
@@ -196,7 +211,7 @@ export function CalendarBlockModal({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open, handleSave]);
+  }, [open, handleSave, isViewMode]);
 
   const handleDelete = async () => {
     if (!block || !onDelete) return;
@@ -228,7 +243,6 @@ export function CalendarBlockModal({
     if (type === 'start') {
       const newStart = setMinutes(setHours(startTime, hours), minutes);
       setStartTime(newStart);
-      // Auto-adjust end time if needed
       if (newStart >= endTime) {
         setEndTime(addMinutes(newStart, 30));
       }
@@ -237,6 +251,145 @@ export function CalendarBlockModal({
     }
   };
 
+  const getDuration = () => {
+    const minutes = differenceInMinutes(endTime, startTime);
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours > 0 && mins > 0) {
+      return `${hours}h ${mins}min`;
+    } else if (hours > 0) {
+      return `${hours}h`;
+    }
+    return `${mins}min`;
+  };
+
+  const getRecurrenceDescription = () => {
+    if (recurrenceType === 'none') return null;
+    
+    let desc = RECURRENCE_LABELS[recurrenceType];
+    if (recurrenceInterval > 1) {
+      if (recurrenceType === 'daily') desc = `A cada ${recurrenceInterval} dias`;
+      if (recurrenceType === 'weekly') desc = `A cada ${recurrenceInterval} semanas`;
+      if (recurrenceType === 'monthly') desc = `A cada ${recurrenceInterval} meses`;
+    }
+    if (selectedDays.length > 0 && (recurrenceType === 'weekly' || recurrenceType === 'custom')) {
+      const dayNames = selectedDays.map(d => DAY_LABELS[d]).join(', ');
+      desc += ` (${dayNames})`;
+    }
+    return desc;
+  };
+
+  // VIEW MODE
+  if (isViewMode && isEditing && block) {
+    const colorInfo = COLORS.find(c => c.value === color) || COLORS[0];
+    const statusInfo = STATUS_LABELS[block.status] || STATUS_LABELS.pending;
+    const recurrenceDesc = getRecurrenceDescription();
+
+    return (
+      <Dialog open={open} onOpenChange={onClose}>
+        <DialogContent className="max-w-md w-[95vw]">
+          <DialogHeader className="pb-2">
+            <div className="flex items-start gap-3">
+              <div 
+                className="w-4 h-full min-h-[60px] rounded-full flex-shrink-0"
+                style={{ backgroundColor: color }}
+              />
+              <div className="flex-1 min-w-0">
+                <DialogTitle className="text-xl font-bold leading-tight mb-2">
+                  {title}
+                </DialogTitle>
+                <Badge className={cn("text-xs", statusInfo.color)}>
+                  {statusInfo.label}
+                </Badge>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            {/* Date and Time */}
+            <div className="flex items-center gap-3 text-sm">
+              <div className="p-2 rounded-lg bg-muted">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="font-medium">
+                  {format(startTime, "EEEE, d 'de' MMMM", { locale: ptBR })}
+                </p>
+                <p className="text-muted-foreground">
+                  {formatTime(startTime)} - {formatTime(endTime)} ({getDuration()})
+                </p>
+              </div>
+            </div>
+
+            {/* Recurrence */}
+            {recurrenceDesc && (
+              <div className="flex items-center gap-3 text-sm">
+                <div className="p-2 rounded-lg bg-muted">
+                  <Repeat className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="font-medium">Recorrência</p>
+                  <p className="text-muted-foreground">{recurrenceDesc}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Color */}
+            <div className="flex items-center gap-3 text-sm">
+              <div className="p-2 rounded-lg bg-muted">
+                <Palette className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-5 h-5 rounded-full"
+                  style={{ backgroundColor: color }}
+                />
+                <span className="text-muted-foreground">{colorInfo.name}</span>
+              </div>
+            </div>
+
+            {/* Description */}
+            {description && (
+              <div className="flex items-start gap-3 text-sm">
+                <div className="p-2 rounded-lg bg-muted">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="font-medium mb-1">Observações</p>
+                  <p className="text-muted-foreground whitespace-pre-wrap">{description}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="flex-row gap-2 pt-4 border-t">
+            <div className="flex gap-2 flex-1">
+              {onComplete && block.status !== 'completed' && (
+                <Button variant="outline" size="sm" onClick={handleComplete} className="gap-1.5">
+                  <Check className="h-4 w-4" />
+                  Concluir
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-2">
+              {onDelete && (
+                <Button variant="destructive" size="sm" onClick={handleDelete} className="gap-1.5">
+                  <Trash2 className="h-4 w-4" />
+                  Excluir
+                </Button>
+              )}
+              <Button size="sm" onClick={() => setIsViewMode(false)} className="gap-1.5">
+                <Pencil className="h-4 w-4" />
+                Editar
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // EDIT MODE
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl w-[95vw] max-h-[85vh] overflow-y-auto overflow-x-hidden">
@@ -460,27 +613,17 @@ export function CalendarBlockModal({
 
         <DialogFooter className="flex-col sm:flex-row gap-2">
           {isEditing && (
-            <div className="flex gap-2 mr-auto">
-              {onComplete && block?.status !== 'completed' && (
-                <Button variant="outline" size="sm" onClick={handleComplete}>
-                  <Check className="h-4 w-4 mr-1" />
-                  Concluir
-                </Button>
-              )}
-              {onDelete && (
-                <Button variant="destructive" size="sm" onClick={handleDelete}>
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  Excluir
-                </Button>
-              )}
-            </div>
-          )}
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={onClose}>Cancelar</Button>
-            <Button onClick={handleSave} disabled={!title.trim() || saving}>
-              {saving ? 'Salvando...' : isEditing ? 'Salvar' : 'Criar'}
+            <Button 
+              variant="ghost" 
+              onClick={() => setIsViewMode(true)}
+              className="mr-auto"
+            >
+              Cancelar
             </Button>
-          </div>
+          )}
+          <Button onClick={handleSave} disabled={saving || !title.trim()}>
+            {saving ? 'Salvando...' : isEditing ? 'Salvar alterações' : 'Criar bloco'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
