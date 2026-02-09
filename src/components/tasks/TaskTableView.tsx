@@ -16,7 +16,7 @@ import {
   EyeOff,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { NeonCheckbox } from '@/components/ui/animated-check-box';
 import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
