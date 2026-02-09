@@ -194,7 +194,8 @@ export default function Landing() {
   const { scrollY } = useScroll();
   const backgroundY = useTransform(scrollY, [0, 2000], [0, -200]);
   const gridY = useTransform(scrollY, [0, 2000], [0, 100]);
-  
+  const [demoOpen, setDemoOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
       {/* Dynamic Animated Background */}
