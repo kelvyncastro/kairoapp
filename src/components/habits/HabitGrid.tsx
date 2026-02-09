@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Check, MoreHorizontal, Trash2, Edit2, Plus } from 'lucide-react';
+import { MoreHorizontal, Trash2, Edit2, Plus } from 'lucide-react';
+import { NeonCheckbox } from '@/components/ui/animated-check-box';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
