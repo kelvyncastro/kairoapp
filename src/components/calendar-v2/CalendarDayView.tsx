@@ -419,16 +419,8 @@ export function CalendarDayView({
                               {block.description}
                             </p>
                           )}
-                        </div>
-                        
-                        {/* Priority indicator */}
-                        <div 
-                          className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1 shadow-sm"
-                          style={{ 
-                            backgroundColor: PRIORITY_COLORS[block.priority],
-                          }}
-                        />
-                      </div>
+                         </div>
+                       </div>
                     </div>
                   </ContextMenuTrigger>
                   <ContextMenuContent>
