@@ -292,11 +292,10 @@ export function CalendarMonthView({
                             key={block.id}
                             className={cn(
                               "text-[10px] leading-tight px-1.5 py-0.5 rounded truncate cursor-grab",
-                              "text-white font-medium shadow-sm",
+                              "text-primary-foreground font-medium shadow-sm bg-primary",
                               "hover:brightness-110 transition-all",
                               isBeingMoved && "opacity-40"
                             )}
-                            style={{ backgroundColor: block.color || 'hsl(200, 70%, 50%)' }}
                             onMouseDown={(e) => handleBlockMouseDown(e, block)}
                           >
                             {format(new Date(block.start_time), 'HH:mm')} {block.title}
@@ -314,8 +313,7 @@ export function CalendarMonthView({
                     {/* Moving block preview */}
                     {movingBlock && isMoveTarget && (
                       <div
-                        className="text-[10px] leading-tight px-1.5 py-0.5 rounded truncate mt-0.5 text-white font-medium shadow-lg ring-2 ring-white/50"
-                        style={{ backgroundColor: movingBlock.color || 'hsl(200, 70%, 50%)' }}
+                        className="text-[10px] leading-tight px-1.5 py-0.5 rounded truncate mt-0.5 font-medium shadow-lg ring-2 ring-white/50 bg-primary text-primary-foreground"
                       >
                         {format(new Date(movingBlock.start_time), 'HH:mm')} {movingBlock.title}
                       </div>

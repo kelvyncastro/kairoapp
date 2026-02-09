@@ -358,14 +358,13 @@ export function CalendarDayView({
             {/* Moving block preview */}
             {movingBlock && movingBlockStyle && (
               <div
-                className="absolute left-2 right-4 rounded-lg px-3 py-1.5 pointer-events-none z-30 opacity-80 shadow-lg ring-2 ring-primary"
+                className="absolute left-2 right-4 rounded-lg px-3 py-1.5 pointer-events-none z-30 opacity-80 shadow-lg ring-2 ring-primary bg-primary text-primary-foreground"
                 style={{
                   top: movingBlockStyle.top,
                   height: movingBlockStyle.height,
-                  backgroundColor: movingBlock.color || 'hsl(207, 90%, 54%)',
                 }}
               >
-                <div className="truncate font-semibold text-white text-sm">{movingBlock.title}</div>
+                <div className="truncate font-semibold text-sm">{movingBlock.title}</div>
               </div>
             )}
 
@@ -383,14 +382,13 @@ export function CalendarDayView({
                     <div
                       className={cn(
                         "absolute left-2 right-4 rounded-lg px-3 py-1.5 cursor-grab active:cursor-grabbing",
-                        "text-white overflow-hidden group shadow-sm",
+                        "text-primary-foreground overflow-hidden group shadow-sm bg-primary",
                         "hover:shadow-lg hover:brightness-110 transition-all",
                         block.status === 'completed' && "opacity-60"
                       )}
                       style={{
                         top: block.top,
                         height: block.height,
-                        backgroundColor: block.color || 'hsl(207, 90%, 54%)',
                       }}
                       onMouseDown={(e) => handleBlockMouseDown(e, block)}
                     >
