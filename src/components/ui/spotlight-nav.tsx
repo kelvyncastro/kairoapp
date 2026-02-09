@@ -3,13 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   CheckSquare, 
-  Target, 
-  Flame,
   Calendar,
   MessageSquare,
   Wallet,
-  Trophy,
-  Settings
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -72,9 +68,9 @@ const NavItem: React.FC<NavItemProps> = ({
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: 'Dash', path: '/dashboard' },
   { icon: CheckSquare, label: 'Tarefas', path: '/rotina' },
-  { icon: Flame, label: 'Hábitos', path: '/habitos' },
-  { icon: Target, label: 'Metas', path: '/metas' },
-  { icon: Calendar, label: 'Calendário', path: '/calendario' },
+  { icon: MessageSquare, label: 'Chat', path: '/chat-financeiro' },
+  { icon: Wallet, label: 'Finanças', path: '/financas' },
+  { icon: Calendar, label: 'Agenda', path: '/calendario' },
 ];
 
 export function SpotlightNav() {
