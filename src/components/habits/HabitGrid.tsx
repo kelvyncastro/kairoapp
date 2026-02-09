@@ -350,7 +350,7 @@ const HabitGrid = React.memo(function HabitGrid({
                             }}
                             className={cn(
                               status === 'future' && 'opacity-30 cursor-not-allowed',
-                              status === 'pending' && !isChecked && '[&>div>div]:border-primary/50',
+                              status === 'pending' && status !== 'done' && '[&>div>div]:border-primary/50',
                               isToday && status !== 'done' && '[&>div>div]:ring-2 [&>div>div]:ring-primary/30 [&>div>div]:ring-offset-1 [&>div>div]:ring-offset-background'
                             )}
                           />
