@@ -1076,7 +1076,7 @@ function TaskTable({
                 if (!task.completed) {
                   playCheck();
                 }
-                onToggleComplete(task);
+                setTimeout(() => onToggleComplete(task), 1000);
               }}
             />
           </div>

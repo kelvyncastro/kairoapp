@@ -311,7 +311,7 @@ export function TaskBoardView({
                         <NeonCheckbox
                           checked={task.completed}
                           rounded={false}
-                          onCheckedChange={() => onToggleComplete(task)}
+                          onCheckedChange={() => setTimeout(() => onToggleComplete(task), 1000)}
                         />
                         <span 
                           className={cn(
