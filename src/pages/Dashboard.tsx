@@ -320,7 +320,7 @@ export default function Dashboard() {
                 <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
               <div className="flex items-center gap-1">
-                <p className="text-xl md:text-2xl font-bold">{stats.currentStreak}</p>
+                <p className="text-xl md:text-2xl font-bold"><AnimatedNumber value={stats.currentStreak} /></p>
                 <AnimatedFire streak={stats.currentStreak} size="sm" />
               </div>
               <p className="text-xs md:text-sm text-muted-foreground">
