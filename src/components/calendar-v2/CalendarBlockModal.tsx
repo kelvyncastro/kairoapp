@@ -53,20 +53,6 @@ interface CalendarBlockModalProps {
   onComplete?: (id: string) => Promise<boolean>;
 }
 
-const COLORS = [
-  { value: '#3b82f6', name: 'Azul' },
-  { value: '#6366f1', name: 'Índigo' },
-  { value: '#8b5cf6', name: 'Violeta' },
-  { value: '#a855f7', name: 'Roxo' },
-  { value: '#ec4899', name: 'Rosa' },
-  { value: '#ef4444', name: 'Vermelho' },
-  { value: '#f97316', name: 'Laranja' },
-  { value: '#eab308', name: 'Amarelo' },
-  { value: '#22c55e', name: 'Verde' },
-  { value: '#14b8a6', name: 'Teal' },
-  { value: '#06b6d4', name: 'Ciano' },
-  { value: '#64748b', name: 'Cinza' },
-];
 
 const DAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
