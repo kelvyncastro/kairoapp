@@ -74,11 +74,11 @@ const THEME_OPTIONS: ThemeOption[] = [
   { 
     id: 'blue', 
     label: 'Azul', 
-    description: 'Azul profissional e confiável',
+    description: 'Azul oceano vibrante',
     colors: {
-      primary: '#3B82F6',
-      secondary: '#60A5FA',
-      accent: '#93C5FD',
+      primary: '#0EA5E9',
+      secondary: '#38BDF8',
+      accent: '#7DD3FC',
     },
     icon: Sparkles,
   },
