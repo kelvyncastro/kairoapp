@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
+import { useSound } from '@/contexts/SoundContext';
 import { Plus, MoreHorizontal, Edit2, Trash2, Calendar, Clock, X, Check, AlertTriangle, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NeonCheckbox } from '@/components/ui/animated-check-box';
@@ -45,6 +47,7 @@ export function TaskBoardView({
   onUpdateStatus,
   onDeleteStatus,
 }: TaskBoardViewProps) {
+  const { playCheck } = useSound();
   const [isAddingStatus, setIsAddingStatus] = useState(false);
   const [newStatusName, setNewStatusName] = useState('');
   const [editingStatusId, setEditingStatusId] = useState<string | null>(null);
@@ -311,7 +314,16 @@ export function TaskBoardView({
                         <NeonCheckbox
                           checked={task.completed}
                           rounded={false}
-                          onCheckedChange={() => setTimeout(() => onToggleComplete(task), 1000)}
+                          onCheckedChange={() => {
+                            if (!task.completed) {
+                              playCheck();
+                              toast.success('Tarefa concluída! ✅', {
+                                description: task.title,
+                                duration: 3000,
+                              });
+                            }
+                            setTimeout(() => onToggleComplete(task), 2000);
+                          }}
                         />
                         <span 
                           className={cn(
