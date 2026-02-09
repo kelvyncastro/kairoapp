@@ -448,7 +448,7 @@ export default function Dashboard() {
                       <span className="text-xs md:text-sm text-muted-foreground">Ganhos</span>
                     </div>
                     <span className="text-xs md:text-sm font-medium text-success">
-                      R$ {stats.financeIncome.toFixed(2)}
+                      <AnimatedNumber value={stats.financeIncome} currency decimals={2} />
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
