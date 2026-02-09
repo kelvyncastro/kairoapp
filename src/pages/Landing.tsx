@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Particles } from "@/components/ui/particles";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { 
   CheckCircle2, 
@@ -213,6 +214,18 @@ export default function Landing() {
 
       {/* Secondary fixed overlay for depth */}
       <div className="fixed inset-0 pointer-events-none bg-gradient-to-b from-transparent via-transparent to-background/30 z-[1]" />
+
+      {/* Interactive Particles */}
+      <Particles
+        className="fixed inset-0 z-[2] pointer-events-auto"
+        quantity={120}
+        staticity={40}
+        ease={60}
+        size={0.5}
+        color="#ffffff"
+        vx={0}
+        vy={-0.05}
+      />
 
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/60 backdrop-blur-xl border-b border-border/50">
