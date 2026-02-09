@@ -242,7 +242,7 @@ export default function Auth() {
             </div>
 
             {/* Card border glow */}
-            <div className="absolute -inset-px rounded-2xl bg-gradient-to-b from-primary/20 via-border/30 to-primary/10" />
+            <div className="absolute -inset-px rounded-2xl bg-gradient-to-b from-primary/20 via-border/30 to-primary/10 pointer-events-none" />
 
             {/* Glass card */}
             <div className="relative rounded-2xl backdrop-blur-xl bg-card/60 border border-border/30 p-6 shadow-2xl">
