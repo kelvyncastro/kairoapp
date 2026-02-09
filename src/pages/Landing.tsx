@@ -443,38 +443,6 @@ export default function Landing() {
         </div>
       </section>
 
-function ParticlesWithTheme() {
-  const [color, setColor] = useState("#ffffff");
-  useEffect(() => {
-    const root = document.documentElement;
-    const computedStyle = getComputedStyle(root);
-    const primary = computedStyle.getPropertyValue("--primary").trim();
-    if (primary) {
-      const [h, s, l] = primary.split(" ").map(v => parseFloat(v));
-      // Convert HSL to hex
-      const hsl2rgb = (h: number, s: number, l: number) => {
-        s /= 100; l /= 100;
-        const a = s * Math.min(l, 1 - l);
-        const f = (n: number) => { const k = (n + h / 30) % 12; return l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1); };
-        return [f(0), f(8), f(4)].map(v => Math.round(v * 255));
-      };
-      const [r, g, b] = hsl2rgb(h, s, l);
-      setColor(`#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`);
-    }
-  }, []);
-  return (
-    <Particles
-      className="fixed inset-0 z-[2] pointer-events-auto"
-      quantity={120}
-      staticity={40}
-      ease={60}
-      size={0.5}
-      color={color}
-      vx={0}
-      vy={-0.05}
-    />
-  );
-}
 
       {/* Benefits Section */}
       <section className="relative z-10 py-24 px-4 sm:px-6 lg:px-8">
