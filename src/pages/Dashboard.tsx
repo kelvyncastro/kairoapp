@@ -457,7 +457,7 @@ export default function Dashboard() {
                       <span className="text-xs md:text-sm text-muted-foreground">Gastos</span>
                     </div>
                     <span className="text-xs md:text-sm font-medium text-destructive">
-                      R$ {stats.financeExpense.toFixed(2)}
+                      <AnimatedNumber value={stats.financeExpense} currency decimals={2} />
                     </span>
                   </div>
                   <div className="h-px bg-border my-1 md:my-2" />
