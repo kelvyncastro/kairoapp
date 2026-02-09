@@ -28,6 +28,7 @@ import { ptBR } from "date-fns/locale";
 import { AnimatedFire } from "@/components/achievements/AnimatedFire";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PendingTasksByFolder } from "@/components/dashboard/PendingTasksByFolder";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 
 interface DashboardStats {
   tasksCompletedToday: number;
