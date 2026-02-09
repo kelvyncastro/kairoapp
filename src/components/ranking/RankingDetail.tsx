@@ -541,7 +541,7 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
                             if (checked && !completed) {
                               playCheck();
                             }
-                            handleToggleGoal(goal.id, !!checked);
+                            setTimeout(() => handleToggleGoal(goal.id, !!checked), 1000);
                           }}
                           disabled={!canEditGoals || loading}
                         />
