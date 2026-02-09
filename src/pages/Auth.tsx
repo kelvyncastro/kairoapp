@@ -224,7 +224,7 @@ export default function Auth() {
             transition={{ delay: 0.4, duration: 0.6 }}
           >
             {/* Traveling light beam border */}
-            <div className="absolute -inset-px rounded-2xl overflow-hidden">
+            <div className="absolute -inset-px rounded-2xl overflow-hidden pointer-events-none">
               <motion.div
                 className="absolute inset-0"
                 animate={{ rotate: 360 }}
@@ -242,13 +242,13 @@ export default function Auth() {
             </div>
 
             {/* Card border glow */}
-            <div className="absolute -inset-px rounded-2xl bg-gradient-to-b from-primary/20 via-border/30 to-primary/10" />
+            <div className="absolute -inset-px rounded-2xl bg-gradient-to-b from-primary/20 via-border/30 to-primary/10 pointer-events-none" />
 
             {/* Glass card */}
             <div className="relative rounded-2xl backdrop-blur-xl bg-card/60 border border-border/30 p-6 shadow-2xl">
               {/* Inner pattern */}
               <div
-                className="absolute inset-0 rounded-2xl opacity-[0.02]"
+                className="absolute inset-0 rounded-2xl opacity-[0.02] pointer-events-none"
                 style={{
                   backgroundImage: `radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)`,
                   backgroundSize: '24px 24px',
