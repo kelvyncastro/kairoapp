@@ -311,7 +311,16 @@ export function TaskBoardView({
                         <NeonCheckbox
                           checked={task.completed}
                           rounded={false}
-                          onCheckedChange={() => setTimeout(() => onToggleComplete(task), 1000)}
+                          onCheckedChange={() => {
+                            if (!task.completed) {
+                              playCheck();
+                              toast.success('Tarefa concluída! ✅', {
+                                description: task.title,
+                                duration: 3000,
+                              });
+                            }
+                            setTimeout(() => onToggleComplete(task), 2000);
+                          }}
                         />
                         <span 
                           className={cn(

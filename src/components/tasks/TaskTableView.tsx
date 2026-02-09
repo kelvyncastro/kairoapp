@@ -1075,8 +1075,12 @@ function TaskTable({
               onCheckedChange={() => {
                 if (!task.completed) {
                   playCheck();
+                  toast.success('Tarefa concluída! ✅', {
+                    description: task.title,
+                    duration: 3000,
+                  });
                 }
-                setTimeout(() => onToggleComplete(task), 1000);
+                setTimeout(() => onToggleComplete(task), 2000);
               }}
             />
           </div>
