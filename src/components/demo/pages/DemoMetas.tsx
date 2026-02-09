@@ -1,9 +1,16 @@
-import { useState } from 'react';
-import { Plus, Target, TrendingUp, DollarSign, Dumbbell, Heart, User, Eye } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import {
+  Plus, Target, TrendingUp, DollarSign, Dumbbell, Heart, User, MoreHorizontal,
+  Star, Trophy, Rocket, Lightbulb, Book, Settings,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { differenceInDays, parseISO } from 'date-fns';
 
 interface DemoGoal {
   id: string;
@@ -80,46 +87,58 @@ export function DemoMetas() {
     }));
   };
 
+  // Stats
+  const totalGoals = goals.length;
+  const completedGoals = goals.filter(g => g.status === 'COMPLETED').length;
+  const activeGoals = goals.filter(g => g.status === 'ACTIVE').length;
+
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-border/30 flex-shrink-0">
+    <div className="h-full flex flex-col overflow-hidden bg-background">
+      {/* Header - matches real Metas page */}
+      <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-border/30 flex-shrink-0">
         <div>
-          <h2 className="text-base font-bold">Metas</h2>
-          <p className="text-xs text-muted-foreground hidden sm:block">Defina objetivos e acompanhe seu progresso</p>
+          <h1 className="text-xl md:text-2xl font-bold">Metas</h1>
+          <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Defina objetivos e acompanhe seu progresso</p>
         </div>
-        <Button size="sm" className="h-8">
-          <Plus className="h-4 w-4 mr-1" />
-          <span className="hidden sm:inline">Nova Meta</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="h-8 gap-1.5">
+            <Settings className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Gerenciar Setores</span>
+          </Button>
+          <Button size="sm" className="h-8 gap-1.5">
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Nova Meta</span>
+          </Button>
+        </div>
       </div>
 
-      {/* Category filters */}
-      <div className="flex gap-1.5 px-4 py-2 border-b border-border/30 overflow-x-auto flex-shrink-0">
-        <Button variant={activeCategory === 'ALL' ? 'default' : 'outline'} size="sm" className="h-7 text-xs" onClick={() => setActiveCategory('ALL')}>
-          Todas
+      {/* Category filters - matches real Metas */}
+      <div className="flex gap-2 px-4 md:px-6 py-3 border-b border-border/30 overflow-x-auto flex-shrink-0">
+        <Button variant={activeCategory === 'ALL' ? 'default' : 'outline'} size="sm" className="h-8 text-xs shrink-0" onClick={() => setActiveCategory('ALL')}>
+          Todas ({totalGoals})
         </Button>
         {CATEGORIES.map(cat => (
           <Button
             key={cat.id}
             variant={activeCategory === cat.id ? 'default' : 'outline'}
             size="sm"
-            className="h-7 text-xs gap-1.5 shrink-0"
+            className="h-8 text-xs gap-1.5 shrink-0"
             onClick={() => setActiveCategory(cat.id)}
           >
-            <cat.icon className="h-3 w-3" style={{ color: activeCategory === cat.id ? undefined : cat.color }} />
-            <span className="hidden sm:inline">{cat.name}</span>
+            <cat.icon className="h-3.5 w-3.5" style={{ color: activeCategory === cat.id ? undefined : cat.color }} />
+            {cat.name}
           </Button>
         ))}
       </div>
 
       {/* Goals grid */}
-      <div className="flex-1 overflow-y-auto px-4 py-3">
-        <div className="grid gap-3 md:grid-cols-2">
+      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4">
+        <div className="grid gap-4 md:grid-cols-2">
           {filteredGoals.map(goal => {
             const cat = CATEGORIES.find(c => c.id === goal.categoryId)!;
             const percent = Math.min(Math.round((goal.currentValue / goal.targetValue) * 100), 100);
             const isExpanded = expandedGoal === goal.id;
+            const daysLeft = differenceInDays(parseISO(goal.endDate), new Date());
 
             return (
               <div
@@ -127,17 +146,33 @@ export function DemoMetas() {
                 className="rounded-xl border border-border/50 bg-card/50 p-4 hover:border-primary/30 transition-all cursor-pointer"
                 onClick={() => setExpandedGoal(isExpanded ? null : goal.id)}
               >
-                {/* Category badge */}
-                <div className="flex items-center justify-between mb-2">
+                {/* Category badge + actions */}
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="h-7 w-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: cat.color + '20' }}>
-                      <cat.icon className="h-3.5 w-3.5" style={{ color: cat.color }} />
+                    <div className="h-8 w-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: cat.color + '20' }}>
+                      <cat.icon className="h-4 w-4" style={{ color: cat.color }} />
                     </div>
                     <span className="text-xs font-medium" style={{ color: cat.color }}>{cat.name}</span>
                   </div>
-                  {goal.status === 'COMPLETED' && (
-                    <span className="text-xs bg-success/20 text-success px-2 py-0.5 rounded-full">✓ Concluída</span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {goal.status === 'COMPLETED' && (
+                      <span className="text-xs bg-success/20 text-success px-2 py-0.5 rounded-full font-medium">✓ Concluída</span>
+                    )}
+                    {goal.status === 'ACTIVE' && daysLeft > 0 && (
+                      <span className="text-[10px] text-muted-foreground">{daysLeft} dias restantes</span>
+                    )}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon" className="h-7 w-7">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-36 bg-popover">
+                        <DropdownMenuItem>Editar</DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive">Excluir</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
 
                 <h3 className="font-semibold text-sm mb-1">{goal.title}</h3>
@@ -149,13 +184,18 @@ export function DemoMetas() {
                     <span className="text-muted-foreground">{goal.currentValue} / {goal.targetValue} {goal.unitLabel}</span>
                     <span className="font-semibold" style={{ color: cat.color }}>{percent}%</span>
                   </div>
-                  <Progress value={percent} className="h-2" indicatorColor={cat.color} />
+                  <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{ width: `${percent}%`, backgroundColor: cat.color }}
+                    />
+                  </div>
                 </div>
 
                 {/* Expanded: chart + add progress */}
                 {isExpanded && (
-                  <div className="mt-3 pt-3 border-t border-border/30">
-                    <div className="h-24 mb-3">
+                  <div className="mt-4 pt-4 border-t border-border/30">
+                    <div className="h-28 mb-3">
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={goal.history} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                           <defs>
@@ -164,8 +204,21 @@ export function DemoMetas() {
                               <stop offset="100%" stopColor={cat.color} stopOpacity={0.05} />
                             </linearGradient>
                           </defs>
-                          <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} />
+                          <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
                           <YAxis hide domain={[0, goal.targetValue]} />
+                          <Tooltip
+                            content={({ active, payload }) => {
+                              if (active && payload?.[0]) {
+                                return (
+                                  <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-lg">
+                                    <p className="text-xs text-muted-foreground">{payload[0].payload.date}</p>
+                                    <p className="text-sm font-semibold">{payload[0].value} {goal.unitLabel}</p>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
                           <Area type="monotone" dataKey="value" stroke={cat.color} strokeWidth={2} fill={`url(#grad-${goal.id})`} />
                         </AreaChart>
                       </ResponsiveContainer>
@@ -174,10 +227,10 @@ export function DemoMetas() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="w-full h-7 text-xs"
+                        className="w-full h-8 text-xs"
                         onClick={(e) => { e.stopPropagation(); addProgress(goal.id, Math.ceil(goal.targetValue * 0.1)); }}
                       >
-                        <TrendingUp className="h-3 w-3 mr-1" />
+                        <TrendingUp className="h-3.5 w-3.5 mr-1.5" />
                         Registrar Progresso (+10%)
                       </Button>
                     )}
