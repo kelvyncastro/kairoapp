@@ -47,6 +47,7 @@ export function TaskBoardView({
   onUpdateStatus,
   onDeleteStatus,
 }: TaskBoardViewProps) {
+  const { playCheck } = useSound();
   const [isAddingStatus, setIsAddingStatus] = useState(false);
   const [newStatusName, setNewStatusName] = useState('');
   const [editingStatusId, setEditingStatusId] = useState<string | null>(null);
