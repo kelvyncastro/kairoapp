@@ -251,29 +251,29 @@
 
   /* Blue Neon Theme */
   [data-theme="blue"] {
-    --background: 200 50% 4%;
-    --foreground: 190 100% 95%;
+    --background: 220 60% 4%;
+    --foreground: 210 100% 95%;
 
-    --card: 200 50% 8%;
-    --card-foreground: 190 100% 95%;
+    --card: 220 60% 8%;
+    --card-foreground: 210 100% 95%;
 
-    --popover: 200 50% 8%;
-    --popover-foreground: 190 100% 95%;
+    --popover: 220 60% 8%;
+    --popover-foreground: 210 100% 95%;
 
-    --primary: 190 100% 50%;
-    --primary-foreground: 200 50% 4%;
+    --primary: 215 100% 55%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 200 50% 12%;
-    --secondary-foreground: 190 100% 95%;
+    --secondary: 220 60% 12%;
+    --secondary-foreground: 210 100% 95%;
 
-    --muted: 200 50% 15%;
-    --muted-foreground: 190 40% 55%;
+    --muted: 220 60% 15%;
+    --muted-foreground: 215 40% 55%;
 
-    --accent: 200 50% 18%;
-    --accent-foreground: 190 100% 95%;
+    --accent: 220 60% 18%;
+    --accent-foreground: 210 100% 95%;
 
     --destructive: 0 70% 50%;
-    --destructive-foreground: 190 100% 95%;
+    --destructive-foreground: 210 100% 95%;
 
     --success: 142 71% 45%;
     --success-foreground: 0 0% 4%;
@@ -281,18 +281,18 @@
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 4%;
 
-    --border: 200 50% 15%;
-    --input: 200 50% 15%;
-    --ring: 190 100% 50%;
+    --border: 220 60% 15%;
+    --input: 220 60% 15%;
+    --ring: 215 100% 55%;
 
-    --sidebar-background: 200 50% 6%;
-    --sidebar-foreground: 190 40% 55%;
-    --sidebar-primary: 190 100% 50%;
-    --sidebar-primary-foreground: 200 50% 4%;
-    --sidebar-accent: 200 50% 12%;
-    --sidebar-accent-foreground: 190 100% 95%;
-    --sidebar-border: 200 50% 12%;
-    --sidebar-ring: 190 100% 50%;
+    --sidebar-background: 220 60% 6%;
+    --sidebar-foreground: 215 40% 55%;
+    --sidebar-primary: 215 100% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 60% 12%;
+    --sidebar-accent-foreground: 210 100% 95%;
+    --sidebar-border: 220 60% 12%;
+    --sidebar-ring: 215 100% 55%;
   }
 
   /* Fuchsia Theme */
@@ -382,8 +382,8 @@
 
   [data-theme="blue"] body {
     background: 
-      radial-gradient(ellipse 80% 50% at 50% -20%, hsla(190, 100%, 50%, 0.2), transparent),
-      radial-gradient(ellipse 60% 40% at 80% 50%, hsla(180, 100%, 50%, 0.08), transparent),
+      radial-gradient(ellipse 80% 50% at 50% -20%, hsla(215, 100%, 55%, 0.25), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 50%, hsla(230, 100%, 60%, 0.1), transparent),
       hsl(var(--background));
   }
 
