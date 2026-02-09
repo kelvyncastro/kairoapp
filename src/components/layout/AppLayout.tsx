@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/tooltip";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { SoundToggleButton } from "@/components/layout/SoundToggleButton";
+import { SpotlightNav } from "@/components/ui/spotlight-nav";
 
 const mainNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
