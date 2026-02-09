@@ -348,9 +348,50 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased overflow-x-hidden;
+    @apply text-foreground antialiased overflow-x-hidden;
     font-feature-settings: "cv11", "ss01";
     font-variation-settings: "opsz" 32;
+  }
+
+  /* Theme backgrounds with gradients */
+  [data-theme="dark"] body,
+  [data-theme="light"] body {
+    @apply bg-background;
+  }
+
+  [data-theme="violet"] body {
+    background: 
+      radial-gradient(ellipse 80% 50% at 50% -20%, hsla(262, 84%, 58%, 0.15), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 50%, hsla(270, 95%, 85%, 0.05), transparent),
+      hsl(var(--background));
+  }
+
+  [data-theme="pink"] body {
+    background: 
+      radial-gradient(ellipse 80% 50% at 50% -20%, hsla(330, 81%, 60%, 0.15), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 50%, hsla(351, 95%, 72%, 0.05), transparent),
+      hsl(var(--background));
+  }
+
+  [data-theme="emerald"] body {
+    background: 
+      radial-gradient(ellipse 80% 50% at 50% -20%, hsla(160, 84%, 39%, 0.15), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 50%, hsla(158, 64%, 52%, 0.05), transparent),
+      hsl(var(--background));
+  }
+
+  [data-theme="blue"] body {
+    background: 
+      radial-gradient(ellipse 80% 50% at 50% -20%, hsla(217, 91%, 60%, 0.15), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 50%, hsla(188, 92%, 53%, 0.05), transparent),
+      hsl(var(--background));
+  }
+
+  [data-theme="fuchsia"] body {
+    background: 
+      radial-gradient(ellipse 80% 50% at 50% -20%, hsla(292, 91%, 61%, 0.15), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 50%, hsla(330, 86%, 70%, 0.05), transparent),
+      hsl(var(--background));
   }
 
   /* Custom scrollbar */
