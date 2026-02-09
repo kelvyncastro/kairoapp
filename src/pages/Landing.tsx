@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Particles } from "@/components/ui/particles";
 import { useEffect, useState } from "react";
+import { DemoOverlay } from "@/components/demo/DemoOverlay";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { 
   CheckCircle2, 
@@ -193,7 +194,8 @@ export default function Landing() {
   const { scrollY } = useScroll();
   const backgroundY = useTransform(scrollY, [0, 2000], [0, -200]);
   const gridY = useTransform(scrollY, [0, 2000], [0, 100]);
-  
+  const [demoOpen, setDemoOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
       {/* Dynamic Animated Background */}
@@ -358,16 +360,14 @@ export default function Landing() {
                   </Button>
                 </motion.div>
               </a>
-              <a href="#mockups">
-                <motion.div
+              <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <Button size="lg" variant="outline" className="h-12 px-8 text-base backdrop-blur-sm bg-background/50">
+                  <Button size="lg" variant="outline" className="h-12 px-8 text-base backdrop-blur-sm bg-background/50" onClick={() => setDemoOpen(true)}>
                     Ver Demonstração
                   </Button>
                 </motion.div>
-              </a>
             </motion.div>
           </motion.div>
         </div>
@@ -741,6 +741,8 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+      {/* Demo Overlay */}
+      <DemoOverlay open={demoOpen} onClose={() => setDemoOpen(false)} />
     </div>
   );
 }
