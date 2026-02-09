@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Particles } from "@/components/ui/particles";
+import { useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { 
   CheckCircle2, 
