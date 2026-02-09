@@ -741,6 +741,8 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+      {/* Demo Overlay */}
+      <DemoOverlay open={demoOpen} onClose={() => setDemoOpen(false)} />
     </div>
   );
 }
