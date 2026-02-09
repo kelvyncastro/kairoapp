@@ -29,6 +29,7 @@ interface DemoOverlayProps {
 export function DemoOverlay({ open, onClose }: DemoOverlayProps) {
   const [activeTab, setActiveTab] = useState<TabId>('tarefas');
   const [timeLeft, setTimeLeft] = useState(DEMO_DURATION);
+  const [showDisclaimer, setShowDisclaimer] = useState(true);
 
   const handleClose = useCallback(() => {
     setTimeLeft(DEMO_DURATION);
