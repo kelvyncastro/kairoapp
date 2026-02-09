@@ -86,7 +86,6 @@ export function CalendarBlockModal({
   const [endTime, setEndTime] = useState<Date>(new Date());
   const [demandType, setDemandType] = useState<CalendarDemandType>('fixed');
   const [priority, setPriority] = useState<CalendarPriority>('medium');
-  const [color, setColor] = useState(COLORS[0].value);
   const [recurrenceType, setRecurrenceType] = useState<CalendarRecurrenceType>('none');
   const [recurrenceRule, setRecurrenceRule] = useState<RecurrenceRule | null>(null);
   const [recurrenceEndDate, setRecurrenceEndDate] = useState<Date | undefined>();
