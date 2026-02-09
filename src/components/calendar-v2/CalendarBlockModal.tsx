@@ -416,29 +416,6 @@ export function CalendarBlockModal({
             </div>
           </div>
 
-          {/* Color */}
-          <div>
-            <Label className="mb-2 block">Cor do bloco</Label>
-            <div className="flex flex-wrap gap-2">
-              {COLORS.map((c) => (
-                <button
-                  key={c.value}
-                  type="button"
-                  onClick={() => setColor(c.value)}
-                  className={cn(
-                    "w-8 h-8 rounded-full transition-all duration-200",
-                    "hover:scale-110 focus:outline-none",
-                    color === c.value 
-                      ? "ring-2 ring-offset-2 ring-offset-background ring-foreground scale-110" 
-                      : "hover:ring-2 hover:ring-muted-foreground/30"
-                  )}
-                  style={{ backgroundColor: c.value }}
-                  title={c.name}
-                />
-              ))}
-            </div>
-          </div>
-
           {/* Description */}
           <div>
             <Label htmlFor="description">Observações (opcional)</Label>
