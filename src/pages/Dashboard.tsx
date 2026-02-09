@@ -28,6 +28,7 @@ import { ptBR } from "date-fns/locale";
 import { AnimatedFire } from "@/components/achievements/AnimatedFire";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PendingTasksByFolder } from "@/components/dashboard/PendingTasksByFolder";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 
 interface DashboardStats {
   tasksCompletedToday: number;
@@ -307,7 +308,7 @@ export default function Dashboard() {
                 <CheckCircle2 className="h-4 md:h-5 w-4 md:w-5 text-muted-foreground" />
                 <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-xl md:text-2xl font-bold">{stats.tasksCompletedToday}/{stats.tasksTotalToday}</p>
+              <p className="text-xl md:text-2xl font-bold"><AnimatedNumber value={stats.tasksCompletedToday} />/<AnimatedNumber value={stats.tasksTotalToday} /></p>
               <p className="text-xs md:text-sm text-muted-foreground">Tarefas hoje</p>
               <Progress value={stats.todayProgress} className="h-1 md:h-1.5 mt-2" />
             </Link>
@@ -319,7 +320,7 @@ export default function Dashboard() {
                 <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
               <div className="flex items-center gap-1">
-                <p className="text-xl md:text-2xl font-bold">{stats.currentStreak}</p>
+                <p className="text-xl md:text-2xl font-bold"><AnimatedNumber value={stats.currentStreak} /></p>
                 <AnimatedFire streak={stats.currentStreak} size="sm" />
               </div>
               <p className="text-xs md:text-sm text-muted-foreground">
@@ -333,7 +334,7 @@ export default function Dashboard() {
                 <CalendarCheck className="h-4 md:h-5 w-4 md:w-5 text-muted-foreground" />
                 <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-xl md:text-2xl font-bold">{stats.habitsCompletedToday}/{stats.habitsTotalToday}</p>
+              <p className="text-xl md:text-2xl font-bold"><AnimatedNumber value={stats.habitsCompletedToday} />/<AnimatedNumber value={stats.habitsTotalToday} /></p>
               <p className="text-xs md:text-sm text-muted-foreground">Hábitos hoje</p>
               <Progress 
                 value={stats.habitsTotalToday > 0 ? (stats.habitsCompletedToday / stats.habitsTotalToday) * 100 : 0} 
@@ -347,7 +348,7 @@ export default function Dashboard() {
                 <Target className="h-4 md:h-5 w-4 md:w-5 text-muted-foreground" />
                 <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-xl md:text-2xl font-bold">{stats.goalsCompleted}/{stats.goalsActive}</p>
+              <p className="text-xl md:text-2xl font-bold"><AnimatedNumber value={stats.goalsCompleted} />/<AnimatedNumber value={stats.goalsActive} /></p>
               <p className="text-xs md:text-sm text-muted-foreground">Metas alcançadas</p>
               <Progress 
                 value={stats.goalsActive > 0 ? (stats.goalsCompleted / stats.goalsActive) * 100 : 0} 
@@ -447,7 +448,7 @@ export default function Dashboard() {
                       <span className="text-xs md:text-sm text-muted-foreground">Ganhos</span>
                     </div>
                     <span className="text-xs md:text-sm font-medium text-success">
-                      R$ {stats.financeIncome.toFixed(2)}
+                      <AnimatedNumber value={stats.financeIncome} currency decimals={2} />
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -456,7 +457,7 @@ export default function Dashboard() {
                       <span className="text-xs md:text-sm text-muted-foreground">Gastos</span>
                     </div>
                     <span className="text-xs md:text-sm font-medium text-destructive">
-                      R$ {stats.financeExpense.toFixed(2)}
+                      <AnimatedNumber value={stats.financeExpense} currency decimals={2} />
                     </span>
                   </div>
                   <div className="h-px bg-border my-1 md:my-2" />
@@ -469,7 +470,7 @@ export default function Dashboard() {
                       "text-xs md:text-sm font-bold",
                       stats.financeBalance >= 0 ? "text-success" : "text-destructive"
                     )}>
-                      R$ {stats.financeBalance.toFixed(2)}
+                      <AnimatedNumber value={stats.financeBalance} currency decimals={2} />
                     </span>
                   </div>
                 </div>
@@ -489,7 +490,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-center gap-2 mb-4 md:mb-6">
                 <div className="flex items-center gap-1">
                   {getStreakIcon(stats.currentStreak)}
-                  <span className="text-3xl md:text-4xl font-bold">{stats.currentStreak}</span>
+                  <span className="text-3xl md:text-4xl font-bold"><AnimatedNumber value={stats.currentStreak} /></span>
                 </div>
                 <AnimatedFire streak={stats.currentStreak} size="md" />
               </div>
@@ -520,11 +521,11 @@ export default function Dashboard() {
               <div className="mt-6 pt-4 border-t border-border/50">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <p className="text-2xl font-bold">{stats.last30Days.filter(d => d.isActive).length}</p>
+                    <p className="text-2xl font-bold"><AnimatedNumber value={stats.last30Days.filter(d => d.isActive).length} /></p>
                     <p className="text-xs text-muted-foreground">Dias ativos</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold">{Math.round((stats.last30Days.filter(d => d.isActive).length / 30) * 100)}%</p>
+                    <p className="text-2xl font-bold"><AnimatedNumber value={Math.round((stats.last30Days.filter(d => d.isActive).length / 30) * 100)} suffix="%" /></p>
                     <p className="text-xs text-muted-foreground">Taxa mensal</p>
                   </div>
                 </div>

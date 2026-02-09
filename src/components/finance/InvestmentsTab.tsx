@@ -6,6 +6,7 @@ import { TrendingUp, TrendingDown, Edit2, Trash2, PiggyBank, ChartLine } from "l
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 
 interface Sector {
   id: string;
@@ -139,7 +140,7 @@ export function InvestmentsTab({
             <span className="text-xs text-muted-foreground">Total Investido</span>
           </div>
           <p className="text-lg md:text-xl font-bold text-blue-500">
-            R$ {formatCurrency(currentTotal)}
+            <AnimatedNumber value={currentTotal} currency decimals={2} />
           </p>
         </div>
         <div className="cave-card p-4">
@@ -155,7 +156,7 @@ export function InvestmentsTab({
             "text-lg md:text-xl font-bold",
             totalInvestedThisMonth > 0 ? "text-success" : "text-muted-foreground"
           )}>
-            R$ {formatCurrency(totalInvestedThisMonth)}
+            <AnimatedNumber value={totalInvestedThisMonth} currency decimals={2} />
           </p>
         </div>
       </div>

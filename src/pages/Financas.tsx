@@ -53,6 +53,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 
 interface Sector {
   id: string;
@@ -718,7 +719,7 @@ export default function Financas() {
                 <span className="text-[10px] md:text-xs text-muted-foreground truncate">Ganhos</span>
               </div>
               <p className="text-xs md:text-lg font-bold text-success truncate">
-                R$ {income.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                <AnimatedNumber value={income} currency decimals={0} />
               </p>
             </div>
 
@@ -728,7 +729,7 @@ export default function Financas() {
                 <span className="text-[10px] md:text-xs text-muted-foreground truncate">Gastos</span>
               </div>
               <p className="text-xs md:text-lg font-bold text-destructive truncate">
-                R$ {Math.abs(expenses).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                <AnimatedNumber value={Math.abs(expenses)} currency decimals={0} />
               </p>
             </div>
 
@@ -741,7 +742,7 @@ export default function Financas() {
                 "text-xs md:text-lg font-bold truncate",
                 balance >= 0 ? "text-success" : "text-destructive"
               )}>
-                R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                <AnimatedNumber value={balance} currency decimals={0} />
               </p>
             </div>
           </div>
