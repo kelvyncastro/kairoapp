@@ -38,9 +38,8 @@ import {
   X,
   Pencil,
   FileText,
-  Palette,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+
 
 interface CalendarBlockModalProps {
   open: boolean;
@@ -54,20 +53,6 @@ interface CalendarBlockModalProps {
   onComplete?: (id: string) => Promise<boolean>;
 }
 
-const COLORS = [
-  { value: '#3b82f6', name: 'Azul' },
-  { value: '#6366f1', name: 'Índigo' },
-  { value: '#8b5cf6', name: 'Violeta' },
-  { value: '#a855f7', name: 'Roxo' },
-  { value: '#ec4899', name: 'Rosa' },
-  { value: '#ef4444', name: 'Vermelho' },
-  { value: '#f97316', name: 'Laranja' },
-  { value: '#eab308', name: 'Amarelo' },
-  { value: '#22c55e', name: 'Verde' },
-  { value: '#14b8a6', name: 'Teal' },
-  { value: '#06b6d4', name: 'Ciano' },
-  { value: '#64748b', name: 'Cinza' },
-];
 
 const DAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
@@ -79,13 +64,6 @@ const RECURRENCE_LABELS: Record<CalendarRecurrenceType, string> = {
   custom: 'Personalizado',
 };
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  pending: { label: 'Pendente', color: 'bg-yellow-500/20 text-yellow-500' },
-  in_progress: { label: 'Em andamento', color: 'bg-blue-500/20 text-blue-500' },
-  completed: { label: 'Concluído', color: 'bg-green-500/20 text-green-500' },
-  cancelled: { label: 'Cancelado', color: 'bg-red-500/20 text-red-500' },
-  postponed: { label: 'Adiado', color: 'bg-orange-500/20 text-orange-500' },
-};
 
 export function CalendarBlockModal({
   open,
@@ -108,7 +86,6 @@ export function CalendarBlockModal({
   const [endTime, setEndTime] = useState<Date>(new Date());
   const [demandType, setDemandType] = useState<CalendarDemandType>('fixed');
   const [priority, setPriority] = useState<CalendarPriority>('medium');
-  const [color, setColor] = useState(COLORS[0].value);
   const [recurrenceType, setRecurrenceType] = useState<CalendarRecurrenceType>('none');
   const [recurrenceRule, setRecurrenceRule] = useState<RecurrenceRule | null>(null);
   const [recurrenceEndDate, setRecurrenceEndDate] = useState<Date | undefined>();
@@ -125,7 +102,6 @@ export function CalendarBlockModal({
       setEndTime(new Date(block.end_time));
       setDemandType(block.demand_type);
       setPriority(block.priority);
-      setColor(block.color || COLORS[0].value);
       setRecurrenceType(block.recurrence_type);
       setRecurrenceRule(block.recurrence_rule || null);
       if (block.recurrence_end_date) {
@@ -147,7 +123,6 @@ export function CalendarBlockModal({
       setEndTime(defaultEndTime || addMinutes(defaultStartTime || new Date(), 60));
       setDemandType('fixed');
       setPriority('medium');
-      setColor(COLORS[0].value);
       setRecurrenceType('none');
       setRecurrenceRule(null);
       setRecurrenceEndDate(undefined);
@@ -181,7 +156,7 @@ export function CalendarBlockModal({
         demand_type: demandType,
         priority,
         status: block?.status || 'pending',
-        color,
+        color: null,
         recurrence_type: recurrenceType,
         recurrence_rule: finalRecurrenceRule,
         recurrence_end_date: recurrenceEndDate?.toISOString().split('T')[0] || null,
@@ -195,7 +170,7 @@ export function CalendarBlockModal({
     } finally {
       setSaving(false);
     }
-  }, [title, saving, recurrenceType, recurrenceInterval, selectedDays, recurrenceEndDate, onSave, startTime, endTime, demandType, priority, block, color, onClose, description]);
+  }, [title, saving, recurrenceType, recurrenceInterval, selectedDays, recurrenceEndDate, onSave, startTime, endTime, demandType, priority, block, onClose, description]);
 
   // Handle Enter key to save (only in edit mode)
   useEffect(() => {
@@ -281,8 +256,6 @@ export function CalendarBlockModal({
 
   // VIEW MODE
   if (isViewMode && isEditing && block) {
-    const colorInfo = COLORS.find(c => c.value === color) || COLORS[0];
-    const statusInfo = STATUS_LABELS[block.status] || STATUS_LABELS.pending;
     const recurrenceDesc = getRecurrenceDescription();
 
     return (
@@ -290,10 +263,7 @@ export function CalendarBlockModal({
         <DialogContent className="max-w-md w-[95vw]">
           <DialogHeader className="pb-2">
             <div className="flex items-start gap-3">
-              <div 
-                className="w-4 h-full min-h-[40px] rounded-full flex-shrink-0"
-                style={{ backgroundColor: color }}
-              />
+              <div className="w-4 h-full min-h-[40px] rounded-full flex-shrink-0 bg-primary" />
               <div className="flex-1 min-w-0">
                 <DialogTitle className="text-xl font-bold leading-tight">
                   {title}
@@ -330,20 +300,6 @@ export function CalendarBlockModal({
                 </div>
               </div>
             )}
-
-            {/* Color */}
-            <div className="flex items-center gap-3 text-sm">
-              <div className="p-2 rounded-lg bg-muted">
-                <Palette className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div className="flex items-center gap-2">
-                <div 
-                  className="w-5 h-5 rounded-full"
-                  style={{ backgroundColor: color }}
-                />
-                <span className="text-muted-foreground">{colorInfo.name}</span>
-              </div>
-            </div>
 
             {/* Description */}
             {description && (
@@ -457,29 +413,6 @@ export function CalendarBlockModal({
                   className="w-24"
                 />
               </div>
-            </div>
-          </div>
-
-          {/* Color */}
-          <div>
-            <Label className="mb-2 block">Cor do bloco</Label>
-            <div className="flex flex-wrap gap-2">
-              {COLORS.map((c) => (
-                <button
-                  key={c.value}
-                  type="button"
-                  onClick={() => setColor(c.value)}
-                  className={cn(
-                    "w-8 h-8 rounded-full transition-all duration-200",
-                    "hover:scale-110 focus:outline-none",
-                    color === c.value 
-                      ? "ring-2 ring-offset-2 ring-offset-background ring-foreground scale-110" 
-                      : "hover:ring-2 hover:ring-muted-foreground/30"
-                  )}
-                  style={{ backgroundColor: c.value }}
-                  title={c.name}
-                />
-              ))}
             </div>
           </div>
 
