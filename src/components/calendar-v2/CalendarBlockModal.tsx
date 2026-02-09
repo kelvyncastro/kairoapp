@@ -64,13 +64,6 @@ const RECURRENCE_LABELS: Record<CalendarRecurrenceType, string> = {
   custom: 'Personalizado',
 };
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  pending: { label: 'Pendente', color: 'bg-yellow-500/20 text-yellow-500' },
-  in_progress: { label: 'Em andamento', color: 'bg-blue-500/20 text-blue-500' },
-  completed: { label: 'Concluído', color: 'bg-green-500/20 text-green-500' },
-  cancelled: { label: 'Cancelado', color: 'bg-red-500/20 text-red-500' },
-  postponed: { label: 'Adiado', color: 'bg-orange-500/20 text-orange-500' },
-};
 
 export function CalendarBlockModal({
   open,
