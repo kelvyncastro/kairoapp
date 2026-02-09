@@ -1069,10 +1069,10 @@ function TaskTable({
         >
           {/* Checkbox */}
           <div className="flex items-center justify-center">
-            <Checkbox
+            <NeonCheckbox
               checked={task.completed}
+              rounded={false}
               onCheckedChange={() => {
-                // Play check sound when completing (not when uncompleting)
                 if (!task.completed) {
                   playCheck();
                 }

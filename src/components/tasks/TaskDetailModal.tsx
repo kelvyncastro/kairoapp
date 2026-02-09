@@ -681,8 +681,9 @@ export function TaskDetailModal({
                           key={item.id}
                           className="flex items-center gap-3 px-2 py-1.5 rounded hover:bg-muted/30 group"
                         >
-                          <Checkbox
+                          <NeonCheckbox
                             checked={item.completed}
+                            rounded={false}
                             onCheckedChange={async () => {
                               await toggleChecklistItem(item);
                               notifyDetailsChanged();

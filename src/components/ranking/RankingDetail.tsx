@@ -533,22 +533,17 @@ export function RankingDetail({ ranking: initialRanking, onBack }: RankingDetail
                         </div>
 
                         {/* Checkbox */}
-                        <Checkbox
+                        <NeonCheckbox
                           checked={completed}
+                          rounded={false}
+                          size={24}
                           onCheckedChange={(checked) => {
-                            // Play check sound when completing
                             if (checked && !completed) {
                               playCheck();
                             }
                             handleToggleGoal(goal.id, !!checked);
                           }}
                           disabled={!canEditGoals || loading}
-                          className={cn(
-                            "h-6 w-6 rounded-lg border-2 transition-all duration-300",
-                            completed 
-                              ? "border-primary bg-primary data-[state=checked]:bg-primary" 
-                              : "border-muted-foreground/30 hover:border-primary/50"
-                          )}
                         />
                       </motion.div>
                     );
