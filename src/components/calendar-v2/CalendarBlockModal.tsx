@@ -156,7 +156,7 @@ export function CalendarBlockModal({
         demand_type: demandType,
         priority,
         status: block?.status || 'pending',
-        color,
+        color: null,
         recurrence_type: recurrenceType,
         recurrence_rule: finalRecurrenceRule,
         recurrence_end_date: recurrenceEndDate?.toISOString().split('T')[0] || null,
@@ -170,7 +170,7 @@ export function CalendarBlockModal({
     } finally {
       setSaving(false);
     }
-  }, [title, saving, recurrenceType, recurrenceInterval, selectedDays, recurrenceEndDate, onSave, startTime, endTime, demandType, priority, block, color, onClose, description]);
+  }, [title, saving, recurrenceType, recurrenceInterval, selectedDays, recurrenceEndDate, onSave, startTime, endTime, demandType, priority, block, onClose, description]);
 
   // Handle Enter key to save (only in edit mode)
   useEffect(() => {
