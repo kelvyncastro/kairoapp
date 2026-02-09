@@ -53,6 +53,7 @@ const mainNavItems = [
   { path: "/financas", label: "Finanças", icon: Wallet },
   { path: "/ranking", label: "Ranking", icon: Trophy },
   { path: "/consistencia", label: "Consistência", icon: Flame },
+  { path: "/agenda", label: "Agenda", icon: CalendarCheck },
   { path: "/configuracoes", label: "Configurações", icon: Settings },
 ];
 

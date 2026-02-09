@@ -76,6 +76,7 @@ const App = () => (
                   <Route path="/chat-financeiro" element={<ChatFinanceiro />} />
                   <Route path="/calendario" element={<Calendar2 />} />
                   <Route path="/ranking" element={<Ranking />} />
+                  <Route path="/agenda" element={<Agenda />} />
                   <Route path="/configuracoes" element={<Configuracoes />} />
                   <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
                 </Route>
