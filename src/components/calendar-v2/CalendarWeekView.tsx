@@ -517,7 +517,7 @@ export function CalendarWeekView({
                         key={block.id}
                         className={cn(
                           "absolute rounded-lg px-2 py-1 cursor-grab active:cursor-grabbing",
-                          "text-white text-xs font-medium overflow-hidden shadow-sm",
+                          "text-primary-foreground text-xs font-medium overflow-hidden shadow-sm bg-primary",
                           "hover:shadow-md hover:brightness-110 transition-all",
                           block.status === 'completed' && "opacity-60"
                         )}
@@ -526,7 +526,6 @@ export function CalendarWeekView({
                           height,
                           left: `calc(${layoutInfo.left}% + 2px)`,
                           width: `calc(${layoutInfo.width}% - 4px)`,
-                          backgroundColor: block.color || 'hsl(207, 90%, 54%)',
                         }}
                         onMouseDown={(e) => handleBlockMouseDown(e, block)}
                       >
