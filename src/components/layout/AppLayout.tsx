@@ -48,7 +48,7 @@ const mainNavItems = [
   { path: "/rotina", label: "Tarefas", icon: ListTodo },
   { path: "/habitos", label: "Hábitos", icon: CalendarCheck },
   { path: "/metas", label: "Metas", icon: Target },
-  { path: "/calendario", label: "Agenda", icon: CalendarClock },
+  { path: "/calendario", label: "Calendário", icon: CalendarClock },
   { path: "/chat-financeiro", label: "Chat Financeiro", icon: MessageSquare },
   { path: "/financas", label: "Finanças", icon: Wallet },
   { path: "/ranking", label: "Ranking", icon: Trophy },

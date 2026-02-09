@@ -74,7 +74,7 @@ const NAV_ITEMS = [
   { icon: CheckSquare, label: 'Tarefas', path: '/rotina' },
   { icon: Flame, label: 'Hábitos', path: '/habitos' },
   { icon: Target, label: 'Metas', path: '/metas' },
-  { icon: Calendar, label: 'Agenda', path: '/calendario' },
+  { icon: Calendar, label: 'Calendário', path: '/calendario' },
 ];
 
 export function SpotlightNav() {
