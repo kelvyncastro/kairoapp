@@ -68,9 +68,9 @@ const NavItem: React.FC<NavItemProps> = ({
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: 'Dash', path: '/dashboard' },
   { icon: CheckSquare, label: 'Tarefas', path: '/rotina' },
+  { icon: Flame, label: 'Hábitos', path: '/habitos' },
   { icon: MessageSquare, label: 'Chat', path: '/chat-financeiro' },
   { icon: Wallet, label: 'Finanças', path: '/financas' },
-  { icon: Calendar, label: 'Agenda', path: '/calendario' },
 ];
 
 export function SpotlightNav() {
