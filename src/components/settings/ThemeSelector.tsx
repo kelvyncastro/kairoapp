@@ -76,9 +76,9 @@ const THEME_OPTIONS: ThemeOption[] = [
     label: 'Azul Neon', 
     description: 'Azul elétrico vibrante',
     colors: {
-      primary: '#1E90FF',
-      secondary: '#4169E1',
-      accent: '#6495ED',
+      primary: '#00ADFF',
+      secondary: '#33BFFF',
+      accent: '#66D1FF',
     },
     icon: Sparkles,
   },
