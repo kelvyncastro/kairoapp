@@ -491,14 +491,13 @@ export function CalendarWeekView({
                   {/* Moving block preview */}
                   {movingBlock && isMoveTargetDay && movingBlockStyle && (
                     <div
-                      className="absolute left-1 right-1 rounded-lg px-2 py-1 pointer-events-none z-30 opacity-80 shadow-lg ring-2 ring-primary"
+                      className="absolute left-1 right-1 rounded-lg px-2 py-1 pointer-events-none z-30 opacity-80 shadow-lg ring-2 ring-primary bg-primary text-primary-foreground"
                       style={{
                         top: movingBlockStyle.top,
                         height: movingBlockStyle.height,
-                        backgroundColor: movingBlock.color || 'hsl(207, 90%, 54%)',
                       }}
                     >
-                      <div className="truncate font-semibold text-white text-xs">{movingBlock.title}</div>
+                      <div className="truncate font-semibold text-xs">{movingBlock.title}</div>
                     </div>
                   )}
 
