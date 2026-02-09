@@ -729,7 +729,7 @@ export default function Financas() {
                 <span className="text-[10px] md:text-xs text-muted-foreground truncate">Gastos</span>
               </div>
               <p className="text-xs md:text-lg font-bold text-destructive truncate">
-                R$ {Math.abs(expenses).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                <AnimatedNumber value={Math.abs(expenses)} currency decimals={0} />
               </p>
             </div>
 
