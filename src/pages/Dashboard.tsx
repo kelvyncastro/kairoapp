@@ -334,7 +334,7 @@ export default function Dashboard() {
                 <CalendarCheck className="h-4 md:h-5 w-4 md:w-5 text-muted-foreground" />
                 <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-xl md:text-2xl font-bold">{stats.habitsCompletedToday}/{stats.habitsTotalToday}</p>
+              <p className="text-xl md:text-2xl font-bold"><AnimatedNumber value={stats.habitsCompletedToday} />/<AnimatedNumber value={stats.habitsTotalToday} /></p>
               <p className="text-xs md:text-sm text-muted-foreground">Hábitos hoje</p>
               <Progress 
                 value={stats.habitsTotalToday > 0 ? (stats.habitsCompletedToday / stats.habitsTotalToday) * 100 : 0} 
