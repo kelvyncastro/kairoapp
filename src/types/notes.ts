@@ -1,17 +1,30 @@
+export type PageStatus = 'draft' | 'published';
+
+export interface NotesPage {
+  id: string;
+  title: string;
+  icon: string;
+  folderId: string | null;
+  isFavorite: boolean;
+  isArchived: boolean;
+  status: PageStatus;
+  tags: string[];
+  content: string; // TipTap HTML content
+  comments: Comment[];
+  activityLog: ActivityEntry[];
+  versions: PageVersion[];
+  createdAt: string;
+  updatedAt: string;
+  // Legacy field for backward compat
+  blocks?: Block[];
+}
+
+// Legacy block types kept for migration
 export type BlockType =
-  | 'text'
-  | 'h1'
-  | 'h2'
-  | 'h3'
-  | 'bullet-list'
-  | 'numbered-list'
-  | 'checklist'
-  | 'quote'
-  | 'divider'
-  | 'callout'
-  | 'code'
-  | 'image'
-  | 'table';
+  | 'text' | 'h1' | 'h2' | 'h3'
+  | 'bullet-list' | 'numbered-list' | 'checklist'
+  | 'quote' | 'divider' | 'callout' | 'code'
+  | 'image' | 'table';
 
 export interface BlockMeta {
   checked?: boolean;
@@ -26,25 +39,6 @@ export interface Block {
   type: BlockType;
   content: string;
   meta?: BlockMeta;
-}
-
-export type PageStatus = 'draft' | 'published';
-
-export interface NotesPage {
-  id: string;
-  title: string;
-  icon: string;
-  folderId: string | null;
-  isFavorite: boolean;
-  isArchived: boolean;
-  status: PageStatus;
-  tags: string[];
-  blocks: Block[];
-  comments: Comment[];
-  activityLog: ActivityEntry[];
-  versions: PageVersion[];
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface Comment {
@@ -67,7 +61,7 @@ export interface ActivityEntry {
 export interface PageVersion {
   id: string;
   title: string;
-  blocks: Block[];
+  content: string;
   createdAt: string;
 }
 

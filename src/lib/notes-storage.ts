@@ -1,12 +1,59 @@
 import { NotesPage, NotesFolder, Block } from '@/types/notes';
 
-const PAGES_KEY = 'kairo_notes_pages';
+const PAGES_KEY = 'kairo_notes_pages_v2';
 const FOLDERS_KEY = 'kairo_notes_folders';
+
+function blocksToHtml(blocks: Block[]): string {
+  let html = '';
+  for (const block of blocks) {
+    switch (block.type) {
+      case 'h1': html += `<h1>${block.content}</h1>`; break;
+      case 'h2': html += `<h2>${block.content}</h2>`; break;
+      case 'h3': html += `<h3>${block.content}</h3>`; break;
+      case 'text': html += `<p>${block.content || ''}</p>`; break;
+      case 'bullet-list': html += `<ul><li><p>${block.content}</p></li></ul>`; break;
+      case 'numbered-list': html += `<ol><li><p>${block.content}</p></li></ol>`; break;
+      case 'checklist':
+        html += `<ul data-type="taskList"><li data-type="taskItem" data-checked="${block.meta?.checked ? 'true' : 'false'}"><label><input type="checkbox" ${block.meta?.checked ? 'checked' : ''}><span></span></label><div><p>${block.content}</p></div></li></ul>`;
+        break;
+      case 'quote': html += `<blockquote><p>${block.content}</p></blockquote>`; break;
+      case 'divider': html += `<hr>`; break;
+      case 'callout': html += `<blockquote><p>💡 ${block.content}</p></blockquote>`; break;
+      case 'code': html += `<pre><code>${block.content}</code></pre>`; break;
+      default: html += `<p>${block.content}</p>`;
+    }
+  }
+  return html;
+}
 
 export function loadPages(): NotesPage[] {
   try {
     const data = localStorage.getItem(PAGES_KEY);
-    if (data) return JSON.parse(data);
+    if (data) {
+      const pages = JSON.parse(data) as NotesPage[];
+      // Migrate any pages that have blocks but no content
+      return pages.map(p => {
+        if (!p.content && p.blocks && p.blocks.length > 0) {
+          return { ...p, content: blocksToHtml(p.blocks) };
+        }
+        return p;
+      });
+    }
+    // Try loading from old key and migrate
+    const oldData = localStorage.getItem('kairo_notes_pages');
+    if (oldData) {
+      const oldPages = JSON.parse(oldData) as any[];
+      const migrated = oldPages.map(p => ({
+        ...p,
+        content: p.content || blocksToHtml(p.blocks || []),
+        versions: (p.versions || []).map((v: any) => ({
+          ...v,
+          content: v.content || blocksToHtml(v.blocks || []),
+        })),
+      }));
+      savePages(migrated);
+      return migrated;
+    }
   } catch {}
   return getDefaultPages();
 }
@@ -25,10 +72,6 @@ export function loadFolders(): NotesFolder[] {
 
 export function saveFolders(folders: NotesFolder[]) {
   localStorage.setItem(FOLDERS_KEY, JSON.stringify(folders));
-}
-
-function uid(): string {
-  return crypto.randomUUID();
 }
 
 function getDefaultFolders(): NotesFolder[] {
@@ -50,21 +93,9 @@ function getDefaultPages(): NotesPage[] {
       isArchived: false,
       status: 'published',
       tags: ['produtividade', 'rotina'],
-      blocks: [
-        { id: uid(), type: 'h1', content: 'Minha Rotina Diaria' },
-        { id: uid(), type: 'text', content: 'Organizar o dia para maximizar a produtividade.' },
-        { id: uid(), type: 'h2', content: 'Manha' },
-        { id: uid(), type: 'checklist', content: 'Acordar as 06:00', meta: { checked: true } },
-        { id: uid(), type: 'checklist', content: 'Beber agua (400ml)', meta: { checked: true } },
-        { id: uid(), type: 'checklist', content: 'Meditacao 10 min', meta: { checked: false } },
-        { id: uid(), type: 'h2', content: 'Tarde' },
-        { id: uid(), type: 'bullet-list', content: 'Deep work (2h)' },
-        { id: uid(), type: 'bullet-list', content: 'Reunioes / calls' },
-        { id: uid(), type: 'divider', content: '' },
-        { id: uid(), type: 'callout', content: 'Lembre-se: consistencia > intensidade!' },
-      ],
+      content: '<h1>Minha Rotina Diaria</h1><p>Organizar o dia para maximizar a produtividade.</p><h2>Manha</h2><ul data-type="taskList"><li data-type="taskItem" data-checked="true"><label><input type="checkbox" checked><span></span></label><div><p>Acordar as 06:00</p></div></li><li data-type="taskItem" data-checked="true"><label><input type="checkbox" checked><span></span></label><div><p>Beber agua (400ml)</p></div></li><li data-type="taskItem" data-checked="false"><label><input type="checkbox"><span></span></label><div><p>Meditacao 10 min</p></div></li></ul><h2>Tarde</h2><ul><li><p>Deep work (2h)</p></li><li><p>Reunioes / calls</p></li></ul><hr><blockquote><p>Lembre-se: consistencia > intensidade!</p></blockquote>',
       comments: [],
-      activityLog: [{ id: uid(), action: 'criou', details: 'Pagina criada', timestamp: now }],
+      activityLog: [{ id: crypto.randomUUID(), action: 'criou', details: 'Pagina criada', timestamp: now }],
       versions: [],
       createdAt: now,
       updatedAt: now,
@@ -78,16 +109,9 @@ function getDefaultPages(): NotesPage[] {
       isArchived: false,
       status: 'draft',
       tags: ['metas', 'planejamento'],
-      blocks: [
-        { id: uid(), type: 'h1', content: 'Metas para 2026' },
-        { id: uid(), type: 'text', content: 'Definir os principais objetivos do ano.' },
-        { id: uid(), type: 'numbered-list', content: 'Ler 24 livros' },
-        { id: uid(), type: 'numbered-list', content: 'Treinar 5x por semana' },
-        { id: uid(), type: 'numbered-list', content: 'Economizar 20% da renda' },
-        { id: uid(), type: 'quote', content: 'O sucesso e a soma de pequenos esforcos repetidos dia apos dia.' },
-      ],
+      content: '<h1>Metas para 2026</h1><p>Definir os principais objetivos do ano.</p><ol><li><p>Ler 24 livros</p></li><li><p>Treinar 5x por semana</p></li><li><p>Economizar 20% da renda</p></li></ol><blockquote><p>O sucesso e a soma de pequenos esforcos repetidos dia apos dia.</p></blockquote>',
       comments: [],
-      activityLog: [{ id: uid(), action: 'criou', details: 'Pagina criada', timestamp: now }],
+      activityLog: [{ id: crypto.randomUUID(), action: 'criou', details: 'Pagina criada', timestamp: now }],
       versions: [],
       createdAt: now,
       updatedAt: now,
@@ -101,21 +125,9 @@ function getDefaultPages(): NotesPage[] {
       isArchived: false,
       status: 'draft',
       tags: ['ideias'],
-      blocks: [
-        { id: uid(), type: 'h1', content: 'Banco de Ideias' },
-        { id: uid(), type: 'text', content: 'Todas as ideias vao aqui, sem filtro.' },
-        { id: uid(), type: 'bullet-list', content: 'App de habitos gamificado' },
-        { id: uid(), type: 'bullet-list', content: 'Comunidade de produtividade' },
-        { id: uid(), type: 'bullet-list', content: 'Criar painel de administracao' },
-        { id: uid(), type: 'code', content: 'console.log("Hello World!")', meta: { language: 'javascript' } },
-      ],
-      comments: [
-        { id: uid(), content: 'Priorizar a ideia do app de habitos!', author: 'Voce', parentId: null, isResolved: false, createdAt: now, updatedAt: now },
-      ],
-      activityLog: [
-        { id: uid(), action: 'criou', details: 'Pagina criada', timestamp: now },
-        { id: uid(), action: 'comentou', details: 'Adicionou um comentario', timestamp: now },
-      ],
+      content: '<h1>Banco de Ideias</h1><p>Todas as ideias vao aqui, sem filtro.</p><ul><li><p>App de habitos gamificado</p></li><li><p>Comunidade de produtividade</p></li><li><p>Criar painel de administracao</p></li></ul><pre><code>console.log("Hello World!")</code></pre>',
+      comments: [],
+      activityLog: [{ id: crypto.randomUUID(), action: 'criou', details: 'Pagina criada', timestamp: now }],
       versions: [],
       createdAt: now,
       updatedAt: now,
@@ -123,63 +135,8 @@ function getDefaultPages(): NotesPage[] {
   ];
 }
 
-export function exportPageToMarkdown(page: NotesPage): string {
-  let md = `# ${page.title}\n\n`;
-  for (const block of page.blocks) {
-    switch (block.type) {
-      case 'h1': md += `# ${block.content}\n\n`; break;
-      case 'h2': md += `## ${block.content}\n\n`; break;
-      case 'h3': md += `### ${block.content}\n\n`; break;
-      case 'text': md += `${block.content}\n\n`; break;
-      case 'bullet-list': md += `- ${block.content}\n`; break;
-      case 'numbered-list': md += `1. ${block.content}\n`; break;
-      case 'checklist': md += `- [${block.meta?.checked ? 'x' : ' '}] ${block.content}\n`; break;
-      case 'quote': md += `> ${block.content}\n\n`; break;
-      case 'divider': md += `---\n\n`; break;
-      case 'callout': md += `> 💡 ${block.content}\n\n`; break;
-      case 'code': md += `\`\`\`${block.meta?.language || ''}\n${block.content}\n\`\`\`\n\n`; break;
-      default: md += `${block.content}\n\n`;
-    }
-  }
-  return md;
-}
-
-export function importMarkdownToBlocks(md: string): Block[] {
-  const lines = md.split('\n');
-  const blocks: Block[] = [];
-  let i = 0;
-  while (i < lines.length) {
-    const line = lines[i];
-    if (!line.trim()) { i++; continue; }
-    if (line.startsWith('### ')) {
-      blocks.push({ id: uid(), type: 'h3', content: line.slice(4) });
-    } else if (line.startsWith('## ')) {
-      blocks.push({ id: uid(), type: 'h2', content: line.slice(3) });
-    } else if (line.startsWith('# ')) {
-      blocks.push({ id: uid(), type: 'h1', content: line.slice(2) });
-    } else if (line.startsWith('- [x] ') || line.startsWith('- [ ] ')) {
-      blocks.push({ id: uid(), type: 'checklist', content: line.slice(6), meta: { checked: line.includes('[x]') } });
-    } else if (line.startsWith('- ')) {
-      blocks.push({ id: uid(), type: 'bullet-list', content: line.slice(2) });
-    } else if (/^\d+\.\s/.test(line)) {
-      blocks.push({ id: uid(), type: 'numbered-list', content: line.replace(/^\d+\.\s/, '') });
-    } else if (line.startsWith('> ')) {
-      blocks.push({ id: uid(), type: 'quote', content: line.slice(2) });
-    } else if (line.startsWith('---')) {
-      blocks.push({ id: uid(), type: 'divider', content: '' });
-    } else if (line.startsWith('```')) {
-      const lang = line.slice(3).trim();
-      let code = '';
-      i++;
-      while (i < lines.length && !lines[i].startsWith('```')) {
-        code += (code ? '\n' : '') + lines[i];
-        i++;
-      }
-      blocks.push({ id: uid(), type: 'code', content: code, meta: { language: lang || 'text' } });
-    } else {
-      blocks.push({ id: uid(), type: 'text', content: line });
-    }
-    i++;
-  }
-  return blocks;
+export function stripHtml(html: string): string {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  return div.textContent || div.innerText || '';
 }

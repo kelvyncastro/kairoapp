@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { NotesPage, NotesFolder, Block, NotesState, ActivityEntry, Comment as NComment, PageVersion } from '@/types/notes';
+import { NotesPage, NotesFolder, PageVersion, Comment as NComment } from '@/types/notes';
 import { loadPages, savePages, loadFolders, saveFolders } from '@/lib/notes-storage';
 import { toast } from 'sonner';
 
@@ -13,7 +13,6 @@ export function useNotesStore() {
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'idle'>('idle');
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
-  // Persist on change
   useEffect(() => { savePages(pages); }, [pages]);
   useEffect(() => { saveFolders(folders); }, [folders]);
 
@@ -36,13 +35,12 @@ export function useNotesStore() {
     } : p));
   };
 
-  // Page CRUD
-  const createPage = useCallback((folderId: string | null = null) => {
+  const createPage = useCallback(() => {
     const newPage: NotesPage = {
       id: uid(), title: 'Sem titulo', icon: '📄',
-      folderId, isFavorite: false, isArchived: false,
+      folderId: null, isFavorite: false, isArchived: false,
       status: 'draft', tags: [],
-      blocks: [{ id: uid(), type: 'text', content: '' }],
+      content: '<p></p>',
       comments: [], activityLog: [{ id: uid(), action: 'criou', details: 'Pagina criada', timestamp: new Date().toISOString() }],
       versions: [],
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
@@ -78,8 +76,9 @@ export function useNotesStore() {
 
   const archivePage = useCallback((pageId: string) => {
     setPages(prev => prev.map(p => p.id === pageId ? { ...p, isArchived: !p.isArchived, updatedAt: new Date().toISOString() } : p));
+    if (selectedPageId === pageId) setSelectedPageId(null);
     toast.success('Pagina arquivada!');
-  }, []);
+  }, [selectedPageId]);
 
   const toggleFavorite = useCallback((pageId: string) => {
     setPages(prev => prev.map(p => p.id === pageId ? { ...p, isFavorite: !p.isFavorite, updatedAt: new Date().toISOString() } : p));
@@ -102,22 +101,16 @@ export function useNotesStore() {
     setPages(prev => prev.map(p => p.id === pageId ? { ...p, tags, updatedAt: new Date().toISOString() } : p));
   }, []);
 
-  const movePageToFolder = useCallback((pageId: string, folderId: string | null) => {
-    setPages(prev => prev.map(p => p.id === pageId ? { ...p, folderId, updatedAt: new Date().toISOString() } : p));
-    toast.success('Pagina movida!');
-  }, []);
-
-  const updateBlocks = useCallback((pageId: string, blocks: Block[]) => {
-    debouncedSave(prev => prev.map(p => p.id === pageId ? { ...p, blocks, updatedAt: new Date().toISOString() } : p));
+  const updateContent = useCallback((pageId: string, content: string) => {
+    debouncedSave(prev => prev.map(p => p.id === pageId ? { ...p, content, updatedAt: new Date().toISOString() } : p));
   }, [debouncedSave]);
 
-  // Version
   const saveVersion = useCallback((pageId: string) => {
     const page = pages.find(p => p.id === pageId);
     if (!page) return;
     const version: PageVersion = {
       id: uid(), title: page.title,
-      blocks: JSON.parse(JSON.stringify(page.blocks)),
+      content: page.content,
       createdAt: new Date().toISOString(),
     };
     setPages(prev => prev.map(p => p.id === pageId ? { ...p, versions: [...p.versions, version] } : p));
@@ -130,13 +123,12 @@ export function useNotesStore() {
       if (p.id !== pageId) return p;
       const version = p.versions.find(v => v.id === versionId);
       if (!version) return p;
-      return { ...p, blocks: JSON.parse(JSON.stringify(version.blocks)), updatedAt: new Date().toISOString() };
+      return { ...p, content: version.content, updatedAt: new Date().toISOString() };
     }));
     addActivity(pageId, 'restaurou versao', 'Versao restaurada');
     toast.success('Versao restaurada!');
   }, []);
 
-  // Comments
   const addComment = useCallback((pageId: string, content: string, parentId: string | null = null) => {
     const comment: NComment = {
       id: uid(), content, author: 'Voce', parentId,
@@ -157,7 +149,6 @@ export function useNotesStore() {
     } : p));
   }, []);
 
-  // Folders
   const createFolder = useCallback((name: string) => {
     const folder: NotesFolder = { id: uid(), name, isExpanded: true, order: folders.length, createdAt: new Date().toISOString() };
     setFolders(prev => [...prev, folder]);
@@ -179,24 +170,20 @@ export function useNotesStore() {
     setFolders(prev => prev.map(f => f.id === folderId ? { ...f, isExpanded: !f.isExpanded } : f));
   }, []);
 
-  // Search / filters
   const filteredPages = pages.filter(p => {
     if (p.isArchived) return false;
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
-    return p.title.toLowerCase().includes(q) || p.blocks.some(b => b.content.toLowerCase().includes(q));
+    return p.title.toLowerCase().includes(q) || (p.content || '').toLowerCase().includes(q);
   });
-
-  const favoritePages = filteredPages.filter(p => p.isFavorite);
-  const recentPages = [...filteredPages].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()).slice(0, 5);
 
   return {
     pages, folders, selectedPageId, selectedPage, searchQuery, saveStatus,
-    filteredPages, favoritePages, recentPages,
+    filteredPages,
     setSelectedPageId, setSearchQuery,
     createPage, deletePage, duplicatePage, archivePage,
     toggleFavorite, updatePageTitle, updatePageIcon, updatePageStatus,
-    updatePageTags, movePageToFolder, updateBlocks,
+    updatePageTags, updateContent,
     saveVersion, restoreVersion,
     addComment, deleteComment, resolveComment,
     createFolder, deleteFolder, renameFolder, toggleFolder,
