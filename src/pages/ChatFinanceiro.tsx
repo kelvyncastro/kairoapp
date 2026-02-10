@@ -111,7 +111,7 @@ export default function ChatFinanceiro() {
   useEffect(() => { fetchSectors(); }, [fetchSectors]);
   useEffect(() => { if (inputRef.current) inputRef.current.focus(); }, []);
   useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   // Clean up recording on unmount
