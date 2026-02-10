@@ -497,14 +497,30 @@ export default function Landing() {
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
-              whileHover={{ scale: 1.02 }}
-              className="relative lg:scale-125 lg:translate-x-4"
+              className="relative"
             >
-              <img 
-                src={mockupIpad} 
-                alt="Kairo no iPad" 
-                className="relative rounded-xl w-full"
-              />
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { value: "9+", label: "Módulos integrados", icon: "🧩" },
+                  { value: "24/7", label: "Acesso em qualquer lugar", icon: "🌐" },
+                  { value: "IA", label: "Assistente financeiro inteligente", icon: "🤖" },
+                  { value: "∞", label: "Metas e hábitos ilimitados", icon: "🚀" },
+                ].map((item, index) => (
+                  <motion.div
+                    key={item.label}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                    viewport={{ once: true }}
+                    whileHover={{ y: -4, scale: 1.03 }}
+                    className="p-6 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm text-center"
+                  >
+                    <span className="text-3xl mb-3 block">{item.icon}</span>
+                    <div className="text-2xl font-bold mb-1">{item.value}</div>
+                    <p className="text-sm text-muted-foreground">{item.label}</p>
+                  </motion.div>
+                ))}
+              </div>
             </motion.div>
           </div>
         </div>
