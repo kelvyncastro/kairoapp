@@ -17,14 +17,15 @@ import {
   ChevronDown,
   ChevronRight,
   Folder,
+  CalendarClock,
+  FileText,
+  Swords,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { format, differenceInDays, startOfDay, subDays, startOfMonth, endOfMonth } from "date-fns";
+import { format, differenceInDays, startOfDay, subDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-// CalendarWidget temporariamente desativado
-// import { CalendarWidget } from "@/components/calendar/CalendarWidget";
 import { AnimatedFire } from "@/components/achievements/AnimatedFire";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PendingTasksByFolder } from "@/components/dashboard/PendingTasksByFolder";
@@ -53,6 +54,11 @@ interface DashboardStats {
   financeIncome: number;
   financeExpense: number;
   activeGoals: Array<{ id: string; title: string; current: number; target: number; unit: string; category: string }>;
+  // New widgets
+  calendarBlocks: Array<{ id: string; title: string; start_time: string; end_time: string; color: string | null }>;
+  activeRankings: Array<{ id: string; name: string; userPoints: number; leaderName: string; leaderPoints: number; position: number; totalParticipants: number }>;
+  recentNotes: Array<{ id: string; title: string; icon: string; updatedAt: string }>;
+  weeklyHabits: Array<{ id: string; name: string; days: boolean[] }>;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -83,6 +89,10 @@ export default function Dashboard() {
     financeIncome: 0,
     financeExpense: 0,
     activeGoals: [],
+    calendarBlocks: [],
+    activeRankings: [],
+    recentNotes: [],
+    weeklyHabits: [],
   });
   const [loading, setLoading] = useState(true);
 
@@ -106,6 +116,10 @@ export default function Dashboard() {
     const today = format(new Date(), "yyyy-MM-dd");
     const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
     const monthEnd = format(endOfMonth(new Date()), "yyyy-MM-dd");
+    const now = new Date();
+    const todayStart = startOfDay(now);
+    const weekStart = format(startOfWeek(now, { weekStartsOn: 1 }), "yyyy-MM-dd");
+    const weekEnd = format(endOfWeek(now, { weekStartsOn: 1 }), "yyyy-MM-dd");
 
     const [
       todayTasksRes,
@@ -117,6 +131,9 @@ export default function Dashboard() {
       habitLogsRes,
       transactionsRes,
       foldersRes,
+      calendarBlocksRes,
+      rankingsRes,
+      weekHabitLogsRes,
     ] = await Promise.all([
       supabase.from("daily_tasks").select("*").eq("user_id", user.id).or(`date.eq.${today},due_date.eq.${today},and(start_date.lte.${today},due_date.gte.${today})`),
       supabase.from("daily_tasks").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("completed", true),
@@ -127,6 +144,9 @@ export default function Dashboard() {
       supabase.from("habit_logs").select("*, habits!inner(user_id)").eq("habits.user_id", user.id).eq("date", today),
       supabase.from("finance_transactions").select("*").eq("user_id", user.id).gte("date", monthStart).lte("date", monthEnd),
       supabase.from("task_folders").select("id, name, color").eq("user_id", user.id),
+      supabase.from("calendar_blocks").select("id, title, start_time, end_time, color, status").eq("user_id", user.id).gte("start_time", `${today}T00:00:00`).lte("start_time", `${today}T23:59:59`).neq("status", "cancelled").order("start_time"),
+      supabase.from("ranking_participants").select("ranking_id, total_points, status, rankings!inner(id, name, status, end_date)").eq("user_id", user.id).eq("status", "accepted"),
+      supabase.from("habit_logs").select("*, habits!inner(user_id, name)").eq("habits.user_id", user.id).gte("date", weekStart).lte("date", weekEnd),
     ]);
 
     const folders = foldersRes.data || [];
@@ -138,7 +158,7 @@ export default function Dashboard() {
     
     // Group pending tasks by folder
     const pendingTasks = todayTasks.filter((t) => !t.completed);
-    const tasksByFolderMap = new Map<string | null, { 
+    const tasksByFolderMap = new Map<string, { 
       folderId: string | null; 
       folderName: string; 
       folderColor: string | null; 
@@ -175,7 +195,6 @@ export default function Dashboard() {
 
     const consistencyDays = consistencyRes.data || [];
     let currentStreak = 0;
-    const todayStart = startOfDay(new Date());
     for (let i = 0; i <= 60; i++) {
       const checkDate = format(subDays(todayStart, i), "yyyy-MM-dd");
       const dayData = consistencyDays.find((d) => d.date === checkDate);
@@ -221,6 +240,86 @@ export default function Dashboard() {
     const income = transactions.filter((t) => t.value > 0).reduce((sum, t) => sum + t.value, 0);
     const expense = transactions.filter((t) => t.value < 0).reduce((sum, t) => sum + Math.abs(t.value), 0);
 
+    // Calendar blocks for today
+    const calendarBlocks = (calendarBlocksRes.data || []).map((b) => ({
+      id: b.id,
+      title: b.title,
+      start_time: b.start_time,
+      end_time: b.end_time,
+      color: b.color,
+    }));
+
+    // Active rankings
+    const rankingParticipants = rankingsRes.data || [];
+    const activeRankingIds = rankingParticipants
+      .filter((rp: any) => rp.rankings?.status === 'active')
+      .map((rp: any) => rp.rankings?.id)
+      .filter(Boolean);
+
+    let activeRankings: DashboardStats['activeRankings'] = [];
+    if (activeRankingIds.length > 0) {
+      const { data: allParticipants } = await supabase
+        .from("ranking_participants")
+        .select("ranking_id, user_id, total_points, status")
+        .in("ranking_id", activeRankingIds)
+        .eq("status", "accepted");
+
+      const { data: profiles } = await supabase
+        .from("user_profiles")
+        .select("user_id, first_name");
+
+      const profilesMap = new Map((profiles || []).map(p => [p.user_id, p.first_name || 'Anônimo']));
+
+      activeRankings = rankingParticipants
+        .filter((rp: any) => rp.rankings?.status === 'active')
+        .map((rp: any) => {
+          const participants = (allParticipants || []).filter(p => p.ranking_id === rp.rankings.id);
+          const sorted = [...participants].sort((a, b) => b.total_points - a.total_points);
+          const leader = sorted[0];
+          const myPosition = sorted.findIndex(p => p.user_id === user.id) + 1;
+          return {
+            id: rp.rankings.id,
+            name: rp.rankings.name,
+            userPoints: rp.total_points,
+            leaderName: leader ? (leader.user_id === user.id ? 'Você' : profilesMap.get(leader.user_id) || 'Anônimo') : '',
+            leaderPoints: leader?.total_points || 0,
+            position: myPosition,
+            totalParticipants: sorted.length,
+          };
+        }).slice(0, 3);
+    }
+
+    // Recent notes from localStorage
+    let recentNotes: DashboardStats['recentNotes'] = [];
+    try {
+      const stored = localStorage.getItem('kairo-notes-pages');
+      if (stored) {
+        const pages = JSON.parse(stored) as Array<{ id: string; title: string; icon: string; updatedAt: string; isArchived: boolean }>;
+        recentNotes = pages
+          .filter(p => !p.isArchived)
+          .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+          .slice(0, 4)
+          .map(p => ({ id: p.id, title: p.title, icon: p.icon, updatedAt: p.updatedAt }));
+      }
+    } catch {}
+
+    // Weekly habits grid
+    const weekHabitLogs = weekHabitLogsRes.data || [];
+    const weekDays: string[] = [];
+    const ws = startOfWeek(now, { weekStartsOn: 1 });
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(ws);
+      d.setDate(d.getDate() + i);
+      weekDays.push(format(d, "yyyy-MM-dd"));
+    }
+
+    const weeklyHabits = habits.slice(0, 5).map((h) => {
+      const days = weekDays.map(day => {
+        return weekHabitLogs.some((l: any) => l.habit_id === h.id && l.date === day && l.status === 'done');
+      });
+      return { id: h.id, name: h.name, days };
+    });
+
     setStats({
       tasksCompletedToday: completed,
       tasksTotalToday: total,
@@ -239,6 +338,10 @@ export default function Dashboard() {
       financeIncome: income,
       financeExpense: expense,
       activeGoals,
+      calendarBlocks,
+      activeRankings,
+      recentNotes,
+      weeklyHabits,
     });
     setLoading(false);
   }, [user]);
@@ -258,6 +361,7 @@ export default function Dashboard() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'habits', filter: `user_id=eq.${user.id}` }, () => fetchStats())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'habit_logs' }, () => fetchStats())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'finance_transactions', filter: `user_id=eq.${user.id}` }, () => fetchStats())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_blocks', filter: `user_id=eq.${user.id}` }, () => fetchStats())
       .subscribe();
 
     return () => {
@@ -282,6 +386,8 @@ export default function Dashboard() {
     );
   }
 
+  const weekDayLabels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+
   return (
     <div className="h-full flex flex-col -m-4 md:-m-6 bg-background overflow-hidden">
       {/* Header */}
@@ -303,68 +409,93 @@ export default function Dashboard() {
           </h2>
           <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4">
             {/* Tasks Today */}
-            <Link to="/rotina" className="cave-card p-4 md:p-5 group">
-              <div className="flex items-center justify-between mb-2 md:mb-3">
-                <CheckCircle2 className="h-4 md:h-5 w-4 md:w-5 text-muted-foreground" />
-                <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Link to="/rotina" className="cave-card p-4 md:p-5 group relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-2 md:mb-3">
+                  <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <CheckCircle2 className="h-4 md:h-5 w-4 md:w-5 text-primary" />
+                  </div>
+                  <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <p className="text-xl md:text-2xl font-bold"><AnimatedNumber value={stats.tasksCompletedToday} />/<AnimatedNumber value={stats.tasksTotalToday} /></p>
+                <p className="text-xs md:text-sm text-muted-foreground">Tarefas hoje</p>
+                <Progress value={stats.todayProgress} className="h-1 md:h-1.5 mt-2" />
               </div>
-              <p className="text-xl md:text-2xl font-bold"><AnimatedNumber value={stats.tasksCompletedToday} />/<AnimatedNumber value={stats.tasksTotalToday} /></p>
-              <p className="text-xs md:text-sm text-muted-foreground">Tarefas hoje</p>
-              <Progress value={stats.todayProgress} className="h-1 md:h-1.5 mt-2" />
             </Link>
 
             {/* Streak */}
-            <Link to="/consistencia" className="cave-card p-4 md:p-5 group">
-              <div className="flex items-center justify-between mb-2 md:mb-3">
-                {getStreakIcon(stats.currentStreak)}
-                <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Link to="/consistencia" className="cave-card p-4 md:p-5 group relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-2 md:mb-3">
+                  <div className="h-9 w-9 rounded-xl bg-orange-500/10 flex items-center justify-center">
+                    {getStreakIcon(stats.currentStreak)}
+                  </div>
+                  <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <div className="flex items-center gap-1">
+                  <p className="text-xl md:text-2xl font-bold"><AnimatedNumber value={stats.currentStreak} /></p>
+                  <AnimatedFire streak={stats.currentStreak} size="sm" />
+                </div>
+                <p className="text-xs md:text-sm text-muted-foreground">
+                  {stats.currentStreak === 1 ? "Dia ativo" : "Dias seguidos"}
+                </p>
               </div>
-              <div className="flex items-center gap-1">
-                <p className="text-xl md:text-2xl font-bold"><AnimatedNumber value={stats.currentStreak} /></p>
-                <AnimatedFire streak={stats.currentStreak} size="sm" />
-              </div>
-              <p className="text-xs md:text-sm text-muted-foreground">
-                {stats.currentStreak === 1 ? "Dia ativo" : "Dias seguidos"}
-              </p>
             </Link>
 
             {/* Habits */}
-            <Link to="/habitos" className="cave-card p-4 md:p-5 group">
-              <div className="flex items-center justify-between mb-2 md:mb-3">
-                <CalendarCheck className="h-4 md:h-5 w-4 md:w-5 text-muted-foreground" />
-                <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Link to="/habitos" className="cave-card p-4 md:p-5 group relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-2 md:mb-3">
+                  <div className="h-9 w-9 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                    <CalendarCheck className="h-4 md:h-5 w-4 md:w-5 text-emerald-500" />
+                  </div>
+                  <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <p className="text-xl md:text-2xl font-bold"><AnimatedNumber value={stats.habitsCompletedToday} />/<AnimatedNumber value={stats.habitsTotalToday} /></p>
+                <p className="text-xs md:text-sm text-muted-foreground">Hábitos hoje</p>
+                <Progress 
+                  value={stats.habitsTotalToday > 0 ? (stats.habitsCompletedToday / stats.habitsTotalToday) * 100 : 0} 
+                  className="h-1 md:h-1.5 mt-2" 
+                />
               </div>
-              <p className="text-xl md:text-2xl font-bold"><AnimatedNumber value={stats.habitsCompletedToday} />/<AnimatedNumber value={stats.habitsTotalToday} /></p>
-              <p className="text-xs md:text-sm text-muted-foreground">Hábitos hoje</p>
-              <Progress 
-                value={stats.habitsTotalToday > 0 ? (stats.habitsCompletedToday / stats.habitsTotalToday) * 100 : 0} 
-                className="h-1 md:h-1.5 mt-2" 
-              />
             </Link>
 
             {/* Goals */}
-            <Link to="/metas" className="cave-card p-4 md:p-5 group">
-              <div className="flex items-center justify-between mb-2 md:mb-3">
-                <Target className="h-4 md:h-5 w-4 md:w-5 text-muted-foreground" />
-                <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Link to="/metas" className="cave-card p-4 md:p-5 group relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-2 md:mb-3">
+                  <div className="h-9 w-9 rounded-xl bg-violet-500/10 flex items-center justify-center">
+                    <Target className="h-4 md:h-5 w-4 md:w-5 text-violet-500" />
+                  </div>
+                  <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <p className="text-xl md:text-2xl font-bold"><AnimatedNumber value={stats.goalsCompleted} />/<AnimatedNumber value={stats.goalsActive} /></p>
+                <p className="text-xs md:text-sm text-muted-foreground">Metas alcançadas</p>
+                <Progress 
+                  value={stats.goalsActive > 0 ? (stats.goalsCompleted / stats.goalsActive) * 100 : 0} 
+                  className="h-1 md:h-1.5 mt-2" 
+                />
               </div>
-              <p className="text-xl md:text-2xl font-bold"><AnimatedNumber value={stats.goalsCompleted} />/<AnimatedNumber value={stats.goalsActive} /></p>
-              <p className="text-xs md:text-sm text-muted-foreground">Metas alcançadas</p>
-              <Progress 
-                value={stats.goalsActive > 0 ? (stats.goalsCompleted / stats.goalsActive) * 100 : 0} 
-                className="h-1 md:h-1.5 mt-2" 
-              />
             </Link>
           </div>
         </div>
 
-        {/* Main Grid */}
+        {/* Main Grid - Row 1 */}
         <div className="px-4 md:px-6 py-4 md:py-5 border-t border-border/30">
           <div className="grid gap-4 md:gap-6 lg:grid-cols-3 lg:auto-rows-fr">
             {/* Column 1: Tarefas */}
             <div className="cave-card p-4 md:p-5 flex flex-col">
               <div className="flex items-center justify-between mb-3 md:mb-4">
-                <h3 className="font-bold uppercase tracking-wider text-xs md:text-sm">Tarefas do Dia</h3>
+                <div className="flex items-center gap-2">
+                  <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                  <h3 className="font-bold uppercase tracking-wider text-xs md:text-sm">Tarefas do Dia</h3>
+                </div>
                 <Link to="/rotina" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
                   Ver todas <ArrowRight className="h-3 w-3" />
                 </Link>
@@ -382,7 +513,12 @@ export default function Dashboard() {
               {/* Active Goals */}
               <div className="cave-card p-4 md:p-5 flex-1 flex flex-col">
                 <div className="flex items-center justify-between mb-3 md:mb-4">
-                  <h3 className="font-bold uppercase tracking-wider text-xs md:text-sm">Metas Ativas</h3>
+                  <div className="flex items-center gap-2">
+                    <div className="h-7 w-7 rounded-lg bg-violet-500/10 flex items-center justify-center">
+                      <Target className="h-3.5 w-3.5 text-violet-500" />
+                    </div>
+                    <h3 className="font-bold uppercase tracking-wider text-xs md:text-sm">Metas Ativas</h3>
+                  </div>
                   <Link to="/metas" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
                     Ver todas <ArrowRight className="h-3 w-3" />
                   </Link>
@@ -435,7 +571,12 @@ export default function Dashboard() {
               {/* Finances */}
               <div className="cave-card p-4 md:p-5 flex-1 flex flex-col">
                 <div className="flex items-center justify-between mb-3 md:mb-4">
-                  <h3 className="font-bold uppercase tracking-wider text-xs md:text-sm">Finanças do Mês</h3>
+                  <div className="flex items-center gap-2">
+                    <div className="h-7 w-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                      <Wallet className="h-3.5 w-3.5 text-emerald-500" />
+                    </div>
+                    <h3 className="font-bold uppercase tracking-wider text-xs md:text-sm">Finanças do Mês</h3>
+                  </div>
                   <Link to="/financas" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
                     Ver mais <ArrowRight className="h-3 w-3" />
                   </Link>
@@ -480,7 +621,12 @@ export default function Dashboard() {
             {/* Column 3: Consistência */}
             <div className="cave-card p-4 md:p-5 flex flex-col">
               <div className="flex items-center justify-between mb-3 md:mb-4">
-                <h3 className="font-bold uppercase tracking-wider text-xs md:text-sm">Consistência</h3>
+                <div className="flex items-center gap-2">
+                  <div className="h-7 w-7 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                    <Flame className="h-3.5 w-3.5 text-orange-500" />
+                  </div>
+                  <h3 className="font-bold uppercase tracking-wider text-xs md:text-sm">Consistência</h3>
+                </div>
                 <Link to="/consistencia" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
                   Ver mais <ArrowRight className="h-3 w-3" />
                 </Link>
@@ -529,6 +675,170 @@ export default function Dashboard() {
                     <p className="text-xs text-muted-foreground">Taxa mensal</p>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Row 2: New Widgets */}
+        <div className="px-4 md:px-6 py-4 md:py-5 border-t border-border/30">
+          <div className="grid gap-4 md:gap-6 lg:grid-cols-2 xl:grid-cols-4">
+            {/* Calendar Blocks */}
+            <div className="cave-card p-4 md:p-5 flex flex-col">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-7 w-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                    <CalendarClock className="h-3.5 w-3.5 text-blue-500" />
+                  </div>
+                  <h3 className="font-bold uppercase tracking-wider text-xs">Agenda Hoje</h3>
+                </div>
+                <Link to="/calendario" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                  Ver <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+              <div className="flex-1 space-y-2 overflow-y-auto max-h-[180px]">
+                {stats.calendarBlocks.length > 0 ? (
+                  stats.calendarBlocks.map((block) => {
+                    const startTime = format(parseISO(block.start_time), "HH:mm");
+                    const endTime = format(parseISO(block.end_time), "HH:mm");
+                    return (
+                      <div key={block.id} className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                        <div className="w-1 h-8 rounded-full bg-primary flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{block.title}</p>
+                          <p className="text-xs text-muted-foreground">{startTime} – {endTime}</p>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="flex-1 flex flex-col items-center justify-center py-6">
+                    <CalendarClock className="h-8 w-8 text-muted-foreground/30 mb-2" />
+                    <p className="text-xs text-muted-foreground">Nenhum bloco hoje</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Rankings */}
+            <div className="cave-card p-4 md:p-5 flex flex-col">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-7 w-7 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                    <Swords className="h-3.5 w-3.5 text-amber-500" />
+                  </div>
+                  <h3 className="font-bold uppercase tracking-wider text-xs">Rankings</h3>
+                </div>
+                <Link to="/ranking" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                  Ver <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+              <div className="flex-1 space-y-2 overflow-y-auto max-h-[180px]">
+                {stats.activeRankings.length > 0 ? (
+                  stats.activeRankings.map((r) => (
+                    <Link key={r.id} to="/ranking" className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div className={cn(
+                        "h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0",
+                        r.position === 1 ? "bg-amber-500/20 text-amber-500" : "bg-muted text-muted-foreground"
+                      )}>
+                        #{r.position}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{r.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {r.leaderName} lidera • {r.leaderPoints} pts
+                        </p>
+                      </div>
+                      <span className="text-xs font-bold text-primary">{r.userPoints} pts</span>
+                    </Link>
+                  ))
+                ) : (
+                  <div className="flex-1 flex flex-col items-center justify-center py-6">
+                    <Trophy className="h-8 w-8 text-muted-foreground/30 mb-2" />
+                    <p className="text-xs text-muted-foreground">Nenhum ranking ativo</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Recent Notes */}
+            <div className="cave-card p-4 md:p-5 flex flex-col">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-7 w-7 rounded-lg bg-pink-500/10 flex items-center justify-center">
+                    <FileText className="h-3.5 w-3.5 text-pink-500" />
+                  </div>
+                  <h3 className="font-bold uppercase tracking-wider text-xs">Notas Recentes</h3>
+                </div>
+                <Link to="/notas" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                  Ver <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+              <div className="flex-1 space-y-1.5 overflow-y-auto max-h-[180px]">
+                {stats.recentNotes.length > 0 ? (
+                  stats.recentNotes.map((note) => (
+                    <Link key={note.id} to="/notas" className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <span className="text-lg flex-shrink-0">{note.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{note.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(note.updatedAt), "dd/MM HH:mm")}
+                        </p>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <div className="flex-1 flex flex-col items-center justify-center py-6">
+                    <FileText className="h-8 w-8 text-muted-foreground/30 mb-2" />
+                    <p className="text-xs text-muted-foreground">Nenhuma nota ainda</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Weekly Habits Grid */}
+            <div className="cave-card p-4 md:p-5 flex flex-col">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-7 w-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <CalendarCheck className="h-3.5 w-3.5 text-emerald-500" />
+                  </div>
+                  <h3 className="font-bold uppercase tracking-wider text-xs">Hábitos da Semana</h3>
+                </div>
+                <Link to="/habitos" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                  Ver <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+              <div className="flex-1 overflow-y-auto max-h-[180px]">
+                {stats.weeklyHabits.length > 0 ? (
+                  <div className="space-y-2">
+                    {/* Day labels */}
+                    <div className="flex items-center gap-1">
+                      <div className="w-20 flex-shrink-0" />
+                      {weekDayLabels.map((d) => (
+                        <div key={d} className="flex-1 text-center text-[10px] text-muted-foreground font-medium">{d}</div>
+                      ))}
+                    </div>
+                    {stats.weeklyHabits.map((habit) => (
+                      <div key={habit.id} className="flex items-center gap-1">
+                        <span className="w-20 flex-shrink-0 text-xs truncate text-muted-foreground">{habit.name}</span>
+                        {habit.days.map((done, i) => (
+                          <div key={i} className="flex-1 flex justify-center">
+                            <div className={cn(
+                              "h-5 w-5 rounded-md transition-colors",
+                              done ? "bg-primary" : "bg-secondary"
+                            )} />
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex-1 flex flex-col items-center justify-center py-6">
+                    <CalendarCheck className="h-8 w-8 text-muted-foreground/30 mb-2" />
+                    <p className="text-xs text-muted-foreground">Nenhum hábito ativo</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
