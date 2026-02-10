@@ -85,8 +85,8 @@ export function useNotesStore() {
   }, []);
 
   const updatePageTitle = useCallback((pageId: string, title: string) => {
-    debouncedSave(prev => prev.map(p => p.id === pageId ? { ...p, title, updatedAt: new Date().toISOString() } : p));
-  }, [debouncedSave]);
+    setPages(prev => prev.map(p => p.id === pageId ? { ...p, title, updatedAt: new Date().toISOString() } : p));
+  }, []);
 
   const updatePageIcon = useCallback((pageId: string, icon: string) => {
     setPages(prev => prev.map(p => p.id === pageId ? { ...p, icon, updatedAt: new Date().toISOString() } : p));
