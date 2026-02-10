@@ -152,11 +152,11 @@ export function AppShowcaseCarousel() {
                     }}
                   >
                     <div className="relative rounded-xl overflow-hidden border border-border/50 bg-card/50 backdrop-blur-sm shadow-lg h-full flex flex-col">
-                      <div className={`${isMobile ? 'aspect-[9/16]' : 'aspect-video'} overflow-hidden bg-muted/30 flex items-center justify-center`}>
+                      <div className={`${isMobile ? 'aspect-[9/16]' : 'aspect-video'} overflow-hidden bg-muted/30`}>
                         <img
                           src={isMobile ? slide.mobileImage : slide.image}
                           alt={slide.title}
-                          className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+                          className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                           loading="lazy"
                           decoding="async"
                         />
