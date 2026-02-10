@@ -246,20 +246,33 @@ export function NotesSidebar({
           {/* Orphan pages */}
           {orphanPages.length > 0 && (
             <SidebarSection title="Paginas" icon={<FileText className="h-3.5 w-3.5" />}>
-              {orphanPages.map(page => (
-                <PageItem
-                  key={page.id}
-                  page={page}
-                  isSelected={page.id === selectedPageId}
-                  folders={folders}
-                  onSelect={() => onSelectPage(page.id)}
-                  onDelete={() => setDeleteTarget({ type: 'page', id: page.id })}
-                  onDuplicate={() => onDuplicatePage(page.id)}
-                  onArchive={() => onArchivePage(page.id)}
-                  onMoveToFolder={(fid) => onMoveToFolder(page.id, fid)}
-                  onToggleFavorite={() => onToggleFavorite(page.id)}
-                />
-              ))}
+              <div
+                onDragOver={(e) => { e.preventDefault(); setDragOverOrphan(true); }}
+                onDragLeave={() => setDragOverOrphan(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const pageId = e.dataTransfer.getData('text/page-id');
+                  if (pageId) onMoveToFolder(pageId, null);
+                  setDragOverOrphan(false);
+                }}
+                className={cn("space-y-0.5 rounded-lg transition-colors", dragOverOrphan && "bg-primary/10 ring-1 ring-primary/30")}
+              >
+                {orphanPages.map(page => (
+                  <PageItem
+                    key={page.id}
+                    page={page}
+                    isSelected={page.id === selectedPageId}
+                    folders={folders}
+                    onSelect={() => onSelectPage(page.id)}
+                    onDelete={() => setDeleteTarget({ type: 'page', id: page.id })}
+                    onDuplicate={() => onDuplicatePage(page.id)}
+                    onArchive={() => onArchivePage(page.id)}
+                    onMoveToFolder={(fid) => onMoveToFolder(page.id, fid)}
+                    onToggleFavorite={() => onToggleFavorite(page.id)}
+                    draggable
+                  />
+                ))}
+              </div>
             </SidebarSection>
           )}
         </div>
