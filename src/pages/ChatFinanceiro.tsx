@@ -240,6 +240,13 @@ export default function ChatFinanceiro() {
         setRecordingTime(0);
         setIsRecording(false);
 
+        // Only send if triggered by the send button
+        if (!sendAfterStopRef.current) {
+          sendAfterStopRef.current = false;
+          return;
+        }
+        sendAfterStopRef.current = false;
+
         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
         if (audioBlob.size < 1000) {
           toast.error("Áudio muito curto. Tente novamente.");
