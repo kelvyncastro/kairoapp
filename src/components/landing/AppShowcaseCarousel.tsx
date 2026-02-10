@@ -125,11 +125,11 @@ export function AppShowcaseCarousel() {
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   >
                     <div className="relative rounded-xl overflow-hidden border border-border/50 bg-card/50 backdrop-blur-sm shadow-lg">
-                      <div className="aspect-video overflow-hidden">
+                      <div className="aspect-[16/10] overflow-hidden bg-muted/30 flex items-center justify-center">
                         <img
                           src={slide.image}
                           alt={slide.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
                           loading="lazy"
                           decoding="async"
                         />
