@@ -151,7 +151,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
     return profile.first_name;
   };
 
-  const needsOnboarding = !loading && (!profile || !profile.onboarding_completed);
+  const needsOnboarding = !loading && user !== null && (!profile || !profile.onboarding_completed);
 
   return (
     <UserProfileContext.Provider

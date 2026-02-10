@@ -161,6 +161,18 @@ export function WelcomePanel() {
                 className="mt-1.5 bg-secondary border-border"
               />
             </div>
+
+            <div>
+              <Label htmlFor="phoneNumber" className="text-sm text-muted-foreground">Telefone</Label>
+              <Input
+                id="phoneNumber"
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="(00) 00000-0000"
+                className="mt-1.5 bg-secondary border-border"
+              />
+            </div>
           </div>
 
           {/* Theme Selection */}

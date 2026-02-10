@@ -268,6 +268,21 @@ export function ProfileSettings() {
                     </div>
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phoneNumber" className="text-sm font-medium flex items-center gap-2">
+                    <Smartphone className="h-4 w-4 text-muted-foreground" />
+                    Telefone
+                  </Label>
+                  <Input
+                    id="phoneNumber"
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    placeholder="(00) 00000-0000"
+                    className="h-11 max-w-xs"
+                  />
+                </div>
               </div>
             </div>
           </SettingsSection>
