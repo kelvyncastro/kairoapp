@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, DragEvent } from 'react';
 import { NotesPage, NotesFolder } from '@/types/notes';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
