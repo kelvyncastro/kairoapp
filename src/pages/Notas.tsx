@@ -206,7 +206,7 @@ export default function Notas() {
           /* Empty state */
           <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground relative">
             <Button variant="ghost" size="icon" className="h-8 w-8 absolute top-4 left-4" onClick={() => setSidebarOpen(!sidebarOpen)}>
-              <ChevronLeft className="h-4 w-4 rotate-180" />
+              <PanelLeftOpen className="h-4 w-4" />
             </Button>
             <p className="text-lg font-medium mb-1">Nenhuma nota selecionada</p>
             <p className="text-sm mb-4">Selecione uma nota no menu lateral ou crie uma nova.</p>
