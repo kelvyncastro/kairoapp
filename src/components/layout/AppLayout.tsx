@@ -7,6 +7,7 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 import {
   LayoutDashboard,
   ListTodo,
+  FileText,
   CalendarCheck,
   Target,
   Flame,
