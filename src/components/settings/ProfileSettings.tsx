@@ -39,6 +39,7 @@ export function ProfileSettings() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [birthDate, setBirthDate] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedTheme, setSelectedTheme] = useState<AppTheme>('dark');
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -58,6 +59,7 @@ export function ProfileSettings() {
       setFirstName(profile.first_name || '');
       setLastName(profile.last_name || '');
       setBirthDate(profile.birth_date || '');
+      setPhoneNumber(profile.phone_number || '');
       setSelectedTheme(profile.app_theme);
       setAvatarPreview(profile.avatar_url);
     }
@@ -71,11 +73,12 @@ export function ProfileSettings() {
       firstName !== (profile.first_name || '') ||
       lastName !== (profile.last_name || '') ||
       birthDate !== (profile.birth_date || '') ||
+      phoneNumber !== (profile.phone_number || '') ||
       selectedTheme !== profile.app_theme ||
       avatarFile !== null;
     
     setHasChanges(changed);
-  }, [firstName, lastName, birthDate, selectedTheme, avatarFile, profile]);
+  }, [firstName, lastName, birthDate, phoneNumber, selectedTheme, avatarFile, profile]);
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
@@ -123,6 +126,7 @@ export function ProfileSettings() {
         first_name: firstName.trim(),
         last_name: lastName.trim() || null,
         birth_date: birthDate || null,
+        phone_number: phoneNumber.trim() || null,
         app_theme: selectedTheme,
         avatar_url: avatarUrl,
       });
@@ -263,6 +267,21 @@ export function ProfileSettings() {
                       Verificado
                     </div>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phoneNumber" className="text-sm font-medium flex items-center gap-2">
+                    <Smartphone className="h-4 w-4 text-muted-foreground" />
+                    Telefone
+                  </Label>
+                  <Input
+                    id="phoneNumber"
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    placeholder="(00) 00000-0000"
+                    className="h-11 max-w-xs"
+                  />
                 </div>
               </div>
             </div>

@@ -24,6 +24,7 @@ export function WelcomePanel() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [birthDate, setBirthDate] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedTheme, setSelectedTheme] = useState<AppTheme>('dark');
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -75,6 +76,7 @@ export function WelcomePanel() {
         first_name: firstName.trim(),
         last_name: lastName.trim() || null,
         birth_date: birthDate || null,
+        phone_number: phoneNumber.trim() || null,
         app_theme: selectedTheme,
         avatar_url: avatarUrl,
         onboarding_completed: true,
@@ -156,6 +158,18 @@ export function WelcomePanel() {
                 type="date"
                 value={birthDate}
                 onChange={(e) => setBirthDate(e.target.value)}
+                className="mt-1.5 bg-secondary border-border"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="phoneNumber" className="text-sm text-muted-foreground">Telefone</Label>
+              <Input
+                id="phoneNumber"
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="(00) 00000-0000"
                 className="mt-1.5 bg-secondary border-border"
               />
             </div>
