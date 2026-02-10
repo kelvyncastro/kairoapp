@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import kairoLogo from "@/assets/kairo-logo.png";
 import mockupIpad from "@/assets/mockup-ipad.png";
+import { AppShowcaseCarousel } from "@/components/landing/AppShowcaseCarousel";
 
 function ParticlesWithTheme() {
   const [color, setColor] = useState("#ffffff");
@@ -443,6 +444,8 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* App Showcase Carousel */}
+      <AppShowcaseCarousel />
 
       {/* Benefits Section */}
       <section className="relative z-10 py-24 px-4 sm:px-6 lg:px-8">
