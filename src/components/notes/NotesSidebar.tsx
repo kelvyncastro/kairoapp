@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, DragEvent } from 'react';
 import { NotesPage, NotesFolder } from '@/types/notes';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
@@ -51,6 +51,8 @@ export function NotesSidebar({
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [renamingFolder, setRenamingFolder] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
+  const [dragOverOrphan, setDragOverOrphan] = useState(false);
 
   const orphanPages = pages.filter(p => !p.folderId && !p.isArchived);
 
@@ -159,8 +161,20 @@ export function NotesSidebar({
             {folders.map(folder => {
               const folderPages = pages.filter(p => p.folderId === folder.id && !p.isArchived);
               return (
-                <div key={folder.id}>
-                  <div className="flex items-center gap-1 group">
+                <div key={folder.id}
+                  onDragOver={(e) => { e.preventDefault(); setDragOverFolderId(folder.id); }}
+                  onDragLeave={() => setDragOverFolderId(null)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const pageId = e.dataTransfer.getData('text/page-id');
+                    if (pageId) onMoveToFolder(pageId, folder.id);
+                    setDragOverFolderId(null);
+                  }}
+                >
+                  <div className={cn(
+                    "flex items-center gap-1 group rounded-lg transition-colors",
+                    dragOverFolderId === folder.id && "bg-primary/15 ring-1 ring-primary/40"
+                  )}>
                     <button
                       className="flex items-center gap-1.5 flex-1 text-xs py-1 px-1.5 rounded hover:bg-muted/50 transition-colors text-left"
                       onClick={() => onToggleFolder(folder.id)}
@@ -219,6 +233,7 @@ export function NotesSidebar({
                           onArchive={() => onArchivePage(page.id)}
                           onMoveToFolder={(fid) => onMoveToFolder(page.id, fid)}
                           onToggleFavorite={() => onToggleFavorite(page.id)}
+                          draggable
                         />
                       ))}
                     </div>
@@ -231,20 +246,33 @@ export function NotesSidebar({
           {/* Orphan pages */}
           {orphanPages.length > 0 && (
             <SidebarSection title="Paginas" icon={<FileText className="h-3.5 w-3.5" />}>
-              {orphanPages.map(page => (
-                <PageItem
-                  key={page.id}
-                  page={page}
-                  isSelected={page.id === selectedPageId}
-                  folders={folders}
-                  onSelect={() => onSelectPage(page.id)}
-                  onDelete={() => setDeleteTarget({ type: 'page', id: page.id })}
-                  onDuplicate={() => onDuplicatePage(page.id)}
-                  onArchive={() => onArchivePage(page.id)}
-                  onMoveToFolder={(fid) => onMoveToFolder(page.id, fid)}
-                  onToggleFavorite={() => onToggleFavorite(page.id)}
-                />
-              ))}
+              <div
+                onDragOver={(e) => { e.preventDefault(); setDragOverOrphan(true); }}
+                onDragLeave={() => setDragOverOrphan(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const pageId = e.dataTransfer.getData('text/page-id');
+                  if (pageId) onMoveToFolder(pageId, null);
+                  setDragOverOrphan(false);
+                }}
+                className={cn("space-y-0.5 rounded-lg transition-colors", dragOverOrphan && "bg-primary/10 ring-1 ring-primary/30")}
+              >
+                {orphanPages.map(page => (
+                  <PageItem
+                    key={page.id}
+                    page={page}
+                    isSelected={page.id === selectedPageId}
+                    folders={folders}
+                    onSelect={() => onSelectPage(page.id)}
+                    onDelete={() => setDeleteTarget({ type: 'page', id: page.id })}
+                    onDuplicate={() => onDuplicatePage(page.id)}
+                    onArchive={() => onArchivePage(page.id)}
+                    onMoveToFolder={(fid) => onMoveToFolder(page.id, fid)}
+                    onToggleFavorite={() => onToggleFavorite(page.id)}
+                    draggable
+                  />
+                ))}
+              </div>
             </SidebarSection>
           )}
         </div>
@@ -291,13 +319,21 @@ function SidebarSection({ title, icon, children, action }: { title: string; icon
   );
 }
 
-function PageItem({ page, isSelected, folders, onSelect, onDelete, onDuplicate, onArchive, onMoveToFolder, onToggleFavorite }: {
+function PageItem({ page, isSelected, folders, onSelect, onDelete, onDuplicate, onArchive, onMoveToFolder, onToggleFavorite, draggable: isDraggable }: {
   page: NotesPage; isSelected: boolean; folders: NotesFolder[];
   onSelect: () => void; onDelete: () => void; onDuplicate: () => void;
   onArchive: () => void; onMoveToFolder: (fid: string | null) => void; onToggleFavorite: () => void;
+  draggable?: boolean;
 }) {
   return (
-    <div className="group flex items-center gap-1">
+    <div
+      className="group flex items-center gap-1"
+      draggable={isDraggable}
+      onDragStart={(e) => {
+        e.dataTransfer.setData('text/page-id', page.id);
+        e.dataTransfer.effectAllowed = 'move';
+      }}
+    >
       <button
         className={cn(
           'flex items-center gap-2 flex-1 text-xs py-1.5 px-2 rounded-lg transition-colors text-left truncate',
