@@ -93,7 +93,8 @@ export function AppShowcaseCarousel() {
   });
 
   const [selectedIndex, setSelectedIndex] = useState(0);
-
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
     setSelectedIndex(emblaApi.selectedScrollSnap());
