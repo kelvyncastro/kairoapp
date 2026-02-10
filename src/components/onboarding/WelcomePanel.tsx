@@ -76,6 +76,7 @@ export function WelcomePanel() {
         first_name: firstName.trim(),
         last_name: lastName.trim() || null,
         birth_date: birthDate || null,
+        phone_number: phoneNumber.trim() || null,
         app_theme: selectedTheme,
         avatar_url: avatarUrl,
         onboarding_completed: true,
