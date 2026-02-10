@@ -10,6 +10,7 @@ export interface UserProfile {
   first_name: string | null;
   last_name: string | null;
   birth_date: string | null;
+  phone_number: string | null;
   avatar_url: string | null;
   app_theme: AppTheme;
   onboarding_completed: boolean;
