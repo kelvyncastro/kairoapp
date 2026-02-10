@@ -146,7 +146,7 @@ export function AppShowcaseCarousel() {
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   >
                     <div className="relative rounded-xl overflow-hidden border border-border/50 bg-card/50 backdrop-blur-sm shadow-lg h-full flex flex-col">
-                      <div className="aspect-video overflow-hidden bg-muted/30 flex items-center justify-center">
+                      <div className={`${isMobile ? 'aspect-[9/16]' : 'aspect-video'} overflow-hidden bg-muted/30 flex items-center justify-center`}>
                         <img
                           src={isMobile ? slide.mobileImage : slide.image}
                           alt={slide.title}
