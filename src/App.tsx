@@ -23,7 +23,7 @@ import ChatFinanceiro from "./pages/ChatFinanceiro";
 import Configuracoes from "./pages/Configuracoes";
 import Calendar2 from "./pages/Calendar2";
 import Ranking from "./pages/Ranking";
-import Agenda from "./pages/Agenda";
+
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import Notas from "./pages/Notas";
