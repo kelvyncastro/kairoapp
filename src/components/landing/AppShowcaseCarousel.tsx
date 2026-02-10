@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ShowcaseLightbox } from "./ShowcaseLightbox";
 
 import showcaseDashboard from "@/assets/showcase/showcase-dashboard.png";
 import showcaseTarefas from "@/assets/showcase/showcase-tarefas.png";
