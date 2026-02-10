@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import kairoLogo from "@/assets/kairo-logo.png";
 import mockupIpad from "@/assets/mockup-ipad.png";
+import { AppShowcaseCarousel } from "@/components/landing/AppShowcaseCarousel";
 
 function ParticlesWithTheme() {
   const [color, setColor] = useState("#ffffff");
