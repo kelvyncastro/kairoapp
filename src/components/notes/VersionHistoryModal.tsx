@@ -49,7 +49,7 @@ export function VersionHistoryModal({ open, onClose, page, onRestore, onSaveVers
                   <p className="text-xs text-muted-foreground">
                     {format(new Date(version.createdAt), "dd MMM yyyy 'as' HH:mm", { locale: ptBR })}
                   </p>
-                  <p className="text-xs text-muted-foreground">{version.blocks.length} blocos</p>
+                  <p className="text-xs text-muted-foreground">Versao salva</p>
                 </div>
                 <Button variant="outline" size="sm" className="gap-1.5" onClick={() => onRestore(version.id)}>
                   <RotateCcw className="h-3.5 w-3.5" />

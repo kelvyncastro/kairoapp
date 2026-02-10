@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { NotesPage, NotesFolder } from '@/types/notes';
-import { exportPageToMarkdown } from '@/lib/notes-storage';
+// exportPageToMarkdown removed - this component is legacy
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
