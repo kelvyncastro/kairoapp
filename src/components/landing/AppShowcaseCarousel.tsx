@@ -120,12 +120,12 @@ export function AppShowcaseCarousel() {
                   className="flex-[0_0_85%] sm:flex-[0_0_60%] lg:flex-[0_0_45%] min-w-0 pl-4"
                 >
                   <motion.div
-                    className="group cursor-pointer"
+                    className="group cursor-pointer h-full"
                     whileHover={{ scale: 1.04 }}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   >
-                    <div className="relative rounded-xl overflow-hidden border border-border/50 bg-card/50 backdrop-blur-sm shadow-lg">
-                      <div className="aspect-[16/10] overflow-hidden bg-muted/30 flex items-center justify-center">
+                    <div className="relative rounded-xl overflow-hidden border border-border/50 bg-card/50 backdrop-blur-sm shadow-lg h-full flex flex-col">
+                      <div className="aspect-video overflow-hidden bg-muted/30 flex items-center justify-center">
                         <img
                           src={slide.image}
                           alt={slide.title}

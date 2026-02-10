@@ -447,8 +447,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* App Showcase Carousel */}
-      <AppShowcaseCarousel />
+      {/* (Carousel moved to top) */}
 
       {/* Benefits Section */}
       <section className="relative z-10 py-24 px-4 sm:px-6 lg:px-8">
