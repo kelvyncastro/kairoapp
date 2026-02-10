@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, MessageCircle, Loader2, Sparkles, ArrowLeft, Mic, MicOff, Camera, Trash2 } from "lucide-react";
-import { AIVoiceInput } from "@/components/ui/ai-voice-input";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -487,17 +487,6 @@ export default function ChatFinanceiro() {
 
         {/* Input Area */}
         <div className="px-4 md:px-6 py-3 md:py-4 border-t border-border/20">
-          {/* Recording indicator */}
-          {isRecording && (
-            <AIVoiceInput
-              isRecording={isRecording}
-              onStop={stopRecording}
-              onStart={startRecording}
-              visualizerBars={32}
-              className="py-2"
-            />
-          )}
-
           <div className="flex gap-2 items-center">
             {/* Hidden file input */}
             <input
@@ -553,9 +542,26 @@ export default function ChatFinanceiro() {
             </Button>
 
             {isRecording ? (
-              <div className="flex-1 flex items-center gap-2 bg-destructive/10 border border-destructive/20 rounded-xl h-12 px-4 backdrop-blur-sm">
-                <div className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
-                <span className="text-sm text-foreground/80">Gravando... {formatTime(recordingTime)}</span>
+              <div className="flex-1 flex items-center gap-2 bg-destructive/10 border border-destructive/20 rounded-xl h-12 px-4 backdrop-blur-sm overflow-hidden">
+                <div className="w-2 h-2 rounded-full bg-destructive animate-pulse flex-shrink-0" />
+                <span className="text-xs text-foreground/80 flex-shrink-0 font-mono">{formatTime(recordingTime)}</span>
+                <div className="flex items-center gap-[2px] flex-1 h-full justify-center">
+                  {[...Array(24)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      className="w-[3px] rounded-full bg-destructive/60"
+                      animate={{
+                        height: [`${4 + Math.random() * 4}px`, `${8 + Math.random() * 24}px`, `${4 + Math.random() * 4}px`],
+                      }}
+                      transition={{
+                        duration: 0.4 + Math.random() * 0.4,
+                        repeat: Infinity,
+                        delay: i * 0.05,
+                        ease: "easeInOut",
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
             ) : (
               <Input
