@@ -711,41 +711,6 @@ export default function Financas() {
             </Button>
           </div>
 
-          {/* Stats Cards - Compact */}
-          <div className="grid grid-cols-3 gap-2 md:gap-3">
-            <div className="cave-card p-2 md:p-4">
-              <div className="flex items-center gap-1 mb-0.5 md:mb-1">
-                <TrendingUp className="h-3 w-3 md:h-4 md:w-4 text-success flex-shrink-0" />
-                <span className="text-[10px] md:text-xs text-muted-foreground truncate">Ganhos</span>
-              </div>
-              <p className="text-xs md:text-lg font-bold text-success truncate">
-                <AnimatedNumber value={income} currency decimals={0} />
-              </p>
-            </div>
-
-            <div className="cave-card p-2 md:p-4">
-              <div className="flex items-center gap-1 mb-0.5 md:mb-1">
-                <TrendingDown className="h-3 w-3 md:h-4 md:w-4 text-destructive flex-shrink-0" />
-                <span className="text-[10px] md:text-xs text-muted-foreground truncate">Gastos</span>
-              </div>
-              <p className="text-xs md:text-lg font-bold text-destructive truncate">
-                <AnimatedNumber value={Math.abs(expenses)} currency decimals={0} />
-              </p>
-            </div>
-
-            <div className="cave-card p-2 md:p-4">
-              <div className="flex items-center gap-1 mb-0.5 md:mb-1">
-                <PiggyBank className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground flex-shrink-0" />
-                <span className="text-[10px] md:text-xs text-muted-foreground truncate">Sobra</span>
-              </div>
-              <p className={cn(
-                "text-xs md:text-lg font-bold truncate",
-                balance >= 0 ? "text-success" : "text-destructive"
-              )}>
-                <AnimatedNumber value={balance} currency decimals={0} />
-              </p>
-            </div>
-          </div>
         </div>
 
         {/* Fixed: Tabs header */}
