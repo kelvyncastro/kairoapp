@@ -175,15 +175,7 @@ export default function ChatFinanceiro() {
 
       if (error) throw error;
 
-      let assistantContent = data.message;
-      // Update the user's audio message with the actual transcription
-      if (data.audioTranscription) {
-        setMessages((prev) => prev.map(m => 
-          m.id === userMessage.id 
-            ? { ...m, content: data.audioTranscription } 
-            : m
-        ));
-      }
+      const assistantContent = data.message;
 
       const assistantMessage: Message = {
         id: `assistant-${Date.now()}`,
@@ -192,7 +184,18 @@ export default function ChatFinanceiro() {
         timestamp: new Date(),
       };
 
-      setMessages((prev) => [...prev, assistantMessage]);
+      setMessages((prev) => {
+        let updated = [...prev];
+        // Replace the audio placeholder with actual transcription
+        if (data.audioTranscription) {
+          updated = updated.map(m =>
+            m.id === userMessage.id
+              ? { ...m, content: `🎤 ${data.audioTranscription}` }
+              : m
+          );
+        }
+        return [...updated, assistantMessage];
+      });
 
       if (data.success && !data.isQuery) {
         toast.success("Transação registrada!");
