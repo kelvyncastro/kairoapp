@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -359,15 +360,27 @@ function PageItem({ page, isSelected, folders, onSelect, onDelete, onDuplicate, 
             <Copy className="h-3 w-3" /> Duplicar
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          {folders.filter(f => f.id !== page.folderId).map(f => (
-            <DropdownMenuItem key={f.id} onClick={() => onMoveToFolder(f.id)} className="text-xs gap-2">
-              <FolderInput className="h-3 w-3" /> Mover para {f.name}
-            </DropdownMenuItem>
-          ))}
-          {page.folderId && (
-            <DropdownMenuItem onClick={() => onMoveToFolder(null)} className="text-xs gap-2">
-              <FolderInput className="h-3 w-3" /> Remover da pasta
-            </DropdownMenuItem>
+          {(folders.filter(f => f.id !== page.folderId).length > 0 || page.folderId) && (
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger className="text-xs gap-2">
+                <FolderInput className="h-3 w-3" /> Mover para
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="w-40 bg-popover border shadow-lg">
+                {folders.filter(f => f.id !== page.folderId).map(f => (
+                  <DropdownMenuItem key={f.id} onClick={() => onMoveToFolder(f.id)} className="text-xs gap-2">
+                    <FolderOpen className="h-3 w-3 text-primary/70" /> {f.name}
+                  </DropdownMenuItem>
+                ))}
+                {page.folderId && (
+                  <>
+                    {folders.filter(f => f.id !== page.folderId).length > 0 && <DropdownMenuSeparator />}
+                    <DropdownMenuItem onClick={() => onMoveToFolder(null)} className="text-xs gap-2">
+                      <FolderInput className="h-3 w-3" /> Remover da pasta
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
           )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={onArchive} className="text-xs gap-2">
