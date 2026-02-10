@@ -3,7 +3,7 @@ import { useNotesStore } from '@/hooks/useNotesStore';
 import { NotesSidebar } from '@/components/notes/NotesSidebar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Star, Save, MoreHorizontal, Copy, Trash2, Menu } from 'lucide-react';
+import { Star, Save, MoreHorizontal, Copy, Trash2, Menu } from 'lucide-react';
 import { NotesRichEditor } from '@/components/notes/NotesRichEditor';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -11,15 +11,38 @@ import {
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-const EMOJI_OPTIONS = ['📄', '📝', '📋', '📌', '📎', '💡', '🎯', '🚀', '⭐', '❤️', '🔥', '💰', '📊', '🎨', '🎵', '📚', '🏠', '💼', '✅', '🔑', '⚡', '🌟', '🎁', '📱', '💻', '🗂️', '📂', '🗒️', '✏️', '🖊️'];
+const ALL_EMOJIS = [
+  // Smileys
+  '😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','😚','😙','🥲','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🫡','🤐','🤨','😐','😑','😶','🫥','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🥵','🥶','🥴','😵','🤯','🤠','🥳','🥸','😎','🤓','🧐',
+  // Gestures
+  '👋','🤚','🖐️','✋','🖖','🫱','🫲','👌','🤌','🤏','✌️','🤞','🫰','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','🫵','👍','👎','👏','🙌','🫶','🤝','🙏',
+  // Hearts & symbols
+  '❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❤️‍🔥','💕','💞','💓','💗','💖','💘','💝','💟','♥️','⭐','🌟','✨','⚡','🔥','💥','🎉','🎊',
+  // Objects & tools
+  '📄','📝','📋','📌','📎','💡','🎯','🚀','💰','📊','🎨','🎵','📚','🏠','💼','✅','🔑','🎁','📱','💻','🗂️','📂','🗒️','✏️','🖊️','🖍️','📐','📏','🔒','🔓','🔍','🔎','💎','🧲','🔧','🔨','⚙️','🛠️','📦','🏷️','💳','🧾',
+  // Nature
+  '🌸','🌺','🌻','🌹','🌷','🌼','🌿','🍀','🍃','🌱','🌲','🌳','🍁','🍂','🌾','🌵','🌴','🌊','🌈','☀️','🌤️','⛅','🌙','⭐','🌍','🌎','🌏',
+  // Food
+  '🍎','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍒','🍑','🥝','🍍','🥭','🥑','🥦','🥕','🌽','🍕','🍔','🍟','🌮','🍜','🍣','🍰','🧁','🍩','🍪','☕','🍵','🧃',
+  // Activities
+  '⚽','🏀','🏈','⚾','🎾','🏐','🎱','🏓','🏸','🏒','🥊','🎿','🏄','🏊','🚴','🏋️','🧘','🎮','🎲','🎭','🎬','🎤','🎧','🎸','🎹','🎺','🥁','🎳',
+  // Travel
+  '🚗','🚕','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🛻','🚚','🚛','✈️','🚀','🛸','🚁','🛶','⛵','🚢','🏰','🗼','🗽','⛩️','🕌','🛕','⛪','🏥','🏦',
+  // Flags & misc
+  '🏁','🚩','🎌','🏴','🏳️','🔴','🟠','🟡','🟢','🔵','🟣','⚫','⚪','🟤','🔶','🔷','🔸','🔹','▪️','▫️','◾','◽','⬛','⬜','💠','🔘','🔲','🔳',
+];
 
 export default function Notas() {
   const store = useNotesStore();
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const [emojiOpen, setEmojiOpen] = useState(false);
+  const [emojiSearch, setEmojiSearch] = useState('');
 
   const favoritePages = store.pages.filter(p => p.isFavorite && !p.isArchived);
   const recentPages = [...store.pages].filter(p => !p.isArchived).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()).slice(0, 5);
@@ -32,6 +55,10 @@ export default function Notas() {
   const handleMoveToFolder = (pageId: string, folderId: string | null) => {
     store.updatePageFolder(pageId, folderId);
   };
+
+  const filteredEmojis = emojiSearch
+    ? ALL_EMOJIS.filter(e => e.includes(emojiSearch))
+    : ALL_EMOJIS;
 
   return (
     <div className="h-full flex -m-4 md:-m-6 bg-background overflow-hidden">
@@ -74,45 +101,14 @@ export default function Notas() {
       <div className="flex-1 h-full flex flex-col min-w-0">
         {store.selectedPage ? (
           <>
-            {/* Editor header */}
+            {/* Top bar - synced title (read-only display) */}
             <div className="flex items-center gap-2 px-4 py-3 border-b border-border/30 flex-shrink-0">
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSidebarOpen(!sidebarOpen)}>
                 <Menu className="h-4 w-4" />
               </Button>
 
-              {/* Emoji picker */}
-              <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
-                <PopoverTrigger asChild>
-                  <button className="text-xl hover:bg-muted/50 rounded p-0.5 transition-colors">
-                    {store.selectedPage.icon}
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-2" align="start">
-                  <div className="grid grid-cols-6 gap-1">
-                    {EMOJI_OPTIONS.map((emoji) => (
-                      <button
-                        key={emoji}
-                        className="w-8 h-8 flex items-center justify-center rounded hover:bg-muted transition-colors text-lg"
-                        onClick={() => {
-                          store.updatePageIcon(store.selectedPage!.id, emoji);
-                          setEmojiOpen(false);
-                        }}
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
-
-              <div className="flex-1 min-w-0">
-                <input
-                  className="w-full bg-transparent text-lg font-bold outline-none placeholder:text-muted-foreground/50"
-                  value={store.selectedPage.title}
-                  onChange={(e) => store.updatePageTitle(store.selectedPage!.id, e.target.value)}
-                  placeholder="Sem titulo"
-                />
-              </div>
+              <span className="text-sm">{store.selectedPage.icon}</span>
+              <span className="text-sm font-semibold truncate flex-1">{store.selectedPage.title || 'Sem titulo'}</span>
 
               <div className="flex items-center gap-1">
                 {store.saveStatus === 'saving' && (
@@ -148,9 +144,55 @@ export default function Notas() {
               </div>
             </div>
 
-            {/* Editor content */}
+            {/* Editor content with inline title */}
             <div className="flex-1 overflow-y-auto">
-              <div className="max-w-3xl mx-auto">
+              <div className="max-w-3xl mx-auto px-6 pt-8">
+                {/* Emoji + Title inline in the page */}
+                <div className="flex items-start gap-3 mb-4">
+                  <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
+                    <PopoverTrigger asChild>
+                      <button className="text-4xl hover:bg-muted/50 rounded-lg p-1 transition-colors flex-shrink-0 mt-0.5">
+                        {store.selectedPage.icon}
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-72 p-0" align="start">
+                      <div className="p-2 border-b border-border">
+                        <Input
+                          placeholder="Buscar emoji..."
+                          value={emojiSearch}
+                          onChange={(e) => setEmojiSearch(e.target.value)}
+                          className="h-8 text-xs"
+                          autoFocus
+                        />
+                      </div>
+                      <ScrollArea className="h-52">
+                        <div className="grid grid-cols-8 gap-0.5 p-2">
+                          {filteredEmojis.map((emoji, i) => (
+                            <button
+                              key={`${emoji}-${i}`}
+                              className="w-8 h-8 flex items-center justify-center rounded hover:bg-muted transition-colors text-lg"
+                              onClick={() => {
+                                store.updatePageIcon(store.selectedPage!.id, emoji);
+                                setEmojiOpen(false);
+                                setEmojiSearch('');
+                              }}
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </PopoverContent>
+                  </Popover>
+
+                  <input
+                    className="w-full bg-transparent text-3xl font-bold outline-none placeholder:text-muted-foreground/40 py-1"
+                    value={store.selectedPage.title}
+                    onChange={(e) => store.updatePageTitle(store.selectedPage!.id, e.target.value)}
+                    placeholder="Sem titulo"
+                  />
+                </div>
+
                 <NotesRichEditor
                   content={store.selectedPage.content}
                   onChange={(content) => store.updateContent(store.selectedPage!.id, content)}
@@ -160,7 +202,7 @@ export default function Notas() {
           </>
         ) : (
           /* Empty state */
-          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
+          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground relative">
             <Button variant="ghost" size="icon" className="h-8 w-8 absolute top-4 left-4" onClick={() => setSidebarOpen(!sidebarOpen)}>
               <Menu className="h-4 w-4" />
             </Button>
