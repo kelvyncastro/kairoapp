@@ -161,8 +161,20 @@ export function NotesSidebar({
             {folders.map(folder => {
               const folderPages = pages.filter(p => p.folderId === folder.id && !p.isArchived);
               return (
-                <div key={folder.id}>
-                  <div className="flex items-center gap-1 group">
+                <div key={folder.id}
+                  onDragOver={(e) => { e.preventDefault(); setDragOverFolderId(folder.id); }}
+                  onDragLeave={() => setDragOverFolderId(null)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const pageId = e.dataTransfer.getData('text/page-id');
+                    if (pageId) onMoveToFolder(pageId, folder.id);
+                    setDragOverFolderId(null);
+                  }}
+                >
+                  <div className={cn(
+                    "flex items-center gap-1 group rounded-lg transition-colors",
+                    dragOverFolderId === folder.id && "bg-primary/15 ring-1 ring-primary/40"
+                  )}>
                     <button
                       className="flex items-center gap-1.5 flex-1 text-xs py-1 px-1.5 rounded hover:bg-muted/50 transition-colors text-left"
                       onClick={() => onToggleFolder(folder.id)}
@@ -221,6 +233,7 @@ export function NotesSidebar({
                           onArchive={() => onArchivePage(page.id)}
                           onMoveToFolder={(fid) => onMoveToFolder(page.id, fid)}
                           onToggleFavorite={() => onToggleFavorite(page.id)}
+                          draggable
                         />
                       ))}
                     </div>
