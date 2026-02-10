@@ -98,6 +98,7 @@ export default function ChatFinanceiro() {
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const sendAfterStopRef = useRef(false);
 
   const fetchSectors = useCallback(async () => {
     if (!user) return;
