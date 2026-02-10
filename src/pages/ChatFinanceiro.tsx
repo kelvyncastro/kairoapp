@@ -176,8 +176,13 @@ export default function ChatFinanceiro() {
       if (error) throw error;
 
       let assistantContent = data.message;
+      // Update the user's audio message with the actual transcription
       if (data.audioTranscription) {
-        assistantContent = `*Transcrição:* "${data.audioTranscription}"\n\n${assistantContent}`;
+        setMessages((prev) => prev.map(m => 
+          m.id === userMessage.id 
+            ? { ...m, content: data.audioTranscription } 
+            : m
+        ));
       }
 
       const assistantMessage: Message = {
