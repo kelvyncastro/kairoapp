@@ -462,6 +462,7 @@ export default function ChatFinanceiro() {
                 </div>
               </motion.div>
             )}
+            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
 
