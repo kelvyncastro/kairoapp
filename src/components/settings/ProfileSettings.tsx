@@ -59,6 +59,7 @@ export function ProfileSettings() {
       setFirstName(profile.first_name || '');
       setLastName(profile.last_name || '');
       setBirthDate(profile.birth_date || '');
+      setPhoneNumber(profile.phone_number || '');
       setSelectedTheme(profile.app_theme);
       setAvatarPreview(profile.avatar_url);
     }
