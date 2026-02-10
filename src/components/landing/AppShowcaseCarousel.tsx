@@ -142,10 +142,14 @@ export function AppShowcaseCarousel() {
                   key={slide.title}
                   className="flex-[0_0_85%] sm:flex-[0_0_60%] lg:flex-[0_0_45%] min-w-0 pl-4"
                 >
-                  <motion.div
+                    <motion.div
                     className="group cursor-pointer h-full"
                     whileHover={{ scale: 1.04 }}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    onClick={() => {
+                      setLightboxIndex(slides.indexOf(slide));
+                      setLightboxOpen(true);
+                    }}
                   >
                     <div className="relative rounded-xl overflow-hidden border border-border/50 bg-card/50 backdrop-blur-sm shadow-lg h-full flex flex-col">
                       <div className={`${isMobile ? 'aspect-[9/16]' : 'aspect-video'} overflow-hidden bg-muted/30 flex items-center justify-center`}>
