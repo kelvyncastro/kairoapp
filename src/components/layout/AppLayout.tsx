@@ -7,6 +7,7 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 import {
   LayoutDashboard,
   ListTodo,
+  FileText,
   CalendarCheck,
   Target,
   Flame,
@@ -53,6 +54,7 @@ const mainNavItems = [
   { path: "/financas", label: "Finanças", icon: Wallet },
   { path: "/ranking", label: "Ranking", icon: Trophy },
   { path: "/consistencia", label: "Consistência", icon: Flame },
+  { path: "/notas", label: "Notas", icon: FileText },
   { path: "/agenda", label: "Agenda", icon: CalendarCheck },
   { path: "/configuracoes", label: "Configurações", icon: Settings },
 ];

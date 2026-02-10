@@ -26,6 +26,7 @@ import Ranking from "./pages/Ranking";
 import Agenda from "./pages/Agenda";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import Notas from "./pages/Notas";
 import Privacidade from "./pages/Privacidade";
 import Termos from "./pages/Termos";
 
@@ -83,6 +84,7 @@ const App = () => (
                   <Route path="/calendario" element={<Calendar2 />} />
                   <Route path="/ranking" element={<Ranking />} />
                   <Route path="/agenda" element={<Agenda />} />
+                  <Route path="/notas" element={<Notas />} />
                   <Route path="/configuracoes" element={<Configuracoes />} />
                   <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
                 </Route>
