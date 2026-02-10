@@ -156,7 +156,7 @@ export function AppShowcaseCarousel() {
                         <img
                           src={isMobile ? slide.mobileImage : slide.image}
                           alt={slide.title}
-                          className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                          className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
                           loading="lazy"
                           decoding="async"
                         />
