@@ -3,6 +3,7 @@ import useEmblaCarousel from "embla-carousel-react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 import showcaseDashboard from "@/assets/showcase/showcase-dashboard.png";
 import showcaseTarefas from "@/assets/showcase/showcase-tarefas.png";
@@ -14,55 +15,75 @@ import showcaseCalendario from "@/assets/showcase/showcase-calendario.png";
 import showcaseRanking from "@/assets/showcase/showcase-ranking.png";
 import showcaseNotas from "@/assets/showcase/showcase-notas.png";
 
+import mobileDashboard from "@/assets/showcase/mobile-dashboard.png";
+import mobileTarefas from "@/assets/showcase/mobile-tarefas.png";
+import mobileHabitos from "@/assets/showcase/mobile-habitos.png";
+import mobileMetas from "@/assets/showcase/mobile-metas.png";
+import mobileFinancas from "@/assets/showcase/mobile-financas.png";
+import mobileChat from "@/assets/showcase/mobile-chat.png";
+import mobileCalendario from "@/assets/showcase/mobile-calendario.png";
+import mobileRanking from "@/assets/showcase/mobile-ranking.png";
+import mobileNotas from "@/assets/showcase/mobile-notas.png";
+
 const slides = [
   {
     image: showcaseDashboard,
+    mobileImage: mobileDashboard,
     title: "Dashboard",
     description: "Visão geral do seu dia com tarefas, metas, finanças, hábitos e agenda em um único painel.",
   },
   {
     image: showcaseTarefas,
+    mobileImage: mobileTarefas,
     title: "Tarefas",
     description: "Organize por pastas, defina prioridades, prazos e acompanhe o tempo com cronômetro integrado.",
   },
   {
     image: showcaseHabitos,
+    mobileImage: mobileHabitos,
     title: "Hábitos",
     description: "Grade visual semanal com progresso diário e gráfico de evolução ao longo do mês.",
   },
   {
     image: showcaseMetas,
+    mobileImage: mobileMetas,
     title: "Metas",
     description: "Acompanhe objetivos com barra de progresso, histórico de evolução e categorias personalizadas.",
   },
   {
     image: showcaseCalendario,
+    mobileImage: mobileCalendario,
     title: "Calendário",
     description: "Visualize sua semana com blocos de horário, compromissos e indicador de hora atual.",
   },
   {
     image: showcaseChat,
+    mobileImage: mobileChat,
     title: "Chat Financeiro",
     description: "Converse com IA para registrar gastos, consultar relatórios e receber conselhos financeiros.",
   },
   {
     image: showcaseFinancas,
+    mobileImage: mobileFinancas,
     title: "Finanças",
     description: "Controle receitas e despesas com gráficos diários, categorias e visão mensal completa.",
   },
   {
     image: showcaseRanking,
+    mobileImage: mobileRanking,
     title: "Ranking",
     description: "Compita com amigos em desafios, acompanhe pontuações e metas com apostas motivacionais.",
   },
   {
     image: showcaseNotas,
+    mobileImage: mobileNotas,
     title: "Notas",
     description: "Editor rico com pastas, busca rápida e organização flexível para suas anotações.",
   },
 ];
 
 export function AppShowcaseCarousel() {
+  const isMobile = useIsMobile();
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: "center",
@@ -127,7 +148,7 @@ export function AppShowcaseCarousel() {
                     <div className="relative rounded-xl overflow-hidden border border-border/50 bg-card/50 backdrop-blur-sm shadow-lg h-full flex flex-col">
                       <div className="aspect-video overflow-hidden bg-muted/30 flex items-center justify-center">
                         <img
-                          src={slide.image}
+                          src={isMobile ? slide.mobileImage : slide.image}
                           alt={slide.title}
                           className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
                           loading="lazy"
