@@ -51,6 +51,8 @@ export function NotesSidebar({
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [renamingFolder, setRenamingFolder] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
+  const [dragOverOrphan, setDragOverOrphan] = useState(false);
 
   const orphanPages = pages.filter(p => !p.folderId && !p.isArchived);
 
