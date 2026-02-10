@@ -3,7 +3,7 @@ import { useNotesStore } from '@/hooks/useNotesStore';
 import { NotesSidebar } from '@/components/notes/NotesSidebar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Star, Save, MoreHorizontal, Copy, Trash2, PanelLeftOpen, PanelLeftClose } from 'lucide-react';
+import { Star, Save, MoreHorizontal, Copy, Trash2, ChevronLeft } from 'lucide-react';
 import { NotesRichEditor } from '@/components/notes/NotesRichEditor';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
