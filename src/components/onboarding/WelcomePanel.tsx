@@ -24,6 +24,7 @@ export function WelcomePanel() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [birthDate, setBirthDate] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedTheme, setSelectedTheme] = useState<AppTheme>('dark');
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
