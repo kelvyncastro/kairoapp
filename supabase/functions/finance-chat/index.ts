@@ -65,57 +65,57 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // --- Handle audio transcription ---
+    // --- Handle audio transcription via ElevenLabs Scribe ---
     let audioTranscription: string | null = null;
     if (audioBase64) {
       console.log("Processing audio input, base64 length:", audioBase64.length);
       
-      // Use Lovable AI (Gemini multimodal) to transcribe audio
-      const transcribeResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            {
-              role: "system",
-              content: "Você é um transcritor de áudio. Transcreva exatamente o que a pessoa disse no áudio. Retorne APENAS o texto transcrito, sem nenhuma explicação adicional. Se não conseguir entender o áudio, responda 'INAUDÍVEL'."
-            },
-            {
-              role: "user",
-              content: [
-                {
-                  type: "input_audio",
-                  input_audio: {
-                    data: audioBase64,
-                    format: "webm",
-                  },
-                },
-                {
-                  type: "text",
-                  text: "Transcreva este áudio em português.",
-                },
-              ],
-            },
-          ],
-          temperature: 0.1,
-        }),
-      });
+      const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
+      if (!ELEVENLABS_API_KEY) {
+        console.error("ELEVENLABS_API_KEY not configured");
+        return new Response(
+          JSON.stringify({ success: false, message: "Serviço de transcrição não configurado." }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
 
-      if (transcribeResponse.ok) {
-        const transcribeData = await transcribeResponse.json();
-        audioTranscription = transcribeData.choices?.[0]?.message?.content?.trim();
-        console.log("Audio transcription:", audioTranscription);
-      } else {
-        const errText = await transcribeResponse.text();
-        console.error("Transcription error:", transcribeResponse.status, errText);
+      try {
+        // Decode base64 to binary
+        const binaryString = atob(audioBase64);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const audioBlob = new Blob([bytes], { type: "audio/webm" });
+
+        const formData = new FormData();
+        formData.append("file", audioBlob, "audio.webm");
+        formData.append("model_id", "scribe_v2");
+        formData.append("language_code", "por");
+
+        const transcribeResponse = await fetch("https://api.elevenlabs.io/v1/speech-to-text", {
+          method: "POST",
+          headers: {
+            "xi-api-key": ELEVENLABS_API_KEY,
+          },
+          body: formData,
+        });
+
+        if (transcribeResponse.ok) {
+          const transcribeData = await transcribeResponse.json();
+          audioTranscription = transcribeData.text?.trim() || null;
+          console.log("Audio transcription:", audioTranscription);
+        } else {
+          const errText = await transcribeResponse.text();
+          console.error("ElevenLabs transcription error:", transcribeResponse.status, errText);
+          audioTranscription = null;
+        }
+      } catch (e) {
+        console.error("Transcription processing error:", e);
         audioTranscription = null;
       }
 
-      if (!audioTranscription || audioTranscription === "INAUDÍVEL") {
+      if (!audioTranscription) {
         return new Response(
           JSON.stringify({
             success: false,
