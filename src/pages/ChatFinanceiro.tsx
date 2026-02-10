@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, MessageCircle, Loader2, Sparkles, ArrowLeft, Mic, MicOff, Camera } from "lucide-react";
+import { Send, MessageCircle, Loader2, Sparkles, ArrowLeft, Mic, MicOff, Camera, Trash2 } from "lucide-react";
 import { AIVoiceInput } from "@/components/ui/ai-voice-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
