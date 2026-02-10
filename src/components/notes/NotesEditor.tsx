@@ -37,7 +37,7 @@ export function NotesEditor({
   const folder = folders.find(f => f.id === page.folderId);
 
   const handleExportMarkdown = useCallback(() => {
-    const md = exportPageToMarkdown(page);
+    const md = `# ${page.title}\n\n${page.content || ''}`;
     const blob = new Blob([md], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
