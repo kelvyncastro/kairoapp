@@ -103,8 +103,10 @@ export default function Notas() {
           <>
             {/* Top bar - synced title (read-only display) */}
             <div className="flex items-center gap-2 px-4 py-3 border-b border-border/30 flex-shrink-0">
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSidebarOpen(!sidebarOpen)}>
-                <ChevronLeft className={cn("h-4 w-4 transition-transform duration-300", !sidebarOpen && "rotate-180")} />
+              <Button variant="ghost" size="icon" className="h-8 w-8 group" onClick={() => setSidebarOpen(!sidebarOpen)}>
+                <div className={cn("transition-transform duration-300", !sidebarOpen && "rotate-180")}>
+                  {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4 -scale-x-100" />}
+                </div>
               </Button>
 
               <span className="text-sm">{store.selectedPage.icon}</span>
