@@ -55,7 +55,7 @@ const mainNavItems = [
   { path: "/ranking", label: "Ranking", icon: Trophy },
   { path: "/consistencia", label: "Consistência", icon: Flame },
   { path: "/notas", label: "Notas", icon: FileText },
-  { path: "/agenda", label: "Agenda", icon: CalendarCheck },
+  
   { path: "/configuracoes", label: "Configurações", icon: Settings },
 ];
 
