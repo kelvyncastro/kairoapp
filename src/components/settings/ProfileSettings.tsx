@@ -73,11 +73,12 @@ export function ProfileSettings() {
       firstName !== (profile.first_name || '') ||
       lastName !== (profile.last_name || '') ||
       birthDate !== (profile.birth_date || '') ||
+      phoneNumber !== (profile.phone_number || '') ||
       selectedTheme !== profile.app_theme ||
       avatarFile !== null;
     
     setHasChanges(changed);
-  }, [firstName, lastName, birthDate, selectedTheme, avatarFile, profile]);
+  }, [firstName, lastName, birthDate, phoneNumber, selectedTheme, avatarFile, profile]);
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
