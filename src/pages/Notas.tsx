@@ -3,7 +3,7 @@ import { useNotesStore } from '@/hooks/useNotesStore';
 import { NotesSidebar } from '@/components/notes/NotesSidebar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Star, Save, MoreHorizontal, Copy, Trash2, PanelLeftOpen, PanelLeftClose } from 'lucide-react';
+import { Star, Save, MoreHorizontal, Copy, Trash2, ChevronLeft } from 'lucide-react';
 import { NotesRichEditor } from '@/components/notes/NotesRichEditor';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -104,7 +104,7 @@ export default function Notas() {
             {/* Top bar - synced title (read-only display) */}
             <div className="flex items-center gap-2 px-4 py-3 border-b border-border/30 flex-shrink-0">
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSidebarOpen(!sidebarOpen)}>
-                {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
+                <ChevronLeft className={cn("h-4 w-4 transition-transform duration-300", !sidebarOpen && "rotate-180")} />
               </Button>
 
               <span className="text-sm">{store.selectedPage.icon}</span>
@@ -204,7 +204,7 @@ export default function Notas() {
           /* Empty state */
           <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground relative">
             <Button variant="ghost" size="icon" className="h-8 w-8 absolute top-4 left-4" onClick={() => setSidebarOpen(!sidebarOpen)}>
-              <PanelLeftOpen className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4 rotate-180" />
             </Button>
             <p className="text-lg font-medium mb-1">Nenhuma nota selecionada</p>
             <p className="text-sm mb-4">Selecione uma nota no menu lateral ou crie uma nova.</p>
