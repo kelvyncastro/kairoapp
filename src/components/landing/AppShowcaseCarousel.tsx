@@ -203,6 +203,15 @@ export function AppShowcaseCarousel() {
             />
           ))}
         </div>
+
+        <ShowcaseLightbox
+          open={lightboxOpen}
+          onOpenChange={setLightboxOpen}
+          slides={slides}
+          currentIndex={lightboxIndex}
+          onIndexChange={setLightboxIndex}
+          isMobile={isMobile}
+        />
       </div>
     </section>
   );
