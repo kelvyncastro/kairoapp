@@ -68,7 +68,7 @@ export default function ChatFinanceiro() {
     {
       id: "welcome",
       role: "assistant",
-      content: `Olá! Sou seu assistente financeiro inteligente. Posso **registrar transações** e **analisar suas finanças**.
+      content: `Olá! Sou seu assistente financeiro inteligente. Posso **registrar transações**, **analisar suas finanças** e **tirar dúvidas**.
 
 ### 📝 Registrar
 - "Gastei R$200 no mercado"
@@ -78,8 +78,12 @@ export default function ChatFinanceiro() {
 
 ### 📊 Consultar
 - "Quanto gastei esse mês?"
-- "Quanto gastei de mercado em janeiro?"
-- "Me dá um relatório completo"`,
+- "Me dá um relatório completo"
+
+### 💡 Dúvidas e Conselhos
+- "Como posso economizar mais?"
+- "Vale a pena investir em renda fixa?"
+- "O que acha dos meus gastos?"`,
       timestamp: new Date(),
     },
   ]);
@@ -88,6 +92,7 @@ export default function ChatFinanceiro() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -106,7 +111,7 @@ export default function ChatFinanceiro() {
   useEffect(() => { fetchSectors(); }, [fetchSectors]);
   useEffect(() => { if (inputRef.current) inputRef.current.focus(); }, []);
   useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   // Clean up recording on unmount
@@ -457,6 +462,7 @@ export default function ChatFinanceiro() {
                 </div>
               </motion.div>
             )}
+            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
 
