@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, MessageCircle, Loader2, Sparkles, ArrowLeft, Mic, MicOff, Camera } from "lucide-react";
+import { Send, MessageCircle, Loader2, Sparkles, ArrowLeft, Mic, MicOff, Camera, Trash2 } from "lucide-react";
 import { AIVoiceInput } from "@/components/ui/ai-voice-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,6 +98,7 @@ export default function ChatFinanceiro() {
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const sendAfterStopRef = useRef(false);
 
   const fetchSectors = useCallback(async () => {
     if (!user) return;
@@ -239,6 +240,13 @@ export default function ChatFinanceiro() {
         setRecordingTime(0);
         setIsRecording(false);
 
+        // Only send if triggered by the send button
+        if (!sendAfterStopRef.current) {
+          sendAfterStopRef.current = false;
+          return;
+        }
+        sendAfterStopRef.current = false;
+
         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
         if (audioBlob.size < 1000) {
           toast.error("Áudio muito curto. Tente novamente.");
@@ -269,6 +277,17 @@ export default function ChatFinanceiro() {
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
+  }, []);
+
+  const stopAndSendRecording = useCallback(() => {
+    sendAfterStopRef.current = true;
+    if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
+  }, []);
+
+  const discardRecording = useCallback(() => {
+    sendAfterStopRef.current = false;
+    if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
+    toast.info("Áudio descartado.");
   }, []);
 
   const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -491,16 +510,31 @@ export default function ChatFinanceiro() {
             />
 
             {/* Camera/image button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading || isRecording}
-              className="h-12 w-12 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent/50 flex-shrink-0 border border-border/30 backdrop-blur-sm"
-              title="Enviar foto de recibo"
-            >
-              <Camera className="h-5 w-5" />
-            </Button>
+            {!isRecording && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading}
+                className="h-12 w-12 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent/50 flex-shrink-0 border border-border/30 backdrop-blur-sm"
+                title="Enviar foto de recibo"
+              >
+                <Camera className="h-5 w-5" />
+              </Button>
+            )}
+
+            {/* Discard recording button */}
+            {isRecording && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={discardRecording}
+                className="h-12 w-12 rounded-xl flex-shrink-0 border border-destructive/30 backdrop-blur-sm text-destructive hover:text-destructive hover:bg-destructive/20"
+                title="Descartar áudio"
+              >
+                <Trash2 className="h-5 w-5" />
+              </Button>
+            )}
 
             {/* Mic button */}
             <Button
@@ -510,7 +544,7 @@ export default function ChatFinanceiro() {
               disabled={isLoading}
               className={`h-12 w-12 rounded-xl flex-shrink-0 border border-border/30 backdrop-blur-sm ${
                 isRecording
-                  ? "text-destructive hover:text-destructive hover:bg-destructive/20 border-destructive/50"
+                  ? "text-destructive hover:text-destructive hover:bg-destructive/20 border-destructive/50 animate-pulse"
                   : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
               }`}
               title={isRecording ? "Parar gravação" : "Gravar áudio"}
@@ -518,19 +552,36 @@ export default function ChatFinanceiro() {
               {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
             </Button>
 
-            <Input
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ex: Gastei R$50 no mercado..."
-              className="flex-1 bg-secondary/30 border-border/40 text-foreground placeholder:text-muted-foreground focus:border-border focus:ring-1 focus:ring-ring/50 h-12 rounded-xl backdrop-blur-sm"
-              disabled={isLoading || isRecording}
-            />
+            {isRecording ? (
+              <div className="flex-1 flex items-center gap-2 bg-destructive/10 border border-destructive/20 rounded-xl h-12 px-4 backdrop-blur-sm">
+                <div className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
+                <span className="text-sm text-foreground/80">Gravando... {formatTime(recordingTime)}</span>
+              </div>
+            ) : (
+              <Input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ex: Gastei R$50 no mercado..."
+                className="flex-1 bg-secondary/30 border-border/40 text-foreground placeholder:text-muted-foreground focus:border-border focus:ring-1 focus:ring-ring/50 h-12 rounded-xl backdrop-blur-sm"
+                disabled={isLoading}
+              />
+            )}
             <Button
-              onClick={() => sendMessage()}
-              disabled={!input.trim() || isLoading || isRecording}
-              className="bg-accent/80 hover:bg-accent text-foreground px-5 h-12 rounded-xl backdrop-blur-sm border border-border/30"
+              onClick={() => {
+                if (isRecording) {
+                  stopAndSendRecording();
+                } else {
+                  sendMessage();
+                }
+              }}
+              disabled={(!input.trim() && !isRecording) || isLoading}
+              className={`px-5 h-12 rounded-xl backdrop-blur-sm border border-border/30 ${
+                isRecording
+                  ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+                  : "bg-accent/80 hover:bg-accent text-foreground"
+              }`}
             >
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
             </Button>
