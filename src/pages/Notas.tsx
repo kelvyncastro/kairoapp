@@ -104,7 +104,7 @@ export default function Notas() {
             {/* Top bar - synced title (read-only display) */}
             <div className="flex items-center gap-2 px-4 py-3 border-b border-border/30 flex-shrink-0">
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSidebarOpen(!sidebarOpen)}>
-                <Menu className="h-4 w-4" />
+                {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
               </Button>
 
               <span className="text-sm">{store.selectedPage.icon}</span>
