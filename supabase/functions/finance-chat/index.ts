@@ -16,10 +16,7 @@ serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: "Não autorizado. Faça login novamente." 
-        }),
+        JSON.stringify({ success: false, message: "Não autorizado. Faça login novamente." }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -27,46 +24,34 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     
-    // Create client with user's auth context
     const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } }
     });
 
-    // Validate the JWT and get user claims
     const token = authHeader.replace("Bearer ", "");
     const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
     
     if (claimsError || !claimsData?.claims) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: "Sessão inválida. Faça login novamente." 
-        }),
+        JSON.stringify({ success: false, message: "Sessão inválida. Faça login novamente." }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Extract user_id from validated JWT claims (not from client request)
     const userId = claimsData.claims.sub;
-    
     if (!userId) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: "Usuário não identificado." 
-        }),
+        JSON.stringify({ success: false, message: "Usuário não identificado." }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const { message, sectors, conversationHistory } = await req.json();
+    const { message, sectors, conversationHistory, audioBase64, imageBase64 } = await req.json();
     
-    if (!message) {
+    // Must have at least one input
+    if (!message && !audioBase64 && !imageBase64) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: "Mensagem não fornecida." 
-        }),
+        JSON.stringify({ success: false, message: "Mensagem não fornecida." }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -80,12 +65,124 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // --- Handle audio transcription ---
+    let audioTranscription: string | null = null;
+    if (audioBase64) {
+      console.log("Processing audio input, base64 length:", audioBase64.length);
+      
+      // Use Lovable AI (Gemini multimodal) to transcribe audio
+      const transcribeResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            {
+              role: "system",
+              content: "Você é um transcritor de áudio. Transcreva exatamente o que a pessoa disse no áudio. Retorne APENAS o texto transcrito, sem nenhuma explicação adicional. Se não conseguir entender o áudio, responda 'INAUDÍVEL'."
+            },
+            {
+              role: "user",
+              content: [
+                {
+                  type: "input_audio",
+                  input_audio: {
+                    data: audioBase64,
+                    format: "webm",
+                  },
+                },
+                {
+                  type: "text",
+                  text: "Transcreva este áudio em português.",
+                },
+              ],
+            },
+          ],
+          temperature: 0.1,
+        }),
+      });
+
+      if (transcribeResponse.ok) {
+        const transcribeData = await transcribeResponse.json();
+        audioTranscription = transcribeData.choices?.[0]?.message?.content?.trim();
+        console.log("Audio transcription:", audioTranscription);
+      } else {
+        const errText = await transcribeResponse.text();
+        console.error("Transcription error:", transcribeResponse.status, errText);
+        audioTranscription = null;
+      }
+
+      if (!audioTranscription || audioTranscription === "INAUDÍVEL") {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            message: "Não consegui entender o áudio. Tente novamente falando mais alto e claramente.",
+            audioTranscription: null,
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // --- Handle image processing ---
+    let imageDescription: string | null = null;
+    if (imageBase64) {
+      console.log("Processing image input, base64 length:", imageBase64.length);
+      
+      const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            {
+              role: "system",
+              content: "Você analisa imagens de recibos, comprovantes e notificações bancárias. Extraia: valor, descrição/estabelecimento, data (se visível), e tipo (gasto ou receita). Retorne em formato natural, ex: 'Gasto de R$50,00 no Mercado Extra em 10/02/2026'."
+            },
+            {
+              role: "user",
+              content: [
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: `data:image/jpeg;base64,${imageBase64}`,
+                  },
+                },
+                {
+                  type: "text",
+                  text: message || "Analise esta imagem e extraia as informações financeiras.",
+                },
+              ],
+            },
+          ],
+          temperature: 0.2,
+        }),
+      });
+
+      if (imageResponse.ok) {
+        const imageData = await imageResponse.json();
+        imageDescription = imageData.choices?.[0]?.message?.content?.trim();
+        console.log("Image description:", imageDescription);
+      } else {
+        const errText = await imageResponse.text();
+        console.error("Image analysis error:", imageResponse.status, errText);
+      }
+    }
+
+    // Determine the effective user message for the finance AI
+    const effectiveMessage = audioTranscription || imageDescription || message;
+
     // Fetch user's financial data for context
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth() + 1;
     
-    // Get all transactions for the user (last 12 months for context)
     const oneYearAgo = new Date(currentDate);
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
     
@@ -96,7 +193,6 @@ serve(async (req) => {
       .gte("date", oneYearAgo.toISOString().split("T")[0])
       .order("date", { ascending: false });
 
-    // Get all sectors
     const { data: userSectors } = await supabase
       .from("finance_sectors")
       .select("*")
@@ -117,25 +213,19 @@ serve(async (req) => {
         monthlyData[monthKey].income += t.value;
       } else {
         monthlyData[monthKey].expenses += Math.abs(t.value);
-        
-        // Track by sector
         const sector = userSectors?.find((s: any) => s.id === t.sector_id);
         const sectorName = sector?.name || "Sem categoria";
         monthlyData[monthKey].bySector[sectorName] = (monthlyData[monthKey].bySector[sectorName] || 0) + Math.abs(t.value);
       }
     });
 
-    // Build sectors context for AI
     const sectorsContext = userSectors && userSectors.length > 0 
       ? `Setores disponíveis: ${userSectors.map((s: any) => `"${s.name}" (id: ${s.id})`).join(", ")}`
       : "O usuário não tem setores cadastrados ainda.";
 
-    // Build financial data context
     const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
     
     let financialContext = "DADOS FINANCEIROS DO USUÁRIO:\n\n";
-    
-    // Sort months and build summary
     const sortedMonths = Object.keys(monthlyData).sort().reverse().slice(0, 12);
     
     sortedMonths.forEach(monthKey => {
@@ -160,7 +250,6 @@ serve(async (req) => {
       financialContext += "\n";
     });
 
-    // Recent transactions (last 20)
     if (transactions && transactions.length > 0) {
       financialContext += "TRANSAÇÕES RECENTES (últimas 20):\n";
       transactions.slice(0, 20).forEach((t: any) => {
@@ -210,7 +299,6 @@ Responda APENAS em JSON válido.`;
       { role: "system", content: systemPrompt }
     ];
 
-    // Add conversation history (last 10 messages for context)
     if (conversationHistory && Array.isArray(conversationHistory)) {
       const recentHistory = conversationHistory.slice(-10);
       recentHistory.forEach((msg: any) => {
@@ -220,8 +308,7 @@ Responda APENAS em JSON válido.`;
       });
     }
 
-    // Add current message
-    messages.push({ role: "user", content: message });
+    messages.push({ role: "user", content: effectiveMessage });
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -239,19 +326,13 @@ Responda APENAS em JSON válido.`;
     if (!aiResponse.ok) {
       if (aiResponse.status === 429) {
         return new Response(
-          JSON.stringify({ 
-            success: false, 
-            message: "Muitas requisições. Aguarde um momento e tente novamente." 
-          }),
+          JSON.stringify({ success: false, message: "Muitas requisições. Aguarde um momento e tente novamente." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       if (aiResponse.status === 402) {
         return new Response(
-          JSON.stringify({ 
-            success: false, 
-            message: "Créditos de IA esgotados. Entre em contato com o suporte." 
-          }),
+          JSON.stringify({ success: false, message: "Créditos de IA esgotados. Entre em contato com o suporte." }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -273,10 +354,7 @@ Responda APENAS em JSON válido.`;
     } catch (e) {
       console.error("Failed to parse AI response:", aiContent);
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: "Não consegui processar sua mensagem. Tente reformular." 
-        }),
+        JSON.stringify({ success: false, message: "Não consegui processar sua mensagem. Tente reformular.", audioTranscription }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -284,24 +362,16 @@ Responda APENAS em JSON válido.`;
     // Handle query action
     if (parsed.action === "query") {
       return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: parsed.response,
-          isQuery: true
-        }),
+        JSON.stringify({ success: true, message: parsed.response, isQuery: true, audioTranscription }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     // Handle register action
     if (parsed.action === "register" && parsed.success && parsed.value && parsed.type) {
-      // Calculate final value (negative for expenses, positive for income)
       const finalValue = parsed.type === "expense" ? -Math.abs(parsed.value) : Math.abs(parsed.value);
-      
-      // Determine status based on type
       const status = parsed.type === "income" ? "received" : "paid";
 
-      // Insert transaction
       const { data: transaction, error: insertError } = await supabase
         .from("finance_transactions")
         .insert({
@@ -320,7 +390,6 @@ Responda APENAS em JSON válido.`;
         throw new Error("Falha ao salvar transação");
       }
 
-      // Build success message
       const formattedValue = Math.abs(parsed.value).toLocaleString("pt-BR", {
         style: "currency",
         currency: "BRL",
@@ -335,6 +404,7 @@ Responda APENAS em JSON válido.`;
         JSON.stringify({ 
           success: true, 
           message: successMessage,
+          audioTranscription,
           transaction: {
             id: transaction.id,
             value: finalValue,
@@ -347,11 +417,12 @@ Responda APENAS em JSON válido.`;
       );
     }
 
-    // Fallback for unrecognized actions
+    // Fallback
     return new Response(
       JSON.stringify({ 
         success: false, 
-        message: parsed.error_message || parsed.response || "Não consegui entender sua mensagem. Tente algo como:\n• \"Gastei R$50 com mercado\"\n• \"Quanto gastei esse mês?\"\n• \"Como estão minhas finanças?\"" 
+        message: parsed.error_message || parsed.response || "Não consegui entender sua mensagem. Tente algo como:\n• \"Gastei R$50 com mercado\"\n• \"Quanto gastei esse mês?\"\n• \"Como estão minhas finanças?\"",
+        audioTranscription,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
@@ -359,10 +430,7 @@ Responda APENAS em JSON válido.`;
   } catch (error) {
     console.error("Finance chat error:", error);
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        message: "Ocorreu um erro ao processar sua mensagem. Tente novamente." 
-      }),
+      JSON.stringify({ success: false, message: "Ocorreu um erro ao processar sua mensagem. Tente novamente." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
