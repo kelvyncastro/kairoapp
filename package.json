@@ -53,6 +53,7 @@
     "@tiptap/extension-highlight": "^3.18.0",
     "@tiptap/extension-list-item": "^3.18.0",
     "@tiptap/extension-placeholder": "^3.18.0",
+    "@tiptap/extension-task-item": "^3.19.0",
     "@tiptap/extension-task-list": "^3.19.0",
     "@tiptap/extension-text-style": "^3.18.0",
     "@tiptap/extension-underline": "^3.18.0",
