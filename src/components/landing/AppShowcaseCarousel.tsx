@@ -1,52 +1,64 @@
-import { useRef, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-import showcaseDashboard from "@/assets/showcase/showcase-dashboard.jpg";
-import showcaseTarefas from "@/assets/showcase/showcase-tarefas.jpg";
-import showcaseHabitos from "@/assets/showcase/showcase-habitos.jpg";
-import showcaseMetas from "@/assets/showcase/showcase-metas.jpg";
-import showcaseFinancas from "@/assets/showcase/showcase-financas.jpg";
-import showcaseChat from "@/assets/showcase/showcase-chat.jpg";
-import showcaseCalendario from "@/assets/showcase/showcase-calendario.jpg";
+import showcaseDashboard from "@/assets/showcase/showcase-dashboard.png";
+import showcaseTarefas from "@/assets/showcase/showcase-tarefas.png";
+import showcaseHabitos from "@/assets/showcase/showcase-habitos.png";
+import showcaseMetas from "@/assets/showcase/showcase-metas.png";
+import showcaseFinancas from "@/assets/showcase/showcase-financas.png";
+import showcaseChat from "@/assets/showcase/showcase-chat.png";
+import showcaseCalendario from "@/assets/showcase/showcase-calendario.png";
+import showcaseRanking from "@/assets/showcase/showcase-ranking.png";
+import showcaseNotas from "@/assets/showcase/showcase-notas.png";
 
 const slides = [
   {
     image: showcaseDashboard,
     title: "Dashboard",
-    description: "Visão geral completa da sua vida em um painel intuitivo e personalizável.",
+    description: "Visão geral do seu dia com tarefas, metas, finanças, hábitos e agenda em um único painel.",
   },
   {
     image: showcaseTarefas,
     title: "Tarefas",
-    description: "Kanban, listas, filtros avançados e timer integrado para máxima produtividade.",
+    description: "Organize por pastas, defina prioridades, prazos e acompanhe o tempo com cronômetro integrado.",
   },
   {
     image: showcaseHabitos,
     title: "Hábitos",
-    description: "Acompanhe seus hábitos diários com grid visual semanal e estatísticas.",
+    description: "Grade visual semanal com progresso diário e gráfico de evolução ao longo do mês.",
   },
   {
     image: showcaseMetas,
     title: "Metas",
-    description: "Defina metas com prazos, progresso visual e histórico de evolução.",
-  },
-  {
-    image: showcaseFinancas,
-    title: "Finanças",
-    description: "Controle receitas e despesas com gráficos, categorias e análise inteligente.",
-  },
-  {
-    image: showcaseChat,
-    title: "Chat Financeiro",
-    description: "Converse com IA sobre suas finanças e receba insights personalizados.",
+    description: "Acompanhe objetivos com barra de progresso, histórico de evolução e categorias personalizadas.",
   },
   {
     image: showcaseCalendario,
     title: "Calendário",
-    description: "Organize seu tempo com blocos, prioridades e pontuação de produtividade.",
+    description: "Visualize sua semana com blocos de horário, compromissos e indicador de hora atual.",
+  },
+  {
+    image: showcaseChat,
+    title: "Chat Financeiro",
+    description: "Converse com IA para registrar gastos, consultar relatórios e receber conselhos financeiros.",
+  },
+  {
+    image: showcaseFinancas,
+    title: "Finanças",
+    description: "Controle receitas e despesas com gráficos diários, categorias e visão mensal completa.",
+  },
+  {
+    image: showcaseRanking,
+    title: "Ranking",
+    description: "Compita com amigos em desafios, acompanhe pontuações e metas com apostas motivacionais.",
+  },
+  {
+    image: showcaseNotas,
+    title: "Notas",
+    description: "Editor rico com pastas, busca rápida e organização flexível para suas anotações.",
   },
 ];
 
@@ -59,14 +71,10 @@ export function AppShowcaseCarousel() {
   });
 
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [canScrollPrev, setCanScrollPrev] = useState(false);
-  const [canScrollNext, setCanScrollNext] = useState(false);
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
     setSelectedIndex(emblaApi.selectedScrollSnap());
-    setCanScrollPrev(emblaApi.canScrollPrev());
-    setCanScrollNext(emblaApi.canScrollNext());
   }, [emblaApi]);
 
   useEffect(() => {
@@ -75,7 +83,6 @@ export function AppShowcaseCarousel() {
     emblaApi.on("select", onSelect);
     emblaApi.on("reInit", onSelect);
 
-    // Auto-scroll
     const interval = setInterval(() => {
       if (emblaApi) emblaApi.scrollNext();
     }, 5000);
@@ -104,11 +111,10 @@ export function AppShowcaseCarousel() {
           </p>
         </motion.div>
 
-        {/* Carousel */}
         <div className="relative">
           <div ref={emblaRef} className="overflow-hidden">
             <div className="flex -ml-4">
-              {slides.map((slide, index) => (
+              {slides.map((slide) => (
                 <div
                   key={slide.title}
                   className="flex-[0_0_85%] sm:flex-[0_0_60%] lg:flex-[0_0_45%] min-w-0 pl-4"
@@ -139,7 +145,6 @@ export function AppShowcaseCarousel() {
             </div>
           </div>
 
-          {/* Nav buttons */}
           <Button
             variant="outline"
             size="icon"
@@ -158,7 +163,6 @@ export function AppShowcaseCarousel() {
           </Button>
         </div>
 
-        {/* Dots */}
         <div className="flex justify-center gap-2 mt-6">
           {slides.map((_, index) => (
             <button
