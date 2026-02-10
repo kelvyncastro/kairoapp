@@ -374,6 +374,9 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* App Showcase Carousel */}
+      <AppShowcaseCarousel />
+
       {/* Stats Section */}
       <section className="relative z-10 py-16 border-y border-border/50 bg-secondary/10 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
