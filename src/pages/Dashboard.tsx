@@ -292,7 +292,7 @@ export default function Dashboard() {
     // Recent notes from localStorage
     let recentNotes: DashboardStats['recentNotes'] = [];
     try {
-      const stored = localStorage.getItem('kairo-notes-pages');
+      const stored = localStorage.getItem('kairo_notes_pages_v2');
       if (stored) {
         const pages = JSON.parse(stored) as Array<{ id: string; title: string; icon: string; updatedAt: string; isArchived: boolean }>;
         recentNotes = pages
