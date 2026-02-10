@@ -279,6 +279,17 @@ export default function ChatFinanceiro() {
     if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
   }, []);
 
+  const stopAndSendRecording = useCallback(() => {
+    sendAfterStopRef.current = true;
+    if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
+  }, []);
+
+  const discardRecording = useCallback(() => {
+    sendAfterStopRef.current = false;
+    if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
+    toast.info("Áudio descartado.");
+  }, []);
+
   const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
