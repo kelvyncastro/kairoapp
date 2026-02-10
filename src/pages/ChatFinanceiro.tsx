@@ -68,7 +68,7 @@ export default function ChatFinanceiro() {
     {
       id: "welcome",
       role: "assistant",
-      content: `Olá! Sou seu assistente financeiro inteligente. Posso **registrar transações** e **analisar suas finanças**.
+      content: `Olá! Sou seu assistente financeiro inteligente. Posso **registrar transações**, **analisar suas finanças** e **tirar dúvidas**.
 
 ### 📝 Registrar
 - "Gastei R$200 no mercado"
@@ -78,8 +78,12 @@ export default function ChatFinanceiro() {
 
 ### 📊 Consultar
 - "Quanto gastei esse mês?"
-- "Quanto gastei de mercado em janeiro?"
-- "Me dá um relatório completo"`,
+- "Me dá um relatório completo"
+
+### 💡 Dúvidas e Conselhos
+- "Como posso economizar mais?"
+- "Vale a pena investir em renda fixa?"
+- "O que acha dos meus gastos?"`,
       timestamp: new Date(),
     },
   ]);
