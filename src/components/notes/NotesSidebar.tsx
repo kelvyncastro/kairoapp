@@ -319,13 +319,21 @@ function SidebarSection({ title, icon, children, action }: { title: string; icon
   );
 }
 
-function PageItem({ page, isSelected, folders, onSelect, onDelete, onDuplicate, onArchive, onMoveToFolder, onToggleFavorite }: {
+function PageItem({ page, isSelected, folders, onSelect, onDelete, onDuplicate, onArchive, onMoveToFolder, onToggleFavorite, draggable: isDraggable }: {
   page: NotesPage; isSelected: boolean; folders: NotesFolder[];
   onSelect: () => void; onDelete: () => void; onDuplicate: () => void;
   onArchive: () => void; onMoveToFolder: (fid: string | null) => void; onToggleFavorite: () => void;
+  draggable?: boolean;
 }) {
   return (
-    <div className="group flex items-center gap-1">
+    <div
+      className="group flex items-center gap-1"
+      draggable={isDraggable}
+      onDragStart={(e) => {
+        e.dataTransfer.setData('text/page-id', page.id);
+        e.dataTransfer.effectAllowed = 'move';
+      }}
+    >
       <button
         className={cn(
           'flex items-center gap-2 flex-1 text-xs py-1.5 px-2 rounded-lg transition-colors text-left truncate',
