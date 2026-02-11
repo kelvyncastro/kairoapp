@@ -140,23 +140,22 @@ const HabitGrid = React.memo(function HabitGrid({
     const grouped = new Map<string, HabitWithLogs[]>();
     
     for (const s of SECTION_ORDER) {
-      grouped.set(s || '__none__', []);
+      grouped.set(s || 'all_day', []);
     }
     
     for (const habit of habits) {
-      const key = habit.section || '__none__';
+      // Habits without section go to 'all_day' when sections are enabled
+      const key = habit.section || 'all_day';
       if (!grouped.has(key)) grouped.set(key, []);
       grouped.get(key)!.push(habit);
     }
 
     let globalIdx = 0;
     for (const section of SECTION_ORDER) {
-      const key = section || '__none__';
+      const key = section || 'all_day';
       const sectionHabits = grouped.get(key) || [];
-      if (sectionHabits.length === 0 && section !== null) continue;
-      if (section !== null) {
-        items.push({ type: 'section', section });
-      }
+      if (sectionHabits.length === 0) continue;
+      items.push({ type: 'section', section: key });
       for (const habit of sectionHabits) {
         items.push({ type: 'habit', habit, globalIndex: globalIdx++ });
       }
