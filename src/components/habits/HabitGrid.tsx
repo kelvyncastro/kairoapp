@@ -30,7 +30,7 @@ interface HabitGridProps {
   monthKey?: string;
   onToggleLog: (habitId: string, date: Date) => void;
   onCreateHabit: (name: string) => void;
-  onUpdateHabit: (id: string, updates: { name: string }) => void;
+  onUpdateHabit: (id: string, updates: { name?: string; description?: string | null }) => void;
   onDeleteHabit: (id: string) => void;
   getHabitAdherence: (habit: HabitWithLogs) => number;
   getLogStatus: (habit: HabitWithLogs, date: Date) => 'done' | 'not_done' | 'pending' | 'future' | 'not_planned';
