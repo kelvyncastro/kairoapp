@@ -24,6 +24,13 @@ import { format, isSameDay, getDay, startOfWeek, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useSound } from '@/contexts/SoundContext';
 
+// Helper function to check if HTML content is empty
+const isDescriptionEmpty = (html: string | null | undefined): boolean => {
+  if (!html) return true;
+  const stripHtml = html.replace(/<[^>]*>/g, '').trim();
+  return stripHtml === '';
+};
+
 interface HabitGridProps {
   habits: HabitWithLogs[];
   daysInMonth: Date[];
@@ -169,7 +176,8 @@ const HabitGrid = React.memo(function HabitGrid({
 
   const handleCreateFromDialog = () => {
     if (detailName.trim()) {
-      onCreateHabit(detailName.trim(), detailDescription.trim() || null);
+      const cleanDescription = isDescriptionEmpty(detailDescription) ? null : detailDescription.trim();
+      onCreateHabit(detailName.trim(), cleanDescription);
       setIsCreateMode(false);
       setDetailName('');
       setDetailDescription('');
@@ -197,12 +205,13 @@ const HabitGrid = React.memo(function HabitGrid({
 
   const handleSaveDetail = () => {
     if (detailHabit && detailName.trim()) {
+      const cleanDescription = isDescriptionEmpty(detailDescription) ? null : detailDescription.trim();
       onUpdateHabit(detailHabit.id, {
         name: detailName.trim(),
-        description: detailDescription.trim() || null,
+        description: cleanDescription,
       });
       // Update local ref so closing doesn't flash stale data
-      setDetailHabit({ ...detailHabit, name: detailName.trim(), description: detailDescription.trim() || null });
+      setDetailHabit({ ...detailHabit, name: detailName.trim(), description: cleanDescription });
     }
   };
 
@@ -309,11 +318,11 @@ const HabitGrid = React.memo(function HabitGrid({
                       onClick={() => openDetailDialog(habit)}
                     >
                       <div className="flex items-center gap-1">
-                        <p className="text-sm font-medium truncate text-foreground">{habit.name}</p>
-                        {habit.description && (
-                          <FileText className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                        )}
-                      </div>
+                         <p className="text-sm font-medium truncate text-foreground">{habit.name}</p>
+                         {!isDescriptionEmpty(habit.description) && (
+                           <FileText className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                         )}
+                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <Progress 
                           value={adherence} 
