@@ -183,7 +183,25 @@ export default function Obrigado() {
             <span className="font-bold text-foreground">Seu acesso chegou no seu e-mail</span> - verifique sua caixa de entrada!
           </motion.p>
 
-          {/* Card with benefits */}
+          {/* Email Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.65 }}
+            className="mb-8"
+          >
+            <Button
+              size="lg"
+              asChild
+              className="w-full max-w-xs h-12 text-base rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25 group"
+            >
+              <a href="https://mail.google.com" target="_blank" rel="noopener noreferrer">
+                <Mail className="w-5 h-5 mr-2" />
+                Abrir meu e-mail
+                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </a>
+            </Button>
+          </motion.div>
           <motion.div
             className="bg-card/50 backdrop-blur-xl border border-border/50 rounded-2xl p-6 mb-8 shadow-xl"
             initial={{ opacity: 0, y: 20 }}
