@@ -176,7 +176,8 @@ const HabitGrid = React.memo(function HabitGrid({
 
   const handleCreateFromDialog = () => {
     if (detailName.trim()) {
-      onCreateHabit(detailName.trim(), detailDescription.trim() || null);
+      const cleanDescription = isDescriptionEmpty(detailDescription) ? null : detailDescription.trim();
+      onCreateHabit(detailName.trim(), cleanDescription);
       setIsCreateMode(false);
       setDetailName('');
       setDetailDescription('');
