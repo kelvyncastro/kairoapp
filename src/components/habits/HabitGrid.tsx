@@ -481,17 +481,27 @@ const HabitGrid = React.memo(function HabitGrid({
       </div>
     </div>
 
-    {/* Habit Detail Dialog */}
-    <Dialog open={!!detailHabit} onOpenChange={(open) => {
+    {/* Habit Detail / Create Dialog */}
+    <Dialog open={!!detailHabit || isCreateMode} onOpenChange={(open) => {
       if (!open) {
-        handleSaveDetail();
-        setDetailHabit(null);
+        if (isCreateMode) {
+          setIsCreateMode(false);
+        } else if (detailHabit) {
+          handleSaveDetail();
+          setDetailHabit(null);
+        }
+        setDetailName('');
+        setDetailDescription('');
       }
     }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Editar Hábito</DialogTitle>
-          <DialogDescription>Altere o nome e adicione uma descrição ao seu hábito.</DialogDescription>
+          <DialogTitle>{isCreateMode ? 'Novo Hábito' : 'Editar Hábito'}</DialogTitle>
+          <DialogDescription>
+            {isCreateMode
+              ? 'Dê um nome e opcionalmente uma descrição ao seu hábito.'
+              : 'Altere o nome e adicione uma descrição ao seu hábito.'}
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
@@ -500,10 +510,12 @@ const HabitGrid = React.memo(function HabitGrid({
               value={detailName}
               onChange={(e) => setDetailName(e.target.value)}
               placeholder="Nome do hábito..."
+              autoFocus
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
-                  handleSaveDetail();
+                  if (isCreateMode) handleCreateFromDialog();
+                  else handleSaveDetail();
                 }
               }}
             />
@@ -518,10 +530,14 @@ const HabitGrid = React.memo(function HabitGrid({
             />
           </div>
           <Button className="w-full" onClick={() => {
-            handleSaveDetail();
-            setDetailHabit(null);
+            if (isCreateMode) {
+              handleCreateFromDialog();
+            } else {
+              handleSaveDetail();
+              setDetailHabit(null);
+            }
           }}>
-            Salvar
+            {isCreateMode ? 'Criar' : 'Salvar'}
           </Button>
         </div>
       </DialogContent>
