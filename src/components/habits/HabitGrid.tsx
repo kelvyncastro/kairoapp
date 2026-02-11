@@ -284,15 +284,17 @@ const HabitGrid = React.memo(function HabitGrid({
     resizeStartX.current = e.clientX;
     resizeStartWidth.current = columnWidth;
     
+    let lastWidth = resizeStartWidth.current;
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing.current) return;
       const diff = e.clientX - resizeStartX.current;
-      setColumnWidth(Math.max(140, Math.min(400, resizeStartWidth.current + diff)));
+      lastWidth = Math.max(140, Math.min(400, resizeStartWidth.current + diff));
+      setColumnWidth(lastWidth);
     };
     
     const handleMouseUp = () => {
       isResizing.current = false;
-      localStorage.setItem('habits-column-width', String(columnWidth));
+      localStorage.setItem('habits-column-width', String(lastWidth));
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
