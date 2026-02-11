@@ -85,11 +85,11 @@ export function CreateRankingDialog({ trigger, editMode = false, rankingToEdit, 
     });
 
     try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('user_id, first_name, last_name, avatar_url, public_id')
-        .eq('public_id', publicId.toUpperCase())
-        .single();
+      const { data: profiles, error } = await supabase
+        .rpc('get_public_user_profiles');
+
+      const match = profiles?.find((p: any) => p.public_id === publicId.toUpperCase()) || null;
+      const data: UserProfile | null = match ? { ...match, last_name: null } : null;
 
       setInvitees(prev => {
         const updated = [...prev];
