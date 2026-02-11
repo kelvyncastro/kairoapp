@@ -70,6 +70,7 @@ export function useHabits(currentDate: Date) {
       const habitsWithLogs: HabitWithLogs[] = (habitsData || []).map((habit) => ({
         ...habit,
         frequency: habit.frequency as string[],
+        section: (habit.section as HabitSection) || null,
         logs: (logsData || []).filter((log) => log.habit_id === habit.id),
       }));
 
