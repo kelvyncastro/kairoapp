@@ -106,7 +106,7 @@ export function useHabits(currentDate: Date) {
 
       if (error) throw error;
 
-      setHabits((prev) => [...prev, { ...data, frequency: data.frequency as string[], logs: [] }]);
+      setHabits((prev) => [...prev, { ...data, frequency: data.frequency as string[], section: (data.section as HabitSection) || null, logs: [] }]);
       toast.success('Hábito criado!');
     } catch (error) {
       console.error('Error creating habit:', error);
