@@ -16,7 +16,9 @@ import {
 
 export default function Habitos() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [showSections, setShowSections] = useState(false);
+  const [showSections, setShowSections] = useState(() => {
+    return localStorage.getItem('habits-show-sections') === 'true';
+  });
   const monthKey = format(currentDate, 'yyyy-MM');
   
   const {

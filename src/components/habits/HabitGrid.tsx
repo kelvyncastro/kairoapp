@@ -118,7 +118,10 @@ const HabitGrid = React.memo(function HabitGrid({
   const [detailDescription, setDetailDescription] = React.useState('');
   const [detailSection, setDetailSection] = React.useState<HabitSection>(null);
   const [isCreateMode, setIsCreateMode] = React.useState(false);
-  const [columnWidth, setColumnWidth] = React.useState(224);
+  const [columnWidth, setColumnWidth] = React.useState(() => {
+    const saved = localStorage.getItem('habits-column-width');
+    return saved ? Number(saved) : 224;
+  });
   const isResizing = React.useRef(false);
   const resizeStartX = React.useRef(0);
   const resizeStartWidth = React.useRef(0);
