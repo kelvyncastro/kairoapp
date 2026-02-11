@@ -1,4 +1,5 @@
 export type HabitLogStatus = 'done' | 'not_done' | 'skipped';
+export type HabitSection = 'morning' | 'afternoon' | 'night' | null;
 
 export interface Habit {
   id: string;
@@ -9,6 +10,7 @@ export interface Habit {
   start_date: string;
   active: boolean;
   sort_order: number;
+  section: HabitSection;
   created_at: string;
   updated_at: string;
 }
