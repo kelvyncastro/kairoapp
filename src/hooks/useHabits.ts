@@ -52,6 +52,7 @@ export function useHabits(currentDate: Date) {
         .select('*')
         .eq('user_id', user.id)
         .eq('active', true)
+        .order('sort_order', { ascending: true })
         .order('created_at', { ascending: true });
 
       if (habitsError) throw habitsError;
@@ -309,6 +310,23 @@ export function useHabits(currentDate: Date) {
     [isHabitPlannedForDay]
   );
 
+  // Reorder habits
+  const reorderHabits = async (reorderedHabits: HabitWithLogs[]) => {
+    // Optimistic update
+    setHabits(reorderedHabits);
+
+    try {
+      const updates = reorderedHabits.map((h, i) => 
+        supabase.from('habits').update({ sort_order: i }).eq('id', h.id)
+      );
+      await Promise.all(updates);
+    } catch (error) {
+      console.error('Error reordering habits:', error);
+      toast.error('Erro ao reordenar hábitos');
+      fetchHabits();
+    }
+  };
+
   return {
     habits,
     loading,
@@ -321,5 +339,6 @@ export function useHabits(currentDate: Date) {
     dailyScores,
     getLogStatus,
     isHabitPlannedForDay,
+    reorderHabits,
   };
 }

@@ -600,6 +600,7 @@ export type Database = {
           frequency: Json
           id: string
           name: string
+          sort_order: number
           start_date: string
           updated_at: string
           user_id: string
@@ -610,6 +611,7 @@ export type Database = {
           frequency?: Json
           id?: string
           name: string
+          sort_order?: number
           start_date?: string
           updated_at?: string
           user_id: string
@@ -620,6 +622,7 @@ export type Database = {
           frequency?: Json
           id?: string
           name?: string
+          sort_order?: number
           start_date?: string
           updated_at?: string
           user_id?: string

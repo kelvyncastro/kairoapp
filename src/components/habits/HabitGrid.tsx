@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { MoreHorizontal, Trash2, Edit2, Plus } from 'lucide-react';
+import { MoreHorizontal, Trash2, Edit2, Plus, GripVertical } from 'lucide-react';
 import { NeonCheckbox } from '@/components/ui/animated-check-box';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +26,7 @@ interface HabitGridProps {
   onDeleteHabit: (id: string) => void;
   getHabitAdherence: (habit: HabitWithLogs) => number;
   getLogStatus: (habit: HabitWithLogs, date: Date) => 'done' | 'not_done' | 'pending' | 'future' | 'not_planned';
+  onReorder?: (reorderedHabits: HabitWithLogs[]) => void;
 }
 
 // Calculate how many times a habit was completed in the current month
@@ -93,11 +94,14 @@ const HabitGrid = React.memo(function HabitGrid({
   onDeleteHabit,
   getHabitAdherence,
   getLogStatus,
+  onReorder,
 }: HabitGridProps) {
   const [newHabitName, setNewHabitName] = React.useState('');
   const [isAddingHabit, setIsAddingHabit] = React.useState(false);
   const [editingHabitId, setEditingHabitId] = React.useState<string | null>(null);
   const [editingName, setEditingName] = React.useState('');
+  const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const editInputRef = React.useRef<HTMLInputElement>(null);
   const gridRef = React.useRef<HTMLDivElement>(null);
@@ -153,6 +157,34 @@ const HabitGrid = React.memo(function HabitGrid({
     setEditingName('');
   };
 
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    setDragOverIndex(index);
+  };
+
+  const handleDrop = (index: number) => {
+    if (draggedIndex === null || draggedIndex === index) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+    const reordered = [...habits];
+    const [moved] = reordered.splice(draggedIndex, 1);
+    reordered.splice(index, 0, moved);
+    onReorder?.(reordered);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
   return (
     <div className="flex flex-col w-full overflow-hidden">
       {/* Grid container */}
@@ -165,13 +197,22 @@ const HabitGrid = React.memo(function HabitGrid({
           </div>
           
           {/* Habit rows */}
-          {habits.map((habit) => {
+          {habits.map((habit, habitIndex) => {
             const adherence = getHabitAdherence(habit);
             
             return (
               <div
                 key={habit.id}
-                className="h-14 px-3 flex items-center justify-between border-b border-border/20 group hover:bg-muted/20 transition-colors"
+                draggable
+                onDragStart={() => handleDragStart(habitIndex)}
+                onDragOver={(e) => handleDragOver(e, habitIndex)}
+                onDrop={() => handleDrop(habitIndex)}
+                onDragEnd={handleDragEnd}
+                className={cn(
+                  "h-14 px-1 flex items-center justify-between border-b border-border/20 group hover:bg-muted/20 transition-colors",
+                  draggedIndex === habitIndex && "opacity-40",
+                  dragOverIndex === habitIndex && draggedIndex !== habitIndex && "border-t-2 border-t-primary"
+                )}
               >
                 {editingHabitId === habit.id ? (
                   <Input
@@ -190,6 +231,7 @@ const HabitGrid = React.memo(function HabitGrid({
                   />
                 ) : (
                   <>
+                    <GripVertical className="h-4 w-4 text-muted-foreground/50 cursor-grab active:cursor-grabbing flex-shrink-0 mr-1 opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="flex-1 min-w-0 pr-2">
                       <p className="text-sm font-medium truncate text-foreground">{habit.name}</p>
                       <div className="flex items-center gap-2 mt-1">

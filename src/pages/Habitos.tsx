@@ -22,6 +22,7 @@ export default function Habitos() {
     getHabitAdherence,
     dailyScores,
     getLogStatus,
+    reorderHabits,
   } = useHabits(currentDate);
 
   const goToPreviousMonth = () => setCurrentDate((prev) => subMonths(prev, 1));
@@ -86,6 +87,7 @@ export default function Habitos() {
             onDeleteHabit={deleteHabit}
             getHabitAdherence={getHabitAdherence}
             getLogStatus={getLogStatus}
+            onReorder={reorderHabits}
           />
         </div>
       </div>
