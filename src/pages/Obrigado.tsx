@@ -178,8 +178,9 @@ export default function Obrigado() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            Sua jornada para dominar o tempo começa agora. 
-            Você receberá um email com as instruções de acesso.
+            Sua jornada para dominar o tempo começa agora.
+            <br />
+            <span className="font-bold text-foreground">Seu acesso chegou no seu e-mail</span> - verifique sua caixa de entrada!
           </motion.p>
 
           {/* Card with benefits */}
