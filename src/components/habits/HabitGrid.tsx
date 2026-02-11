@@ -172,6 +172,23 @@ const HabitGrid = React.memo(function HabitGrid({
     setEditingName('');
   };
 
+  const openDetailDialog = (habit: HabitWithLogs) => {
+    setDetailHabit(habit);
+    setDetailName(habit.name);
+    setDetailDescription(habit.description || '');
+  };
+
+  const handleSaveDetail = () => {
+    if (detailHabit && detailName.trim()) {
+      onUpdateHabit(detailHabit.id, {
+        name: detailName.trim(),
+        description: detailDescription.trim() || null,
+      });
+      // Update local ref so closing doesn't flash stale data
+      setDetailHabit({ ...detailHabit, name: detailName.trim(), description: detailDescription.trim() || null });
+    }
+  };
+
   const handleDragStart = (index: number) => {
     setDraggedIndex(index);
   };
