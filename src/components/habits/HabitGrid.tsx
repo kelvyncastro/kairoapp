@@ -189,12 +189,34 @@ const HabitGrid = React.memo(function HabitGrid({
     setDragOverIndex(null);
   };
 
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    isResizing.current = true;
+    resizeStartX.current = e.clientX;
+    resizeStartWidth.current = columnWidth;
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing.current) return;
+      const diff = e.clientX - resizeStartX.current;
+      setColumnWidth(Math.max(140, Math.min(400, resizeStartWidth.current + diff)));
+    };
+    
+    const handleMouseUp = () => {
+      isResizing.current = false;
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
   return (
     <div className="flex flex-col w-full overflow-hidden">
       {/* Grid container */}
       <div className="flex w-full">
         {/* Fixed left column - Habit names */}
-        <div className="flex-shrink-0 w-48 md:w-56 border-r border-border/30 bg-background z-10">
+        <div className="flex-shrink-0 border-r border-border/30 bg-background z-10 relative" style={{ width: columnWidth }}>
           {/* Header */}
           <div className="h-16 border-b border-border/30 flex items-end px-3 pb-2">
             <span className="text-sm font-semibold text-foreground">Hábito</span>
