@@ -477,6 +477,53 @@ const HabitGrid = React.memo(function HabitGrid({
         </div>
       </div>
     </div>
+
+    {/* Habit Detail Dialog */}
+    <Dialog open={!!detailHabit} onOpenChange={(open) => {
+      if (!open) {
+        handleSaveDetail();
+        setDetailHabit(null);
+      }
+    }}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Editar Hábito</DialogTitle>
+          <DialogDescription>Altere o nome e adicione uma descrição ao seu hábito.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 pt-2">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Nome</label>
+            <Input
+              value={detailName}
+              onChange={(e) => setDetailName(e.target.value)}
+              placeholder="Nome do hábito..."
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleSaveDetail();
+                }
+              }}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Descrição</label>
+            <Textarea
+              value={detailDescription}
+              onChange={(e) => setDetailDescription(e.target.value)}
+              placeholder="Passo a passo, observações..."
+              rows={4}
+            />
+          </div>
+          <Button className="w-full" onClick={() => {
+            handleSaveDetail();
+            setDetailHabit(null);
+          }}>
+            Salvar
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 });
 
