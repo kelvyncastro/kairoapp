@@ -1,5 +1,5 @@
 export type HabitLogStatus = 'done' | 'not_done' | 'skipped';
-export type HabitSection = 'morning' | 'afternoon' | 'night' | null;
+export type HabitSection = 'morning' | 'afternoon' | 'night' | 'all_day' | null;
 
 export interface Habit {
   id: string;
