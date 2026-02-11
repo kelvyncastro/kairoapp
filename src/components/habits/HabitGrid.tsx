@@ -332,6 +332,12 @@ const HabitGrid = React.memo(function HabitGrid({
               </Button>
             )}
           </div>
+
+          {/* Resize handle */}
+          <div
+            onMouseDown={handleResizeStart}
+            className="absolute top-0 right-0 w-1.5 h-full cursor-col-resize hover:bg-primary/30 active:bg-primary/50 transition-colors z-20"
+          />
         </div>
 
         {/* Scrollable right section - Weeks grid */}
