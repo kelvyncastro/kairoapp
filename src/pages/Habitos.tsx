@@ -16,7 +16,9 @@ import {
 
 export default function Habitos() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [showSections, setShowSections] = useState(false);
+  const [showSections, setShowSections] = useState(() => {
+    return localStorage.getItem('habits-show-sections') === 'true';
+  });
   const monthKey = format(currentDate, 'yyyy-MM');
   
   const {
@@ -80,7 +82,11 @@ export default function Habitos() {
                 variant={showSections ? "default" : "outline"}
                 size="sm"
                 className={cn("h-7 text-xs gap-1.5", showSections && "bg-primary text-primary-foreground")}
-                onClick={() => setShowSections(!showSections)}
+                onClick={() => {
+                  const next = !showSections;
+                  setShowSections(next);
+                  localStorage.setItem('habits-show-sections', String(next));
+                }}
               >
                 <Layers className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Períodos</span>

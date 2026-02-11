@@ -118,7 +118,10 @@ const HabitGrid = React.memo(function HabitGrid({
   const [detailDescription, setDetailDescription] = React.useState('');
   const [detailSection, setDetailSection] = React.useState<HabitSection>(null);
   const [isCreateMode, setIsCreateMode] = React.useState(false);
-  const [columnWidth, setColumnWidth] = React.useState(224);
+  const [columnWidth, setColumnWidth] = React.useState(() => {
+    const saved = localStorage.getItem('habits-column-width');
+    return saved ? Number(saved) : 224;
+  });
   const isResizing = React.useRef(false);
   const resizeStartX = React.useRef(0);
   const resizeStartWidth = React.useRef(0);
@@ -281,14 +284,17 @@ const HabitGrid = React.memo(function HabitGrid({
     resizeStartX.current = e.clientX;
     resizeStartWidth.current = columnWidth;
     
+    let lastWidth = resizeStartWidth.current;
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing.current) return;
       const diff = e.clientX - resizeStartX.current;
-      setColumnWidth(Math.max(140, Math.min(400, resizeStartWidth.current + diff)));
+      lastWidth = Math.max(140, Math.min(400, resizeStartWidth.current + diff));
+      setColumnWidth(lastWidth);
     };
     
     const handleMouseUp = () => {
       isResizing.current = false;
+      localStorage.setItem('habits-column-width', String(lastWidth));
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
