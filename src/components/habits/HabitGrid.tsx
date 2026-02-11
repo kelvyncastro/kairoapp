@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { MoreHorizontal, Trash2, Edit2, Plus, GripVertical } from 'lucide-react';
+import { MoreHorizontal, Trash2, Edit2, Plus, GripVertical, FileText } from 'lucide-react';
 import { NeonCheckbox } from '@/components/ui/animated-check-box';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,7 +29,7 @@ interface HabitGridProps {
   daysInMonth: Date[];
   monthKey?: string;
   onToggleLog: (habitId: string, date: Date) => void;
-  onCreateHabit: (name: string) => void;
+  onCreateHabit: (name: string, description?: string | null) => void;
   onUpdateHabit: (id: string, updates: { name?: string; description?: string | null }) => void;
   onDeleteHabit: (id: string) => void;
   getHabitAdherence: (habit: HabitWithLogs) => number;
@@ -113,6 +113,7 @@ const HabitGrid = React.memo(function HabitGrid({
   const [detailHabit, setDetailHabit] = React.useState<HabitWithLogs | null>(null);
   const [detailName, setDetailName] = React.useState('');
   const [detailDescription, setDetailDescription] = React.useState('');
+  const [isCreateMode, setIsCreateMode] = React.useState(false);
   const [columnWidth, setColumnWidth] = React.useState(224);
   const isResizing = React.useRef(false);
   const resizeStartX = React.useRef(0);
@@ -156,6 +157,22 @@ const HabitGrid = React.memo(function HabitGrid({
       onCreateHabit(newHabitName.trim());
       setNewHabitName('');
       setIsAddingHabit(false);
+    }
+  };
+
+  const openCreateDialog = () => {
+    setIsCreateMode(true);
+    setDetailHabit(null);
+    setDetailName('');
+    setDetailDescription('');
+  };
+
+  const handleCreateFromDialog = () => {
+    if (detailName.trim()) {
+      onCreateHabit(detailName.trim(), detailDescription.trim() || null);
+      setIsCreateMode(false);
+      setDetailName('');
+      setDetailDescription('');
     }
   };
 
@@ -291,7 +308,12 @@ const HabitGrid = React.memo(function HabitGrid({
                       className="flex-1 min-w-0 pr-2 cursor-pointer"
                       onClick={() => openDetailDialog(habit)}
                     >
-                      <p className="text-sm font-medium truncate text-foreground">{habit.name}</p>
+                      <div className="flex items-center gap-1">
+                        <p className="text-sm font-medium truncate text-foreground">{habit.name}</p>
+                        {habit.description && (
+                          <FileText className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                        )}
+                      </div>
                       <div className="flex items-center gap-2 mt-1">
                         <Progress 
                           value={adherence} 
@@ -334,35 +356,15 @@ const HabitGrid = React.memo(function HabitGrid({
 
           {/* Add habit row */}
           <div className="h-14 px-3 flex items-center border-b border-border/20">
-            {isAddingHabit ? (
-              <Input
-                ref={inputRef}
-                value={newHabitName}
-                onChange={(e) => setNewHabitName(e.target.value)}
-                placeholder="Nome do hábito..."
-                onBlur={() => {
-                  if (!newHabitName.trim()) setIsAddingHabit(false);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleAddHabit();
-                  if (e.key === 'Escape') {
-                    setIsAddingHabit(false);
-                    setNewHabitName('');
-                  }
-                }}
-                className="h-8 text-sm"
-              />
-            ) : (
               <Button
                 variant="ghost"
                 size="sm"
                 className="text-muted-foreground hover:text-foreground w-full justify-start"
-                onClick={() => setIsAddingHabit(true)}
+                onClick={openCreateDialog}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Adicionar hábito
               </Button>
-            )}
           </div>
 
           {/* Resize handle */}
@@ -479,17 +481,27 @@ const HabitGrid = React.memo(function HabitGrid({
       </div>
     </div>
 
-    {/* Habit Detail Dialog */}
-    <Dialog open={!!detailHabit} onOpenChange={(open) => {
+    {/* Habit Detail / Create Dialog */}
+    <Dialog open={!!detailHabit || isCreateMode} onOpenChange={(open) => {
       if (!open) {
-        handleSaveDetail();
-        setDetailHabit(null);
+        if (isCreateMode) {
+          setIsCreateMode(false);
+        } else if (detailHabit) {
+          handleSaveDetail();
+          setDetailHabit(null);
+        }
+        setDetailName('');
+        setDetailDescription('');
       }
     }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Editar Hábito</DialogTitle>
-          <DialogDescription>Altere o nome e adicione uma descrição ao seu hábito.</DialogDescription>
+          <DialogTitle>{isCreateMode ? 'Novo Hábito' : 'Editar Hábito'}</DialogTitle>
+          <DialogDescription>
+            {isCreateMode
+              ? 'Dê um nome e opcionalmente uma descrição ao seu hábito.'
+              : 'Altere o nome e adicione uma descrição ao seu hábito.'}
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
@@ -498,10 +510,12 @@ const HabitGrid = React.memo(function HabitGrid({
               value={detailName}
               onChange={(e) => setDetailName(e.target.value)}
               placeholder="Nome do hábito..."
+              autoFocus
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
-                  handleSaveDetail();
+                  if (isCreateMode) handleCreateFromDialog();
+                  else handleSaveDetail();
                 }
               }}
             />
@@ -516,10 +530,14 @@ const HabitGrid = React.memo(function HabitGrid({
             />
           </div>
           <Button className="w-full" onClick={() => {
-            handleSaveDetail();
-            setDetailHabit(null);
+            if (isCreateMode) {
+              handleCreateFromDialog();
+            } else {
+              handleSaveDetail();
+              setDetailHabit(null);
+            }
           }}>
-            Salvar
+            {isCreateMode ? 'Criar' : 'Salvar'}
           </Button>
         </div>
       </DialogContent>

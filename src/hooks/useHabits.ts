@@ -87,7 +87,7 @@ export function useHabits(currentDate: Date) {
   }, [fetchHabits]);
 
   // Create a new habit
-  const createHabit = async (name: string) => {
+  const createHabit = async (name: string, description?: string | null) => {
     if (!user) return;
 
     try {
@@ -96,6 +96,7 @@ export function useHabits(currentDate: Date) {
         .insert({
           user_id: user.id,
           name,
+          description: description || null,
           frequency: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
           start_date: format(new Date(), 'yyyy-MM-dd'),
         })
