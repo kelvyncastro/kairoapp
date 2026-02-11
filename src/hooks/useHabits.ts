@@ -115,7 +115,7 @@ export function useHabits(currentDate: Date) {
   };
 
   // Update a habit
-  const updateHabit = async (id: string, updates: Partial<Pick<Habit, 'name' | 'description' | 'frequency' | 'active'>>) => {
+  const updateHabit = async (id: string, updates: Partial<Pick<Habit, 'name' | 'description' | 'frequency' | 'active' | 'section'>>) => {
     try {
       const { error } = await supabase
         .from('habits')
