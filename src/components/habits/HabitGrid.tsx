@@ -4,6 +4,14 @@ import { NeonCheckbox } from '@/components/ui/animated-check-box';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,7 +30,7 @@ interface HabitGridProps {
   monthKey?: string;
   onToggleLog: (habitId: string, date: Date) => void;
   onCreateHabit: (name: string) => void;
-  onUpdateHabit: (id: string, updates: { name: string }) => void;
+  onUpdateHabit: (id: string, updates: { name?: string; description?: string | null }) => void;
   onDeleteHabit: (id: string) => void;
   getHabitAdherence: (habit: HabitWithLogs) => number;
   getLogStatus: (habit: HabitWithLogs, date: Date) => 'done' | 'not_done' | 'pending' | 'future' | 'not_planned';
@@ -102,6 +110,9 @@ const HabitGrid = React.memo(function HabitGrid({
   const [editingName, setEditingName] = React.useState('');
   const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(null);
+  const [detailHabit, setDetailHabit] = React.useState<HabitWithLogs | null>(null);
+  const [detailName, setDetailName] = React.useState('');
+  const [detailDescription, setDetailDescription] = React.useState('');
   const [columnWidth, setColumnWidth] = React.useState(224);
   const isResizing = React.useRef(false);
   const resizeStartX = React.useRef(0);
@@ -161,6 +172,23 @@ const HabitGrid = React.memo(function HabitGrid({
     setEditingName('');
   };
 
+  const openDetailDialog = (habit: HabitWithLogs) => {
+    setDetailHabit(habit);
+    setDetailName(habit.name);
+    setDetailDescription(habit.description || '');
+  };
+
+  const handleSaveDetail = () => {
+    if (detailHabit && detailName.trim()) {
+      onUpdateHabit(detailHabit.id, {
+        name: detailName.trim(),
+        description: detailDescription.trim() || null,
+      });
+      // Update local ref so closing doesn't flash stale data
+      setDetailHabit({ ...detailHabit, name: detailName.trim(), description: detailDescription.trim() || null });
+    }
+  };
+
   const handleDragStart = (index: number) => {
     setDraggedIndex(index);
   };
@@ -212,6 +240,7 @@ const HabitGrid = React.memo(function HabitGrid({
   };
 
   return (
+    <>
     <div className="flex flex-col w-full overflow-hidden">
       {/* Grid container */}
       <div className="flex w-full">
@@ -258,7 +287,10 @@ const HabitGrid = React.memo(function HabitGrid({
                 ) : (
                   <>
                     <GripVertical className="h-4 w-4 text-muted-foreground/50 cursor-grab active:cursor-grabbing flex-shrink-0 mr-1 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="flex-1 min-w-0 pr-2">
+                    <div
+                      className="flex-1 min-w-0 pr-2 cursor-pointer"
+                      onClick={() => openDetailDialog(habit)}
+                    >
                       <p className="text-sm font-medium truncate text-foreground">{habit.name}</p>
                       <div className="flex items-center gap-2 mt-1">
                         <Progress 
@@ -446,6 +478,53 @@ const HabitGrid = React.memo(function HabitGrid({
         </div>
       </div>
     </div>
+
+    {/* Habit Detail Dialog */}
+    <Dialog open={!!detailHabit} onOpenChange={(open) => {
+      if (!open) {
+        handleSaveDetail();
+        setDetailHabit(null);
+      }
+    }}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Editar Hábito</DialogTitle>
+          <DialogDescription>Altere o nome e adicione uma descrição ao seu hábito.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 pt-2">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Nome</label>
+            <Input
+              value={detailName}
+              onChange={(e) => setDetailName(e.target.value)}
+              placeholder="Nome do hábito..."
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleSaveDetail();
+                }
+              }}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Descrição</label>
+            <Textarea
+              value={detailDescription}
+              onChange={(e) => setDetailDescription(e.target.value)}
+              placeholder="Passo a passo, observações..."
+              rows={4}
+            />
+          </div>
+          <Button className="w-full" onClick={() => {
+            handleSaveDetail();
+            setDetailHabit(null);
+          }}>
+            Salvar
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 });
 

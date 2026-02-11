@@ -4,6 +4,7 @@ export interface Habit {
   id: string;
   user_id: string;
   name: string;
+  description: string | null;
   frequency: string[]; // ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
   start_date: string;
   active: boolean;
