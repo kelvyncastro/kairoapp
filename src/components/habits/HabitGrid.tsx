@@ -356,35 +356,15 @@ const HabitGrid = React.memo(function HabitGrid({
 
           {/* Add habit row */}
           <div className="h-14 px-3 flex items-center border-b border-border/20">
-            {isAddingHabit ? (
-              <Input
-                ref={inputRef}
-                value={newHabitName}
-                onChange={(e) => setNewHabitName(e.target.value)}
-                placeholder="Nome do hábito..."
-                onBlur={() => {
-                  if (!newHabitName.trim()) setIsAddingHabit(false);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleAddHabit();
-                  if (e.key === 'Escape') {
-                    setIsAddingHabit(false);
-                    setNewHabitName('');
-                  }
-                }}
-                className="h-8 text-sm"
-              />
-            ) : (
               <Button
                 variant="ghost"
                 size="sm"
                 className="text-muted-foreground hover:text-foreground w-full justify-start"
-                onClick={() => setIsAddingHabit(true)}
+                onClick={openCreateDialog}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Adicionar hábito
               </Button>
-            )}
           </div>
 
           {/* Resize handle */}
