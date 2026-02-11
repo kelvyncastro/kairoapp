@@ -7,6 +7,7 @@ export interface Habit {
   frequency: string[]; // ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
   start_date: string;
   active: boolean;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }
