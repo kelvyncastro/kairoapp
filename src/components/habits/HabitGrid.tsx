@@ -204,12 +204,13 @@ const HabitGrid = React.memo(function HabitGrid({
 
   const handleSaveDetail = () => {
     if (detailHabit && detailName.trim()) {
+      const cleanDescription = isDescriptionEmpty(detailDescription) ? null : detailDescription.trim();
       onUpdateHabit(detailHabit.id, {
         name: detailName.trim(),
-        description: detailDescription.trim() || null,
+        description: cleanDescription,
       });
       // Update local ref so closing doesn't flash stale data
-      setDetailHabit({ ...detailHabit, name: detailName.trim(), description: detailDescription.trim() || null });
+      setDetailHabit({ ...detailHabit, name: detailName.trim(), description: cleanDescription });
     }
   };
 
