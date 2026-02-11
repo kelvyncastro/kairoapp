@@ -151,11 +151,8 @@ export function useRankings() {
         let targetUserId: string | null = null;
 
         // First try public_id
-        const { data: profileByPublicId } = await supabase
-          .from('user_profiles')
-          .select('user_id')
-          .eq('public_id', invitee.toUpperCase())
-          .single();
+        const { data: profiles } = await supabase.rpc('get_public_user_profiles');
+        const profileByPublicId = profiles?.find((p: any) => p.public_id === invitee.toUpperCase()) || null;
 
         if (profileByPublicId) {
           targetUserId = profileByPublicId.user_id;
@@ -260,11 +257,8 @@ export function useRankings() {
       if (data.newInvitees && data.newInvitees.length > 0) {
         for (const invitee of data.newInvitees) {
           // Find user by public_id
-          const { data: profileByPublicId } = await supabase
-            .from('user_profiles')
-            .select('user_id')
-            .eq('public_id', invitee.toUpperCase())
-            .single();
+          const { data: profiles2 } = await supabase.rpc('get_public_user_profiles');
+          const profileByPublicId = profiles2?.find((p: any) => p.public_id === invitee.toUpperCase()) || null;
 
           if (profileByPublicId && profileByPublicId.user_id !== user.id) {
             // Check if participant already exists
