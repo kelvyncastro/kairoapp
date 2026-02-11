@@ -240,6 +240,7 @@ const HabitGrid = React.memo(function HabitGrid({
   };
 
   return (
+    <>
     <div className="flex flex-col w-full overflow-hidden">
       {/* Grid container */}
       <div className="flex w-full">
