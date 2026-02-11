@@ -24,6 +24,13 @@ import { format, isSameDay, getDay, startOfWeek, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useSound } from '@/contexts/SoundContext';
 
+// Helper function to check if HTML content is empty
+const isDescriptionEmpty = (html: string | null | undefined): boolean => {
+  if (!html) return true;
+  const stripHtml = html.replace(/<[^>]*>/g, '').trim();
+  return stripHtml === '';
+};
+
 interface HabitGridProps {
   habits: HabitWithLogs[];
   daysInMonth: Date[];
