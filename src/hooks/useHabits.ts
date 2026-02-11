@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Habit, HabitLog, HabitWithLogs, DAY_MAP } from '@/types/habits';
+import { Habit, HabitLog, HabitWithLogs, HabitSection, DAY_MAP } from '@/types/habits';
 import { toast } from 'sonner';
 import { 
   startOfMonth, 
@@ -70,6 +70,7 @@ export function useHabits(currentDate: Date) {
       const habitsWithLogs: HabitWithLogs[] = (habitsData || []).map((habit) => ({
         ...habit,
         frequency: habit.frequency as string[],
+        section: (habit.section as HabitSection) || null,
         logs: (logsData || []).filter((log) => log.habit_id === habit.id),
       }));
 
@@ -87,7 +88,7 @@ export function useHabits(currentDate: Date) {
   }, [fetchHabits]);
 
   // Create a new habit
-  const createHabit = async (name: string, description?: string | null) => {
+  const createHabit = async (name: string, description?: string | null, section?: HabitSection) => {
     if (!user) return;
 
     try {
@@ -97,6 +98,7 @@ export function useHabits(currentDate: Date) {
           user_id: user.id,
           name,
           description: description || null,
+          section: section || null,
           frequency: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
           start_date: format(new Date(), 'yyyy-MM-dd'),
         })
@@ -105,7 +107,7 @@ export function useHabits(currentDate: Date) {
 
       if (error) throw error;
 
-      setHabits((prev) => [...prev, { ...data, frequency: data.frequency as string[], logs: [] }]);
+      setHabits((prev) => [...prev, { ...data, frequency: data.frequency as string[], section: (data.section as HabitSection) || null, logs: [] }]);
       toast.success('Hábito criado!');
     } catch (error) {
       console.error('Error creating habit:', error);
@@ -114,7 +116,7 @@ export function useHabits(currentDate: Date) {
   };
 
   // Update a habit
-  const updateHabit = async (id: string, updates: Partial<Pick<Habit, 'name' | 'description' | 'frequency' | 'active'>>) => {
+  const updateHabit = async (id: string, updates: Partial<Pick<Habit, 'name' | 'description' | 'frequency' | 'active' | 'section'>>) => {
     try {
       const { error } = await supabase
         .from('habits')

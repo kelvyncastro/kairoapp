@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { MoreHorizontal, Trash2, Edit2, Plus, GripVertical, FileText } from 'lucide-react';
+import { MoreHorizontal, Trash2, Edit2, Plus, GripVertical, FileText, Sun, Sunset, Moon } from 'lucide-react';
 import { NeonCheckbox } from '@/components/ui/animated-check-box';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,8 +19,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { HabitWithLogs } from '@/types/habits';
-import { format, isSameDay, getDay, startOfWeek, addDays } from 'date-fns';
+import { HabitWithLogs, HabitSection } from '@/types/habits';
+import { format, isSameDay, getDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useSound } from '@/contexts/SoundContext';
 
@@ -35,26 +35,27 @@ interface HabitGridProps {
   habits: HabitWithLogs[];
   daysInMonth: Date[];
   monthKey?: string;
+  showSections?: boolean;
   onToggleLog: (habitId: string, date: Date) => void;
-  onCreateHabit: (name: string, description?: string | null) => void;
-  onUpdateHabit: (id: string, updates: { name?: string; description?: string | null }) => void;
+  onCreateHabit: (name: string, description?: string | null, section?: HabitSection) => void;
+  onUpdateHabit: (id: string, updates: { name?: string; description?: string | null; section?: HabitSection }) => void;
   onDeleteHabit: (id: string) => void;
   getHabitAdherence: (habit: HabitWithLogs) => number;
   getLogStatus: (habit: HabitWithLogs, date: Date) => 'done' | 'not_done' | 'pending' | 'future' | 'not_planned';
   onReorder?: (reorderedHabits: HabitWithLogs[]) => void;
 }
 
-// Calculate how many times a habit was completed in the current month
-const getMonthlyCompletionCount = (habit: HabitWithLogs, daysInMonth: Date[]): number => {
-  const monthStart = daysInMonth[0];
-  const monthEnd = daysInMonth[daysInMonth.length - 1];
-  
-  return habit.logs.filter(log => {
-    if (log.status !== 'done') return false;
-    const logDate = new Date(log.date + 'T00:00:00');
-    return logDate >= monthStart && logDate <= monthEnd;
-  }).length;
+const SECTION_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string }> = {
+  morning: { label: 'Manhã', icon: Sun, color: 'text-amber-400' },
+  afternoon: { label: 'Tarde', icon: Sunset, color: 'text-orange-400' },
+  night: { label: 'Noite', icon: Moon, color: 'text-indigo-400' },
 };
+
+const SECTION_ORDER: (HabitSection)[] = ['morning', 'afternoon', 'night', null];
+
+type RenderItem = 
+  | { type: 'section'; section: string }
+  | { type: 'habit'; habit: HabitWithLogs; globalIndex: number };
 
 // Group days by week
 const groupDaysByWeek = (days: Date[]): { weekNumber: number; days: Date[] }[] => {
@@ -64,13 +65,10 @@ const groupDaysByWeek = (days: Date[]): { weekNumber: number; days: Date[] }[] =
   let currentWeek: Date[] = [];
   let weekNumber = 1;
   
-  // Determine how many days to pad at the start to align with the first day
   const firstDay = days[0];
   const dayOfWeek = getDay(firstDay);
-  // We want Sunday (0) to be the start of the week for this visualization
   const daysToFill = dayOfWeek;
   
-  // Add empty slots for padding
   for (let i = 0; i < daysToFill; i++) {
     currentWeek.push(null as unknown as Date);
   }
@@ -85,9 +83,7 @@ const groupDaysByWeek = (days: Date[]): { weekNumber: number; days: Date[] }[] =
     }
   });
   
-  // Push remaining days
   if (currentWeek.length > 0) {
-    // Pad the end
     while (currentWeek.length < 7) {
       currentWeek.push(null as unknown as Date);
     }
@@ -97,12 +93,11 @@ const groupDaysByWeek = (days: Date[]): { weekNumber: number; days: Date[] }[] =
   return weeks;
 };
 
-const WEEKDAY_LABELS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
-
 const HabitGrid = React.memo(function HabitGrid({
   habits,
   daysInMonth,
   monthKey,
+  showSections = false,
   onToggleLog,
   onCreateHabit,
   onUpdateHabit,
@@ -120,6 +115,7 @@ const HabitGrid = React.memo(function HabitGrid({
   const [detailHabit, setDetailHabit] = React.useState<HabitWithLogs | null>(null);
   const [detailName, setDetailName] = React.useState('');
   const [detailDescription, setDetailDescription] = React.useState('');
+  const [detailSection, setDetailSection] = React.useState<HabitSection>(null);
   const [isCreateMode, setIsCreateMode] = React.useState(false);
   const [columnWidth, setColumnWidth] = React.useState(224);
   const isResizing = React.useRef(false);
@@ -132,6 +128,47 @@ const HabitGrid = React.memo(function HabitGrid({
   const { playCheck } = useSound();
 
   const weeks = React.useMemo(() => groupDaysByWeek(daysInMonth), [daysInMonth]);
+
+  // Build render items list (with section separators when enabled)
+  const renderItems = React.useMemo((): RenderItem[] => {
+    if (!showSections) {
+      return habits.map((habit, i) => ({ type: 'habit' as const, habit, globalIndex: i }));
+    }
+
+    const items: RenderItem[] = [];
+    const grouped = new Map<string, HabitWithLogs[]>();
+    
+    for (const s of SECTION_ORDER) {
+      grouped.set(s || '__none__', []);
+    }
+    
+    for (const habit of habits) {
+      const key = habit.section || '__none__';
+      if (!grouped.has(key)) grouped.set(key, []);
+      grouped.get(key)!.push(habit);
+    }
+
+    let globalIdx = 0;
+    for (const section of SECTION_ORDER) {
+      const key = section || '__none__';
+      const sectionHabits = grouped.get(key) || [];
+      if (sectionHabits.length === 0 && section !== null) continue;
+      if (section !== null) {
+        items.push({ type: 'section', section });
+      }
+      for (const habit of sectionHabits) {
+        items.push({ type: 'habit', habit, globalIndex: globalIdx++ });
+      }
+    }
+
+    return items;
+  }, [habits, showSections]);
+
+  // Flat list of habits in render order (for drag operations)
+  const orderedHabits = React.useMemo(() => 
+    renderItems.filter((i): i is Extract<RenderItem, { type: 'habit' }> => i.type === 'habit').map(i => i.habit),
+    [renderItems]
+  );
 
   React.useEffect(() => {
     if (isAddingHabit && inputRef.current) {
@@ -152,35 +189,29 @@ const HabitGrid = React.memo(function HabitGrid({
         week.days.some(day => day && isSameDay(day, today))
       );
       if (currentWeekIndex > 0) {
-        const weekWidth = 224; // approx width of each week column
+        const weekWidth = 224;
         const scrollPosition = Math.max(0, (currentWeekIndex - 1) * weekWidth);
         gridRef.current.scrollLeft = scrollPosition;
       }
     }
   }, [weeks, monthKey, habits.length]);
 
-  const handleAddHabit = () => {
-    if (newHabitName.trim()) {
-      onCreateHabit(newHabitName.trim());
-      setNewHabitName('');
-      setIsAddingHabit(false);
-    }
-  };
-
   const openCreateDialog = () => {
     setIsCreateMode(true);
     setDetailHabit(null);
     setDetailName('');
     setDetailDescription('');
+    setDetailSection(null);
   };
 
   const handleCreateFromDialog = () => {
     if (detailName.trim()) {
       const cleanDescription = isDescriptionEmpty(detailDescription) ? null : detailDescription.trim();
-      onCreateHabit(detailName.trim(), cleanDescription);
+      onCreateHabit(detailName.trim(), cleanDescription, showSections ? detailSection : null);
       setIsCreateMode(false);
       setDetailName('');
       setDetailDescription('');
+      setDetailSection(null);
     }
   };
 
@@ -201,6 +232,7 @@ const HabitGrid = React.memo(function HabitGrid({
     setDetailHabit(habit);
     setDetailName(habit.name);
     setDetailDescription(habit.description || '');
+    setDetailSection(habit.section);
   };
 
   const handleSaveDetail = () => {
@@ -209,9 +241,9 @@ const HabitGrid = React.memo(function HabitGrid({
       onUpdateHabit(detailHabit.id, {
         name: detailName.trim(),
         description: cleanDescription,
+        section: showSections ? detailSection : detailHabit.section,
       });
-      // Update local ref so closing doesn't flash stale data
-      setDetailHabit({ ...detailHabit, name: detailName.trim(), description: cleanDescription });
+      setDetailHabit({ ...detailHabit, name: detailName.trim(), description: cleanDescription, section: detailSection });
     }
   };
 
@@ -230,7 +262,7 @@ const HabitGrid = React.memo(function HabitGrid({
       setDragOverIndex(null);
       return;
     }
-    const reordered = [...habits];
+    const reordered = [...orderedHabits];
     const [moved] = reordered.splice(draggedIndex, 1);
     reordered.splice(index, 0, moved);
     onReorder?.(reordered);
@@ -265,6 +297,125 @@ const HabitGrid = React.memo(function HabitGrid({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
+  // Render a section separator row for the left column
+  const renderSectionSeparator = (sectionKey: string) => {
+    const config = SECTION_CONFIG[sectionKey];
+    if (!config) return null;
+    const Icon = config.icon;
+    
+    return (
+      <div
+        key={`section-${sectionKey}`}
+        className="h-8 px-3 flex items-center gap-2 bg-muted/30 border-b border-border/20"
+      >
+        <Icon className={cn("h-3.5 w-3.5", config.color)} />
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          {config.label}
+        </span>
+      </div>
+    );
+  };
+
+  // Render a section separator row for the right grid (empty, just for alignment)
+  const renderSectionSeparatorGrid = (sectionKey: string, weekDays: Date[]) => {
+    return (
+      <div
+        key={`section-grid-${sectionKey}`}
+        className="flex h-8 bg-muted/30 border-b border-border/20"
+      >
+        {weekDays.map((_, dayIndex) => (
+          <div key={dayIndex} className="w-8" />
+        ))}
+      </div>
+    );
+  };
+
+  // Render a habit row for the left column
+  const renderHabitRow = (habit: HabitWithLogs, habitIndex: number) => {
+    const adherence = getHabitAdherence(habit);
+    
+    return (
+      <div
+        key={habit.id}
+        draggable
+        onDragStart={() => handleDragStart(habitIndex)}
+        onDragOver={(e) => handleDragOver(e, habitIndex)}
+        onDrop={() => handleDrop(habitIndex)}
+        onDragEnd={handleDragEnd}
+        className={cn(
+          "h-14 px-1 flex items-center justify-between border-b border-border/20 group hover:bg-muted/20 transition-colors",
+          draggedIndex === habitIndex && "opacity-40",
+          dragOverIndex === habitIndex && draggedIndex !== habitIndex && "border-t-2 border-t-primary"
+        )}
+      >
+        {editingHabitId === habit.id ? (
+          <Input
+            ref={editInputRef}
+            value={editingName}
+            onChange={(e) => setEditingName(e.target.value)}
+            onBlur={handleSaveEdit}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSaveEdit();
+              if (e.key === 'Escape') {
+                setEditingHabitId(null);
+                setEditingName('');
+              }
+            }}
+            className="h-8 text-sm"
+          />
+        ) : (
+          <>
+            <GripVertical className="h-4 w-4 text-muted-foreground/50 cursor-grab active:cursor-grabbing flex-shrink-0 mr-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div
+              className="flex-1 min-w-0 pr-2 cursor-pointer"
+              onClick={() => openDetailDialog(habit)}
+            >
+              <div className="flex items-center gap-1">
+                <p className="text-sm font-medium truncate text-foreground">{habit.name}</p>
+                {!isDescriptionEmpty(habit.description) && (
+                  <FileText className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                )}
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <Progress 
+                  value={adherence} 
+                  className="h-1.5 w-16 bg-muted" 
+                />
+                <span className="text-xs font-medium text-primary">
+                  {adherence}%
+                </span>
+              </div>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="z-50">
+                <DropdownMenuItem onClick={() => handleEditHabit(habit)}>
+                  <Edit2 className="h-4 w-4 mr-2" />
+                  Editar
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={() => onDeleteHabit(habit.id)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Remover
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        )}
+      </div>
+    );
+  };
+
   return (
     <>
     <div className="flex flex-col w-full overflow-hidden">
@@ -277,90 +428,12 @@ const HabitGrid = React.memo(function HabitGrid({
             <span className="text-sm font-semibold text-foreground">Hábito</span>
           </div>
           
-          {/* Habit rows */}
-          {habits.map((habit, habitIndex) => {
-            const adherence = getHabitAdherence(habit);
-            
-            return (
-              <div
-                key={habit.id}
-                draggable
-                onDragStart={() => handleDragStart(habitIndex)}
-                onDragOver={(e) => handleDragOver(e, habitIndex)}
-                onDrop={() => handleDrop(habitIndex)}
-                onDragEnd={handleDragEnd}
-                className={cn(
-                  "h-14 px-1 flex items-center justify-between border-b border-border/20 group hover:bg-muted/20 transition-colors",
-                  draggedIndex === habitIndex && "opacity-40",
-                  dragOverIndex === habitIndex && draggedIndex !== habitIndex && "border-t-2 border-t-primary"
-                )}
-              >
-                {editingHabitId === habit.id ? (
-                  <Input
-                    ref={editInputRef}
-                    value={editingName}
-                    onChange={(e) => setEditingName(e.target.value)}
-                    onBlur={handleSaveEdit}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleSaveEdit();
-                      if (e.key === 'Escape') {
-                        setEditingHabitId(null);
-                        setEditingName('');
-                      }
-                    }}
-                    className="h-8 text-sm"
-                  />
-                ) : (
-                  <>
-                    <GripVertical className="h-4 w-4 text-muted-foreground/50 cursor-grab active:cursor-grabbing flex-shrink-0 mr-1 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div
-                      className="flex-1 min-w-0 pr-2 cursor-pointer"
-                      onClick={() => openDetailDialog(habit)}
-                    >
-                      <div className="flex items-center gap-1">
-                         <p className="text-sm font-medium truncate text-foreground">{habit.name}</p>
-                         {!isDescriptionEmpty(habit.description) && (
-                           <FileText className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                         )}
-                       </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Progress 
-                          value={adherence} 
-                          className="h-1.5 w-16 bg-muted" 
-                        />
-                        <span className="text-xs font-medium text-primary">
-                          {adherence}%
-                        </span>
-                      </div>
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="z-50">
-                        <DropdownMenuItem onClick={() => handleEditHabit(habit)}>
-                          <Edit2 className="h-4 w-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          onClick={() => onDeleteHabit(habit.id)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Remover
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </>
-                )}
-              </div>
-            );
+          {/* Render items (habits + section separators) */}
+          {renderItems.map((item) => {
+            if (item.type === 'section') {
+              return renderSectionSeparator(item.section);
+            }
+            return renderHabitRow(item.habit, item.globalIndex);
           })}
 
           {/* Add habit row */}
@@ -402,7 +475,6 @@ const HabitGrid = React.memo(function HabitGrid({
                   <div className="flex">
                     {week.days.map((day, dayIndex) => {
                       const isToday = day && isSameDay(day, today);
-                      const isSunday = day && getDay(day) === 0;
                       
                       return (
                         <div
@@ -437,45 +509,52 @@ const HabitGrid = React.memo(function HabitGrid({
                   </div>
                 </div>
 
-                {/* Habit day cells for this week */}
-                {habits.map((habit) => (
-                  <div key={habit.id} className="flex h-14 border-b border-border/20 items-center px-0.5">
-                    {week.days.map((day, dayIndex) => {
-                      if (!day) {
-                        return <div key={dayIndex} className="w-8 h-8" />;
-                      }
-                      
-                      const status = getLogStatus(habit, day);
-                      const isToday = isSameDay(day, today);
+                {/* Render items for grid side */}
+                {renderItems.map((item) => {
+                  if (item.type === 'section') {
+                    return renderSectionSeparatorGrid(item.section, week.days);
+                  }
+                  
+                  const habit = item.habit;
+                  return (
+                    <div key={habit.id} className="flex h-14 border-b border-border/20 items-center px-0.5">
+                      {week.days.map((day, dayIndex) => {
+                        if (!day) {
+                          return <div key={dayIndex} className="w-8 h-8" />;
+                        }
+                        
+                        const status = getLogStatus(habit, day);
+                        const isToday = isSameDay(day, today);
 
-                      return (
-                        <div
-                          key={day.toISOString()}
-                          className="w-8 flex items-center justify-center"
-                        >
-                          <NeonCheckbox
-                            size={24}
-                            checked={status === 'done'}
-                            disabled={status === 'future'}
-                            onChange={() => {
-                              if (status !== 'future') {
-                                if (status !== 'done') {
-                                  playCheck();
+                        return (
+                          <div
+                            key={day.toISOString()}
+                            className="w-8 flex items-center justify-center"
+                          >
+                            <NeonCheckbox
+                              size={24}
+                              checked={status === 'done'}
+                              disabled={status === 'future'}
+                              onChange={() => {
+                                if (status !== 'future') {
+                                  if (status !== 'done') {
+                                    playCheck();
+                                  }
+                                  onToggleLog(habit.id, day);
                                 }
-                                onToggleLog(habit.id, day);
-                              }
-                            }}
-                            className={cn(
-                              status === 'future' && 'opacity-30 cursor-not-allowed',
-                              status === 'pending' && '[&>div>div]:border-primary/50',
-                              isToday && status !== 'done' && '[&>div>div]:ring-2 [&>div>div]:ring-primary/30 [&>div>div]:ring-offset-1 [&>div>div]:ring-offset-background'
-                            )}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                ))}
+                              }}
+                              className={cn(
+                                status === 'future' && 'opacity-30 cursor-not-allowed',
+                                status === 'pending' && '[&>div>div]:border-primary/50',
+                                isToday && status !== 'done' && '[&>div>div]:ring-2 [&>div>div]:ring-primary/30 [&>div>div]:ring-offset-1 [&>div>div]:ring-offset-background'
+                              )}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
 
                 {/* Empty row for add habit alignment */}
                 <div className="flex h-14 border-b border-border/20">
@@ -501,6 +580,7 @@ const HabitGrid = React.memo(function HabitGrid({
         }
         setDetailName('');
         setDetailDescription('');
+        setDetailSection(null);
       }
     }}>
       <DialogContent className="sm:max-w-md">
@@ -529,6 +609,40 @@ const HabitGrid = React.memo(function HabitGrid({
               }}
             />
           </div>
+
+          {/* Section selector - only show when sections enabled */}
+          {showSections && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Período</label>
+              <div className="flex gap-2">
+                {(['morning', 'afternoon', 'night'] as const).map((s) => {
+                  const config = SECTION_CONFIG[s];
+                  const Icon = config.icon;
+                  const isSelected = detailSection === s;
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setDetailSection(isSelected ? null : s)}
+                      className={cn(
+                        "flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg border text-xs font-medium transition-all",
+                        isSelected 
+                          ? "border-primary bg-primary/10 text-foreground" 
+                          : "border-border/50 text-muted-foreground hover:border-border hover:bg-muted/30"
+                      )}
+                    >
+                      <Icon className={cn("h-3.5 w-3.5", isSelected ? config.color : "text-muted-foreground")} />
+                      {config.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Opcional. Clique novamente para remover.
+              </p>
+            </div>
+          )}
+
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Descrição</label>
             <RichTextEditor
