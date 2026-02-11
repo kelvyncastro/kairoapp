@@ -160,6 +160,22 @@ const HabitGrid = React.memo(function HabitGrid({
     }
   };
 
+  const openCreateDialog = () => {
+    setIsCreateMode(true);
+    setDetailHabit(null);
+    setDetailName('');
+    setDetailDescription('');
+  };
+
+  const handleCreateFromDialog = () => {
+    if (detailName.trim()) {
+      onCreateHabit(detailName.trim(), detailDescription.trim() || null);
+      setIsCreateMode(false);
+      setDetailName('');
+      setDetailDescription('');
+    }
+  };
+
   const handleEditHabit = (habit: HabitWithLogs) => {
     setEditingHabitId(habit.id);
     setEditingName(habit.name);
