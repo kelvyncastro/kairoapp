@@ -52,7 +52,7 @@ const SECTION_CONFIG: Record<string, { label: string; icon: React.ElementType; c
   night: { label: 'Noite', icon: Moon, color: 'text-indigo-400' },
 };
 
-const SECTION_ORDER: (HabitSection)[] = ['morning', 'afternoon', 'night', 'all_day', null];
+const SECTION_ORDER: (HabitSection)[] = ['morning', 'afternoon', 'night', 'all_day'];
 
 type RenderItem = 
   | { type: 'section'; section: string }
