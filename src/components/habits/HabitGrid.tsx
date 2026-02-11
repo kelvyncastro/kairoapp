@@ -286,7 +286,10 @@ const HabitGrid = React.memo(function HabitGrid({
                 ) : (
                   <>
                     <GripVertical className="h-4 w-4 text-muted-foreground/50 cursor-grab active:cursor-grabbing flex-shrink-0 mr-1 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="flex-1 min-w-0 pr-2">
+                    <div
+                      className="flex-1 min-w-0 pr-2 cursor-pointer"
+                      onClick={() => openDetailDialog(habit)}
+                    >
                       <p className="text-sm font-medium truncate text-foreground">{habit.name}</p>
                       <div className="flex items-center gap-2 mt-1">
                         <Progress 
