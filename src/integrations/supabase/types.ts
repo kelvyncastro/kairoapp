@@ -601,6 +601,7 @@ export type Database = {
           frequency: Json
           id: string
           name: string
+          section: string | null
           sort_order: number
           start_date: string
           updated_at: string
@@ -613,6 +614,7 @@ export type Database = {
           frequency?: Json
           id?: string
           name: string
+          section?: string | null
           sort_order?: number
           start_date?: string
           updated_at?: string
@@ -625,6 +627,7 @@ export type Database = {
           frequency?: Json
           id?: string
           name?: string
+          section?: string | null
           sort_order?: number
           start_date?: string
           updated_at?: string
