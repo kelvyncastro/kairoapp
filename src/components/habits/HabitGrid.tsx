@@ -46,12 +46,13 @@ interface HabitGridProps {
 }
 
 const SECTION_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string }> = {
+  all_day: { label: 'Dia inteiro', icon: CalendarClock, color: 'text-emerald-400' },
   morning: { label: 'Manhã', icon: Sun, color: 'text-amber-400' },
   afternoon: { label: 'Tarde', icon: Sunset, color: 'text-orange-400' },
   night: { label: 'Noite', icon: Moon, color: 'text-indigo-400' },
 };
 
-const SECTION_ORDER: (HabitSection)[] = ['morning', 'afternoon', 'night', null];
+const SECTION_ORDER: (HabitSection)[] = ['all_day', 'morning', 'afternoon', 'night', null];
 
 type RenderItem = 
   | { type: 'section'; section: string }
