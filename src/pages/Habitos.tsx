@@ -1,14 +1,22 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useHabits } from '@/hooks/useHabits';
 import { HabitProgressChart } from '@/components/habits/HabitProgressChart';
 import { HabitGrid } from '@/components/habits/HabitGrid';
 import { format, addMonths, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+import { HabitSection } from '@/types/habits';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export default function Habitos() {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [showSections, setShowSections] = useState(false);
   const monthKey = format(currentDate, 'yyyy-MM');
   
   const {
@@ -28,6 +36,14 @@ export default function Habitos() {
   const goToPreviousMonth = () => setCurrentDate((prev) => subMonths(prev, 1));
   const goToNextMonth = () => setCurrentDate((prev) => addMonths(prev, 1));
   const goToToday = () => setCurrentDate(new Date());
+
+  const handleCreateHabit = (name: string, description?: string | null, section?: HabitSection) => {
+    createHabit(name, description, section);
+  };
+
+  const handleUpdateHabit = (id: string, updates: { name?: string; description?: string | null; section?: HabitSection }) => {
+    updateHabit(id, updates);
+  };
 
   if (loading) {
     return (
@@ -57,9 +73,27 @@ export default function Habitos() {
             </Button>
           </div>
         </div>
-        <Button variant="outline" size="sm" className="h-7 text-xs" onClick={goToToday}>
-          Hoje
-        </Button>
+        <div className="flex items-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={showSections ? "default" : "outline"}
+                size="sm"
+                className={cn("h-7 text-xs gap-1.5", showSections && "bg-primary text-primary-foreground")}
+                onClick={() => setShowSections(!showSections)}
+              >
+                <Layers className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Períodos</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {showSections ? 'Desativar separadores de período' : 'Ativar separadores (Manhã, Tarde, Noite)'}
+            </TooltipContent>
+          </Tooltip>
+          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={goToToday}>
+            Hoje
+          </Button>
+        </div>
       </div>
 
       {/* Content - Scrollable */}
@@ -81,9 +115,10 @@ export default function Habitos() {
             habits={habits}
             daysInMonth={daysInMonth}
             monthKey={monthKey}
+            showSections={showSections}
             onToggleLog={toggleHabitLog}
-            onCreateHabit={createHabit}
-            onUpdateHabit={updateHabit}
+            onCreateHabit={handleCreateHabit}
+            onUpdateHabit={handleUpdateHabit}
             onDeleteHabit={deleteHabit}
             getHabitAdherence={getHabitAdherence}
             getLogStatus={getLogStatus}
