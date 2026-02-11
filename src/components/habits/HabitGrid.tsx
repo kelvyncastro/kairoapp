@@ -522,11 +522,11 @@ const HabitGrid = React.memo(function HabitGrid({
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Descrição</label>
-            <Textarea
-              value={detailDescription}
-              onChange={(e) => setDetailDescription(e.target.value)}
+            <RichTextEditor
+              content={detailDescription}
+              onChange={(html) => setDetailDescription(html)}
               placeholder="Passo a passo, observações..."
-              rows={4}
+              className="min-h-[120px]"
             />
           </div>
           <Button className="w-full" onClick={() => {
