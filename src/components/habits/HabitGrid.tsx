@@ -616,7 +616,7 @@ const HabitGrid = React.memo(function HabitGrid({
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Período</label>
               <div className="flex gap-2">
-                {(['morning', 'afternoon', 'night'] as const).map((s) => {
+                {(['all_day', 'morning', 'afternoon', 'night'] as const).map((s) => {
                   const config = SECTION_CONFIG[s];
                   const Icon = config.icon;
                   const isSelected = detailSection === s;
