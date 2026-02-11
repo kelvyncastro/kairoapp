@@ -318,11 +318,11 @@ const HabitGrid = React.memo(function HabitGrid({
                       onClick={() => openDetailDialog(habit)}
                     >
                       <div className="flex items-center gap-1">
-                        <p className="text-sm font-medium truncate text-foreground">{habit.name}</p>
-                        {habit.description && (
-                          <FileText className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                        )}
-                      </div>
+                         <p className="text-sm font-medium truncate text-foreground">{habit.name}</p>
+                         {!isDescriptionEmpty(habit.description) && (
+                           <FileText className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                         )}
+                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <Progress 
                           value={adherence} 
