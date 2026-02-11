@@ -113,6 +113,7 @@ const HabitGrid = React.memo(function HabitGrid({
   const [detailHabit, setDetailHabit] = React.useState<HabitWithLogs | null>(null);
   const [detailName, setDetailName] = React.useState('');
   const [detailDescription, setDetailDescription] = React.useState('');
+  const [isCreateMode, setIsCreateMode] = React.useState(false);
   const [columnWidth, setColumnWidth] = React.useState(224);
   const isResizing = React.useRef(false);
   const resizeStartX = React.useRef(0);
