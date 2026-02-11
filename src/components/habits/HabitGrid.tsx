@@ -29,7 +29,7 @@ interface HabitGridProps {
   daysInMonth: Date[];
   monthKey?: string;
   onToggleLog: (habitId: string, date: Date) => void;
-  onCreateHabit: (name: string) => void;
+  onCreateHabit: (name: string, description?: string | null) => void;
   onUpdateHabit: (id: string, updates: { name?: string; description?: string | null }) => void;
   onDeleteHabit: (id: string) => void;
   getHabitAdherence: (habit: HabitWithLogs) => number;
