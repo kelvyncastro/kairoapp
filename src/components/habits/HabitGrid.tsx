@@ -292,6 +292,7 @@ const HabitGrid = React.memo(function HabitGrid({
     
     const handleMouseUp = () => {
       isResizing.current = false;
+      localStorage.setItem('habits-column-width', String(columnWidth));
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
