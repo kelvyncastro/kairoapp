@@ -23,6 +23,7 @@ export default function Notas() {
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [emojiSearch, setEmojiSearch] = useState('');
+  const [emojiCategory, setEmojiCategory] = useState('frequent');
 
   const favoritePages = store.pages.filter(p => p.isFavorite && !p.isArchived);
   const recentPages = [...store.pages].filter(p => !p.isArchived).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()).slice(0, 5);
@@ -36,9 +37,7 @@ export default function Notas() {
     store.updatePageFolder(pageId, folderId);
   };
 
-  const filteredEmojis = emojiSearch
-    ? ALL_EMOJIS.filter(e => e.includes(emojiSearch))
-    : ALL_EMOJIS;
+  const searchResults = searchEmojis(emojiSearch);
 
   return (
     <div className="h-full flex -m-4 md:-m-6 bg-background overflow-hidden">
