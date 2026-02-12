@@ -51,6 +51,7 @@ export function NotesSidebar({
   onSearchChange, onSelectPage, onCreatePage,
   onDeletePage, onDuplicatePage, onArchivePage, onMoveToFolder,
   onToggleFavorite, onCreateFolder, onDeleteFolder, onRenameFolder, onToggleFolder,
+  onUpdateFolderIcon,
 }: NotesSidebarProps) {
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'page' | 'folder'; id: string } | null>(null);
   const [newFolderName, setNewFolderName] = useState('');
