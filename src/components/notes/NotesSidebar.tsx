@@ -38,7 +38,7 @@ interface NotesSidebarProps {
   onArchivePage: (id: string) => void;
   onMoveToFolder: (pageId: string, folderId: string | null) => void;
   onToggleFavorite: (id: string) => void;
-  onCreateFolder: (name: string) => void;
+  onCreateFolder: (name: string) => { id: string } | void;
   onDeleteFolder: (id: string) => void;
   onRenameFolder: (id: string, name: string) => void;
   onToggleFolder: (id: string) => void;
