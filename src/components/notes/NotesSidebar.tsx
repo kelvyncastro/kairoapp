@@ -54,6 +54,11 @@ export function NotesSidebar({
   const [renameValue, setRenameValue] = useState('');
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
   const [dragOverOrphan, setDragOverOrphan] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+
+  const toggleSection = (key: string) => {
+    setCollapsedSections(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const orphanPages = pages.filter(p => !p.folderId && !p.isArchived);
 
@@ -98,7 +103,7 @@ export function NotesSidebar({
         <div className="p-2 space-y-4">
           {/* Favorites */}
           {favoritePages.length > 0 && (
-            <SidebarSection title="Favoritos" icon={<Star className="h-3.5 w-3.5" />}>
+            <SidebarSection title="Favoritos" icon={<Star className="h-3.5 w-3.5" />} collapsed={!!collapsedSections['favorites']} onToggle={() => toggleSection('favorites')}>
               {favoritePages.map(page => (
                 <PageItem
                   key={page.id}
@@ -118,7 +123,7 @@ export function NotesSidebar({
 
           {/* Recent */}
           {!searchQuery && (
-            <SidebarSection title="Recentes" icon={<Clock className="h-3.5 w-3.5" />}>
+            <SidebarSection title="Recentes" icon={<Clock className="h-3.5 w-3.5" />} collapsed={!!collapsedSections['recent']} onToggle={() => toggleSection('recent')}>
               {recentPages.slice(0, 3).map(page => (
                 <PageItem
                   key={page.id}
@@ -140,8 +145,10 @@ export function NotesSidebar({
           <SidebarSection
             title="Pastas"
             icon={<FolderOpen className="h-3.5 w-3.5" />}
+            collapsed={!!collapsedSections['folders']}
+            onToggle={() => toggleSection('folders')}
             action={
-              <Button size="icon" variant="ghost" className="h-5 w-5" onClick={() => setShowNewFolder(true)}>
+              <Button size="icon" variant="ghost" className="h-5 w-5" onClick={(e) => { e.stopPropagation(); setShowNewFolder(true); }}>
                 <FolderPlus className="h-3 w-3" />
               </Button>
             }
@@ -246,7 +253,7 @@ export function NotesSidebar({
 
           {/* Orphan pages */}
           {orphanPages.length > 0 && (
-            <SidebarSection title="Paginas" icon={<FileText className="h-3.5 w-3.5" />}>
+            <SidebarSection title="Páginas" icon={<FileText className="h-3.5 w-3.5" />} collapsed={!!collapsedSections['pages']} onToggle={() => toggleSection('pages')}>
               <div
                 onDragOver={(e) => { e.preventDefault(); setDragOverOrphan(true); }}
                 onDragLeave={() => setDragOverOrphan(false)}
@@ -306,16 +313,20 @@ export function NotesSidebar({
   );
 }
 
-function SidebarSection({ title, icon, children, action }: { title: string; icon: React.ReactNode; children: React.ReactNode; action?: React.ReactNode }) {
+function SidebarSection({ title, icon, children, action, collapsed, onToggle }: { title: string; icon: React.ReactNode; children: React.ReactNode; action?: React.ReactNode; collapsed?: boolean; onToggle?: () => void }) {
   return (
     <div>
       <div className="flex items-center justify-between px-1.5 mb-1">
-        <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+        <button
+          className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors"
+          onClick={onToggle}
+        >
+          {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
           {icon} {title}
-        </div>
+        </button>
         {action}
       </div>
-      <div className="space-y-0.5">{children}</div>
+      {!collapsed && <div className="space-y-0.5">{children}</div>}
     </div>
   );
 }
