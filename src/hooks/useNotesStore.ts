@@ -200,6 +200,6 @@ export function useNotesStore() {
     updatePageTags, updateContent,
     saveVersion, restoreVersion,
     addComment, deleteComment, resolveComment,
-    createFolder, deleteFolder, renameFolder, toggleFolder,
+    createFolder, deleteFolder, renameFolder, toggleFolder, updateFolderIcon,
   };
 }
