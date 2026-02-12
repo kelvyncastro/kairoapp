@@ -68,6 +68,7 @@ export interface PageVersion {
 export interface NotesFolder {
   id: string;
   name: string;
+  icon?: string;
   isExpanded: boolean;
   order: number;
   createdAt: string;
