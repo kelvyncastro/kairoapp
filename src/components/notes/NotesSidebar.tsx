@@ -54,6 +54,11 @@ export function NotesSidebar({
   const [renameValue, setRenameValue] = useState('');
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
   const [dragOverOrphan, setDragOverOrphan] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+
+  const toggleSection = (key: string) => {
+    setCollapsedSections(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const orphanPages = pages.filter(p => !p.folderId && !p.isArchived);
 
