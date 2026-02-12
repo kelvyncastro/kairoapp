@@ -136,43 +136,44 @@ export default function Notas() {
                         {store.selectedPage.icon}
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[280px] p-0 rounded-2xl overflow-hidden" align="start" sideOffset={8}>
-                      {/* Category bar - iPhone style */}
-                      <div className="bg-muted/80 backdrop-blur-sm px-2 py-2 flex items-center justify-between">
-                        {EMOJI_CATEGORIES.map((cat) => (
-                          <button
-                            key={cat.id}
-                            onClick={() => { setEmojiCategory(cat.id); setEmojiSearch(''); }}
-                            className={cn(
-                              'w-9 h-9 flex items-center justify-center rounded-full text-xl transition-all',
-                              emojiCategory === cat.id ? 'bg-accent shadow-sm' : 'hover:bg-accent/50'
-                            )}
-                          >
-                            {cat.icon}
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Search */}
-                      <div className="px-3 py-2">
+                    <PopoverContent className="w-80 p-0" align="start">
+                      <div className="p-2 border-b border-border">
                         <Input
-                          placeholder="Pesquisar"
+                          placeholder="Buscar emoji... (ex: fogo, coracao, estrela)"
                           value={emojiSearch}
                           onChange={(e) => setEmojiSearch(e.target.value)}
-                          className="h-8 text-sm rounded-lg bg-muted/50 border-0 pl-3 focus-visible:ring-1"
+                          className="h-8 text-xs"
+                          autoFocus
                         />
                       </div>
 
-                      {/* Emojis grid */}
-                      <ScrollArea className="h-52">
-                        <div className="px-3 pb-3">
-                          {emojiSearch ? (
-                            searchResults.length > 0 ? (
-                              <div className="grid grid-cols-7 gap-1">
+                      {!emojiSearch && (
+                        <div className="flex gap-0.5 px-1 py-1 border-b border-border overflow-x-auto scrollbar-none">
+                          {EMOJI_CATEGORIES.map((cat) => (
+                            <button
+                              key={cat.id}
+                              onClick={() => setEmojiCategory(cat.id)}
+                              className={cn(
+                                'flex-shrink-0 w-7 h-7 flex items-center justify-center rounded text-sm transition-colors',
+                                emojiCategory === cat.id ? 'bg-accent' : 'hover:bg-muted'
+                              )}
+                              title={cat.label}
+                            >
+                              {cat.icon}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      <ScrollArea className="h-56">
+                        {emojiSearch ? (
+                          <div className="p-2">
+                            {searchResults.length > 0 ? (
+                              <div className="grid grid-cols-8 gap-0.5">
                                 {searchResults.map((entry, i) => (
                                   <button
                                     key={`${entry.emoji}-${i}`}
-                                    className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-muted active:scale-90 transition-all text-xl"
+                                    className="w-8 h-8 flex items-center justify-center rounded hover:bg-muted transition-colors text-lg"
                                     onClick={() => {
                                       store.updatePageIcon(store.selectedPage!.id, entry.emoji);
                                       setEmojiOpen(false);
@@ -184,19 +185,21 @@ export default function Notas() {
                                 ))}
                               </div>
                             ) : (
-                              <p className="text-xs text-muted-foreground text-center py-8">Nenhum emoji encontrado</p>
-                            )
-                          ) : (
-                            EMOJI_CATEGORIES
+                              <p className="text-xs text-muted-foreground text-center py-4">Nenhum emoji encontrado</p>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="p-2">
+                            {EMOJI_CATEGORIES
                               .filter(cat => cat.id === emojiCategory)
                               .map(cat => (
                                 <div key={cat.id}>
-                                  <p className="text-[11px] font-semibold text-muted-foreground mb-2">{cat.label}</p>
-                                  <div className="grid grid-cols-7 gap-1">
+                                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 px-1">{cat.label}</p>
+                                  <div className="grid grid-cols-8 gap-0.5">
                                     {cat.emojis.map((entry, i) => (
                                       <button
                                         key={`${entry.emoji}-${i}`}
-                                        className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-muted active:scale-90 transition-all text-xl"
+                                        className="w-8 h-8 flex items-center justify-center rounded hover:bg-muted transition-colors text-lg"
                                         onClick={() => {
                                           store.updatePageIcon(store.selectedPage!.id, entry.emoji);
                                           setEmojiOpen(false);
@@ -208,9 +211,9 @@ export default function Notas() {
                                     ))}
                                   </div>
                                 </div>
-                              ))
-                          )}
-                        </div>
+                              ))}
+                          </div>
+                        )}
                       </ScrollArea>
                     </PopoverContent>
                   </Popover>
