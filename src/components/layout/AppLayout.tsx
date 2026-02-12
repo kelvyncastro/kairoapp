@@ -77,7 +77,7 @@ export default function AppLayout() {
   };
 
   const NavContent = ({ mobile = false }: { mobile?: boolean }) => (
-    <nav className={cn("space-y-1.5 p-3 overflow-y-auto", mobile && "pt-4")}>
+    <nav className={cn("flex-1 space-y-1.5 p-3 overflow-y-auto", mobile && "pt-4")}>
       {/* Section label */}
       <AnimatePresence mode="wait">
         {(mobile || !collapsed) && (
