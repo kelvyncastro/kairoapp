@@ -13,11 +13,15 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import {
+  Popover, PopoverContent, PopoverTrigger,
+} from '@/components/ui/popover';
+import {
   Search, Plus, Star, Clock, FolderOpen, ChevronRight, ChevronDown,
-  MoreHorizontal, Copy, FolderInput, Archive, Trash2, Edit3, FileText, FolderPlus,
+  MoreHorizontal, Copy, FolderInput, Archive, Trash2, Edit3, FileText, FolderPlus, Smile,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { EMOJI_CATEGORIES, searchEmojis } from '@/lib/emoji-data';
 
 interface NotesSidebarProps {
   pages: NotesPage[];
