@@ -43,7 +43,7 @@ export function useNotesStore() {
 
   const createPage = useCallback((folderId?: string | null) => {
     const newPage: NotesPage = {
-      id: uid(), title: 'Sem titulo', icon: '📄',
+      id: uid(), title: 'Sem titulo', icon: randomPageEmoji(),
       folderId: folderId || null, isFavorite: false, isArchived: false,
       status: 'draft', tags: [],
       content: '<p></p>',
