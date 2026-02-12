@@ -67,6 +67,7 @@ export default function Notas() {
             onDeleteFolder={store.deleteFolder}
             onRenameFolder={store.renameFolder}
             onToggleFolder={store.toggleFolder}
+            onUpdateFolderIcon={store.updateFolderIcon}
           />
         )}
       </div>
