@@ -253,7 +253,7 @@ export function NotesSidebar({
 
           {/* Orphan pages */}
           {orphanPages.length > 0 && (
-            <SidebarSection title="Paginas" icon={<FileText className="h-3.5 w-3.5" />}>
+            <SidebarSection title="Páginas" icon={<FileText className="h-3.5 w-3.5" />} collapsed={!!collapsedSections['pages']} onToggle={() => toggleSection('pages')}>
               <div
                 onDragOver={(e) => { e.preventDefault(); setDragOverOrphan(true); }}
                 onDragLeave={() => setDragOverOrphan(false)}
