@@ -306,16 +306,23 @@ export function NotesSidebar({
   );
 }
 
-function SidebarSection({ title, icon, children, action }: { title: string; icon: React.ReactNode; children: React.ReactNode; action?: React.ReactNode }) {
+function SidebarSection({ title, icon, children, action, defaultOpen = true }: { title: string; icon: React.ReactNode; children: React.ReactNode; action?: React.ReactNode; defaultOpen?: boolean }) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   return (
     <div>
       <div className="flex items-center justify-between px-1.5 mb-1">
-        <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+        <button
+          className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <div className={cn("transition-transform duration-200", isOpen ? "rotate-90" : "rotate-0")}>
+            <ChevronRight className="h-3 w-3" />
+          </div>
           {icon} {title}
-        </div>
+        </button>
         {action}
       </div>
-      <div className="space-y-0.5">{children}</div>
+      {isOpen && <div className="space-y-0.5">{children}</div>}
     </div>
   );
 }

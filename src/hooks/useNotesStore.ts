@@ -5,6 +5,12 @@ import { toast } from 'sonner';
 
 function uid(): string { return crypto.randomUUID(); }
 
+const PAGE_EMOJIS = ['📋','📝','📌','💡','🎯','🚀','⭐','✨','🔥','💼','📚','🏠','💰','🎨','🎵','📊','📈','🗂️','📂','🗒️','✏️','🔑','💎','📦','📱','💻','🎮','🧠','🌟','🎉','🎁','🛠️','⚡','🌈','🍀','🎸','☕','📖','🧩','🔮'];
+
+function randomPageEmoji(): string {
+  return PAGE_EMOJIS[Math.floor(Math.random() * PAGE_EMOJIS.length)];
+}
+
 export function useNotesStore() {
   const [pages, setPages] = useState<NotesPage[]>(() => loadPages());
   const [folders, setFolders] = useState<NotesFolder[]>(() => loadFolders());
@@ -37,7 +43,7 @@ export function useNotesStore() {
 
   const createPage = useCallback((folderId?: string | null) => {
     const newPage: NotesPage = {
-      id: uid(), title: 'Sem titulo', icon: '📄',
+      id: uid(), title: 'Sem titulo', icon: randomPageEmoji(),
       folderId: folderId || null, isFavorite: false, isArchived: false,
       status: 'draft', tags: [],
       content: '<p></p>',
