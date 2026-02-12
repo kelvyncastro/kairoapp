@@ -123,7 +123,7 @@ export function NotesSidebar({
 
           {/* Recent */}
           {!searchQuery && (
-            <SidebarSection title="Recentes" icon={<Clock className="h-3.5 w-3.5" />}>
+            <SidebarSection title="Recentes" icon={<Clock className="h-3.5 w-3.5" />} collapsed={!!collapsedSections['recent']} onToggle={() => toggleSection('recent')}>
               {recentPages.slice(0, 3).map(page => (
                 <PageItem
                   key={page.id}
