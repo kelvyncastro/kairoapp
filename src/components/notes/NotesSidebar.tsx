@@ -379,7 +379,7 @@ export function NotesSidebar({
                     </Popover>
                   </div>
                   {folder.isExpanded && (
-                    <div className="ml-4 space-y-0.5">
+                    <div className="ml-6 space-y-0.5 border-l border-border/40 pl-2">
                       {folderPages.length === 0 && (
                         <p className="text-[10px] text-muted-foreground py-1 px-2">Vazia</p>
                       )}
