@@ -13,11 +13,15 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import {
+  Popover, PopoverContent, PopoverTrigger,
+} from '@/components/ui/popover';
+import {
   Search, Plus, Star, Clock, FolderOpen, ChevronRight, ChevronDown,
-  MoreHorizontal, Copy, FolderInput, Archive, Trash2, Edit3, FileText, FolderPlus,
+  MoreHorizontal, Copy, FolderInput, Archive, Trash2, Edit3, FileText, FolderPlus, Smile,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { EMOJI_CATEGORIES, searchEmojis } from '@/lib/emoji-data';
 
 interface NotesSidebarProps {
   pages: NotesPage[];
@@ -38,6 +42,7 @@ interface NotesSidebarProps {
   onDeleteFolder: (id: string) => void;
   onRenameFolder: (id: string, name: string) => void;
   onToggleFolder: (id: string) => void;
+  onUpdateFolderIcon: (id: string, icon: string) => void;
 }
 
 export function NotesSidebar({
@@ -46,6 +51,7 @@ export function NotesSidebar({
   onSearchChange, onSelectPage, onCreatePage,
   onDeletePage, onDuplicatePage, onArchivePage, onMoveToFolder,
   onToggleFavorite, onCreateFolder, onDeleteFolder, onRenameFolder, onToggleFolder,
+  onUpdateFolderIcon,
 }: NotesSidebarProps) {
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'page' | 'folder'; id: string } | null>(null);
   const [newFolderName, setNewFolderName] = useState('');
@@ -54,6 +60,9 @@ export function NotesSidebar({
   const [renameValue, setRenameValue] = useState('');
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
   const [dragOverOrphan, setDragOverOrphan] = useState(false);
+  const [folderEmojiPickerOpen, setFolderEmojiPickerOpen] = useState<string | null>(null);
+  const [folderEmojiSearch, setFolderEmojiSearch] = useState('');
+  const [folderEmojiCategory, setFolderEmojiCategory] = useState('frequent');
 
   const orphanPages = pages.filter(p => !p.folderId && !p.isArchived);
 
@@ -181,7 +190,11 @@ export function NotesSidebar({
                       onClick={() => onToggleFolder(folder.id)}
                     >
                       {folder.isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                      <FolderOpen className="h-3.5 w-3.5 text-primary/70" />
+                      {folder.icon ? (
+                        <span className="text-sm flex-shrink-0">{folder.icon}</span>
+                      ) : (
+                        <FolderOpen className="h-3.5 w-3.5 text-primary/70" />
+                      )}
                       {renamingFolder === folder.id ? (
                         <input
                           className="flex-1 bg-transparent outline-none text-xs"
@@ -210,12 +223,82 @@ export function NotesSidebar({
                         <DropdownMenuItem onClick={() => { setRenamingFolder(folder.id); setRenameValue(folder.name); }} className="text-xs gap-2">
                           <Edit3 className="h-3 w-3" /> Renomear
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => { e.preventDefault(); setFolderEmojiPickerOpen(folder.id); setFolderEmojiSearch(''); setFolderEmojiCategory('frequent'); }} className="text-xs gap-2">
+                          <Smile className="h-3 w-3" /> Alterar emoji
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => setDeleteTarget({ type: 'folder', id: folder.id })} className="text-xs gap-2 text-destructive">
                           <Trash2 className="h-3 w-3" /> Excluir
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
+
+                    {/* Folder Emoji Picker */}
+                    <Popover open={folderEmojiPickerOpen === folder.id} onOpenChange={(open) => { if (!open) setFolderEmojiPickerOpen(null); }}>
+                      <PopoverTrigger asChild>
+                        <span />
+                      </PopoverTrigger>
+                      <PopoverContent className="w-72 p-0" align="start" side="right">
+                        <div className="p-2 border-b border-border">
+                          <Input
+                            placeholder="Buscar emoji..."
+                            value={folderEmojiSearch}
+                            onChange={(e) => setFolderEmojiSearch(e.target.value)}
+                            className="h-7 text-xs"
+                            autoFocus
+                          />
+                        </div>
+                        {!folderEmojiSearch && (
+                          <div className="flex gap-0.5 px-1 py-1 border-b border-border overflow-x-auto scrollbar-none">
+                            {EMOJI_CATEGORIES.map((cat) => (
+                              <button
+                                key={cat.id}
+                                onClick={() => setFolderEmojiCategory(cat.id)}
+                                className={cn(
+                                  'flex-shrink-0 w-6 h-6 flex items-center justify-center rounded text-xs transition-colors',
+                                  folderEmojiCategory === cat.id ? 'bg-accent' : 'hover:bg-muted'
+                                )}
+                                title={cat.label}
+                              >
+                                {cat.icon}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        <ScrollArea className="h-48">
+                          {folderEmojiSearch ? (
+                            <div className="p-2">
+                              {(() => { const results = searchEmojis(folderEmojiSearch); return results.length > 0 ? (
+                                <div className="grid grid-cols-8 gap-0.5">
+                                  {results.map((entry, i) => (
+                                    <button key={`${entry.emoji}-${i}`} className="w-7 h-7 flex items-center justify-center rounded hover:bg-muted transition-colors text-sm"
+                                      onClick={() => { onUpdateFolderIcon(folder.id, entry.emoji); setFolderEmojiPickerOpen(null); }}>
+                                      {entry.emoji}
+                                    </button>
+                                  ))}
+                                </div>
+                              ) : <p className="text-xs text-muted-foreground text-center py-3">Nenhum emoji encontrado</p>; })()}
+                            </div>
+                          ) : (
+                            <div className="p-2">
+                              {EMOJI_CATEGORIES.filter(cat => cat.id === folderEmojiCategory).map(cat => (
+                                <div key={cat.id}>
+                                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 px-1">{cat.label}</p>
+                                  <div className="grid grid-cols-8 gap-0.5">
+                                    {cat.emojis.map((entry, i) => (
+                                      <button key={`${entry.emoji}-${i}`} className="w-7 h-7 flex items-center justify-center rounded hover:bg-muted transition-colors text-sm"
+                                        onClick={() => { onUpdateFolderIcon(folder.id, entry.emoji); setFolderEmojiPickerOpen(null); }}>
+                                        {entry.emoji}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </ScrollArea>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   {folder.isExpanded && (
                     <div className="ml-4 space-y-0.5">
