@@ -136,51 +136,43 @@ export default function Notas() {
                         {store.selectedPage.icon}
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-72 p-0 rounded-xl shadow-lg" align="start">
-                      {/* Search */}
-                      <div className="p-2.5 pb-2">
-                        <div className="relative">
-                          <Input
-                            placeholder="Pesquisar"
-                            value={emojiSearch}
-                            onChange={(e) => setEmojiSearch(e.target.value)}
-                            className="h-9 text-sm rounded-lg bg-muted/50 border-0 pl-3 focus-visible:ring-1"
-                            autoFocus
-                          />
-                        </div>
+                    <PopoverContent className="w-[280px] p-0 rounded-2xl overflow-hidden" align="start" sideOffset={8}>
+                      {/* Category bar - iPhone style */}
+                      <div className="bg-muted/80 backdrop-blur-sm px-2 py-2 flex items-center justify-between">
+                        {EMOJI_CATEGORIES.map((cat) => (
+                          <button
+                            key={cat.id}
+                            onClick={() => { setEmojiCategory(cat.id); setEmojiSearch(''); }}
+                            className={cn(
+                              'w-9 h-9 flex items-center justify-center rounded-full text-xl transition-all',
+                              emojiCategory === cat.id ? 'bg-accent shadow-sm' : 'hover:bg-accent/50'
+                            )}
+                          >
+                            {cat.icon}
+                          </button>
+                        ))}
                       </div>
 
-                      {/* Category tabs */}
-                      {!emojiSearch && (
-                        <div className="flex px-2 gap-1 pb-1.5">
-                          {EMOJI_CATEGORIES.map((cat) => (
-                            <button
-                              key={cat.id}
-                              onClick={() => setEmojiCategory(cat.id)}
-                              className={cn(
-                                'flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-lg transition-all',
-                                emojiCategory === cat.id ? 'bg-accent scale-110' : 'hover:bg-muted/60'
-                              )}
-                              title={cat.label}
-                            >
-                              {cat.icon}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-
-                      <Separator />
+                      {/* Search */}
+                      <div className="px-3 py-2">
+                        <Input
+                          placeholder="Pesquisar"
+                          value={emojiSearch}
+                          onChange={(e) => setEmojiSearch(e.target.value)}
+                          className="h-8 text-sm rounded-lg bg-muted/50 border-0 pl-3 focus-visible:ring-1"
+                        />
+                      </div>
 
                       {/* Emojis grid */}
-                      <ScrollArea className="h-60">
-                        <div className="p-2">
+                      <ScrollArea className="h-52">
+                        <div className="px-3 pb-3">
                           {emojiSearch ? (
                             searchResults.length > 0 ? (
-                              <div className="grid grid-cols-8 gap-px">
+                              <div className="grid grid-cols-7 gap-1">
                                 {searchResults.map((entry, i) => (
                                   <button
                                     key={`${entry.emoji}-${i}`}
-                                    className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted/70 active:scale-90 transition-all text-xl"
+                                    className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-muted active:scale-90 transition-all text-xl"
                                     onClick={() => {
                                       store.updatePageIcon(store.selectedPage!.id, entry.emoji);
                                       setEmojiOpen(false);
@@ -199,12 +191,12 @@ export default function Notas() {
                               .filter(cat => cat.id === emojiCategory)
                               .map(cat => (
                                 <div key={cat.id}>
-                                  <p className="text-[11px] font-semibold text-muted-foreground mb-1.5 px-0.5">{cat.label}</p>
-                                  <div className="grid grid-cols-8 gap-px">
+                                  <p className="text-[11px] font-semibold text-muted-foreground mb-2">{cat.label}</p>
+                                  <div className="grid grid-cols-7 gap-1">
                                     {cat.emojis.map((entry, i) => (
                                       <button
                                         key={`${entry.emoji}-${i}`}
-                                        className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted/70 active:scale-90 transition-all text-xl"
+                                        className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-muted active:scale-90 transition-all text-xl"
                                         onClick={() => {
                                           store.updatePageIcon(store.selectedPage!.id, entry.emoji);
                                           setEmojiOpen(false);
