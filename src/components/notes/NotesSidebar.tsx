@@ -145,8 +145,10 @@ export function NotesSidebar({
           <SidebarSection
             title="Pastas"
             icon={<FolderOpen className="h-3.5 w-3.5" />}
+            collapsed={!!collapsedSections['folders']}
+            onToggle={() => toggleSection('folders')}
             action={
-              <Button size="icon" variant="ghost" className="h-5 w-5" onClick={() => setShowNewFolder(true)}>
+              <Button size="icon" variant="ghost" className="h-5 w-5" onClick={(e) => { e.stopPropagation(); setShowNewFolder(true); }}>
                 <FolderPlus className="h-3 w-3" />
               </Button>
             }
