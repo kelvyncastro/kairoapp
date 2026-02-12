@@ -73,8 +73,18 @@ export function NotesSidebar({
   const handleCreateFolder = () => {
     if (!newFolderName.trim()) return;
     onCreateFolder(newFolderName.trim());
+    // Set the emoji on the newly created folder after creation
+    // We'll need to handle this via a callback pattern
+    const folderName = newFolderName.trim();
+    const emoji = newFolderEmoji;
     setNewFolderName('');
+    setNewFolderEmoji('📁');
     setShowNewFolder(false);
+    // We pass emoji info back - need to update the interface
+    setTimeout(() => {
+      const created = folders.find(f => f.name === folderName);
+      if (created && emoji !== '📁') onUpdateFolderIcon(created.id, emoji);
+    }, 100);
   };
 
   const handleRename = (folderId: string) => {
