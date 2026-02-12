@@ -13,29 +13,9 @@ import {
 } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
-
-const ALL_EMOJIS = [
-  // Smileys
-  '😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','😚','😙','🥲','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🫡','🤐','🤨','😐','😑','😶','🫥','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🥵','🥶','🥴','😵','🤯','🤠','🥳','🥸','😎','🤓','🧐',
-  // Gestures
-  '👋','🤚','🖐️','✋','🖖','🫱','🫲','👌','🤌','🤏','✌️','🤞','🫰','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','🫵','👍','👎','👏','🙌','🫶','🤝','🙏',
-  // Hearts & symbols
-  '❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❤️‍🔥','💕','💞','💓','💗','💖','💘','💝','💟','♥️','⭐','🌟','✨','⚡','🔥','💥','🎉','🎊',
-  // Objects & tools
-  '📄','📝','📋','📌','📎','💡','🎯','🚀','💰','📊','🎨','🎵','📚','🏠','💼','✅','🔑','🎁','📱','💻','🗂️','📂','🗒️','✏️','🖊️','🖍️','📐','📏','🔒','🔓','🔍','🔎','💎','🧲','🔧','🔨','⚙️','🛠️','📦','🏷️','💳','🧾',
-  // Nature
-  '🌸','🌺','🌻','🌹','🌷','🌼','🌿','🍀','🍃','🌱','🌲','🌳','🍁','🍂','🌾','🌵','🌴','🌊','🌈','☀️','🌤️','⛅','🌙','⭐','🌍','🌎','🌏',
-  // Food
-  '🍎','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍒','🍑','🥝','🍍','🥭','🥑','🥦','🥕','🌽','🍕','🍔','🍟','🌮','🍜','🍣','🍰','🧁','🍩','🍪','☕','🍵','🧃',
-  // Activities
-  '⚽','🏀','🏈','⚾','🎾','🏐','🎱','🏓','🏸','🏒','🥊','🎿','🏄','🏊','🚴','🏋️','🧘','🎮','🎲','🎭','🎬','🎤','🎧','🎸','🎹','🎺','🥁','🎳',
-  // Travel
-  '🚗','🚕','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🛻','🚚','🚛','✈️','🚀','🛸','🚁','🛶','⛵','🚢','🏰','🗼','🗽','⛩️','🕌','🛕','⛪','🏥','🏦',
-  // Flags & misc
-  '🏁','🚩','🎌','🏴','🏳️','🔴','🟠','🟡','🟢','🔵','🟣','⚫','⚪','🟤','🔶','🔷','🔸','🔹','▪️','▫️','◾','◽','⬛','⬜','💠','🔘','🔲','🔳',
-];
+import { EMOJI_CATEGORIES, searchEmojis } from '@/lib/emoji-data';
+import { Separator } from '@/components/ui/separator';
 
 export default function Notas() {
   const store = useNotesStore();
@@ -43,6 +23,7 @@ export default function Notas() {
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [emojiSearch, setEmojiSearch] = useState('');
+  const [emojiCategory, setEmojiCategory] = useState('frequent');
 
   const favoritePages = store.pages.filter(p => p.isFavorite && !p.isArchived);
   const recentPages = [...store.pages].filter(p => !p.isArchived).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()).slice(0, 5);
@@ -56,9 +37,7 @@ export default function Notas() {
     store.updatePageFolder(pageId, folderId);
   };
 
-  const filteredEmojis = emojiSearch
-    ? ALL_EMOJIS.filter(e => e.includes(emojiSearch))
-    : ALL_EMOJIS;
+  const searchResults = searchEmojis(emojiSearch);
 
   return (
     <div className="h-full flex -m-4 md:-m-6 bg-background overflow-hidden">
@@ -157,32 +136,85 @@ export default function Notas() {
                         {store.selectedPage.icon}
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-72 p-0" align="start">
+                    <PopoverContent className="w-80 p-0" align="start">
                       <div className="p-2 border-b border-border">
                         <Input
-                          placeholder="Buscar emoji..."
+                          placeholder="Buscar emoji... (ex: fogo, coracao, estrela)"
                           value={emojiSearch}
                           onChange={(e) => setEmojiSearch(e.target.value)}
                           className="h-8 text-xs"
                           autoFocus
                         />
                       </div>
-                      <ScrollArea className="h-52">
-                        <div className="grid grid-cols-8 gap-0.5 p-2">
-                          {filteredEmojis.map((emoji, i) => (
+
+                      {/* Category tabs */}
+                      {!emojiSearch && (
+                        <div className="flex gap-0.5 px-1 py-1 border-b border-border overflow-x-auto scrollbar-none">
+                          {EMOJI_CATEGORIES.map((cat) => (
                             <button
-                              key={`${emoji}-${i}`}
-                              className="w-8 h-8 flex items-center justify-center rounded hover:bg-muted transition-colors text-lg"
-                              onClick={() => {
-                                store.updatePageIcon(store.selectedPage!.id, emoji);
-                                setEmojiOpen(false);
-                                setEmojiSearch('');
-                              }}
+                              key={cat.id}
+                              onClick={() => setEmojiCategory(cat.id)}
+                              className={cn(
+                                'flex-shrink-0 w-7 h-7 flex items-center justify-center rounded text-sm transition-colors',
+                                emojiCategory === cat.id ? 'bg-accent' : 'hover:bg-muted'
+                              )}
+                              title={cat.label}
                             >
-                              {emoji}
+                              {cat.icon}
                             </button>
                           ))}
                         </div>
+                      )}
+
+                      <ScrollArea className="h-56">
+                        {emojiSearch ? (
+                          <div className="p-2">
+                            {searchResults.length > 0 ? (
+                              <div className="grid grid-cols-8 gap-0.5">
+                                {searchResults.map((entry, i) => (
+                                  <button
+                                    key={`${entry.emoji}-${i}`}
+                                    className="w-8 h-8 flex items-center justify-center rounded hover:bg-muted transition-colors text-lg"
+                                    onClick={() => {
+                                      store.updatePageIcon(store.selectedPage!.id, entry.emoji);
+                                      setEmojiOpen(false);
+                                      setEmojiSearch('');
+                                    }}
+                                  >
+                                    {entry.emoji}
+                                  </button>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-xs text-muted-foreground text-center py-4">Nenhum emoji encontrado</p>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="p-2">
+                            {EMOJI_CATEGORIES
+                              .filter(cat => cat.id === emojiCategory)
+                              .map(cat => (
+                                <div key={cat.id}>
+                                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 px-1">{cat.label}</p>
+                                  <div className="grid grid-cols-8 gap-0.5">
+                                    {cat.emojis.map((entry, i) => (
+                                      <button
+                                        key={`${entry.emoji}-${i}`}
+                                        className="w-8 h-8 flex items-center justify-center rounded hover:bg-muted transition-colors text-lg"
+                                        onClick={() => {
+                                          store.updatePageIcon(store.selectedPage!.id, entry.emoji);
+                                          setEmojiOpen(false);
+                                          setEmojiSearch('');
+                                        }}
+                                      >
+                                        {entry.emoji}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                        )}
                       </ScrollArea>
                     </PopoverContent>
                   </Popover>
