@@ -190,7 +190,11 @@ export function NotesSidebar({
                       onClick={() => onToggleFolder(folder.id)}
                     >
                       {folder.isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                      <FolderOpen className="h-3.5 w-3.5 text-primary/70" />
+                      {folder.icon ? (
+                        <span className="text-sm flex-shrink-0">{folder.icon}</span>
+                      ) : (
+                        <FolderOpen className="h-3.5 w-3.5 text-primary/70" />
+                      )}
                       {renamingFolder === folder.id ? (
                         <input
                           className="flex-1 bg-transparent outline-none text-xs"
