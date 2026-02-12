@@ -42,6 +42,7 @@ interface NotesSidebarProps {
   onDeleteFolder: (id: string) => void;
   onRenameFolder: (id: string, name: string) => void;
   onToggleFolder: (id: string) => void;
+  onUpdateFolderIcon: (id: string, icon: string) => void;
 }
 
 export function NotesSidebar({
