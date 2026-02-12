@@ -38,7 +38,7 @@ interface NotesSidebarProps {
   onArchivePage: (id: string) => void;
   onMoveToFolder: (pageId: string, folderId: string | null) => void;
   onToggleFavorite: (id: string) => void;
-  onCreateFolder: (name: string) => void;
+  onCreateFolder: (name: string) => { id: string } | void;
   onDeleteFolder: (id: string) => void;
   onRenameFolder: (id: string, name: string) => void;
   onToggleFolder: (id: string) => void;
@@ -55,7 +55,11 @@ export function NotesSidebar({
 }: NotesSidebarProps) {
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'page' | 'folder'; id: string } | null>(null);
   const [newFolderName, setNewFolderName] = useState('');
+  const [newFolderEmoji, setNewFolderEmoji] = useState('📁');
   const [showNewFolder, setShowNewFolder] = useState(false);
+  const [newFolderEmojiOpen, setNewFolderEmojiOpen] = useState(false);
+  const [newFolderEmojiSearch, setNewFolderEmojiSearch] = useState('');
+  const [newFolderEmojiCategory, setNewFolderEmojiCategory] = useState('frequent');
   const [renamingFolder, setRenamingFolder] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
@@ -68,9 +72,14 @@ export function NotesSidebar({
 
   const handleCreateFolder = () => {
     if (!newFolderName.trim()) return;
-    onCreateFolder(newFolderName.trim());
+    const result = onCreateFolder(newFolderName.trim());
+    const emoji = newFolderEmoji;
     setNewFolderName('');
+    setNewFolderEmoji('📁');
     setShowNewFolder(false);
+    if (result && emoji !== '📁') {
+      onUpdateFolderIcon(result.id, emoji);
+    }
   };
 
   const handleRename = (folderId: string) => {
@@ -156,16 +165,85 @@ export function NotesSidebar({
             }
           >
             {showNewFolder && (
-              <div className="flex gap-1 mb-1">
-                <Input
-                  className="h-7 text-xs"
-                  placeholder="Nome da pasta"
-                  value={newFolderName}
-                  onChange={(e) => setNewFolderName(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleCreateFolder(); if (e.key === 'Escape') setShowNewFolder(false); }}
-                  autoFocus
-                />
-                <Button size="sm" className="h-7 px-2 text-xs" onClick={handleCreateFolder}>OK</Button>
+              <div className="space-y-1 mb-2">
+                <div className="flex gap-1 items-center">
+                  <Popover open={newFolderEmojiOpen} onOpenChange={setNewFolderEmojiOpen}>
+                    <PopoverTrigger asChild>
+                      <button className="h-7 w-7 flex items-center justify-center rounded border border-border hover:bg-muted/50 transition-colors text-sm flex-shrink-0">
+                        {newFolderEmoji}
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-72 p-0" align="start" side="right">
+                      <div className="p-2 border-b border-border">
+                        <Input
+                          placeholder="Buscar emoji..."
+                          value={newFolderEmojiSearch}
+                          onChange={(e) => setNewFolderEmojiSearch(e.target.value)}
+                          className="h-7 text-xs"
+                          autoFocus
+                        />
+                      </div>
+                      {!newFolderEmojiSearch && (
+                        <div className="flex gap-0.5 px-1 py-1 border-b border-border overflow-x-auto scrollbar-none">
+                          {EMOJI_CATEGORIES.map((cat) => (
+                            <button
+                              key={cat.id}
+                              onClick={() => setNewFolderEmojiCategory(cat.id)}
+                              className={cn(
+                                'flex-shrink-0 w-6 h-6 flex items-center justify-center rounded text-xs transition-colors',
+                                newFolderEmojiCategory === cat.id ? 'bg-accent' : 'hover:bg-muted'
+                              )}
+                              title={cat.label}
+                            >
+                              {cat.icon}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      <ScrollArea className="h-48">
+                        {newFolderEmojiSearch ? (
+                          <div className="p-2">
+                            {(() => { const results = searchEmojis(newFolderEmojiSearch); return results.length > 0 ? (
+                              <div className="grid grid-cols-8 gap-0.5">
+                                {results.map((entry, i) => (
+                                  <button key={`${entry.emoji}-${i}`} className="w-7 h-7 flex items-center justify-center rounded hover:bg-muted transition-colors text-sm"
+                                    onClick={() => { setNewFolderEmoji(entry.emoji); setNewFolderEmojiOpen(false); setNewFolderEmojiSearch(''); }}>
+                                    {entry.emoji}
+                                  </button>
+                                ))}
+                              </div>
+                            ) : <p className="text-xs text-muted-foreground text-center py-3">Nenhum emoji encontrado</p>; })()}
+                          </div>
+                        ) : (
+                          <div className="p-2">
+                            {EMOJI_CATEGORIES.filter(cat => cat.id === newFolderEmojiCategory).map(cat => (
+                              <div key={cat.id}>
+                                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 px-1">{cat.label}</p>
+                                <div className="grid grid-cols-8 gap-0.5">
+                                  {cat.emojis.map((entry, i) => (
+                                    <button key={`${entry.emoji}-${i}`} className="w-7 h-7 flex items-center justify-center rounded hover:bg-muted transition-colors text-sm"
+                                      onClick={() => { setNewFolderEmoji(entry.emoji); setNewFolderEmojiOpen(false); setNewFolderEmojiSearch(''); }}>
+                                      {entry.emoji}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </ScrollArea>
+                    </PopoverContent>
+                  </Popover>
+                  <Input
+                    className="h-7 text-xs flex-1"
+                    placeholder="Nome da pasta"
+                    value={newFolderName}
+                    onChange={(e) => setNewFolderName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleCreateFolder(); if (e.key === 'Escape') { setShowNewFolder(false); setNewFolderEmoji('📁'); } }}
+                    autoFocus
+                  />
+                  <Button size="sm" className="h-7 px-2 text-xs" onClick={handleCreateFolder}>OK</Button>
+                </div>
               </div>
             )}
             {folders.map(folder => {
@@ -301,7 +379,7 @@ export function NotesSidebar({
                     </Popover>
                   </div>
                   {folder.isExpanded && (
-                    <div className="ml-4 space-y-0.5">
+                    <div className="ml-6 space-y-0.5 border-l border-border/40 pl-2">
                       {folderPages.length === 0 && (
                         <p className="text-[10px] text-muted-foreground py-1 px-2">Vazia</p>
                       )}
