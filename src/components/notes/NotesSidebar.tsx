@@ -60,6 +60,9 @@ export function NotesSidebar({
   const [renameValue, setRenameValue] = useState('');
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
   const [dragOverOrphan, setDragOverOrphan] = useState(false);
+  const [folderEmojiPickerOpen, setFolderEmojiPickerOpen] = useState<string | null>(null);
+  const [folderEmojiSearch, setFolderEmojiSearch] = useState('');
+  const [folderEmojiCategory, setFolderEmojiCategory] = useState('frequent');
 
   const orphanPages = pages.filter(p => !p.folderId && !p.isArchived);
 
