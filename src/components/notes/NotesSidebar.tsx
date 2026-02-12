@@ -326,7 +326,7 @@ function SidebarSection({ title, icon, children, action, collapsed, onToggle }: 
         </button>
         {action}
       </div>
-      {!collapsed && <div className="space-y-0.5">{children}</div>}
+      {!collapsed && <div className="space-y-0.5 ml-1">{children}</div>}
     </div>
   );
 }
