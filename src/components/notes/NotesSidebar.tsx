@@ -103,7 +103,7 @@ export function NotesSidebar({
         <div className="p-2 space-y-4">
           {/* Favorites */}
           {favoritePages.length > 0 && (
-            <SidebarSection title="Favoritos" icon={<Star className="h-3.5 w-3.5" />}>
+            <SidebarSection title="Favoritos" icon={<Star className="h-3.5 w-3.5" />} collapsed={!!collapsedSections['favorites']} onToggle={() => toggleSection('favorites')}>
               {favoritePages.map(page => (
                 <PageItem
                   key={page.id}
