@@ -180,6 +180,10 @@ export function useNotesStore() {
     setFolders(prev => prev.map(f => f.id === folderId ? { ...f, isExpanded: !f.isExpanded } : f));
   }, []);
 
+  const updateFolderIcon = useCallback((folderId: string, icon: string) => {
+    setFolders(prev => prev.map(f => f.id === folderId ? { ...f, icon } : f));
+  }, []);
+
   const filteredPages = pages.filter(p => {
     if (p.isArchived) return false;
     if (!searchQuery) return true;
