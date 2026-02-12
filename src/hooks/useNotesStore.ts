@@ -5,6 +5,12 @@ import { toast } from 'sonner';
 
 function uid(): string { return crypto.randomUUID(); }
 
+const PAGE_EMOJIS = ['📋','📝','📌','💡','🎯','🚀','⭐','✨','🔥','💼','📚','🏠','💰','🎨','🎵','📊','📈','🗂️','📂','🗒️','✏️','🔑','💎','📦','📱','💻','🎮','🧠','🌟','🎉','🎁','🛠️','⚡','🌈','🍀','🎸','☕','📖','🧩','🔮'];
+
+function randomPageEmoji(): string {
+  return PAGE_EMOJIS[Math.floor(Math.random() * PAGE_EMOJIS.length)];
+}
+
 export function useNotesStore() {
   const [pages, setPages] = useState<NotesPage[]>(() => loadPages());
   const [folders, setFolders] = useState<NotesFolder[]>(() => loadFolders());
