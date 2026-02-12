@@ -55,7 +55,11 @@ export function NotesSidebar({
 }: NotesSidebarProps) {
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'page' | 'folder'; id: string } | null>(null);
   const [newFolderName, setNewFolderName] = useState('');
+  const [newFolderEmoji, setNewFolderEmoji] = useState('📁');
   const [showNewFolder, setShowNewFolder] = useState(false);
+  const [newFolderEmojiOpen, setNewFolderEmojiOpen] = useState(false);
+  const [newFolderEmojiSearch, setNewFolderEmojiSearch] = useState('');
+  const [newFolderEmojiCategory, setNewFolderEmojiCategory] = useState('frequent');
   const [renamingFolder, setRenamingFolder] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
