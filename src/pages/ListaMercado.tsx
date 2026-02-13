@@ -290,7 +290,7 @@ export default function ListaMercado() {
     const archivedCats = viewingArchivedList.categories;
     const archivedChecked = viewingArchivedList.checked_items;
     return (
-      <div className="h-full flex flex-col -m-4 md:-m-6 bg-background overflow-hidden">
+      <div className="absolute inset-0 flex flex-col bg-background overflow-hidden">
         <div className="flex items-center justify-between px-4 md:px-6 py-2 md:py-3 border-b border-border/30 flex-shrink-0">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => setViewingArchivedList(null)}>
@@ -345,7 +345,7 @@ export default function ListaMercado() {
   // Archived lists view
   if (showArchived) {
     return (
-      <div className="h-full flex flex-col -m-4 md:-m-6 bg-background overflow-hidden">
+      <div className="absolute inset-0 flex flex-col bg-background overflow-hidden">
         <div className="flex items-center gap-3 px-4 md:px-6 py-2 md:py-3 border-b border-border/30 flex-shrink-0">
           <Button variant="ghost" size="icon" onClick={() => setShowArchived(false)}>
             <ArrowLeft className="h-5 w-5" />
@@ -406,7 +406,7 @@ export default function ListaMercado() {
   }
 
   return (
-    <div className="h-full flex flex-col -m-4 md:-m-6 bg-background overflow-hidden">
+    <div className="absolute inset-0 flex flex-col bg-background overflow-hidden">
       {/* Header - Fixed */}
       <div className="flex items-center justify-between px-4 md:px-6 py-2 md:py-3 border-b border-border/30 flex-shrink-0">
         <div>
