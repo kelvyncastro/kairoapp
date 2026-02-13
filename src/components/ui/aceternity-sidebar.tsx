@@ -81,14 +81,9 @@ export const SidebarBody = ({
   style?: React.CSSProperties;
 }) => {
   return (
-    <>
-      <DesktopSidebar className={className} style={style}>
-        {children}
-      </DesktopSidebar>
-      <MobileSidebar className={className}>
-        {children}
-      </MobileSidebar>
-    </>
+    <DesktopSidebar className={className} style={style}>
+      {children}
+    </DesktopSidebar>
   );
 };
 
