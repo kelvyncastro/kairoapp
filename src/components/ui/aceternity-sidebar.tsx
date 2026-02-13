@@ -189,7 +189,7 @@ export const SidebarSectionLabel = ({
 export const SidebarDivider = () => {
   const { open } = useSidebar();
   return (
-    <div className={cn("my-2 mx-3 h-px bg-sidebar-border/80", !open && "mx-2")} />
+    <div className={cn("my-2 mx-3 h-1 bg-sidebar-border", !open && "mx-2")} />
   );
 };
 
