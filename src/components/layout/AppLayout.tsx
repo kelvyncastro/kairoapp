@@ -78,7 +78,7 @@ export default function AppLayout() {
   };
 
   const NavContent = ({ mobile = false }: { mobile?: boolean }) => (
-    <nav className={cn("flex-1 space-y-1.5 p-3 overflow-y-auto", mobile && "pt-4")}>
+    <nav className={cn("flex-1 space-y-1 p-3 overflow-y-auto", mobile && "pt-4")}>
       {/* Section label */}
       <AnimatePresence mode="wait">
         {(mobile || !collapsed) && (
@@ -86,14 +86,14 @@ export default function AppLayout() {
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -10 }}
-            className="px-3 mb-3 text-[10px] font-bold text-muted-foreground/60 uppercase tracking-[0.2em]"
+            className="px-3 mb-3 text-[10px] font-bold text-primary/40 uppercase tracking-[0.25em]"
           >
             Menu principal
           </motion.p>
         )}
       </AnimatePresence>
 
-      {mainNavItems.map((item, index) => {
+      {mainNavItems.map((item) => {
         const isActive = location.pathname === item.path;
         return (
           <Tooltip key={item.path}>
@@ -101,21 +101,31 @@ export default function AppLayout() {
               <Link
                 to={item.path}
                 className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 relative overflow-hidden group",
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 relative group",
                   isActive
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                    ? "bg-primary/12 text-foreground border border-primary/20"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent/40 border border-transparent",
                   mobile && "py-3",
                   !mobile && collapsed && "justify-center px-2"
                 )}
               >
+                {/* Active indicator dot */}
+                {isActive && (
+                  <motion.div
+                    layoutId="sidebar-active-indicator"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.6)]"
+                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                  />
+                )}
                 <motion.div
-                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  whileHover={{ scale: 1.15 }}
                   transition={{ type: "spring", stiffness: 400 }}
                 >
                   <item.icon className={cn(
-                    "h-4 w-4 shrink-0 transition-all relative z-10",
-                    isActive && "drop-shadow-sm"
+                    "h-[18px] w-[18px] shrink-0 transition-all",
+                    isActive 
+                      ? "text-primary drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]" 
+                      : "group-hover:text-foreground"
                   )} />
                 </motion.div>
                 <AnimatePresence mode="wait">
@@ -125,8 +135,10 @@ export default function AppLayout() {
                       animate={{ opacity: 1, width: 'auto' }}
                       exit={{ opacity: 0, width: 0 }}
                       className={cn(
-                        "font-semibold whitespace-nowrap overflow-hidden relative z-10",
-                        isActive && "text-primary-foreground"
+                        "whitespace-nowrap overflow-hidden tracking-wide transition-colors",
+                        isActive 
+                          ? "font-bold text-foreground" 
+                          : "font-medium group-hover:text-foreground"
                       )}
                     >
                       {item.label}
@@ -136,7 +148,7 @@ export default function AppLayout() {
               </Link>
             </TooltipTrigger>
             {!mobile && collapsed && (
-              <TooltipContent side="right" sideOffset={8} className="font-medium bg-popover border shadow-lg">
+              <TooltipContent side="right" sideOffset={12} className="font-medium bg-popover border shadow-lg">
                 <p>{item.label}</p>
               </TooltipContent>
             )}
@@ -153,7 +165,7 @@ export default function AppLayout() {
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
-                className="px-3 mb-3 text-[10px] font-bold text-muted-foreground/60 uppercase tracking-[0.2em]"
+                className="px-3 mb-3 text-[10px] font-bold text-primary/40 uppercase tracking-[0.25em]"
               >
                 Administração
               </motion.p>
@@ -165,21 +177,30 @@ export default function AppLayout() {
               <Link
                 to="/admin"
                 className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 relative overflow-hidden group",
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 relative group",
                   location.pathname === '/admin'
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                    ? "bg-primary/12 text-foreground border border-primary/20"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent/40 border border-transparent",
                   mobile && "py-3",
                   !mobile && collapsed && "justify-center px-2"
                 )}
               >
+                {location.pathname === '/admin' && (
+                  <motion.div
+                    layoutId="sidebar-active-indicator"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.6)]"
+                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                  />
+                )}
                 <motion.div
-                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  whileHover={{ scale: 1.15 }}
                   transition={{ type: "spring", stiffness: 400 }}
                 >
                   <Shield className={cn(
-                    "h-4 w-4 shrink-0 transition-all relative z-10",
-                    location.pathname === '/admin' && "drop-shadow-sm"
+                    "h-[18px] w-[18px] shrink-0 transition-all",
+                    location.pathname === '/admin' 
+                      ? "text-primary drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]"
+                      : "group-hover:text-foreground"
                   )} />
                 </motion.div>
                 <AnimatePresence mode="wait">
@@ -189,8 +210,10 @@ export default function AppLayout() {
                       animate={{ opacity: 1, width: 'auto' }}
                       exit={{ opacity: 0, width: 0 }}
                       className={cn(
-                        "font-semibold whitespace-nowrap overflow-hidden relative z-10",
-                        location.pathname === '/admin' && "text-primary-foreground"
+                        "whitespace-nowrap overflow-hidden tracking-wide transition-colors",
+                        location.pathname === '/admin'
+                          ? "font-bold text-foreground"
+                          : "font-medium group-hover:text-foreground"
                       )}
                     >
                       Painel Admin
@@ -200,7 +223,7 @@ export default function AppLayout() {
               </Link>
             </TooltipTrigger>
             {!mobile && collapsed && (
-              <TooltipContent side="right" sideOffset={8} className="font-medium bg-popover border shadow-lg">
+              <TooltipContent side="right" sideOffset={12} className="font-medium bg-popover border shadow-lg">
                 <p>Painel Admin</p>
               </TooltipContent>
             )}
@@ -214,35 +237,28 @@ export default function AppLayout() {
   return (
     <TooltipProvider delayDuration={0}>
       <div className="flex h-screen w-full bg-background overflow-hidden">
-        {/* Desktop Sidebar - Floating Futuristic */}
+        {/* Desktop Sidebar - Floating */}
         <motion.aside
-          className="fixed left-3 top-3 z-40 hidden md:flex md:flex-col overflow-hidden rounded-2xl border border-primary/20 shadow-[0_0_30px_-5px_hsl(var(--primary)/0.15),inset_0_1px_0_0_hsl(var(--primary)/0.1)]"
-          animate={{ width: collapsed ? 64 : 240 }}
+          className="fixed left-3 top-3 z-40 hidden md:flex md:flex-col overflow-hidden rounded-2xl"
+          animate={{ width: collapsed ? 68 : 244 }}
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
           style={{ height: 'calc(100vh - 24px)' }}
         >
-          {/* Glass background */}
-          <div className="absolute inset-0 bg-sidebar/80 backdrop-blur-xl rounded-2xl" />
-          {/* Top glow line */}
-          <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-          {/* Bottom glow line */}
-          <div className="absolute bottom-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-          {/* Corner accents */}
-          <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary/30 rounded-tl-2xl" />
-          <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-primary/30 rounded-tr-2xl" />
-          <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-primary/30 rounded-bl-2xl" />
-          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-primary/30 rounded-br-2xl" />
-          {/* Ambient glow */}
-          <div className="absolute -inset-1 bg-primary/5 rounded-2xl blur-xl -z-10" />
+          {/* Glass layer */}
+          <div className="absolute inset-0 bg-sidebar/90 backdrop-blur-2xl rounded-2xl border border-border/40" />
+          {/* Top accent line */}
+          <div className="absolute top-0 left-8 right-8 h-[2px] rounded-full bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+          {/* Outer glow */}
+          <div className="absolute -inset-px rounded-2xl bg-gradient-to-b from-primary/10 via-transparent to-primary/5 -z-10" />
 
           {/* Logo */}
           <div className={cn(
-            "flex h-14 items-center border-b border-primary/10 transition-all duration-300 relative z-10",
-            collapsed ? "justify-center px-2" : "px-4"
+            "flex h-14 items-center border-b border-border/30 transition-all duration-300 relative z-10",
+            collapsed ? "justify-center px-3" : "px-5"
           )}>
             <Link to="/dashboard" className="flex items-center gap-3 group">
               <motion.div 
-                className="flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden ring-2 ring-sidebar-border group-hover:ring-primary/50 transition-all shadow-sm"
+                className="flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden ring-2 ring-border/50 group-hover:ring-primary/50 transition-all shadow-sm"
                 whileHover={{ scale: 1.05, rotate: 5 }}
                 transition={{ type: "spring", stiffness: 400 }}
               >
@@ -273,7 +289,7 @@ export default function AppLayout() {
           </div>
 
           {/* Collapse Toggle */}
-          <div className="p-3 border-t border-primary/10 relative z-10">
+          <div className="p-3 border-t border-border/30 relative z-10">
             <Tooltip>
               <TooltipTrigger asChild>
                 <motion.button
@@ -281,7 +297,7 @@ export default function AppLayout() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-all duration-200",
+                    "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all duration-200",
                     collapsed && "justify-center px-2"
                   )}
                 >
@@ -301,7 +317,7 @@ export default function AppLayout() {
                         initial={{ opacity: 0, width: 0 }}
                         animate={{ opacity: 1, width: 'auto' }}
                         exit={{ opacity: 0, width: 0 }}
-                        className="font-medium whitespace-nowrap overflow-hidden"
+                        className="font-medium whitespace-nowrap overflow-hidden tracking-wide"
                       >
                         Recolher painel
                       </motion.span>
@@ -310,7 +326,7 @@ export default function AppLayout() {
                 </motion.button>
               </TooltipTrigger>
               {collapsed && (
-                <TooltipContent side="right" sideOffset={8} className="font-medium bg-popover border shadow-lg">
+                <TooltipContent side="right" sideOffset={12} className="font-medium bg-popover border shadow-lg">
                   <p>Expandir painel</p>
                 </TooltipContent>
               )}
@@ -322,7 +338,7 @@ export default function AppLayout() {
         <main
           className={cn(
             "flex-1 flex flex-col min-w-0 transition-all duration-300 pb-16 md:pb-0 overflow-hidden",
-            collapsed ? "md:ml-[82px]" : "md:ml-[258px]"
+            collapsed ? "md:ml-[86px]" : "md:ml-[262px]"
           )}
         >
           {/* Topbar */}
