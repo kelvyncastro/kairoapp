@@ -17,7 +17,7 @@ import {
   TrendingUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import kairoLogo from "@/assets/kairo-logo.png";
+import kairoLogo from "@/assets/kairo-logo.svg";
 
 import { AppShowcaseCarousel } from "@/components/landing/AppShowcaseCarousel";
 
