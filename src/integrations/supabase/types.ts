@@ -700,6 +700,101 @@ export type Database = {
           },
         ]
       }
+      notes_folders: {
+        Row: {
+          created_at: string
+          icon: string | null
+          id: string
+          is_expanded: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_expanded?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_expanded?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notes_pages: {
+        Row: {
+          activity_log: Json
+          comments: Json
+          content: string
+          created_at: string
+          folder_id: string | null
+          icon: string
+          id: string
+          is_archived: boolean
+          is_favorite: boolean
+          status: string
+          tags: string[]
+          title: string
+          updated_at: string
+          user_id: string
+          versions: Json
+        }
+        Insert: {
+          activity_log?: Json
+          comments?: Json
+          content?: string
+          created_at?: string
+          folder_id?: string | null
+          icon?: string
+          id?: string
+          is_archived?: boolean
+          is_favorite?: boolean
+          status?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          user_id: string
+          versions?: Json
+        }
+        Update: {
+          activity_log?: Json
+          comments?: Json
+          content?: string
+          created_at?: string
+          folder_id?: string | null
+          icon?: string
+          id?: string
+          is_archived?: boolean
+          is_favorite?: boolean
+          status?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          user_id?: string
+          versions?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notes_pages_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "notes_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string

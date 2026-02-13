@@ -39,6 +39,14 @@ export default function Notas() {
 
   const searchResults = searchEmojis(emojiSearch);
 
+  if (store.loading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="h-full flex -m-4 md:-m-6 bg-background overflow-hidden">
       {/* Sidebar */}

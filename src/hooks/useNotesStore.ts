@@ -1,32 +1,96 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { NotesPage, NotesFolder, PageVersion, Comment as NComment } from '@/types/notes';
-import { loadPages, savePages, loadFolders, saveFolders } from '@/lib/notes-storage';
+import {
+  loadPagesFromDb, loadFoldersFromDb,
+  upsertPage, upsertFolder,
+  deletePageFromDb, deleteFolderFromDb,
+  hasLocalData, migrateLocalToDb,
+} from '@/lib/notes-storage';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 function uid(): string { return crypto.randomUUID(); }
 
 export function useNotesStore() {
-  const [pages, setPages] = useState<NotesPage[]>(() => loadPages());
-  const [folders, setFolders] = useState<NotesFolder[]>(() => loadFolders());
+  const { user } = useAuth();
+  const [pages, setPages] = useState<NotesPage[]>([]);
+  const [folders, setFolders] = useState<NotesFolder[]>([]);
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'idle'>('idle');
+  const [loading, setLoading] = useState(true);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const savingRef = useRef(false);
 
-  useEffect(() => { savePages(pages); }, [pages]);
-  useEffect(() => { saveFolders(folders); }, [folders]);
+  // Load data from DB on mount
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+
+    const init = async () => {
+      try {
+        // Check if local data needs migration
+        if (hasLocalData()) {
+          await migrateLocalToDb(user.id);
+          toast.success('Notas migradas para a nuvem!');
+        }
+
+        const [dbFolders, dbPages] = await Promise.all([
+          loadFoldersFromDb(user.id),
+          loadPagesFromDb(user.id),
+        ]);
+
+        if (!cancelled) {
+          setFolders(dbFolders);
+          setPages(dbPages);
+          setLoading(false);
+        }
+      } catch (e) {
+        console.error('Error loading notes:', e);
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    init();
+    return () => { cancelled = true; };
+  }, [user]);
 
   const selectedPage = pages.find(p => p.id === selectedPageId) || null;
+
+  // Save a page to DB (debounced for content updates)
+  const savePageToDb = useCallback(async (page: NotesPage) => {
+    if (!user) return;
+    try {
+      await upsertPage(user.id, page);
+    } catch (e) {
+      console.error('Error saving page:', e);
+    }
+  }, [user]);
+
+  const saveFolderToDb = useCallback(async (folder: NotesFolder) => {
+    if (!user) return;
+    try {
+      await upsertFolder(user.id, folder);
+    } catch (e) {
+      console.error('Error saving folder:', e);
+    }
+  }, [user]);
 
   const debouncedSave = useCallback((updater: (prev: NotesPage[]) => NotesPage[]) => {
     setSaveStatus('saving');
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      setPages(updater);
-      setSaveStatus('saved');
-      setTimeout(() => setSaveStatus('idle'), 2000);
+      setPages(prev => {
+        const next = updater(prev);
+        // Find changed page and save
+        const changedPage = next.find((p, i) => prev[i] && p !== prev[i]) || next[0];
+        if (changedPage) savePageToDb(changedPage);
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 2000);
+        return next;
+      });
     }, 400);
-  }, []);
+  }, [savePageToDb]);
 
   const addActivity = (pageId: string, action: string, details: string) => {
     setPages(prev => prev.map(p => p.id === pageId ? {
@@ -35,7 +99,8 @@ export function useNotesStore() {
     } : p));
   };
 
-  const createPage = useCallback((folderId?: string | null) => {
+  const createPage = useCallback(async (folderId?: string | null) => {
+    if (!user) return null;
     const newPage: NotesPage = {
       id: uid(), title: 'Sem titulo', icon: '📄',
       folderId: folderId || null, isFavorite: false, isArchived: false,
@@ -47,17 +112,20 @@ export function useNotesStore() {
     };
     setPages(prev => [newPage, ...prev]);
     setSelectedPageId(newPage.id);
+    await savePageToDb(newPage);
     toast.success('Nota criada!');
     return newPage;
-  }, []);
+  }, [user, savePageToDb]);
 
-  const deletePage = useCallback((pageId: string) => {
+  const deletePage = useCallback(async (pageId: string) => {
     setPages(prev => prev.filter(p => p.id !== pageId));
     if (selectedPageId === pageId) setSelectedPageId(null);
+    await deletePageFromDb(pageId);
     toast.success('Nota excluida!');
   }, [selectedPageId]);
 
-  const duplicatePage = useCallback((pageId: string) => {
+  const duplicatePage = useCallback(async (pageId: string) => {
+    if (!user) return;
     const page = pages.find(p => p.id === pageId);
     if (!page) return;
     const dup: NotesPage = {
@@ -71,39 +139,49 @@ export function useNotesStore() {
     };
     setPages(prev => [dup, ...prev]);
     setSelectedPageId(dup.id);
+    await savePageToDb(dup);
     toast.success('Nota duplicada!');
-  }, [pages]);
+  }, [pages, user, savePageToDb]);
+
+  const updateAndSavePage = useCallback((pageId: string, updater: (p: NotesPage) => NotesPage) => {
+    setPages(prev => {
+      const next = prev.map(p => p.id === pageId ? updater(p) : p);
+      const updated = next.find(p => p.id === pageId);
+      if (updated) savePageToDb(updated);
+      return next;
+    });
+  }, [savePageToDb]);
 
   const archivePage = useCallback((pageId: string) => {
-    setPages(prev => prev.map(p => p.id === pageId ? { ...p, isArchived: !p.isArchived, updatedAt: new Date().toISOString() } : p));
+    updateAndSavePage(pageId, p => ({ ...p, isArchived: !p.isArchived, updatedAt: new Date().toISOString() }));
     if (selectedPageId === pageId) setSelectedPageId(null);
     toast.success('Nota arquivada!');
-  }, [selectedPageId]);
+  }, [selectedPageId, updateAndSavePage]);
 
   const toggleFavorite = useCallback((pageId: string) => {
-    setPages(prev => prev.map(p => p.id === pageId ? { ...p, isFavorite: !p.isFavorite, updatedAt: new Date().toISOString() } : p));
-  }, []);
+    updateAndSavePage(pageId, p => ({ ...p, isFavorite: !p.isFavorite, updatedAt: new Date().toISOString() }));
+  }, [updateAndSavePage]);
 
   const updatePageTitle = useCallback((pageId: string, title: string) => {
-    setPages(prev => prev.map(p => p.id === pageId ? { ...p, title, updatedAt: new Date().toISOString() } : p));
-  }, []);
+    updateAndSavePage(pageId, p => ({ ...p, title, updatedAt: new Date().toISOString() }));
+  }, [updateAndSavePage]);
 
   const updatePageIcon = useCallback((pageId: string, icon: string) => {
-    setPages(prev => prev.map(p => p.id === pageId ? { ...p, icon, updatedAt: new Date().toISOString() } : p));
-  }, []);
+    updateAndSavePage(pageId, p => ({ ...p, icon, updatedAt: new Date().toISOString() }));
+  }, [updateAndSavePage]);
 
   const updatePageFolder = useCallback((pageId: string, folderId: string | null) => {
-    setPages(prev => prev.map(p => p.id === pageId ? { ...p, folderId, updatedAt: new Date().toISOString() } : p));
-  }, []);
+    updateAndSavePage(pageId, p => ({ ...p, folderId, updatedAt: new Date().toISOString() }));
+  }, [updateAndSavePage]);
 
   const updatePageStatus = useCallback((pageId: string, status: 'draft' | 'published') => {
-    setPages(prev => prev.map(p => p.id === pageId ? { ...p, status, updatedAt: new Date().toISOString() } : p));
+    updateAndSavePage(pageId, p => ({ ...p, status, updatedAt: new Date().toISOString() }));
     addActivity(pageId, 'alterou status', `Status alterado para ${status}`);
-  }, []);
+  }, [updateAndSavePage]);
 
   const updatePageTags = useCallback((pageId: string, tags: string[]) => {
-    setPages(prev => prev.map(p => p.id === pageId ? { ...p, tags, updatedAt: new Date().toISOString() } : p));
-  }, []);
+    updateAndSavePage(pageId, p => ({ ...p, tags, updatedAt: new Date().toISOString() }));
+  }, [updateAndSavePage]);
 
   const updateContent = useCallback((pageId: string, content: string) => {
     debouncedSave(prev => prev.map(p => p.id === pageId ? { ...p, content, updatedAt: new Date().toISOString() } : p));
@@ -117,21 +195,20 @@ export function useNotesStore() {
       content: page.content,
       createdAt: new Date().toISOString(),
     };
-    setPages(prev => prev.map(p => p.id === pageId ? { ...p, versions: [...p.versions, version] } : p));
+    updateAndSavePage(pageId, p => ({ ...p, versions: [...p.versions, version] }));
     addActivity(pageId, 'salvou versao', 'Versao salva');
     toast.success('Versao salva!');
-  }, [pages]);
+  }, [pages, updateAndSavePage]);
 
   const restoreVersion = useCallback((pageId: string, versionId: string) => {
-    setPages(prev => prev.map(p => {
-      if (p.id !== pageId) return p;
+    updateAndSavePage(pageId, p => {
       const version = p.versions.find(v => v.id === versionId);
       if (!version) return p;
       return { ...p, content: version.content, updatedAt: new Date().toISOString() };
-    }));
+    });
     addActivity(pageId, 'restaurou versao', 'Versao restaurada');
     toast.success('Versao restaurada!');
-  }, []);
+  }, [updateAndSavePage]);
 
   const addComment = useCallback((pageId: string, content: string, parentId: string | null = null) => {
     const comment: NComment = {
@@ -139,36 +216,44 @@ export function useNotesStore() {
       isResolved: false,
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
     };
-    setPages(prev => prev.map(p => p.id === pageId ? { ...p, comments: [...p.comments, comment] } : p));
+    updateAndSavePage(pageId, p => ({ ...p, comments: [...p.comments, comment] }));
     addActivity(pageId, 'comentou', 'Adicionou um comentario');
-  }, []);
+  }, [updateAndSavePage]);
 
   const deleteComment = useCallback((pageId: string, commentId: string) => {
-    setPages(prev => prev.map(p => p.id === pageId ? { ...p, comments: p.comments.filter(c => c.id !== commentId && c.parentId !== commentId) } : p));
-  }, []);
+    updateAndSavePage(pageId, p => ({ ...p, comments: p.comments.filter(c => c.id !== commentId && c.parentId !== commentId) }));
+  }, [updateAndSavePage]);
 
   const resolveComment = useCallback((pageId: string, commentId: string) => {
-    setPages(prev => prev.map(p => p.id === pageId ? {
+    updateAndSavePage(pageId, p => ({
       ...p, comments: p.comments.map(c => c.id === commentId ? { ...c, isResolved: !c.isResolved } : c)
-    } : p));
-  }, []);
+    }));
+  }, [updateAndSavePage]);
 
-  const createFolder = useCallback((name: string) => {
+  const createFolder = useCallback(async (name: string) => {
+    if (!user) return null;
     const folder: NotesFolder = { id: uid(), name, isExpanded: true, order: folders.length, createdAt: new Date().toISOString() };
     setFolders(prev => [...prev, folder]);
+    await saveFolderToDb(folder);
     toast.success('Pasta criada!');
     return folder;
-  }, [folders]);
+  }, [folders, user, saveFolderToDb]);
 
-  const deleteFolder = useCallback((folderId: string) => {
+  const deleteFolder = useCallback(async (folderId: string) => {
     setFolders(prev => prev.filter(f => f.id !== folderId));
     setPages(prev => prev.map(p => p.folderId === folderId ? { ...p, folderId: null } : p));
+    await deleteFolderFromDb(folderId);
     toast.success('Pasta excluida!');
   }, []);
 
   const renameFolder = useCallback((folderId: string, name: string) => {
-    setFolders(prev => prev.map(f => f.id === folderId ? { ...f, name } : f));
-  }, []);
+    setFolders(prev => {
+      const next = prev.map(f => f.id === folderId ? { ...f, name } : f);
+      const updated = next.find(f => f.id === folderId);
+      if (updated) saveFolderToDb(updated);
+      return next;
+    });
+  }, [saveFolderToDb]);
 
   const toggleFolder = useCallback((folderId: string) => {
     setFolders(prev => prev.map(f => f.id === folderId ? { ...f, isExpanded: !f.isExpanded } : f));
@@ -182,7 +267,7 @@ export function useNotesStore() {
   });
 
   return {
-    pages, folders, selectedPageId, selectedPage, searchQuery, saveStatus,
+    pages, folders, selectedPageId, selectedPage, searchQuery, saveStatus, loading,
     filteredPages,
     setSelectedPageId, setSearchQuery,
     createPage, deletePage, duplicatePage, archivePage,
