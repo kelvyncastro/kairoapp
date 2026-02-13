@@ -21,7 +21,7 @@ import {
   Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import kairoLogo from "@/assets/kairo-logo.svg";
+import kairoLogo from "@/assets/kairo-logo.png";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
