@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import kairoLogo from "@/assets/kairo-logo.png";
+import kairoLogo from "@/assets/kairo-penguin.png";
 
 const THEME_OPTIONS: { id: AppTheme; label: string; color: string }[] = [
   { id: 'dark', label: 'Preto', color: 'bg-[#1a1a1a]' },

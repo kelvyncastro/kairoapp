@@ -22,7 +22,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import kairoLogo from "@/assets/kairo-logo.png";
+import kairoLogo from "@/assets/kairo-penguin.png";
 
 import { AppShowcaseCarousel } from "@/components/landing/AppShowcaseCarousel";
 import RadialOrbitalTimeline from "@/components/ui/radial-orbital-timeline";
