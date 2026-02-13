@@ -438,7 +438,7 @@ export default function ListaMercado() {
       </div>
 
       {/* Content - Scrollable */}
-      <div className="flex-1 overflow-y-auto min-h-0 px-4 md:px-6 py-4 space-y-4">
+      <div className="flex-1 overflow-y-auto min-h-0 px-4 md:px-6 pt-4 pb-2 space-y-4">
         {/* Input Section */}
         <AnimatePresence mode="wait">
           {categories.length === 0 && (
@@ -541,31 +541,33 @@ export default function ListaMercado() {
           })}
         </AnimatePresence>
       </div>
+      </div>
 
       {/* Confirm Purchase Button */}
       {categories.length > 0 && (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button size="lg" className="w-full gap-2">
-              <CheckCircle2 className="h-5 w-5" />
-              Confirmar Compra
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirmar compra?</AlertDialogTitle>
-              <AlertDialogDescription>
-                A lista será arquivada e você poderá consultá-la depois no histórico.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmPurchase}>Confirmar</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <div className="flex-shrink-0 px-4 md:px-6 pb-4">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="lg" className="w-full gap-2">
+                <CheckCircle2 className="h-5 w-5" />
+                Confirmar Compra
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmar compra?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  A lista será arquivada e você poderá consultá-la depois no histórico.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleConfirmPurchase}>Confirmar</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       )}
-      </div>
 
       {/* Add More Dialog */}
       <Dialog open={showAddMore} onOpenChange={(open) => { setShowAddMore(open); if (!open) setAddMoreText(""); }}>
