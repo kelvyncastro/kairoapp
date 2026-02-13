@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ShoppingCart, Sparkles, RotateCcw, Trash2, Copy } from "lucide-react";
+import { ShoppingCart, Sparkles, RotateCcw, Copy, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -19,14 +19,49 @@ interface CheckedState {
   [category: string]: { [item: string]: boolean };
 }
 
+// Normaliza items que podem vir como objetos ao invés de strings
+function normalizeItems(items: any[]): string[] {
+  return items.map((item) => {
+    if (typeof item === "string") return item;
+    if (typeof item === "object" && item !== null) {
+      return item.name || item.item || item.title || JSON.stringify(item);
+    }
+    return String(item);
+  });
+}
+
 export default function ListaMercado() {
   const [inputText, setInputText] = useState("");
   const [categories, setCategories] = useState<CategoryGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const [checked, setChecked] = useState<CheckedState>({});
+  const [showAddMore, setShowAddMore] = useState(false);
+  const [addMoreText, setAddMoreText] = useState("");
 
-  const handleCategorize = async () => {
-    const trimmed = inputText.trim();
+  const mergeCategories = (existing: CategoryGroup[], incoming: CategoryGroup[]): CategoryGroup[] => {
+    const map = new Map<string, CategoryGroup>();
+    for (const cat of existing) {
+      map.set(cat.name, { ...cat, items: [...cat.items] });
+    }
+    for (const cat of incoming) {
+      const normalized = normalizeItems(cat.items);
+      if (map.has(cat.name)) {
+        const existing = map.get(cat.name)!;
+        const existingSet = new Set(existing.items.map((i) => i.toLowerCase()));
+        for (const item of normalized) {
+          if (!existingSet.has(item.toLowerCase())) {
+            existing.items.push(item);
+          }
+        }
+      } else {
+        map.set(cat.name, { ...cat, items: normalized });
+      }
+    }
+    return Array.from(map.values());
+  };
+
+  const handleCategorize = async (text: string, isAddMore = false) => {
+    const trimmed = text.trim();
     if (!trimmed) {
       toast.error("Digite os itens da sua lista primeiro.");
       return;
@@ -41,10 +76,21 @@ export default function ListaMercado() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      const cats: CategoryGroup[] = data.categories || [];
-      setCategories(cats);
-      setChecked({});
-      toast.success(`Lista organizada em ${cats.length} setores!`);
+      const incoming: CategoryGroup[] = (data.categories || []).map((c: any) => ({
+        ...c,
+        items: normalizeItems(c.items),
+      }));
+
+      if (isAddMore) {
+        setCategories((prev) => mergeCategories(prev, incoming));
+        setAddMoreText("");
+        setShowAddMore(false);
+        toast.success("Itens adicionados à lista!");
+      } else {
+        setCategories(incoming);
+        setChecked({});
+        toast.success(`Lista organizada em ${incoming.length} setores!`);
+      }
     } catch (e: any) {
       console.error(e);
       toast.error(e.message || "Erro ao categorizar itens.");
@@ -73,6 +119,8 @@ export default function ListaMercado() {
     setCategories([]);
     setChecked({});
     setInputText("");
+    setAddMoreText("");
+    setShowAddMore(false);
   };
 
   const handleCopyList = () => {
@@ -126,7 +174,7 @@ export default function ListaMercado() {
                   disabled={loading}
                 />
                 <Button
-                  onClick={handleCategorize}
+                  onClick={() => handleCategorize(inputText)}
                   disabled={loading || !inputText.trim()}
                   className="w-full gap-2"
                   size="lg"
@@ -166,8 +214,8 @@ export default function ListaMercado() {
         </div>
       )}
 
-      {/* Categories Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Categories List - Single Column */}
+      <div className="space-y-4">
         <AnimatePresence>
           {categories.map((cat, idx) => {
             const allChecked = cat.items.every((item) => checked[cat.name]?.[item]);
@@ -214,6 +262,66 @@ export default function ListaMercado() {
           })}
         </AnimatePresence>
       </div>
+
+      {/* Add More Items */}
+      {categories.length > 0 && (
+        <div className="space-y-3">
+          <AnimatePresence>
+            {showAddMore && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+              >
+                <Card className="border-dashed">
+                  <CardContent className="pt-4 space-y-3">
+                    <Textarea
+                      placeholder="Digite mais itens para adicionar à lista..."
+                      value={addMoreText}
+                      onChange={(e) => setAddMoreText(e.target.value)}
+                      className="min-h-[80px] text-base resize-none"
+                      disabled={loading}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => handleCategorize(addMoreText, true)}
+                        disabled={loading || !addMoreText.trim()}
+                        className="flex-1 gap-2"
+                      >
+                        {loading ? (
+                          <>
+                            <div className="h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                            Adicionando...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4" />
+                            Adicionar e Organizar
+                          </>
+                        )}
+                      </Button>
+                      <Button variant="outline" onClick={() => { setShowAddMore(false); setAddMoreText(""); }}>
+                        Cancelar
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {!showAddMore && (
+            <Button
+              variant="outline"
+              className="w-full gap-2 border-dashed"
+              onClick={() => setShowAddMore(true)}
+            >
+              <Plus className="h-4 w-4" />
+              Adicionar mais itens
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
