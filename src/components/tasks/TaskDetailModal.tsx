@@ -267,20 +267,20 @@ export function TaskDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0 bg-background">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0 bg-background w-[95vw] sm:w-auto">
         <DialogTitle className="sr-only">Detalhes da tarefa</DialogTitle>
         <DialogDescription className="sr-only">
           Visualize e edite título, descrição, status, prioridade, datas, subtarefas e checklists.
         </DialogDescription>
         {/* Header */}
-        <div className="flex items-center justify-between px-8 py-5 border-b border-border/30">
+        <div className="flex items-center justify-between px-4 sm:px-8 py-5 border-b border-border/30">
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <span className="text-base">📋 Tarefa</span>
             <span className="text-xs opacity-60 bg-muted/30 px-2 py-1 rounded">{task.id.slice(0, 8)}</span>
           </div>
         </div>
 
-        <div className="overflow-y-auto max-h-[calc(90vh-140px)] px-8 py-6 space-y-8">
+        <div className="overflow-y-auto max-h-[calc(90vh-140px)] px-4 sm:px-8 py-6 space-y-8">
           {/* Title */}
           <div>
             {isEditingTitle ? (
@@ -303,7 +303,7 @@ export function TaskDetailModal({
           </div>
 
           {/* Properties grid */}
-          <div className="grid grid-cols-2 gap-x-8 gap-y-5 text-sm bg-muted/10 rounded-lg p-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 text-sm bg-muted/10 rounded-lg p-4 sm:p-5">
             {/* Status */}
             <div className="flex items-center gap-3">
               <span className="text-muted-foreground w-28">⊙ Status</span>
