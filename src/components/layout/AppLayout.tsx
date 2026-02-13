@@ -77,15 +77,6 @@ export default function AppLayout() {
     await signOut();
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: (i: number) => ({
-      opacity: 1,
-      x: 0,
-      transition: { delay: i * 0.03, type: "spring" as const, stiffness: 300, damping: 24 },
-    }),
-  };
-
   const NavContent = ({ mobile = false }: { mobile?: boolean }) => (
     <nav className={cn("flex-1 space-y-1.5 p-3 overflow-y-auto", mobile && "pt-4")}>
       {/* Section label */}
@@ -105,69 +96,51 @@ export default function AppLayout() {
       {mainNavItems.map((item, index) => {
         const isActive = location.pathname === item.path;
         return (
-          <motion.div
-            key={item.path}
-            custom={index}
-            initial="hidden"
-            animate="visible"
-            variants={itemVariants}
-          >
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  to={item.path}
-                  className={cn(
-                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 relative overflow-hidden group",
-                    isActive
-                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                    mobile && "py-3",
-                    !mobile && collapsed && "justify-center px-2"
-                  )}
+          <Tooltip key={item.path}>
+            <TooltipTrigger asChild>
+              <Link
+                to={item.path}
+                className={cn(
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 relative overflow-hidden group",
+                  isActive
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                  mobile && "py-3",
+                  !mobile && collapsed && "justify-center px-2"
+                )}
+              >
+                <motion.div
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 400 }}
                 >
-                  {/* Active indicator bar */}
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeNavIndicator"
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary-foreground/80"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    />
+                  <item.icon className={cn(
+                    "h-4 w-4 shrink-0 transition-all relative z-10",
+                    isActive && "drop-shadow-sm"
+                  )} />
+                </motion.div>
+                <AnimatePresence mode="wait">
+                  {(mobile || !collapsed) && (
+                    <motion.span
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: 'auto' }}
+                      exit={{ opacity: 0, width: 0 }}
+                      className={cn(
+                        "font-semibold whitespace-nowrap overflow-hidden relative z-10",
+                        isActive && "text-primary-foreground"
+                      )}
+                    >
+                      {item.label}
+                    </motion.span>
                   )}
-                  <motion.div
-                    whileHover={{ scale: 1.15, rotate: 8 }}
-                    whileTap={{ scale: 0.9 }}
-                    transition={{ type: "spring", stiffness: 400 }}
-                  >
-                    <item.icon className={cn(
-                      "h-4 w-4 shrink-0 transition-all relative z-10",
-                      isActive && "drop-shadow-sm"
-                    )} />
-                  </motion.div>
-                  <AnimatePresence mode="wait">
-                    {(mobile || !collapsed) && (
-                      <motion.span
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -10 }}
-                        transition={{ duration: 0.15 }}
-                        className={cn(
-                          "font-semibold whitespace-nowrap overflow-hidden relative z-10",
-                          isActive && "text-primary-foreground"
-                        )}
-                      >
-                        {item.label}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </Link>
-              </TooltipTrigger>
-              {!mobile && collapsed && (
-                <TooltipContent side="right" sideOffset={8} className="font-medium bg-popover border shadow-lg">
-                  <p>{item.label}</p>
-                </TooltipContent>
-              )}
-            </Tooltip>
-          </motion.div>
+                </AnimatePresence>
+              </Link>
+            </TooltipTrigger>
+            {!mobile && collapsed && (
+              <TooltipContent side="right" sideOffset={8} className="font-medium bg-popover border shadow-lg">
+                <p>{item.label}</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
         );
       })}
 
@@ -187,67 +160,51 @@ export default function AppLayout() {
             )}
           </AnimatePresence>
 
-          <motion.div
-            custom={mainNavItems.length}
-            initial="hidden"
-            animate="visible"
-            variants={itemVariants}
-          >
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  to="/admin"
-                  className={cn(
-                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 relative overflow-hidden group",
-                    location.pathname === '/admin'
-                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                    mobile && "py-3",
-                    !mobile && collapsed && "justify-center px-2"
-                  )}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                to="/admin"
+                className={cn(
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 relative overflow-hidden group",
+                  location.pathname === '/admin'
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                  mobile && "py-3",
+                  !mobile && collapsed && "justify-center px-2"
+                )}
+              >
+                <motion.div
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 400 }}
                 >
-                  {location.pathname === '/admin' && (
-                    <motion.div
-                      layoutId="activeNavIndicator"
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary-foreground/80"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    />
+                  <Shield className={cn(
+                    "h-4 w-4 shrink-0 transition-all relative z-10",
+                    location.pathname === '/admin' && "drop-shadow-sm"
+                  )} />
+                </motion.div>
+                <AnimatePresence mode="wait">
+                  {(mobile || !collapsed) && (
+                    <motion.span
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: 'auto' }}
+                      exit={{ opacity: 0, width: 0 }}
+                      className={cn(
+                        "font-semibold whitespace-nowrap overflow-hidden relative z-10",
+                        location.pathname === '/admin' && "text-primary-foreground"
+                      )}
+                    >
+                      Painel Admin
+                    </motion.span>
                   )}
-                  <motion.div
-                    whileHover={{ scale: 1.15, rotate: 8 }}
-                    whileTap={{ scale: 0.9 }}
-                    transition={{ type: "spring", stiffness: 400 }}
-                  >
-                    <Shield className={cn(
-                      "h-4 w-4 shrink-0 transition-all relative z-10",
-                      location.pathname === '/admin' && "drop-shadow-sm"
-                    )} />
-                  </motion.div>
-                  <AnimatePresence mode="wait">
-                    {(mobile || !collapsed) && (
-                      <motion.span
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -10 }}
-                        transition={{ duration: 0.15 }}
-                        className={cn(
-                          "font-semibold whitespace-nowrap overflow-hidden relative z-10",
-                          location.pathname === '/admin' && "text-primary-foreground"
-                        )}
-                      >
-                        Painel Admin
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </Link>
-              </TooltipTrigger>
-              {!mobile && collapsed && (
-                <TooltipContent side="right" sideOffset={8} className="font-medium bg-popover border shadow-lg">
-                  <p>Painel Admin</p>
-                </TooltipContent>
-              )}
-            </Tooltip>
-          </motion.div>
+                </AnimatePresence>
+              </Link>
+            </TooltipTrigger>
+            {!mobile && collapsed && (
+              <TooltipContent side="right" sideOffset={8} className="font-medium bg-popover border shadow-lg">
+                <p>Painel Admin</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
         </div>
       )}
 
