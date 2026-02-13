@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles, ArrowRight, Clock, Mail } from "lucide-react";
-import kairoLogo from "@/assets/kairo-logo.svg";
+import kairoLogo from "@/assets/kairo-logo.png";
 
 export default function Obrigado() {
   const navigate = useNavigate();
