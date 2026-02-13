@@ -203,9 +203,9 @@ function UserAvatarSection() {
   const { profile, getInitials, getDisplayName } = useUserProfile();
 
   return (
-    <div className="mt-2 pt-2 border-t border-sidebar-border/40">
+    <Link to="/configuracoes" className="mt-2 pt-2 border-t border-sidebar-border/40 block">
       <div className={cn(
-        "flex items-center gap-3 px-2 py-2 rounded-xl",
+        "flex items-center gap-3 px-2 py-2 rounded-xl cursor-pointer hover:bg-sidebar-accent transition-colors",
         !open && "justify-center px-0"
       )}>
         <Avatar className="h-8 w-8 ring-2 ring-sidebar-border/50 flex-shrink-0">
@@ -233,7 +233,7 @@ function UserAvatarSection() {
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </Link>
   );
 }
 
