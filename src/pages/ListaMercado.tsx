@@ -415,19 +415,22 @@ export default function ListaMercado() {
             Lista de Mercado
           </h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 md:gap-2">
           {categories.length > 0 && (
             <>
-              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={loadArchivedLists}>
-                <Archive className="h-3.5 w-3.5 mr-1" /> Arquivadas
+              <Button variant="outline" size="icon" className="h-7 w-7 md:w-auto md:px-2" onClick={loadArchivedLists} title="Arquivadas">
+                <Archive className="h-3.5 w-3.5" />
+                <span className="hidden md:inline ml-1 text-xs">Arquivadas</span>
               </Button>
-              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => handleCopyList()}>
-                <Copy className="h-3.5 w-3.5 mr-1" /> Copiar
+              <Button variant="outline" size="icon" className="h-7 w-7 md:w-auto md:px-2" onClick={() => handleCopyList()} title="Copiar">
+                <Copy className="h-3.5 w-3.5" />
+                <span className="hidden md:inline ml-1 text-xs">Copiar</span>
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-7 text-xs">
-                    <RotateCcw className="h-3.5 w-3.5 mr-1" /> Nova lista
+                  <Button variant="outline" size="icon" className="h-7 w-7 md:w-auto md:px-2" title="Nova lista">
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    <span className="hidden md:inline ml-1 text-xs">Nova lista</span>
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -443,7 +446,7 @@ export default function ListaMercado() {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-              <Button size="icon" className="rounded-full h-8 w-8" onClick={() => setShowAddMore(true)}>
+              <Button size="icon" className="rounded-full h-7 w-7" onClick={() => setShowAddMore(true)} title="Adicionar itens">
                 <Plus className="h-4 w-4" />
               </Button>
             </>
