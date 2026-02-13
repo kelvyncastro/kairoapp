@@ -27,6 +27,7 @@ import Ranking from "./pages/Ranking";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import Notas from "./pages/Notas";
+import ListaMercado from "./pages/ListaMercado";
 import Privacidade from "./pages/Privacidade";
 import Termos from "./pages/Termos";
 
@@ -85,6 +86,7 @@ const App = () => (
                   <Route path="/ranking" element={<Ranking />} />
                   
                   <Route path="/notas" element={<Notas />} />
+                  <Route path="/lista-mercado" element={<ListaMercado />} />
                   <Route path="/configuracoes" element={<Configuracoes />} />
                   <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
                 </Route>
