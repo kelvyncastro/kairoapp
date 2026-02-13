@@ -7,7 +7,7 @@ import { NeonCheckbox } from "@/components/ui/animated-check-box";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { ShoppingCart, Sparkles, RotateCcw, Copy, Plus, CheckCircle2, Archive, ArrowLeft } from "lucide-react";
+import { ShoppingCart, Sparkles, RotateCcw, Copy, Plus, CheckCircle2, Archive, ArrowLeft, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
@@ -202,6 +202,25 @@ export default function ListaMercado() {
       saveToDb(categories, next, activeListId);
       return next;
     });
+  };
+
+  const removeItem = (categoryName: string, item: string) => {
+    const updated = categories
+      .map((cat) => {
+        if (cat.name !== categoryName) return cat;
+        return { ...cat, items: cat.items.filter((i) => i !== item) };
+      })
+      .filter((cat) => cat.items.length > 0);
+
+    const updatedChecked = { ...checked };
+    if (updatedChecked[categoryName]) {
+      const { [item]: _, ...rest } = updatedChecked[categoryName];
+      updatedChecked[categoryName] = rest;
+    }
+
+    setCategories(updated);
+    setChecked(updatedChecked);
+    saveToDb(updated, updatedChecked, activeListId);
   };
 
   const totalItems = categories.reduce((acc, c) => acc + c.items.length, 0);
@@ -523,14 +542,20 @@ export default function ListaMercado() {
                      {cat.items.map((item) => {
                        const isChecked = !!checked[cat.name]?.[item];
                        return (
-                         <div key={item} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                         <div key={item} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors group">
                            <NeonCheckbox
                              checked={isChecked}
                              onCheckedChange={() => toggleItem(cat.name, item)}
                              rounded={false}
                              size={18}
                            />
-                           <span className={cn("text-sm", isChecked && "line-through text-muted-foreground")}>{item}</span>
+                           <span className={cn("text-sm flex-1", isChecked && "line-through text-muted-foreground")}>{item}</span>
+                           <button
+                             onClick={() => removeItem(cat.name, item)}
+                             className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive"
+                           >
+                             <Trash2 className="h-3.5 w-3.5" />
+                           </button>
                          </div>
                        );
                      })}
