@@ -172,7 +172,6 @@ function SidebarInnerContent() {
 
       {/* Bottom section */}
       <div className="mt-auto">
-        <SidebarDivider />
         {/* Settings link */}
         <SidebarLink
           link={{
