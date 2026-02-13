@@ -317,7 +317,7 @@ export default function AppLayout() {
           </header>
 
           {/* Page Content */}
-          <div className="flex-1 min-h-0 min-w-0 overflow-hidden p-4 md:p-6 relative">
+          <div className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden p-4 md:p-6 relative">
             <Outlet />
           </div>
         </main>
