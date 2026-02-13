@@ -16,6 +16,7 @@ import {
   LogOut,
   CalendarClock,
   MessageSquare,
+  ShoppingCart,
   Menu,
   PanelLeftClose,
   PanelLeft,
@@ -55,7 +56,7 @@ const mainNavItems = [
   { path: "/ranking", label: "Ranking", icon: Trophy },
   { path: "/consistencia", label: "Consistência", icon: Flame },
   { path: "/notas", label: "Notas", icon: FileText },
-  
+  { path: "/lista-mercado", label: "Lista de Mercado", icon: ShoppingCart },
   { path: "/configuracoes", label: "Configurações", icon: Settings },
 ];
 
