@@ -14,12 +14,87 @@ import {
   Star,
   Shield,
   Clock,
-  TrendingUp
+  TrendingUp,
+  CalendarCheck,
+  ListTodo,
+  FileText,
+  ShoppingCart,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import kairoLogo from "@/assets/kairo-logo.png";
 
 import { AppShowcaseCarousel } from "@/components/landing/AppShowcaseCarousel";
+import RadialOrbitalTimeline from "@/components/ui/radial-orbital-timeline";
+
+const orbitalTimelineData = [
+  {
+    id: 1,
+    title: "Hábitos",
+    date: "Diário",
+    content: "Construa rotinas saudáveis com rastreamento visual de hábitos. Acompanhe seu progresso semanal e mantenha sequências de consistência que vão transformar sua vida.",
+    category: "Produtividade",
+    icon: CalendarCheck,
+    relatedIds: [2, 5],
+    status: "completed" as const,
+    energy: 95,
+  },
+  {
+    id: 2,
+    title: "Tarefas",
+    date: "Diário",
+    content: "Organize suas atividades com quadro Kanban, listas inteligentes, prioridades, pastas e cronômetro integrado. Nunca mais perca um prazo importante.",
+    category: "Organização",
+    icon: ListTodo,
+    relatedIds: [1, 3],
+    status: "completed" as const,
+    energy: 90,
+  },
+  {
+    id: 3,
+    title: "Calendário",
+    date: "Semanal",
+    content: "Visualize sua semana com blocos de horário personalizáveis, compromissos recorrentes e indicador de hora atual. Planeje cada minuto do seu dia.",
+    category: "Planejamento",
+    icon: Calendar,
+    relatedIds: [2, 4],
+    status: "in-progress" as const,
+    energy: 80,
+  },
+  {
+    id: 4,
+    title: "Notas",
+    date: "Contínuo",
+    content: "Editor rico com pastas, busca rápida e organização flexível. Capture ideias, crie listas e mantenha tudo documentado em um só lugar.",
+    category: "Conhecimento",
+    icon: FileText,
+    relatedIds: [3, 5],
+    status: "in-progress" as const,
+    energy: 70,
+  },
+  {
+    id: 5,
+    title: "Finanças",
+    date: "Mensal",
+    content: "Controle receitas e despesas com gráficos detalhados, categorias personalizadas e assistente financeiro com IA para análises inteligentes.",
+    category: "Finanças",
+    icon: Wallet,
+    relatedIds: [4, 6],
+    status: "completed" as const,
+    energy: 85,
+  },
+  {
+    id: 6,
+    title: "Lista de Mercado",
+    date: "Semanal",
+    content: "Crie listas de compras organizadas por categoria automaticamente com IA. Marque itens conforme compra e mantenha o histórico de listas anteriores.",
+    category: "Compras",
+    icon: ShoppingCart,
+    relatedIds: [5, 1],
+    status: "in-progress" as const,
+    energy: 75,
+  },
+];
 
 function ParticlesWithTheme() {
   const [color, setColor] = useState("#ffffff");
@@ -376,6 +451,34 @@ export default function Landing() {
 
       {/* App Showcase Carousel */}
       <AppShowcaseCarousel />
+
+      {/* Orbital Timeline Section */}
+      <section className="relative z-10 py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            className="text-center mb-8"
+          >
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+              Tudo conectado
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Cada módulo do Kairo se conecta para criar um ecossistema completo de produtividade
+            </p>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <RadialOrbitalTimeline timelineData={orbitalTimelineData} />
+          </motion.div>
+        </div>
+      </section>
 
       {/* Stats Section */}
       <section className="relative z-10 py-16 border-y border-border/50 bg-secondary/10 backdrop-blur-sm">
