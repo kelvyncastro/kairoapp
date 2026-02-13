@@ -214,18 +214,30 @@ export default function AppLayout() {
   return (
     <TooltipProvider delayDuration={0}>
       <div className="flex h-screen w-full bg-background overflow-hidden">
-        {/* Desktop Sidebar */}
+        {/* Desktop Sidebar - Floating Futuristic */}
         <motion.aside
-          className="fixed left-0 top-0 z-40 h-screen bg-gradient-to-b from-sidebar via-sidebar to-sidebar/95 border-r border-sidebar-border hidden md:flex md:flex-col overflow-hidden"
+          className="fixed left-3 top-3 z-40 hidden md:flex md:flex-col overflow-hidden rounded-2xl border border-primary/20 shadow-[0_0_30px_-5px_hsl(var(--primary)/0.15),inset_0_1px_0_0_hsl(var(--primary)/0.1)]"
           animate={{ width: collapsed ? 64 : 240 }}
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+          style={{ height: 'calc(100vh - 24px)' }}
         >
-          {/* Decorative gradient line */}
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+          {/* Glass background */}
+          <div className="absolute inset-0 bg-sidebar/80 backdrop-blur-xl rounded-2xl" />
+          {/* Top glow line */}
+          <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+          {/* Bottom glow line */}
+          <div className="absolute bottom-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+          {/* Corner accents */}
+          <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary/30 rounded-tl-2xl" />
+          <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-primary/30 rounded-tr-2xl" />
+          <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-primary/30 rounded-bl-2xl" />
+          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-primary/30 rounded-br-2xl" />
+          {/* Ambient glow */}
+          <div className="absolute -inset-1 bg-primary/5 rounded-2xl blur-xl -z-10" />
 
           {/* Logo */}
           <div className={cn(
-            "flex h-14 items-center border-b border-sidebar-border transition-all duration-300",
+            "flex h-14 items-center border-b border-primary/10 transition-all duration-300 relative z-10",
             collapsed ? "justify-center px-2" : "px-4"
           )}>
             <Link to="/dashboard" className="flex items-center gap-3 group">
@@ -256,10 +268,12 @@ export default function AppLayout() {
           </div>
 
           {/* Navigation */}
-          <NavContent />
+          <div className="relative z-10 flex-1 overflow-hidden">
+            <NavContent />
+          </div>
 
           {/* Collapse Toggle */}
-          <div className="p-3 border-t border-sidebar-border bg-gradient-to-t from-muted/30 to-transparent">
+          <div className="p-3 border-t border-primary/10 relative z-10">
             <Tooltip>
               <TooltipTrigger asChild>
                 <motion.button
@@ -308,7 +322,7 @@ export default function AppLayout() {
         <main
           className={cn(
             "flex-1 flex flex-col min-w-0 transition-all duration-300 pb-16 md:pb-0 overflow-hidden",
-            collapsed ? "md:ml-16" : "md:ml-60"
+            collapsed ? "md:ml-[82px]" : "md:ml-[258px]"
           )}
         >
           {/* Topbar */}
