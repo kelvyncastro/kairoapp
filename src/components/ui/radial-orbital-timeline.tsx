@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { ArrowRight, Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import kairoLogo from "@/assets/kairo-logo.png";
+import kairoLogo from "@/assets/kairo-logo.svg";
 
 interface TimelineItem {
   id: number;
