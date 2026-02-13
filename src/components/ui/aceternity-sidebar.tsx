@@ -178,7 +178,7 @@ export const SidebarSectionLabel = ({
       <motion.span
         animate={{ opacity: isVisible ? 1 : 0 }}
         transition={{ duration: 0.15 }}
-        className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-[0.18em] select-none whitespace-nowrap"
+        className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-[0.18em] select-none whitespace-nowrap"
       >
         {children}
       </motion.span>
