@@ -217,7 +217,7 @@ export const SidebarLink = ({
         className
       )}
     >
-      <div className="flex-shrink-0 flex items-center justify-center w-5 h-5">
+      <div className="flex-shrink-0 flex items-center justify-center w-5 h-5 text-foreground">
         {link.icon}
       </div>
       <motion.span
