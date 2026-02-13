@@ -172,20 +172,17 @@ export const SidebarSectionLabel = ({
   children: React.ReactNode;
 }) => {
   const { open, animate } = useSidebar();
+  const isVisible = animate ? open : true;
   return (
-    <AnimatePresence mode="wait">
-      {(animate ? open : true) && (
-        <motion.p
-          initial={{ opacity: 0, x: -8 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -8 }}
-          transition={{ duration: 0.2 }}
-          className="px-3 pt-4 pb-1.5 text-[10px] font-bold text-muted-foreground/50 uppercase tracking-[0.18em] select-none"
-        >
-          {children}
-        </motion.p>
-      )}
-    </AnimatePresence>
+    <div className="px-3 pt-4 pb-1.5 h-[28px] flex items-center">
+      <motion.span
+        animate={{ opacity: isVisible ? 1 : 0 }}
+        transition={{ duration: 0.15 }}
+        className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-[0.18em] select-none whitespace-nowrap"
+      >
+        {children}
+      </motion.span>
+    </div>
   );
 };
 
