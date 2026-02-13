@@ -541,12 +541,16 @@ const HabitGrid = React.memo(function HabitGrid({
                               size={24}
                               checked={status === 'done'}
                               disabled={status === 'future'}
-                              onChange={() => {
+                              onChange={async () => {
                                 if (status !== 'future') {
-                                  if (status !== 'done') {
-                                    playCheck();
+                                  try {
+                                    if (status !== 'done') {
+                                      playCheck();
+                                    }
+                                    await onToggleLog(habit.id, day);
+                                  } catch (error) {
+                                    console.error('Error toggling habit:', error);
                                   }
-                                  onToggleLog(habit.id, day);
                                 }
                               }}
                               className={cn(

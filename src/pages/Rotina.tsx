@@ -163,7 +163,11 @@ export default function Rotina() {
   };
 
   const handleToggleComplete = async (task: Task) => {
-    await toggleTaskComplete(task);
+    try {
+      await toggleTaskComplete(task);
+    } catch (error) {
+      console.error('Error toggling task complete:', error);
+    }
   };
 
   const handleDeleteTask = async (id: string) => {
