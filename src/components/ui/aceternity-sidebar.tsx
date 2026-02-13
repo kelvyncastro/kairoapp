@@ -212,7 +212,7 @@ export const SidebarLink = ({
         "flex items-center gap-3 group/sidebar py-2 px-3 rounded-xl transition-all duration-200",
         active
           ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-          : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+          : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
         !open && "justify-center px-0 mx-auto w-10 h-10",
         className
       )}
@@ -230,7 +230,7 @@ export const SidebarLink = ({
           "text-[13px] font-medium whitespace-pre transition duration-150 group-hover/sidebar:translate-x-0.5",
           active
             ? "text-primary-foreground"
-            : "text-sidebar-foreground/80 group-hover/sidebar:text-sidebar-accent-foreground"
+            : "text-sidebar-foreground group-hover/sidebar:text-sidebar-accent-foreground"
         )}
       >
         {link.label}
