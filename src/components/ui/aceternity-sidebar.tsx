@@ -3,6 +3,11 @@ import { Link, LinkProps } from "react-router-dom";
 import React, { useState, createContext, useContext } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Links {
   label: string;
@@ -16,9 +21,7 @@ interface SidebarContextProps {
   animate: boolean;
 }
 
-const SidebarContext = createContext<SidebarContextProps | undefined>(
-  undefined
-);
+const SidebarContext = createContext<SidebarContextProps | undefined>(undefined);
 
 export const useSidebar = () => {
   const context = useContext(SidebarContext);
@@ -40,7 +43,6 @@ export const SidebarProvider = ({
   animate?: boolean;
 }) => {
   const [openState, setOpenState] = useState(false);
-
   const open = openProp !== undefined ? openProp : openState;
   const setOpen = setOpenProp !== undefined ? setOpenProp : setOpenState;
 
@@ -93,22 +95,26 @@ export const SidebarBody = ({
 export const DesktopSidebar = ({
   className,
   children,
-  ...props
-}: React.ComponentProps<typeof motion.div>) => {
+  style,
+}: {
+  className?: string;
+  children: React.ReactNode;
+  style?: React.CSSProperties;
+}) => {
   const { open, setOpen, animate } = useSidebar();
   return (
     <motion.div
       className={cn(
-        "h-full px-4 py-4 hidden md:flex md:flex-col w-[300px] flex-shrink-0",
+        "h-full px-3 py-4 hidden md:flex md:flex-col w-[260px] flex-shrink-0",
         className
       )}
       animate={{
-        width: animate ? (open ? "300px" : "70px") : "300px",
+        width: animate ? (open ? "260px" : "68px") : "260px",
       }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
+      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
-      {...props}
+      style={style}
     >
       {children}
     </motion.div>
@@ -140,10 +146,7 @@ export const MobileSidebar = ({
             initial={{ x: "-100%", opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: "-100%", opacity: 0 }}
-            transition={{
-              duration: 0.3,
-              ease: "easeInOut",
-            }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
             className={cn(
               "fixed h-full w-full inset-0 bg-sidebar p-10 z-[100] flex flex-col justify-between",
               className
@@ -163,11 +166,40 @@ export const MobileSidebar = ({
   );
 };
 
+export const SidebarSectionLabel = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const { open, animate } = useSidebar();
+  return (
+    <AnimatePresence mode="wait">
+      {(animate ? open : true) && (
+        <motion.p
+          initial={{ opacity: 0, x: -8 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -8 }}
+          transition={{ duration: 0.2 }}
+          className="px-3 pt-4 pb-1.5 text-[10px] font-bold text-muted-foreground/50 uppercase tracking-[0.18em] select-none"
+        >
+          {children}
+        </motion.p>
+      )}
+    </AnimatePresence>
+  );
+};
+
+export const SidebarDivider = () => {
+  const { open } = useSidebar();
+  return (
+    <div className={cn("my-2 mx-3 h-px bg-sidebar-border/50", !open && "mx-2")} />
+  );
+};
+
 export const SidebarLink = ({
   link,
   className,
   active,
-  ...props
 }: {
   link: Links;
   className?: string;
@@ -175,31 +207,55 @@ export const SidebarLink = ({
   props?: LinkProps;
 }) => {
   const { open, animate } = useSidebar();
-  return (
+
+  const linkContent = (
     <Link
       to={link.href}
       className={cn(
-        "flex items-center justify-start gap-3 group/sidebar py-2.5 px-3 rounded-xl transition-all duration-200",
+        "flex items-center gap-3 group/sidebar py-2 px-3 rounded-xl transition-all duration-200",
         active
-          ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
-          : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+          ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+          : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+        !open && "justify-center px-0 mx-auto w-10 h-10",
         className
       )}
-      {...props}
     >
-      {link.icon}
+      <div className="flex-shrink-0 flex items-center justify-center w-5 h-5">
+        {link.icon}
+      </div>
       <motion.span
         animate={{
           display: animate ? (open ? "inline-block" : "none") : "inline-block",
           opacity: animate ? (open ? 1 : 0) : 1,
         }}
+        transition={{ duration: 0.15 }}
         className={cn(
-          "text-sm font-semibold whitespace-pre transition duration-150 group-hover/sidebar:translate-x-1",
-          active ? "text-primary-foreground" : "text-sidebar-foreground group-hover/sidebar:text-sidebar-accent-foreground"
+          "text-[13px] font-medium whitespace-pre transition duration-150 group-hover/sidebar:translate-x-0.5",
+          active
+            ? "text-primary-foreground"
+            : "text-sidebar-foreground/80 group-hover/sidebar:text-sidebar-accent-foreground"
         )}
       >
         {link.label}
       </motion.span>
     </Link>
   );
+
+  // Show tooltip when collapsed
+  if (!open && animate) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+        <TooltipContent
+          side="right"
+          sideOffset={12}
+          className="font-medium bg-popover border shadow-lg text-xs"
+        >
+          {link.label}
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return linkContent;
 };
