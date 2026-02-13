@@ -2,12 +2,12 @@ import { useState, useEffect, useCallback } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
+import { Input } from "@/components/ui/input";
 import { NeonCheckbox } from "@/components/ui/animated-check-box";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { ShoppingCart, Sparkles, RotateCcw, Copy, Plus, CheckCircle2, Archive, ArrowLeft, Trash2 } from "lucide-react";
+import { ShoppingCart, Sparkles, RotateCcw, Copy, Plus, CheckCircle2, Archive, ArrowLeft, Trash2, DollarSign } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
@@ -15,6 +15,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -29,6 +31,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Label } from "@/components/ui/label";
 
 interface CategoryGroup {
   name: string;
@@ -72,6 +75,9 @@ export default function ListaMercado() {
   const [archivedLists, setArchivedLists] = useState<GroceryList[]>([]);
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [viewingArchivedList, setViewingArchivedList] = useState<GroceryList | null>(null);
+  const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
+  const [purchaseAmount, setPurchaseAmount] = useState("");
+  const [confirmingPurchase, setConfirmingPurchase] = useState(false);
 
   // Load active list on mount
   useEffect(() => {
@@ -230,17 +236,73 @@ export default function ListaMercado() {
   );
 
   const handleConfirmPurchase = async () => {
-    if (!activeListId) return;
-    await supabase
-      .from("grocery_lists")
-      .update({ status: "archived", completed_at: new Date().toISOString() })
-      .eq("id", activeListId);
+    if (!activeListId || !user) return;
+    
+    const amount = parseFloat(purchaseAmount.replace(",", "."));
+    if (isNaN(amount) || amount <= 0) {
+      toast.error("Digite um valor válido.");
+      return;
+    }
 
-    setCategories([]);
-    setChecked({});
-    setActiveListId(null);
-    setInputText("");
-    toast.success("Compra confirmada! Lista arquivada.");
+    setConfirmingPurchase(true);
+    try {
+      // 1. Archive the list
+      await supabase
+        .from("grocery_lists")
+        .update({ status: "archived", completed_at: new Date().toISOString() })
+        .eq("id", activeListId);
+
+      // 2. Find or use "Mercado" sector
+      let sectorId: string | null = null;
+      const { data: sectors } = await supabase
+        .from("finance_sectors")
+        .select("id, name")
+        .eq("user_id", user.id);
+
+      const mercadoSector = sectors?.find(
+        (s) => s.name.toLowerCase() === "mercado"
+      );
+      sectorId = mercadoSector?.id || null;
+
+      // 3. Create finance transaction
+      const today = format(new Date(), "yyyy-MM-dd");
+      await supabase.from("finance_transactions").insert({
+        user_id: user.id,
+        name: "Compra no Mercado",
+        value: -Math.abs(amount),
+        date: today,
+        sector_id: sectorId,
+        status: "paid",
+        description: `Lista de mercado finalizada com ${totalItems} itens`,
+      });
+
+      // 4. Create notification
+      await supabase.from("notifications").insert({
+        user_id: user.id,
+        title: "Gasto registrado automaticamente",
+        message: `R$ ${Math.abs(amount).toFixed(2).replace(".", ",")} foi registrado em Finanças (setor Mercado) a partir da sua lista de compras. Não registre novamente!`,
+        type: "finance_auto",
+        data: { source: "grocery_list", amount: Math.abs(amount) },
+      });
+
+      // 5. Reset state
+      setCategories([]);
+      setChecked({});
+      setActiveListId(null);
+      setInputText("");
+      setShowPurchaseDialog(false);
+      setPurchaseAmount("");
+
+      toast.success(
+        `Compra confirmada! R$ ${Math.abs(amount).toFixed(2).replace(".", ",")} registrado automaticamente em Finanças.`,
+        { duration: 6000 }
+      );
+    } catch (error) {
+      console.error("Erro ao confirmar compra:", error);
+      toast.error("Erro ao confirmar compra. Tente novamente.");
+    } finally {
+      setConfirmingPurchase(false);
+    }
   };
 
   const handleReset = async () => {
@@ -574,28 +636,59 @@ export default function ListaMercado() {
       {/* Confirm Purchase Button */}
       {categories.length > 0 && (
         <div className="flex-shrink-0 px-4 md:px-6 pb-4">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button size="lg" className="w-full gap-2">
-                <CheckCircle2 className="h-5 w-5" />
-                Confirmar Compra
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Confirmar compra?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  A lista será arquivada e você poderá consultá-la depois no histórico.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={handleConfirmPurchase}>Confirmar</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <Button size="lg" className="w-full gap-2" onClick={() => { setShowPurchaseDialog(true); setPurchaseAmount(""); }}>
+            <CheckCircle2 className="h-5 w-5" />
+            Confirmar Compra
+          </Button>
         </div>
       )}
+
+      {/* Purchase Amount Dialog */}
+      <Dialog open={showPurchaseDialog} onOpenChange={(open) => { if (!confirmingPurchase) { setShowPurchaseDialog(open); if (!open) setPurchaseAmount(""); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-primary" />
+              Quanto foi gasto?
+            </DialogTitle>
+            <DialogDescription>
+              Digite o valor total da compra. Ele será registrado automaticamente em Finanças no setor Mercado.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <Label htmlFor="purchase-amount">Valor da compra (R$)</Label>
+            <Input
+              id="purchase-amount"
+              type="text"
+              inputMode="decimal"
+              placeholder="Ex: 150,00"
+              value={purchaseAmount}
+              onChange={(e) => setPurchaseAmount(e.target.value)}
+              autoFocus
+              className="text-lg"
+              onKeyDown={(e) => { if (e.key === "Enter" && purchaseAmount.trim()) handleConfirmPurchase(); }}
+            />
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowPurchaseDialog(false)} disabled={confirmingPurchase}>
+              Cancelar
+            </Button>
+            <Button onClick={handleConfirmPurchase} disabled={confirmingPurchase || !purchaseAmount.trim()} className="gap-2">
+              {confirmingPurchase ? (
+                <>
+                  <div className="h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                  Registrando...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-4 w-4" />
+                  Confirmar e Registrar
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Add More Dialog */}
       <Dialog open={showAddMore} onOpenChange={(open) => { setShowAddMore(open); if (!open) setAddMoreText(""); }}>
