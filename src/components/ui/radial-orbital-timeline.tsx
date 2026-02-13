@@ -1,20 +1,17 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { ArrowRight, Link, Zap } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { ArrowRight, Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import kairoLogo from "@/assets/kairo-logo.png";
 
 interface TimelineItem {
   id: number;
   title: string;
-  date: string;
   content: string;
   category: string;
   icon: React.ElementType;
   relatedIds: number[];
-  status: "completed" | "in-progress" | "pending";
-  energy: number;
 }
 
 interface RadialOrbitalTimelineProps {
@@ -24,16 +21,11 @@ interface RadialOrbitalTimelineProps {
 export default function RadialOrbitalTimeline({
   timelineData,
 }: RadialOrbitalTimelineProps) {
-  const [expandedItems, setExpandedItems] = useState<Record<number, boolean>>(
-    {}
-  );
+  const [expandedItems, setExpandedItems] = useState<Record<number, boolean>>({});
   const [rotationAngle, setRotationAngle] = useState(0);
   const [autoRotate, setAutoRotate] = useState(true);
   const [pulseEffect, setPulseEffect] = useState<Record<number, boolean>>({});
-  const [centerOffset] = useState<{ x: number; y: number }>({
-    x: 0,
-    y: 0,
-  });
+  const [centerOffset] = useState({ x: 0, y: 0 });
   const [activeNodeId, setActiveNodeId] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const orbitRef = useRef<HTMLDivElement>(null);
@@ -52,58 +44,40 @@ export default function RadialOrbitalTimeline({
     setExpandedItems((prev) => {
       const newState = { ...prev };
       Object.keys(newState).forEach((key) => {
-        if (parseInt(key) !== id) {
-          newState[parseInt(key)] = false;
-        }
+        if (parseInt(key) !== id) newState[parseInt(key)] = false;
       });
-
       newState[id] = !prev[id];
 
       if (!prev[id]) {
         setActiveNodeId(id);
         setAutoRotate(false);
-
-        const relatedItems = getRelatedItems(id);
-        const newPulseEffect: Record<number, boolean> = {};
-        relatedItems.forEach((relId) => {
-          newPulseEffect[relId] = true;
-        });
-        setPulseEffect(newPulseEffect);
-
+        const related = getRelatedItems(id);
+        const pulse: Record<number, boolean> = {};
+        related.forEach((relId) => { pulse[relId] = true; });
+        setPulseEffect(pulse);
         centerViewOnNode(id);
       } else {
         setActiveNodeId(null);
         setAutoRotate(true);
         setPulseEffect({});
       }
-
       return newState;
     });
   };
 
   useEffect(() => {
-    let rotationTimer: NodeJS.Timeout;
-
+    let timer: NodeJS.Timeout;
     if (autoRotate) {
-      rotationTimer = setInterval(() => {
-        setRotationAngle((prev) => {
-          const newAngle = (prev + 0.3) % 360;
-          return Number(newAngle.toFixed(3));
-        });
+      timer = setInterval(() => {
+        setRotationAngle((prev) => Number(((prev + 0.3) % 360).toFixed(3)));
       }, 50);
     }
-
-    return () => {
-      if (rotationTimer) {
-        clearInterval(rotationTimer);
-      }
-    };
+    return () => { if (timer) clearInterval(timer); };
   }, [autoRotate]);
 
   const centerViewOnNode = (nodeId: number) => {
-    const nodeIndex = timelineData.findIndex((item) => item.id === nodeId);
-    const totalNodes = timelineData.length;
-    const targetAngle = (nodeIndex / totalNodes) * 360;
+    const idx = timelineData.findIndex((item) => item.id === nodeId);
+    const targetAngle = (idx / timelineData.length) * 360;
     setRotationAngle(270 - targetAngle);
   };
 
@@ -111,41 +85,21 @@ export default function RadialOrbitalTimeline({
     const angle = ((index / total) * 360 + rotationAngle) % 360;
     const radius = 200;
     const radian = (angle * Math.PI) / 180;
-
     const x = radius * Math.cos(radian) + centerOffset.x;
     const y = radius * Math.sin(radian) + centerOffset.y;
-
     const zIndex = Math.round(100 + 50 * Math.cos(radian));
-    const opacity = Math.max(
-      0.4,
-      Math.min(1, 0.4 + 0.6 * ((1 + Math.sin(radian)) / 2))
-    );
-
-    return { x, y, angle, zIndex, opacity };
+    const opacity = Math.max(0.4, Math.min(1, 0.4 + 0.6 * ((1 + Math.sin(radian)) / 2)));
+    return { x, y, zIndex, opacity };
   };
 
   const getRelatedItems = (itemId: number): number[] => {
-    const currentItem = timelineData.find((item) => item.id === itemId);
-    return currentItem ? currentItem.relatedIds : [];
+    const item = timelineData.find((i) => i.id === itemId);
+    return item ? item.relatedIds : [];
   };
 
   const isRelatedToActive = (itemId: number): boolean => {
     if (!activeNodeId) return false;
-    const relatedItems = getRelatedItems(activeNodeId);
-    return relatedItems.includes(itemId);
-  };
-
-  const getStatusStyles = (status: TimelineItem["status"]): string => {
-    switch (status) {
-      case "completed":
-        return "text-primary-foreground bg-primary border-primary";
-      case "in-progress":
-        return "text-foreground bg-secondary border-border";
-      case "pending":
-        return "text-muted-foreground bg-muted border-border/50";
-      default:
-        return "text-muted-foreground bg-muted border-border/50";
-    }
+    return getRelatedItems(activeNodeId).includes(itemId);
   };
 
   return (
@@ -156,18 +110,17 @@ export default function RadialOrbitalTimeline({
       style={{ minHeight: "550px" }}
     >
       <div className="relative" style={{ width: "500px", height: "500px" }}>
-        <div
-          ref={orbitRef}
-          className="absolute inset-0 flex items-center justify-center"
-        >
+        <div ref={orbitRef} className="absolute inset-0 flex items-center justify-center">
           {/* Orbit rings */}
           <div className="absolute w-[400px] h-[400px] rounded-full border border-border/20" />
           <div className="absolute w-[300px] h-[300px] rounded-full border border-border/10" />
           <div className="absolute w-[200px] h-[200px] rounded-full border border-border/10" />
 
-          {/* Center pulse */}
-          <div className="absolute w-4 h-4 rounded-full bg-primary/50 animate-ping" />
-          <div className="absolute w-3 h-3 rounded-full bg-primary" />
+          {/* Center logo */}
+          <div className="absolute w-14 h-14 rounded-full overflow-hidden ring-2 ring-primary/30 shadow-lg shadow-primary/20 z-10">
+            <img src={kairoLogo} alt="Kairo" className="w-full h-full object-cover" />
+          </div>
+          <div className="absolute w-16 h-16 rounded-full bg-primary/20 animate-ping" />
 
           {/* Nodes */}
           {timelineData.map((item, index) => {
@@ -189,17 +142,12 @@ export default function RadialOrbitalTimeline({
                 ref={(el) => (nodeRefs.current[item.id] = el)}
                 className="absolute transition-all duration-700 cursor-pointer"
                 style={nodeStyle}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleItem(item.id);
-                }}
+                onClick={(e) => { e.stopPropagation(); toggleItem(item.id); }}
               >
-                {/* Pulse ring for related nodes */}
                 {isPulsing && (
                   <div className="absolute -inset-3 rounded-full border-2 border-primary/50 animate-ping" />
                 )}
 
-                {/* Node circle */}
                 <div
                   className={`relative flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-300 ${
                     isExpanded
@@ -212,7 +160,6 @@ export default function RadialOrbitalTimeline({
                   <Icon className="w-5 h-5" />
                 </div>
 
-                {/* Title label */}
                 <div
                   className={`absolute top-14 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-medium transition-all duration-300 ${
                     isExpanded ? "text-foreground" : "text-muted-foreground"
@@ -221,74 +168,39 @@ export default function RadialOrbitalTimeline({
                   {item.title}
                 </div>
 
-                {/* Expanded card */}
                 {isExpanded && (
                   <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50">
                     <Card className="w-72 backdrop-blur-lg bg-card/95 border-border/50 shadow-2xl">
                       <CardHeader className="pb-2">
-                        <div className="flex items-center justify-between">
-                          <Badge
-                            variant="outline"
-                            className={getStatusStyles(item.status)}
-                          >
-                            {item.status === "completed"
-                              ? "COMPLETO"
-                              : item.status === "in-progress"
-                              ? "EM PROGRESSO"
-                              : "PENDENTE"}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {item.date}
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
+                            <Icon className="w-4 h-4 text-primary" />
                           </span>
+                          <CardTitle className="text-base">{item.title}</CardTitle>
                         </div>
-                        <CardTitle className="text-base mt-2">
-                          {item.title}
-                        </CardTitle>
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                          {item.category}
+                        </span>
                       </CardHeader>
                       <CardContent className="space-y-3">
-                        <p className="text-sm text-muted-foreground">
-                          {item.content}
-                        </p>
-
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="flex items-center gap-1 text-muted-foreground">
-                              <Zap className="w-3 h-3" />
-                              Energia
-                            </span>
-                            <span className="text-foreground font-medium">{item.energy}%</span>
-                          </div>
-                          <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-primary rounded-full transition-all duration-1000"
-                              style={{ width: `${item.energy}%` }}
-                            />
-                          </div>
-                        </div>
+                        <p className="text-sm text-muted-foreground">{item.content}</p>
 
                         {item.relatedIds.length > 0 && (
                           <div className="pt-2 border-t border-border/50">
                             <div className="flex items-center gap-1 mb-2">
                               <Link className="w-3 h-3 text-muted-foreground" />
-                              <span className="text-xs text-muted-foreground">
-                                Conexões
-                              </span>
+                              <span className="text-xs text-muted-foreground">Conexões</span>
                             </div>
                             <div className="flex flex-wrap gap-1">
                               {item.relatedIds.map((relatedId) => {
-                                const relatedItem = timelineData.find(
-                                  (i) => i.id === relatedId
-                                );
+                                const relatedItem = timelineData.find((i) => i.id === relatedId);
                                 return (
                                   <Button
                                     key={relatedId}
                                     variant="outline"
                                     size="sm"
                                     className="h-6 text-xs px-2"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      toggleItem(relatedId);
-                                    }}
+                                    onClick={(e) => { e.stopPropagation(); toggleItem(relatedId); }}
                                   >
                                     {relatedItem?.title}
                                     <ArrowRight className="w-3 h-3 ml-1" />
