@@ -8,6 +8,12 @@ import { toast } from "sonner";
 import { ShoppingCart, Sparkles, RotateCcw, Copy, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface CategoryGroup {
   name: string;
@@ -146,6 +152,10 @@ export default function ListaMercado() {
         </div>
         {categories.length > 0 && (
           <div className="flex items-center gap-2">
+            <Button size="lg" className="gap-2" onClick={() => setShowAddMore(true)}>
+              <Plus className="h-5 w-5" />
+              Adicionar itens
+            </Button>
             <Button variant="outline" size="sm" onClick={handleCopyList}>
               <Copy className="h-4 w-4 mr-1" /> Copiar
             </Button>
@@ -263,65 +273,42 @@ export default function ListaMercado() {
         </AnimatePresence>
       </div>
 
-      {/* Add More Items */}
-      {categories.length > 0 && (
-        <div className="space-y-3">
-          <AnimatePresence>
-            {showAddMore && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-              >
-                <Card className="border-dashed">
-                  <CardContent className="pt-4 space-y-3">
-                    <Textarea
-                      placeholder="Digite mais itens para adicionar à lista..."
-                      value={addMoreText}
-                      onChange={(e) => setAddMoreText(e.target.value)}
-                      className="min-h-[80px] text-base resize-none"
-                      disabled={loading}
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => handleCategorize(addMoreText, true)}
-                        disabled={loading || !addMoreText.trim()}
-                        className="flex-1 gap-2"
-                      >
-                        {loading ? (
-                          <>
-                            <div className="h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                            Adicionando...
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="h-4 w-4" />
-                            Adicionar e Organizar
-                          </>
-                        )}
-                      </Button>
-                      <Button variant="outline" onClick={() => { setShowAddMore(false); setAddMoreText(""); }}>
-                        Cancelar
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {!showAddMore && (
+      {/* Add More Dialog */}
+      <Dialog open={showAddMore} onOpenChange={(open) => { setShowAddMore(open); if (!open) setAddMoreText(""); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adicionar mais itens</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              placeholder="Digite mais itens para adicionar à lista..."
+              value={addMoreText}
+              onChange={(e) => setAddMoreText(e.target.value)}
+              className="min-h-[120px] text-base resize-none"
+              disabled={loading}
+              autoFocus
+            />
             <Button
-              variant="outline"
-              className="w-full gap-2 border-dashed"
-              onClick={() => setShowAddMore(true)}
+              onClick={() => handleCategorize(addMoreText, true)}
+              disabled={loading || !addMoreText.trim()}
+              className="w-full gap-2"
+              size="lg"
             >
-              <Plus className="h-4 w-4" />
-              Adicionar mais itens
+              {loading ? (
+                <>
+                  <div className="h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                  Adicionando...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  Adicionar e Organizar
+                </>
+              )}
             </Button>
-          )}
-        </div>
-      )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
