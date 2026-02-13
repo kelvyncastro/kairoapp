@@ -271,8 +271,8 @@ export default function ListaMercado() {
     const archivedCats = viewingArchivedList.categories;
     const archivedChecked = viewingArchivedList.checked_items;
     return (
-      <div className="h-full overflow-y-auto space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="h-full flex flex-col -m-4 md:-m-6 bg-background overflow-hidden">
+        <div className="flex items-center justify-between px-4 md:px-6 py-2 md:py-3 border-b border-border/30 flex-shrink-0">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => setViewingArchivedList(null)}>
               <ArrowLeft className="h-5 w-5" />
@@ -290,7 +290,7 @@ export default function ListaMercado() {
             <Copy className="h-4 w-4 mr-1" /> Copiar
           </Button>
         </div>
-        <div className="space-y-4">
+        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-4">
           {archivedCats.map((cat) => (
             <Card key={cat.name} className="opacity-80">
               <CardHeader className="pb-3">
@@ -326,94 +326,89 @@ export default function ListaMercado() {
   // Archived lists view
   if (showArchived) {
     return (
-      <div className="h-full overflow-y-auto space-y-6">
-        <div className="flex items-center gap-3">
+      <div className="h-full flex flex-col -m-4 md:-m-6 bg-background overflow-hidden">
+        <div className="flex items-center gap-3 px-4 md:px-6 py-2 md:py-3 border-b border-border/30 flex-shrink-0">
           <Button variant="ghost" size="icon" onClick={() => setShowArchived(false)}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <Archive className="h-6 w-6 text-primary" />
+            <h1 className="text-lg md:text-xl font-bold text-foreground flex items-center gap-2">
+              <Archive className="h-5 w-5 text-primary" />
               Listas Arquivadas
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Histórico de compras realizadas
-            </p>
           </div>
         </div>
-
-        {archivedLists.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center text-muted-foreground">
-              Nenhuma lista arquivada ainda.
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-3">
-            {archivedLists.map((list) => {
-              const cats = list.categories as unknown as CategoryGroup[];
-              const totalItems = cats.reduce((acc, c) => acc + c.items.length, 0);
-              return (
-                <Card
-                  key={list.id}
-                  className="cursor-pointer hover:bg-muted/30 transition-colors"
-                  onClick={() => setViewingArchivedList(list)}
-                >
-                  <CardContent className="py-4 flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-sm">
-                        {list.completed_at
-                          ? format(new Date(list.completed_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
-                          : ""}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {totalItems} itens em {cats.length} setores
-                      </p>
-                    </div>
-                    <div className="flex gap-1 flex-wrap justify-end max-w-[200px]">
-                      {cats.slice(0, 6).map((c) => (
-                        <span key={c.name} className="text-lg">{c.emoji}</span>
-                      ))}
-                      {cats.length > 6 && (
-                        <span className="text-xs text-muted-foreground self-center">+{cats.length - 6}</span>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
+        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-3">
+          {archivedLists.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                Nenhuma lista arquivada ainda.
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {archivedLists.map((list) => {
+                const cats = list.categories as unknown as CategoryGroup[];
+                const totalItems = cats.reduce((acc, c) => acc + c.items.length, 0);
+                return (
+                  <Card
+                    key={list.id}
+                    className="cursor-pointer hover:bg-muted/30 transition-colors"
+                    onClick={() => setViewingArchivedList(list)}
+                  >
+                    <CardContent className="py-4 flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-sm">
+                          {list.completed_at
+                            ? format(new Date(list.completed_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+                            : ""}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {totalItems} itens em {cats.length} setores
+                        </p>
+                      </div>
+                      <div className="flex gap-1 flex-wrap justify-end max-w-[200px]">
+                        {cats.slice(0, 6).map((c) => (
+                          <span key={c.name} className="text-lg">{c.emoji}</span>
+                        ))}
+                        {cats.length > 6 && (
+                          <span className="text-xs text-muted-foreground self-center">+{cats.length - 6}</span>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full overflow-y-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="h-full flex flex-col -m-4 md:-m-6 bg-background overflow-hidden">
+      {/* Header - Fixed */}
+      <div className="flex items-center justify-between px-4 md:px-6 py-2 md:py-3 border-b border-border/30 flex-shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <ShoppingCart className="h-6 w-6 text-primary" />
+          <h1 className="text-lg md:text-xl font-bold text-foreground flex items-center gap-2">
+            <ShoppingCart className="h-5 w-5 text-primary" />
             Lista de Mercado
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Digite seus itens e a IA organiza por setor automaticamente
-          </p>
         </div>
         <div className="flex items-center gap-2">
           {categories.length > 0 && (
             <>
-              <Button variant="outline" size="sm" onClick={loadArchivedLists}>
-                <Archive className="h-4 w-4 mr-1" /> Arquivadas
+              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={loadArchivedLists}>
+                <Archive className="h-3.5 w-3.5 mr-1" /> Arquivadas
               </Button>
-              <Button variant="outline" size="sm" onClick={() => handleCopyList()}>
-                <Copy className="h-4 w-4 mr-1" /> Copiar
+              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => handleCopyList()}>
+                <Copy className="h-3.5 w-3.5 mr-1" /> Copiar
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <RotateCcw className="h-4 w-4 mr-1" /> Nova lista
+                  <Button variant="outline" size="sm" className="h-7 text-xs">
+                    <RotateCcw className="h-3.5 w-3.5 mr-1" /> Nova lista
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -429,76 +424,78 @@ export default function ListaMercado() {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-              <Button size="icon" className="rounded-full h-9 w-9" onClick={() => setShowAddMore(true)}>
-                <Plus className="h-5 w-5" />
+              <Button size="icon" className="rounded-full h-8 w-8" onClick={() => setShowAddMore(true)}>
+                <Plus className="h-4 w-4" />
               </Button>
             </>
           )}
           {categories.length === 0 && (
-            <Button variant="outline" size="sm" onClick={loadArchivedLists}>
-              <Archive className="h-4 w-4 mr-1" /> Arquivadas
+            <Button variant="outline" size="sm" className="h-7 text-xs" onClick={loadArchivedLists}>
+              <Archive className="h-3.5 w-3.5 mr-1" /> Arquivadas
             </Button>
           )}
         </div>
       </div>
 
-      {/* Input Section */}
-      <AnimatePresence mode="wait">
-        {categories.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-          >
-            <Card className="border-dashed">
-              <CardContent className="pt-6 space-y-4">
-                <Textarea
-                  placeholder={"Ex: banana, frango, detergente, arroz, leite, alface, sabonete, cerveja, macarrão, queijo..."}
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  className="min-h-[140px] text-base resize-none"
-                  disabled={loading}
-                />
-                <Button
-                  onClick={() => handleCategorize(inputText)}
-                  disabled={loading || !inputText.trim()}
-                  className="w-full gap-2"
-                  size="lg"
-                >
-                  {loading ? (
-                    <>
-                      <div className="h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                      Organizando sua lista...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-4 w-4" />
-                      Organizar por Setor
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Progress */}
-      {categories.length > 0 && (
-        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-          <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+      {/* Content - Scrollable */}
+      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-4">
+        {/* Input Section */}
+        <AnimatePresence mode="wait">
+          {categories.length === 0 && (
             <motion.div
-              className="h-full bg-primary rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${totalItems > 0 ? (checkedCount / totalItems) * 100 : 0}%` }}
-              transition={{ duration: 0.3 }}
-            />
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+            >
+              <Card className="border-dashed">
+                <CardContent className="pt-6 space-y-4">
+                  <Textarea
+                    placeholder={"Ex: banana, frango, detergente, arroz, leite, alface, sabonete, cerveja, macarrão, queijo..."}
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    className="min-h-[140px] text-base resize-none"
+                    disabled={loading}
+                  />
+                  <Button
+                    onClick={() => handleCategorize(inputText)}
+                    disabled={loading || !inputText.trim()}
+                    className="w-full gap-2"
+                    size="lg"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                        Organizando sua lista...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4" />
+                        Organizar por Setor
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Progress */}
+        {categories.length > 0 && (
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+              <motion.div
+                className="h-full bg-primary rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${totalItems > 0 ? (checkedCount / totalItems) * 100 : 0}%` }}
+                transition={{ duration: 0.3 }}
+              />
+            </div>
+            <span className="font-medium whitespace-nowrap">
+              {checkedCount}/{totalItems} itens
+            </span>
           </div>
-          <span className="font-medium whitespace-nowrap">
-            {checkedCount}/{totalItems} itens
-          </span>
-        </div>
-      )}
+        )}
 
       {/* Categories List */}
       <div className="space-y-4">
@@ -549,7 +546,7 @@ export default function ListaMercado() {
       {categories.length > 0 && (
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button size="lg" className="w-full gap-2 bg-success hover:bg-success/90 text-success-foreground">
+            <Button size="lg" className="w-full gap-2">
               <CheckCircle2 className="h-5 w-5" />
               Confirmar Compra
             </Button>
@@ -568,6 +565,7 @@ export default function ListaMercado() {
           </AlertDialogContent>
         </AlertDialog>
       )}
+      </div>
 
       {/* Add More Dialog */}
       <Dialog open={showAddMore} onOpenChange={(open) => { setShowAddMore(open); if (!open) setAddMoreText(""); }}>
