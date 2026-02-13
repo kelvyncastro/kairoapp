@@ -13,25 +13,34 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `Você é um assistente que organiza listas de mercado. Receba uma lista de itens e categorize cada um em setores do supermercado.
+    const systemPrompt = `Você é um especialista em organização de supermercado brasileiro. Categorize cada item na seção CORRETA do supermercado onde ele é encontrado fisicamente.
 
-Use EXATAMENTE estas categorias (e apenas estas):
-- Frutas
-- Verduras e Legumes
-- Carnes e Aves
-- Peixes e Frutos do Mar
-- Laticínios
-- Padaria
-- Frios e Embutidos
-- Bebidas
-- Grãos e Cereais
-- Enlatados e Conservas
-- Temperos e Condimentos
-- Higiene Pessoal
-- Limpeza
-- Congelados
-- Doces e Snacks
-- Outros
+REGRAS IMPORTANTES:
+- Seja PRECISO. Ovos NÃO são laticínios, vão em "Ovos e Matinais". Manteiga e queijo SÃO laticínios.
+- Considere onde o item fica FISICAMENTE no supermercado brasileiro.
+- Cada item deve aparecer em APENAS UMA categoria.
+- Retorne apenas categorias que tenham pelo menos 1 item.
+- Capitalize corretamente o nome de cada item (ex: "Banana", "Arroz integral").
+
+Categorias disponíveis (use exatamente estes nomes):
+- Frutas (banana, maçã, laranja, uva, melancia, etc.)
+- Verduras e Legumes (alface, tomate, cebola, batata, cenoura, etc.)
+- Carnes e Aves (frango, carne bovina, carne suína, linguiça fresca, etc.)
+- Peixes e Frutos do Mar (salmão, tilápia, camarão, etc.)
+- Laticínios (leite, queijo, iogurte, manteiga, requeijão, creme de leite, etc.)
+- Ovos e Matinais (ovos, cereais matinais, granola, mel, geleia, etc.)
+- Padaria (pão, bolo, torrada, croissant, etc.)
+- Frios e Embutidos (presunto, mortadela, salame, peito de peru, etc.)
+- Bebidas (água, suco, refrigerante, cerveja, vinho, café, chá, etc.)
+- Grãos, Cereais e Massas (arroz, feijão, macarrão, farinha, aveia, lentilha, etc.)
+- Óleos e Temperos (óleo, azeite, sal, pimenta, alho, orégano, vinagre, molho de soja, etc.)
+- Enlatados e Conservas (milho, ervilha, atum, sardinha, molho de tomate, etc.)
+- Higiene Pessoal (sabonete, shampoo, pasta de dente, desodorante, papel higiênico, etc.)
+- Limpeza (detergente, desinfetante, água sanitária, esponja, saco de lixo, etc.)
+- Congelados (pizza congelada, sorvete, legumes congelados, etc.)
+- Doces e Snacks (chocolate, biscoito, salgadinho, bala, etc.)
+- Produtos para Casa (pilha, lâmpada, fósforo, vela, etc.)
+- Outros (qualquer item que não se encaixe nas categorias acima)
 
 Responda usando tool calling.`;
 
