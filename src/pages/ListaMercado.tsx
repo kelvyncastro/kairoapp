@@ -402,14 +402,10 @@ export default function ListaMercado() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={loadArchivedLists}>
-            <Archive className="h-4 w-4 mr-1" /> Arquivadas
-          </Button>
           {categories.length > 0 && (
             <>
-              <Button size="lg" className="gap-2" onClick={() => setShowAddMore(true)}>
-                <Plus className="h-5 w-5" />
-                Adicionar itens
+              <Button variant="outline" size="sm" onClick={loadArchivedLists}>
+                <Archive className="h-4 w-4 mr-1" /> Arquivadas
               </Button>
               <Button variant="outline" size="sm" onClick={() => handleCopyList()}>
                 <Copy className="h-4 w-4 mr-1" /> Copiar
@@ -433,7 +429,15 @@ export default function ListaMercado() {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+              <Button size="icon" className="rounded-full h-9 w-9" onClick={() => setShowAddMore(true)}>
+                <Plus className="h-5 w-5" />
+              </Button>
             </>
+          )}
+          {categories.length === 0 && (
+            <Button variant="outline" size="sm" onClick={loadArchivedLists}>
+              <Archive className="h-4 w-4 mr-1" /> Arquivadas
+            </Button>
           )}
         </div>
       </div>
@@ -519,20 +523,20 @@ export default function ListaMercado() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0 space-y-2">
-                    {cat.items.map((item) => {
-                      const isChecked = !!checked[cat.name]?.[item];
-                      return (
-                        <NeonCheckbox
-                          key={item}
-                          checked={isChecked}
-                          onCheckedChange={() => toggleItem(cat.name, item)}
-                          rounded={false}
-                          size={18}
-                          label={<span className={cn("text-sm", isChecked && "line-through text-muted-foreground")}>{item}</span>}
-                          className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                        />
-                      );
-                    })}
+                     {cat.items.map((item) => {
+                       const isChecked = !!checked[cat.name]?.[item];
+                       return (
+                         <div key={item} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                           <NeonCheckbox
+                             checked={isChecked}
+                             onCheckedChange={() => toggleItem(cat.name, item)}
+                             rounded={false}
+                             size={18}
+                           />
+                           <span className={cn("text-sm", isChecked && "line-through text-muted-foreground")}>{item}</span>
+                         </div>
+                       );
+                     })}
                   </CardContent>
                 </Card>
               </motion.div>
