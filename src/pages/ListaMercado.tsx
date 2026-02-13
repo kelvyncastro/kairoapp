@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import { NeonCheckbox } from "@/components/ui/animated-check-box";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -522,22 +522,15 @@ export default function ListaMercado() {
                     {cat.items.map((item) => {
                       const isChecked = !!checked[cat.name]?.[item];
                       return (
-                        <label
+                        <NeonCheckbox
                           key={item}
-                          className={cn(
-                            "flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-all hover:bg-muted/50",
-                            isChecked && "line-through text-muted-foreground"
-                          )}
-                        >
-                           <NeonCheckbox
-                             checked={isChecked}
-                             onCheckedChange={() => toggleItem(cat.name, item)}
-                             rounded={false}
-                             size={18}
-                             label={item}
-                             className="w-full"
-                           />
-                        </label>
+                          checked={isChecked}
+                          onCheckedChange={() => toggleItem(cat.name, item)}
+                          rounded={false}
+                          size={18}
+                          label={<span className={cn("text-sm", isChecked && "line-through text-muted-foreground")}>{item}</span>}
+                          className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                        />
                       );
                     })}
                   </CardContent>
