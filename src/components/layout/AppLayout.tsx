@@ -132,7 +132,7 @@ function SidebarInnerContent() {
                             "h-[18px] w-[18px] flex-shrink-0 transition-colors",
                             isActive
                               ? "text-primary-foreground"
-                              : "text-sidebar-foreground/60"
+                              : "text-foreground"
                           )}
                         />
                       ),
@@ -159,7 +159,7 @@ function SidebarInnerContent() {
                       "h-[18px] w-[18px] flex-shrink-0 transition-colors",
                       location.pathname === "/admin"
                         ? "text-primary-foreground"
-                        : "text-sidebar-foreground/60"
+                        : "text-foreground"
                     )}
                   />
                 ),
@@ -184,7 +184,7 @@ function SidebarInnerContent() {
                   "h-[18px] w-[18px] flex-shrink-0 transition-colors",
                   location.pathname === "/configuracoes"
                     ? "text-primary-foreground"
-                    : "text-sidebar-foreground/60"
+                    : "text-foreground"
                 )}
               />
             ),
