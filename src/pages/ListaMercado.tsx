@@ -3,6 +3,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { NeonCheckbox } from "@/components/ui/animated-check-box";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -299,21 +300,21 @@ export default function ListaMercado() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0 space-y-2">
-                {cat.items.map((item) => {
-                  const wasChecked = !!(archivedChecked as any)?.[cat.name]?.[item];
-                  return (
-                    <div
-                      key={item}
-                      className={cn(
-                        "flex items-center gap-3 p-2 rounded-lg",
-                        wasChecked && "line-through text-muted-foreground"
-                      )}
-                    >
-                      <Checkbox checked={wasChecked} disabled />
-                      <span className="text-sm">{item}</span>
-                    </div>
-                  );
-                })}
+                 {cat.items.map((item) => {
+                   const wasChecked = !!(archivedChecked as any)?.[cat.name]?.[item];
+                   return (
+                     <div
+                       key={item}
+                       className={cn(
+                         "flex items-center gap-3 p-2 rounded-lg",
+                         wasChecked && "line-through text-muted-foreground"
+                       )}
+                     >
+                       <NeonCheckbox checked={wasChecked} disabled rounded={false} size={18} />
+                       <span className="text-sm">{item}</span>
+                     </div>
+                   );
+                 })}
               </CardContent>
             </Card>
           ))}
@@ -528,11 +529,14 @@ export default function ListaMercado() {
                             isChecked && "line-through text-muted-foreground"
                           )}
                         >
-                          <Checkbox
-                            checked={isChecked}
-                            onCheckedChange={() => toggleItem(cat.name, item)}
-                          />
-                          <span className="text-sm">{item}</span>
+                           <NeonCheckbox
+                             checked={isChecked}
+                             onCheckedChange={() => toggleItem(cat.name, item)}
+                             rounded={false}
+                             size={18}
+                             label={item}
+                             className="w-full"
+                           />
                         </label>
                       );
                     })}
