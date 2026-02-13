@@ -145,29 +145,6 @@ function SidebarInnerContent() {
           </div>
         ))}
 
-        {isAdmin && (
-          <>
-            <SidebarDivider />
-            <SidebarSectionLabel>Admin</SidebarSectionLabel>
-            <SidebarLink
-              link={{
-                label: "Painel Admin",
-                href: "/admin",
-                icon: (
-                  <Shield
-                    className={cn(
-                      "h-[18px] w-[18px] flex-shrink-0 transition-colors",
-                      location.pathname === "/admin"
-                        ? "text-primary-foreground"
-                        : "text-foreground"
-                    )}
-                  />
-                ),
-              }}
-              active={location.pathname === "/admin"}
-            />
-          </>
-        )}
       </div>
 
       {/* Bottom section */}
@@ -190,6 +167,25 @@ function SidebarInnerContent() {
           }}
           active={location.pathname === "/configuracoes"}
         />
+        {isAdmin && (
+          <SidebarLink
+            link={{
+              label: "Painel Admin",
+              href: "/admin",
+              icon: (
+                <Shield
+                  className={cn(
+                    "h-[18px] w-[18px] flex-shrink-0 transition-colors",
+                    location.pathname === "/admin"
+                      ? "text-primary-foreground"
+                      : "text-foreground"
+                  )}
+                />
+              ),
+            }}
+            active={location.pathname === "/admin"}
+          />
+        )}
         {/* User avatar */}
         <UserAvatarSection />
       </div>
