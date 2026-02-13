@@ -492,10 +492,14 @@ export function TaskDetailModal({
                 <NeonCheckbox
                   checked={subtask.completed}
                   rounded={false}
-                  onCheckedChange={async () => {
-                    await toggleSubtask(subtask);
-                    notifyDetailsChanged();
-                  }}
+                   onCheckedChange={async () => {
+                     try {
+                       await toggleSubtask(subtask);
+                       notifyDetailsChanged();
+                     } catch (error) {
+                       console.error('Error toggling subtask:', error);
+                     }
+                   }}
                 />
                 {editingSubtaskId === subtask.id ? (
                   <div className="flex-1 flex items-center gap-2">
@@ -684,10 +688,14 @@ export function TaskDetailModal({
                           <NeonCheckbox
                             checked={item.completed}
                             rounded={false}
-                            onCheckedChange={async () => {
-                              await toggleChecklistItem(item);
-                              notifyDetailsChanged();
-                            }}
+                             onCheckedChange={async () => {
+                               try {
+                                 await toggleChecklistItem(item);
+                                 notifyDetailsChanged();
+                               } catch (error) {
+                                 console.error('Error toggling checklist item:', error);
+                               }
+                             }}
                           />
                           {editingChecklistItemId === item.id ? (
                             <div className="flex-1 flex items-center gap-2">

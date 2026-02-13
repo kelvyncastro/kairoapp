@@ -1081,7 +1081,13 @@ function TaskTable({
                     duration: 3000,
                   });
                 }
-                setTimeout(() => onToggleComplete(task), 2000);
+                setTimeout(async () => {
+                  try {
+                    await onToggleComplete(task);
+                  } catch (error) {
+                    console.error('Error toggling task:', error);
+                  }
+                }, 2000);
               }}
             />
           </div>
