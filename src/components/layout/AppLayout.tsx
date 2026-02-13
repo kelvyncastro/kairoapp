@@ -31,6 +31,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { SoundToggleButton } from "@/components/layout/SoundToggleButton";
 import { SpotlightNav } from "@/components/ui/spotlight-nav";
@@ -38,22 +44,44 @@ import {
   Sidebar,
   SidebarBody,
   SidebarLink,
+  SidebarSectionLabel,
+  SidebarDivider,
   useSidebar,
 } from "@/components/ui/aceternity-sidebar";
 
-const mainNavItems = [
-  { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { path: "/rotina", label: "Tarefas", icon: ListTodo },
-  { path: "/habitos", label: "Hábitos", icon: CalendarCheck },
-  { path: "/metas", label: "Metas", icon: Target },
-  { path: "/calendario", label: "Calendário", icon: CalendarClock },
-  { path: "/chat-financeiro", label: "Chat Financeiro", icon: MessageSquare },
-  { path: "/financas", label: "Finanças", icon: Wallet },
-  { path: "/ranking", label: "Ranking", icon: Trophy },
-  { path: "/consistencia", label: "Consistência", icon: Flame },
-  { path: "/notas", label: "Notas", icon: FileText },
-  { path: "/lista-mercado", label: "Lista de Mercado", icon: ShoppingCart },
-  { path: "/configuracoes", label: "Configurações", icon: Settings },
+// Grouped navigation sections
+const navSections = [
+  {
+    label: "Principal",
+    items: [
+      { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { path: "/rotina", label: "Tarefas", icon: ListTodo },
+      { path: "/habitos", label: "Hábitos", icon: CalendarCheck },
+      { path: "/metas", label: "Metas", icon: Target },
+      { path: "/calendario", label: "Calendário", icon: CalendarClock },
+    ],
+  },
+  {
+    label: "Finanças",
+    items: [
+      { path: "/chat-financeiro", label: "Chat IA", icon: MessageSquare },
+      { path: "/financas", label: "Finanças", icon: Wallet },
+    ],
+  },
+  {
+    label: "Organização",
+    items: [
+      { path: "/notas", label: "Notas", icon: FileText },
+      { path: "/lista-mercado", label: "Mercado", icon: ShoppingCart },
+    ],
+  },
+  {
+    label: "Social",
+    items: [
+      { path: "/ranking", label: "Ranking", icon: Trophy },
+      { path: "/consistencia", label: "Consistência", icon: Flame },
+    ],
+  },
 ];
 
 function SidebarInnerContent() {
@@ -61,41 +89,11 @@ function SidebarInnerContent() {
   const { open } = useSidebar();
   const { isAdmin } = useIsAdmin();
 
-  const links = mainNavItems.map((item) => ({
-    label: item.label,
-    href: item.path,
-    icon: (
-      <item.icon
-        className={cn(
-          "h-5 w-5 flex-shrink-0 transition-colors",
-          location.pathname === item.path
-            ? "text-primary-foreground"
-            : "text-sidebar-foreground"
-        )}
-      />
-    ),
-  }));
-
-  const adminLink = {
-    label: "Painel Admin",
-    href: "/admin",
-    icon: (
-      <Shield
-        className={cn(
-          "h-5 w-5 flex-shrink-0 transition-colors",
-          location.pathname === "/admin"
-            ? "text-primary-foreground"
-            : "text-sidebar-foreground"
-        )}
-      />
-    ),
-  };
-
   return (
     <>
       {/* Logo */}
-      <Link to="/dashboard" className="flex items-center gap-3 py-1 mb-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-xl overflow-hidden ring-2 ring-sidebar-border flex-shrink-0">
+      <Link to="/dashboard" className="flex items-center gap-3 px-1 mb-2">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden ring-2 ring-sidebar-border flex-shrink-0">
           <img src={kairoLogo} alt="Kairo" className="w-full h-full object-cover" />
         </div>
         <AnimatePresence mode="wait">
@@ -104,7 +102,8 @@ function SidebarInnerContent() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="text-xl font-bold tracking-wide text-foreground whitespace-nowrap"
+              transition={{ duration: 0.15 }}
+              className="text-lg font-bold tracking-wide text-foreground whitespace-nowrap"
             >
               Kairo
             </motion.span>
@@ -112,29 +111,89 @@ function SidebarInnerContent() {
         </AnimatePresence>
       </Link>
 
-      {/* Navigation links */}
-      <div className="flex flex-col gap-1 flex-1 overflow-y-auto">
-        {links.map((link) => (
-          <SidebarLink
-            key={link.href}
-            link={link}
-            active={location.pathname === link.href}
-          />
+      {/* Grouped Navigation */}
+      <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden mt-1">
+        {navSections.map((section, sectionIdx) => (
+          <div key={section.label}>
+            {sectionIdx > 0 && <SidebarDivider />}
+            <SidebarSectionLabel>{section.label}</SidebarSectionLabel>
+            <div className="flex flex-col gap-0.5">
+              {section.items.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <SidebarLink
+                    key={item.path}
+                    link={{
+                      label: item.label,
+                      href: item.path,
+                      icon: (
+                        <item.icon
+                          className={cn(
+                            "h-[18px] w-[18px] flex-shrink-0 transition-colors",
+                            isActive
+                              ? "text-primary-foreground"
+                              : "text-sidebar-foreground/60"
+                          )}
+                        />
+                      ),
+                    }}
+                    active={isActive}
+                  />
+                );
+              })}
+            </div>
+          </div>
         ))}
 
         {isAdmin && (
           <>
-            <div className="my-2 h-px bg-sidebar-border" />
+            <SidebarDivider />
+            <SidebarSectionLabel>Admin</SidebarSectionLabel>
             <SidebarLink
-              link={adminLink}
+              link={{
+                label: "Painel Admin",
+                href: "/admin",
+                icon: (
+                  <Shield
+                    className={cn(
+                      "h-[18px] w-[18px] flex-shrink-0 transition-colors",
+                      location.pathname === "/admin"
+                        ? "text-primary-foreground"
+                        : "text-sidebar-foreground/60"
+                    )}
+                  />
+                ),
+              }}
               active={location.pathname === "/admin"}
             />
           </>
         )}
       </div>
 
-      {/* User avatar at bottom */}
-      <UserAvatarSection />
+      {/* Bottom section */}
+      <div className="mt-auto">
+        <SidebarDivider />
+        {/* Settings link */}
+        <SidebarLink
+          link={{
+            label: "Configurações",
+            href: "/configuracoes",
+            icon: (
+              <Settings
+                className={cn(
+                  "h-[18px] w-[18px] flex-shrink-0 transition-colors",
+                  location.pathname === "/configuracoes"
+                    ? "text-primary-foreground"
+                    : "text-sidebar-foreground/60"
+                )}
+              />
+            ),
+          }}
+          active={location.pathname === "/configuracoes"}
+        />
+        {/* User avatar */}
+        <UserAvatarSection />
+      </div>
     </>
   );
 }
@@ -144,24 +203,33 @@ function UserAvatarSection() {
   const { profile, getInitials, getDisplayName } = useUserProfile();
 
   return (
-    <div className="mt-4 pt-4 border-t border-sidebar-border">
-      <div className="flex items-center gap-3">
-        <Avatar className="h-8 w-8 ring-2 ring-sidebar-border flex-shrink-0">
+    <div className="mt-2 pt-2 border-t border-sidebar-border/40">
+      <div className={cn(
+        "flex items-center gap-3 px-2 py-2 rounded-xl",
+        !open && "justify-center px-0"
+      )}>
+        <Avatar className="h-8 w-8 ring-2 ring-sidebar-border/50 flex-shrink-0">
           <AvatarImage src={profile?.avatar_url || undefined} />
-          <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
+          <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-semibold">
             {getInitials()}
           </AvatarFallback>
         </Avatar>
         <AnimatePresence mode="wait">
           {open && (
-            <motion.span
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="text-sm font-medium text-sidebar-foreground truncate"
+              transition={{ duration: 0.15 }}
+              className="flex flex-col min-w-0"
             >
-              {getDisplayName()}
-            </motion.span>
+              <span className="text-xs font-semibold text-sidebar-foreground truncate">
+                {getDisplayName()}
+              </span>
+              <span className="text-[10px] text-muted-foreground/60 truncate">
+                Online
+              </span>
+            </motion.div>
           )}
         </AnimatePresence>
       </div>
@@ -180,86 +248,88 @@ export default function AppLayout() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-background overflow-hidden">
-      <Sidebar open={open} setOpen={setOpen} animate={true}>
-        <SidebarBody
+    <TooltipProvider delayDuration={0}>
+      <div className="flex h-screen w-full bg-background overflow-hidden">
+        <Sidebar open={open} setOpen={setOpen} animate={true}>
+          <SidebarBody
+            className={cn(
+              "fixed left-3 top-3 z-40 rounded-2xl border border-sidebar-border/30",
+              "bg-sidebar/90 backdrop-blur-xl",
+              "shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.08)]",
+              "justify-between"
+            )}
+            style={{ height: "calc(100vh - 24px)" }}
+          >
+            <SidebarInnerContent />
+          </SidebarBody>
+        </Sidebar>
+
+        {/* Main Content */}
+        <main
           className={cn(
-            "fixed left-3 top-3 z-40 rounded-2xl border border-primary/20",
-            "bg-sidebar/80 backdrop-blur-xl",
-            "shadow-[0_0_30px_-5px_hsl(var(--primary)/0.15),inset_0_1px_0_0_hsl(var(--primary)/0.1)]",
-            "justify-between"
+            "flex-1 flex flex-col min-w-0 transition-all duration-300 pb-16 md:pb-0 overflow-hidden",
+            "md:ml-[86px]"
           )}
-          style={{ height: "calc(100vh - 24px)" }}
         >
-          <SidebarInnerContent />
-        </SidebarBody>
-      </Sidebar>
+          {/* Topbar */}
+          <header className="flex-shrink-0 sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6">
+            {/* Left: Logo (mobile) */}
+            <div className="flex items-center gap-2 md:hidden">
+              <Link to="/dashboard" className="flex items-center gap-2">
+                <img src={kairoLogo} alt="Kairo" className="h-7 w-7 rounded-xl" />
+                <span className="font-bold text-lg">Kairo</span>
+              </Link>
+            </div>
 
-      {/* Main Content */}
-      <main
-        className={cn(
-          "flex-1 flex flex-col min-w-0 transition-all duration-300 pb-16 md:pb-0 overflow-hidden",
-          "md:ml-[88px]"
-        )}
-      >
-        {/* Topbar */}
-        <header className="flex-shrink-0 sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6">
-          {/* Left: Logo (mobile) */}
-          <div className="flex items-center gap-2 md:hidden">
-            <Link to="/dashboard" className="flex items-center gap-2">
-              <img src={kairoLogo} alt="Kairo" className="h-7 w-7 rounded-xl" />
-              <span className="font-bold text-lg">Kairo</span>
-            </Link>
+            {/* Spacer for desktop */}
+            <div className="hidden md:block" />
+
+            <div className="flex items-center gap-2">
+              <SoundToggleButton />
+              <NotificationBell />
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <Avatar className="h-8 w-8 ring-2 ring-border">
+                      <AvatarImage src={profile?.avatar_url || undefined} />
+                      <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
+                        {getInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 bg-popover border shadow-xl">
+                  <div className="px-3 py-2">
+                    <p className="text-sm font-semibold">{getDisplayName()}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild className="gap-2">
+                    <Link to="/configuracoes">
+                      <Settings className="h-4 w-4" />
+                      Configurações
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive gap-2">
+                    <LogOut className="h-4 w-4" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </header>
+
+          {/* Page Content */}
+          <div className="flex-1 min-h-0 min-w-0 overflow-hidden p-4 md:p-6 relative">
+            <Outlet />
           </div>
+        </main>
 
-          {/* Spacer for desktop */}
-          <div className="hidden md:block" />
-
-          <div className="flex items-center gap-2">
-            <SoundToggleButton />
-            <NotificationBell />
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <Avatar className="h-8 w-8 ring-2 ring-border">
-                    <AvatarImage src={profile?.avatar_url || undefined} />
-                    <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
-                      {getInitials()}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-popover border shadow-xl">
-                <div className="px-3 py-2">
-                  <p className="text-sm font-semibold">{getDisplayName()}</p>
-                  <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild className="gap-2">
-                  <Link to="/configuracoes">
-                    <Settings className="h-4 w-4" />
-                    Configurações
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-destructive gap-2">
-                  <LogOut className="h-4 w-4" />
-                  Sair
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </header>
-
-        {/* Page Content */}
-        <div className="flex-1 min-h-0 min-w-0 overflow-hidden p-4 md:p-6 relative">
-          <Outlet />
-        </div>
-      </main>
-
-      {/* Mobile Bottom Navigation */}
-      <SpotlightNav />
-    </div>
+        {/* Mobile Bottom Navigation */}
+        <SpotlightNav />
+      </div>
+    </TooltipProvider>
   );
 }
