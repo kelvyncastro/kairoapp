@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, KeyboardEvent, useCallback } from 'react';
+import { useState, useRef, useEffect, KeyboardEvent, useCallback, useMemo } from 'react';
+import DOMPurify from 'dompurify';
 import { Block, BlockType } from '@/types/notes';
 import { cn } from '@/lib/utils';
 import {
