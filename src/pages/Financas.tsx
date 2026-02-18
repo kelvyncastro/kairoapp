@@ -371,6 +371,8 @@ export default function Financas() {
     }
 
     toast({ title: "Transação adicionada" });
+    // Mark streak
+    if (user) { const today = new Date().toISOString().split("T")[0]; await supabase.from("consistency_days").upsert({ user_id: user.id, date: today, is_active: true, reason: "finance" }, { onConflict: "user_id,date" }); }
     setNewTransaction({ 
       name: "", 
       value: 0, 
