@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Habit, HabitLog, HabitWithLogs, HabitSection, DAY_MAP } from '@/types/habits';
+import { markConsistencyDay } from '@/lib/markConsistencyDay';
 import { toast } from 'sonner';
 import { 
   startOfMonth, 
@@ -197,6 +198,8 @@ export function useHabits(currentDate: Date) {
               : h
           )
         );
+        // Mark streak when toggling to done
+        if (newStatus === 'done' && user) await markConsistencyDay(user.id, 'habit');
       } else {
         // Create new log as done
         const { data, error } = await supabase
@@ -217,6 +220,8 @@ export function useHabits(currentDate: Date) {
             h.id === habitId ? { ...h, logs: [...h.logs, data] } : h
           )
         );
+        // Mark streak when habit is done
+        if (user) await markConsistencyDay(user.id, 'habit');
       }
     } catch (error) {
       console.error('Error toggling habit log:', error);

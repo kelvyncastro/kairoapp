@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import chatBackground from "@/assets/chat-background.jpg";
 import batmanLogo from "@/assets/batman-logo.jpg";
+import { markConsistencyDay } from "@/lib/markConsistencyDay";
 
 interface Message {
   id: string;
@@ -65,6 +66,8 @@ export function FinanceChat({ isOpen, onClose, sectors, onTransactionAdded }: Fi
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+    // Mark streak on any AI chat message
+    if (user) markConsistencyDay(user.id, 'ai_chat');
 
     try {
       const { data, error } = await supabase.functions.invoke("finance-chat", {
