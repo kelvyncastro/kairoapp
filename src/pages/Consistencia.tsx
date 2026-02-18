@@ -92,12 +92,16 @@ export default function Consistencia() {
 
     let currentStreak = 0;
     const todayStart = startOfDay(new Date());
-    for (let i = 0; i <= 365; i++) {
+    const todayStr = format(todayStart, "yyyy-MM-dd");
+    const todayData = allDays.find((d) => d.date === todayStr);
+    // If today is not yet active, start counting from yesterday
+    const startOffset = todayData?.is_active ? 0 : 1;
+    for (let i = startOffset; i <= 365; i++) {
       const checkDate = format(subDays(todayStart, i), "yyyy-MM-dd");
       const dayData = allDays.find((d) => d.date === checkDate);
       if (dayData?.is_active) {
         currentStreak++;
-      } else if (i > 0) {
+      } else {
         break;
       }
     }
