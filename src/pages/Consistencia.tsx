@@ -108,19 +108,27 @@ export default function Consistencia() {
 
     let bestStreak = 0;
     let tempStreak = 0;
-    const sortedDays = [...allDays].sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
-    
-    for (let i = 0; i < sortedDays.length; i++) {
-      if (sortedDays[i].is_active) {
-        tempStreak++;
-        if (tempStreak > bestStreak) bestStreak = tempStreak;
+    const sortedActiveDays = [...allDays]
+      .filter((d) => d.is_active)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    for (let i = 0; i < sortedActiveDays.length; i++) {
+      if (i === 0) {
+        tempStreak = 1;
       } else {
-        tempStreak = 0;
+        const prev = new Date(sortedActiveDays[i - 1].date);
+        const curr = new Date(sortedActiveDays[i].date);
+        const diffDays = Math.round((curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24));
+        if (diffDays === 1) {
+          tempStreak++;
+        } else {
+          tempStreak = 1;
+        }
       }
+      if (tempStreak > bestStreak) bestStreak = tempStreak;
     }
 
+    // Current streak only counts toward best if it actually surpasses historical record
     const newBestStreak = Math.max(bestStreak, currentStreak);
     
     // Check for new achievement
