@@ -219,6 +219,16 @@ export function useTaskData() {
     }
 
     setTasks(prev => prev.map(t => t.id === id ? { ...t, ...finalUpdates } : t));
+
+    // Mark consistency day when task is marked as completed via status change
+    if (finalUpdates.completed === true && user) {
+      const today = new Date().toISOString().split('T')[0];
+      await supabase.from('consistency_days').upsert(
+        { user_id: user.id, date: today, is_active: true, reason: 'task' },
+        { onConflict: 'user_id,date' }
+      );
+    }
+
     return true;
   };
 
@@ -281,6 +291,15 @@ export function useTaskData() {
         ));
         toast({ title: 'Erro ao atualizar tarefa', variant: 'destructive' });
         return false;
+      }
+
+      // Mark consistency day when completing a task
+      if (completed && user) {
+        const today = new Date().toISOString().split('T')[0];
+        await supabase.from('consistency_days').upsert(
+          { user_id: user.id, date: today, is_active: true, reason: 'task' },
+          { onConflict: 'user_id,date' }
+        );
       }
       
       return true;
