@@ -147,6 +147,42 @@ interface BlockContentProps {
 
 import { forwardRef } from 'react';
 
+interface SanitizedBlockProps {
+  content: string;
+  checked?: boolean;
+  blockType: string;
+  baseClasses: string;
+  typeClasses: Record<string, string>;
+  onInput: (content: string) => void;
+  onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => void;
+}
+
+const SanitizedBlock = forwardRef<HTMLDivElement, SanitizedBlockProps>(
+  ({ content, checked, blockType, baseClasses, typeClasses, onInput, onKeyDown }, ref) => {
+    const sanitizedContent = useMemo(
+      () => DOMPurify.sanitize(content, {
+        ALLOWED_TAGS: ['br', 'strong', 'em', 'u', 's', 'mark', 'span'],
+        ALLOWED_ATTR: ['class'],
+      }),
+      [content]
+    );
+
+    return (
+      <div
+        ref={ref}
+        contentEditable
+        suppressContentEditableWarning
+        className={cn(baseClasses, typeClasses[blockType] || 'text-sm', checked && 'line-through text-muted-foreground')}
+        onInput={(e) => onInput(e.currentTarget.textContent || '')}
+        onKeyDown={onKeyDown}
+        dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+        data-placeholder={blockType === 'text' ? 'Digite "/" para comandos...' : ''}
+      />
+    );
+  }
+);
+SanitizedBlock.displayName = 'SanitizedBlock';
+
 const BlockContent = forwardRef<HTMLDivElement, BlockContentProps>(
   ({ block, onInput, onKeyDown, onCheckToggle }, ref) => {
     const indent = block.meta?.indent || 0;
@@ -244,15 +280,15 @@ const BlockContent = forwardRef<HTMLDivElement, BlockContentProps>(
         {block.type === 'numbered-list' && (
           <span className="mt-1 text-sm text-muted-foreground flex-shrink-0 font-mono min-w-[1.5em] text-right">1.</span>
         )}
-        <div
+        <SanitizedBlock
           ref={ref}
-          contentEditable
-          suppressContentEditableWarning
-          className={cn(baseClasses, typeClasses[block.type] || 'text-sm', block.meta?.checked && 'line-through text-muted-foreground')}
-          onInput={(e) => onInput(e.currentTarget.textContent || '')}
+          content={block.content}
+          checked={block.meta?.checked}
+          blockType={block.type}
+          baseClasses={baseClasses}
+          typeClasses={typeClasses}
+          onInput={onInput}
           onKeyDown={onKeyDown}
-          dangerouslySetInnerHTML={{ __html: block.content }}
-          data-placeholder={block.type === 'text' ? 'Digite "/" para comandos...' : ''}
         />
       </div>
     );
