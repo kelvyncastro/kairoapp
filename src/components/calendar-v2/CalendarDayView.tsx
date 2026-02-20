@@ -5,7 +5,7 @@ import { ptBR } from 'date-fns/locale';
 import {
   CalendarBlock,
 } from '@/types/calendar-blocks';
-import { Check, GripVertical } from 'lucide-react';
+import { Check, GripVertical, DollarSign } from 'lucide-react';
 import {
   ContextMenu,
   ContextMenuContent,
