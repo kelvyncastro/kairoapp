@@ -556,6 +556,14 @@ export default function Financas() {
               <MessageCircle className="h-4 w-4" />
             </Button>
           </Link>
+          <FinanceReportExport
+            transactions={transactions}
+            sectors={sectors}
+            currentMonth={currentMonth}
+            income={income}
+            expenses={expenses}
+            balance={balance}
+          />
           <Dialog open={addTransactionOpen} onOpenChange={setAddTransactionOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="h-8 md:h-9 px-2 md:px-4">
