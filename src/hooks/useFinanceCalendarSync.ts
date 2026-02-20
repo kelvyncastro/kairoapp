@@ -70,13 +70,14 @@ export function useFinanceCalendarSync() {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('calendar_blocks')
+      // Use raw query approach to avoid deep type instantiation
+      const { error } = await (supabase
+        .from('calendar_blocks') as any)
         .update({
-          status: 'completed' as const,
+          status: 'completed',
           completed_at: new Date().toISOString(),
         })
-        .eq('finance_transaction_id' as any, transactionId)
+        .eq('finance_transaction_id', transactionId)
         .eq('user_id', user.id);
 
       if (error) throw error;
