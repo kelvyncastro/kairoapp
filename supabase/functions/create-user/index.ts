@@ -19,10 +19,13 @@ serve(async (req) => {
   }
 
   try {
+    console.log("➡️ create-user called");
+
     const webhookSecret = req.headers.get("x-webhook-secret");
     const expectedSecret = Deno.env.get("WEBHOOK_SECRET");
 
     if (webhookSecret !== expectedSecret) {
+      console.log("❌ Unauthorized webhook");
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -40,12 +43,15 @@ serve(async (req) => {
 
     const supabaseAdmin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    // 🔎 busca usuário por email (melhor que listUsers)
-    const { data: userLookup } = await supabaseAdmin.auth.admin.getUserByEmail(email);
+    console.log("🔎 Checking if user exists");
 
-    let user = userLookup?.user;
+    const { data: usersList } = await supabaseAdmin.auth.admin.listUsers();
+
+    let user = usersList.users.find((u) => u.email === email);
 
     if (!user) {
+      console.log("👤 Creating new user");
+
       const { data: newUser, error } = await supabaseAdmin.auth.admin.createUser({
         email,
         email_confirm: true,
@@ -57,10 +63,14 @@ serve(async (req) => {
       });
 
       if (error) throw error;
+
       user = newUser.user;
+    } else {
+      console.log("♻️ User already exists");
     }
 
-    // profile upsert
+    console.log("🧾 Upserting profile");
+
     await supabaseAdmin.from("user_profiles").upsert(
       {
         user_id: user?.id,
@@ -73,7 +83,8 @@ serve(async (req) => {
       { onConflict: "user_id" },
     );
 
-    // 🔗 gera magic link
+    console.log("🔗 Generating magic link");
+
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: "magiclink",
       email,
@@ -86,21 +97,12 @@ serve(async (req) => {
 
     const magicLink = linkData.properties.action_link;
 
-    // 📡 envia para n8n automaticamente (opcional)
-    await fetch("https://n8n.arthurn8n.com.br/webhook/kairo-magic-link-primeiro-acesso", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email,
-        magic_link: magicLink,
-      }),
-    });
+    console.log("✅ Magic link generated");
 
     return new Response(
       JSON.stringify({
         success: true,
+        user_id: user?.id,
         email,
         magic_link: magicLink,
       }),
@@ -110,7 +112,7 @@ serve(async (req) => {
       },
     );
   } catch (error) {
-    console.error(error);
+    console.error("🔥 Error:", error);
 
     return new Response(JSON.stringify({ error: "Internal error" }), {
       status: 500,
