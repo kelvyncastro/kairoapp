@@ -15,12 +15,15 @@ export interface UserProfile {
   app_theme: AppTheme;
   onboarding_completed: boolean;
   public_id: string | null;
+  subscription_status: string;
+  account_status: string;
 }
 
 interface UserProfileContextType {
   profile: UserProfile | null;
   loading: boolean;
   needsOnboarding: boolean;
+  isSubscriptionInactive: boolean;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   uploadAvatar: (file: File) => Promise<string | null>;
   refreshProfile: () => Promise<void>;
@@ -55,7 +58,6 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
       if (data) {
         setProfile(data as UserProfile);
       } else {
-        // Profile doesn't exist yet - needs onboarding
         setProfile(null);
       }
     } catch (error) {
@@ -80,7 +82,6 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
 
     try {
       if (profile) {
-        // Update existing profile
         const { error } = await supabase
           .from('user_profiles')
           .update(updates)
@@ -88,7 +89,6 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
 
         if (error) throw error;
       } else {
-        // Create new profile
         const { error } = await supabase
           .from('user_profiles')
           .insert({
@@ -113,22 +113,18 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/avatar.${fileExt}`;
 
-      // Upload to storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName);
 
-      // Add cache busting
       const urlWithCacheBust = `${publicUrl}?t=${Date.now()}`;
 
-      // Update profile with new avatar URL
       await updateProfile({ avatar_url: urlWithCacheBust });
 
       return urlWithCacheBust;
@@ -153,6 +149,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
   };
 
   const needsOnboarding = !loading && user !== null && (!profile || !profile.onboarding_completed);
+  const isSubscriptionInactive = !loading && user !== null && !!profile && profile.subscription_status !== 'active';
 
   return (
     <UserProfileContext.Provider
@@ -160,6 +157,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
         profile,
         loading,
         needsOnboarding,
+        isSubscriptionInactive,
         updateProfile,
         uploadAvatar,
         refreshProfile: fetchProfile,

@@ -12,6 +12,7 @@ import AdminRoute from "@/components/AdminRoute";
 import AppLayout from "@/components/layout/AppLayout";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import PrimeiroAcesso from "./pages/PrimeiroAcesso";
+import AssinaturaInativa from "./pages/AssinaturaInativa";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import Obrigado from "./pages/Obrigado";
@@ -38,7 +39,7 @@ const queryClient = new QueryClient({
 });
 
 function OnboardingGuard({ children }: { children: React.ReactNode }) {
-  const { needsOnboarding, loading } = useUserProfile();
+  const { needsOnboarding, isSubscriptionInactive, loading } = useUserProfile();
 
   if (loading) {
     return (
@@ -46,6 +47,10 @@ function OnboardingGuard({ children }: { children: React.ReactNode }) {
         <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
+  }
+
+  if (isSubscriptionInactive) {
+    return <Navigate to="/assinatura-inativa" replace />;
   }
 
   if (needsOnboarding) {
@@ -84,6 +89,11 @@ const App = () => {
                     <Route path="/primeiro-acesso" element={
                       <ProtectedRoute>
                         <PrimeiroAcesso />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/assinatura-inativa" element={
+                      <ProtectedRoute>
+                        <AssinaturaInativa />
                       </ProtectedRoute>
                     } />
                     <Route

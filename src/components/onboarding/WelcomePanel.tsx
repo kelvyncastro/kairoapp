@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera, Loader2 } from "lucide-react";
+import { Camera, Loader2, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import kairoLogo from "@/assets/kairo-penguin.png";
 
 const THEME_OPTIONS: { id: AppTheme; label: string; color: string }[] = [
@@ -27,6 +28,10 @@ export function WelcomePanel() {
   const [lastName, setLastName] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<AppTheme>('dark');
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -65,9 +70,30 @@ export function WelcomePanel() {
       return;
     }
 
+    if (newPassword) {
+      if (newPassword.length < 6) {
+        toast.error('A senha deve ter pelo menos 6 caracteres');
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        toast.error('As senhas não coincidem');
+        return;
+      }
+    }
+
     setSaving(true);
 
     try {
+      // Update password if provided
+      if (newPassword) {
+        const { error: pwError } = await supabase.auth.updateUser({ password: newPassword });
+        if (pwError) {
+          toast.error('Erro ao definir senha: ' + pwError.message);
+          setSaving(false);
+          return;
+        }
+      }
+
       let avatarUrl = null;
       
       if (avatarFile) {
@@ -82,6 +108,7 @@ export function WelcomePanel() {
         app_theme: selectedTheme,
         avatar_url: avatarUrl,
         onboarding_completed: true,
+        account_status: 'active',
       });
 
       toast.success('Bem-vindo ao Kairo!');
@@ -102,7 +129,7 @@ export function WelcomePanel() {
       </div>
 
       {/* Panel */}
-      <div className="w-full max-w-lg mx-4 p-8 rounded-2xl border border-border bg-card">
+      <div className="w-full max-w-lg mx-4 p-8 rounded-2xl border border-border bg-card max-h-[90vh] overflow-y-auto">
         <div className="flex flex-col items-center space-y-6">
           {/* Avatar Upload */}
           <div className="text-center">
@@ -130,7 +157,7 @@ export function WelcomePanel() {
             />
           </div>
 
-          {/* Name Fields */}
+          {/* Form Fields */}
           <div className="w-full space-y-4">
             <div>
               <Label htmlFor="firstName" className="text-sm text-muted-foreground">Nome</Label>
@@ -175,6 +202,49 @@ export function WelcomePanel() {
                 placeholder="(00) 00000-0000"
                 className="mt-1.5 bg-secondary border-border"
               />
+            </div>
+
+            {/* Password Fields */}
+            <div>
+              <Label htmlFor="newPassword" className="text-sm text-muted-foreground">Nova senha</Label>
+              <div className="relative mt-1.5">
+                <Input
+                  id="newPassword"
+                  type={showPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                  className="bg-secondary border-border pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="confirmPassword" className="text-sm text-muted-foreground">Confirmar senha</Label>
+              <div className="relative mt-1.5">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repita a senha"
+                  className="bg-secondary border-border pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
           </div>
 
