@@ -40,6 +40,7 @@ import {
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { SoundToggleButton } from "@/components/layout/SoundToggleButton";
 import { SpotlightNav } from "@/components/ui/spotlight-nav";
+import { useCalendarReminders } from "@/hooks/useCalendarReminders";
 import {
   Sidebar,
   SidebarBody,
@@ -237,6 +238,9 @@ export default function AppLayout() {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { profile, getInitials, getDisplayName } = useUserProfile();
+
+  // Smart calendar reminders (30min, 15min, 1min before events)
+  useCalendarReminders();
 
   const handleSignOut = async () => {
     await signOut();
