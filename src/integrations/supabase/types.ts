@@ -1090,6 +1090,27 @@ export type Database = {
         }
         Relationships: []
       }
+      short_links: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          original_url: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          original_url: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          original_url?: string
+        }
+        Relationships: []
+      }
       task_checklist_items: {
         Row: {
           checklist_id: string

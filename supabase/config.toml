@@ -17,3 +17,9 @@ verify_jwt = false
 
 [functions.categorize-grocery]
 verify_jwt = false
+
+[functions.shorten-link]
+verify_jwt = false
+
+[functions.redirect-link]
+verify_jwt = false
