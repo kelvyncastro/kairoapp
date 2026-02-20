@@ -80,7 +80,7 @@ serve(async (req) => {
       type: "magiclink",
       email,
       options: {
-        redirectTo: "https://SEU-DOMINIO.com/primeiro-acesso",
+        redirectTo: "https://kairoapp.lovable.app/primeiro-acesso",
       },
     });
 
