@@ -87,7 +87,7 @@ serve(async (req) => {
     const magicLink = linkData.properties.action_link;
 
     // 📡 envia para n8n automaticamente (opcional)
-    await fetch("https://n8n.arthurn8n.com.br/webhook/magic-link", {
+    await fetch("https://n8n.arthurn8n.com.br/webhook/kairo-magic-link-primeiro-acesso", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
