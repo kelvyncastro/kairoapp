@@ -358,7 +358,7 @@ export default function Financas() {
     // Receitas sempre têm status "received"
     const status = isIncome ? "received" : newTransaction.status;
 
-    const { error } = await supabase.from("finance_transactions").insert({
+    const { data, error } = await supabase.from("finance_transactions").insert({
       user_id: user.id,
       name: newTransaction.name,
       date: newTransaction.date,
@@ -366,11 +366,23 @@ export default function Financas() {
       sector_id: newTransaction.sector_id || null,
       description: newTransaction.description || null,
       status,
-    });
+    }).select().single();
 
     if (error) {
       toast({ title: "Erro ao criar transação", variant: "destructive" });
       return;
+    }
+
+    // Create calendar block for pending transactions
+    if (status === "pending" && data) {
+      const sector = sectors.find(s => s.id === newTransaction.sector_id);
+      await createFinanceBlock({
+        id: data.id,
+        name: newTransaction.name,
+        date: newTransaction.date,
+        value,
+        sector_name: sector?.name,
+      });
     }
 
     toast({ title: "Transação adicionada" });
