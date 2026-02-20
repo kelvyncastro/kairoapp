@@ -93,10 +93,10 @@ export function useFinanceCalendarSync() {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('calendar_blocks')
+      const { error } = await (supabase
+        .from('calendar_blocks') as any)
         .delete()
-        .eq('finance_transaction_id' as any, transactionId)
+        .eq('finance_transaction_id', transactionId)
         .eq('user_id', user.id);
 
       if (error) throw error;
