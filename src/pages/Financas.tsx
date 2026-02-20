@@ -424,12 +424,18 @@ export default function Financas() {
       return;
     }
 
+    // If status changed to paid/received, mark calendar block as completed
+    if (status === "paid" || status === "received") {
+      await completeFinanceBlock(editingTransaction.id);
+    }
+
     toast({ title: "Transação atualizada" });
     setEditingTransaction(null);
     fetchData();
   };
 
   const handleDeleteTransaction = async (id: string) => {
+    await deleteFinanceBlock(id);
     await supabase.from("finance_transactions").delete().eq("id", id);
     toast({ title: "Transação excluída" });
     fetchData();
