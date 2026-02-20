@@ -239,6 +239,9 @@ export default function AppLayout() {
   const { user, signOut } = useAuth();
   const { profile, getInitials, getDisplayName } = useUserProfile();
 
+  // Smart calendar reminders (30min, 15min, 1min before events)
+  useCalendarReminders();
+
   const handleSignOut = async () => {
     await signOut();
   };
