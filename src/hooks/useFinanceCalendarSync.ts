@@ -37,21 +37,26 @@ export function useFinanceCalendarSync() {
       const title = `💰 ${label}: ${transaction.name}`;
       const description = `${formattedValue}${transaction.sector_name ? ` • ${transaction.sector_name}` : ''}`;
 
-      await supabase.from('calendar_blocks').insert({
+      const insertData: Record<string, unknown> = {
         user_id: user.id,
         title,
         description,
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
-        demand_type: 'fixed' as const,
-        priority: 'high' as const,
-        status: 'pending' as const,
-        recurrence_type: 'none' as const,
+        demand_type: 'fixed',
+        priority: 'high',
+        status: 'pending',
+        recurrence_type: 'none',
         color: transaction.value < 0 ? '#ef4444' : '#22c55e',
         source_type: 'finance',
         finance_transaction_id: transaction.id,
-      } as any);
+      };
 
+      const { error } = await supabase
+        .from('calendar_blocks')
+        .insert(insertData as any);
+
+      if (error) throw error;
       toast.success('Lembrete adicionado à agenda!');
     } catch (e) {
       console.error('Error creating finance calendar block:', e);
@@ -65,14 +70,16 @@ export function useFinanceCalendarSync() {
     if (!user) return;
 
     try {
-      await supabase
+      const { error } = await supabase
         .from('calendar_blocks')
         .update({
-          status: 'completed',
+          status: 'completed' as const,
           completed_at: new Date().toISOString(),
-        } as any)
+        })
         .eq('finance_transaction_id' as any, transactionId)
         .eq('user_id', user.id);
+
+      if (error) throw error;
     } catch (e) {
       console.error('Error completing finance calendar block:', e);
     }
@@ -85,11 +92,13 @@ export function useFinanceCalendarSync() {
     if (!user) return;
 
     try {
-      await supabase
+      const { error } = await supabase
         .from('calendar_blocks')
         .delete()
         .eq('finance_transaction_id' as any, transactionId)
         .eq('user_id', user.id);
+
+      if (error) throw error;
     } catch (e) {
       console.error('Error deleting finance calendar block:', e);
     }

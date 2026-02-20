@@ -165,6 +165,8 @@ export function CalendarBlockModal({
         actual_start_time: block?.actual_start_time || null,
         actual_end_time: block?.actual_end_time || null,
         completed_at: block?.completed_at || null,
+        source_type: block?.source_type || 'manual',
+        finance_transaction_id: block?.finance_transaction_id || null,
       });
       onClose();
     } finally {

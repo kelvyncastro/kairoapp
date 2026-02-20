@@ -51,6 +51,8 @@ export function useCalendarBlocks({ view, currentDate }: UseCalendarBlocksOption
         status: block.status as CalendarBlockStatus,
         recurrence_type: block.recurrence_type as CalendarRecurrenceType,
         recurrence_rule: block.recurrence_rule as unknown as RecurrenceRule | null,
+        source_type: (block as any).source_type as CalendarBlock['source_type'] || 'manual',
+        finance_transaction_id: (block as any).finance_transaction_id as string | null || null,
       }));
       
       setBlocks(mappedBlocks);
