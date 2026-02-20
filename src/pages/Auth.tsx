@@ -88,6 +88,8 @@ export default function Auth() {
           variant: "destructive",
         });
       } else {
+        // Profile check will be handled by OnboardingGuard
+        // Just navigate to dashboard, guards will redirect if needed
         navigate("/dashboard");
       }
     } finally {
