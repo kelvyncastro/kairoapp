@@ -40,12 +40,11 @@ serve(async (req) => {
 
     const supabaseAdmin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    // 🔎 Verifica se já existe
-    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+    // 🔎 busca usuário por email (melhor que listUsers)
+    const { data: userLookup } = await supabaseAdmin.auth.admin.getUserByEmail(email);
 
-    let user = existingUsers.users.find((u) => u.email === email);
+    let user = userLookup?.user;
 
-    // 👤 cria se não existir
     if (!user) {
       const { data: newUser, error } = await supabaseAdmin.auth.admin.createUser({
         email,
@@ -58,22 +57,21 @@ serve(async (req) => {
       });
 
       if (error) throw error;
-
       user = newUser.user;
-
-      // cria profile
-      await supabaseAdmin.from("user_profiles").upsert(
-        {
-          user_id: user?.id,
-          first_name,
-          last_name,
-          phone_number,
-          subscription_status: "active",
-          onboarding_completed: false,
-        },
-        { onConflict: "user_id" },
-      );
     }
+
+    // profile upsert
+    await supabaseAdmin.from("user_profiles").upsert(
+      {
+        user_id: user?.id,
+        first_name,
+        last_name,
+        phone_number,
+        subscription_status: "active",
+        onboarding_completed: false,
+      },
+      { onConflict: "user_id" },
+    );
 
     // 🔗 gera magic link
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
@@ -86,11 +84,25 @@ serve(async (req) => {
 
     if (linkError) throw linkError;
 
+    const magicLink = linkData.properties.action_link;
+
+    // 📡 envia para n8n automaticamente (opcional)
+    await fetch("https://n8n.arthurn8n.com.br/webhook/magic-link", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        magic_link: magicLink,
+      }),
+    });
+
     return new Response(
       JSON.stringify({
         success: true,
         email,
-        magic_link: linkData.properties.action_link,
+        magic_link: magicLink,
       }),
       {
         status: 200,
