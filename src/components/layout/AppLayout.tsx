@@ -40,6 +40,7 @@ import {
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { SoundToggleButton } from "@/components/layout/SoundToggleButton";
 import { SpotlightNav } from "@/components/ui/spotlight-nav";
+import { useCalendarReminders } from "@/hooks/useCalendarReminders";
 import {
   Sidebar,
   SidebarBody,
