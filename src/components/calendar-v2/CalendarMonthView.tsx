@@ -292,12 +292,16 @@ export function CalendarMonthView({
                             key={block.id}
                             className={cn(
                               "text-[10px] leading-tight px-1.5 py-0.5 rounded truncate cursor-grab",
-                              "text-primary-foreground font-medium shadow-sm bg-primary",
+                              "text-primary-foreground font-medium shadow-sm",
+                              block.source_type === 'finance'
+                                ? "border border-dashed border-yellow-400/70 bg-gradient-to-r from-primary to-primary/80"
+                                : "bg-primary",
                               "hover:brightness-110 transition-all",
                               isBeingMoved && "opacity-40"
                             )}
                             onMouseDown={(e) => handleBlockMouseDown(e, block)}
                           >
+                            {block.source_type === 'finance' && '💰 '}
                             {format(new Date(block.start_time), 'HH:mm')} {block.title}
                           </div>
                         );

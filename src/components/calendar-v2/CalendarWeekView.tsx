@@ -512,12 +512,15 @@ export function CalendarWeekView({
 
                     if (isBeingMoved) return null; // Don't render original while moving
 
-                    return (
+                      return (
                       <div
                         key={block.id}
                         className={cn(
                           "absolute rounded-lg px-2 py-1 cursor-grab active:cursor-grabbing",
-                          "text-primary-foreground text-xs font-medium overflow-hidden shadow-sm bg-primary",
+                          "text-primary-foreground text-xs font-medium overflow-hidden shadow-sm",
+                          block.source_type === 'finance'
+                            ? "border-2 border-dashed border-yellow-400/70 bg-gradient-to-r from-primary to-primary/80"
+                            : "bg-primary",
                           "hover:shadow-md hover:brightness-110 transition-all",
                           block.status === 'completed' && "opacity-60"
                         )}
@@ -529,7 +532,12 @@ export function CalendarWeekView({
                         }}
                         onMouseDown={(e) => handleBlockMouseDown(e, block)}
                       >
-                        <div className="truncate font-semibold">{block.title}</div>
+                        <div className="flex items-center gap-1">
+                          {block.source_type === 'finance' && (
+                            <span className="text-yellow-300 text-[10px]">💰</span>
+                          )}
+                          <span className="truncate font-semibold">{block.title}</span>
+                        </div>
                         {height > 32 && (
                           <div className="text-[10px] opacity-80">
                             {format(new Date(block.start_time), 'H:mm')} - {format(new Date(block.end_time), 'H:mm')}

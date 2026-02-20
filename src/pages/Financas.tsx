@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useFinanceCalendarSync } from "@/hooks/useFinanceCalendarSync";
 import { useToast } from "@/hooks/use-toast";
 import {
   Plus,
@@ -210,6 +211,7 @@ const defaultSectors: { name: string; color_label: string; icon: string }[] = [
 export default function Financas() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { createFinanceBlock, completeFinanceBlock, deleteFinanceBlock } = useFinanceCalendarSync();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -356,7 +358,7 @@ export default function Financas() {
     // Receitas sempre têm status "received"
     const status = isIncome ? "received" : newTransaction.status;
 
-    const { error } = await supabase.from("finance_transactions").insert({
+    const { data, error } = await supabase.from("finance_transactions").insert({
       user_id: user.id,
       name: newTransaction.name,
       date: newTransaction.date,
@@ -364,11 +366,23 @@ export default function Financas() {
       sector_id: newTransaction.sector_id || null,
       description: newTransaction.description || null,
       status,
-    });
+    }).select().single();
 
     if (error) {
       toast({ title: "Erro ao criar transação", variant: "destructive" });
       return;
+    }
+
+    // Create calendar block for pending transactions
+    if (status === "pending" && data) {
+      const sector = sectors.find(s => s.id === newTransaction.sector_id);
+      await createFinanceBlock({
+        id: data.id,
+        name: newTransaction.name,
+        date: newTransaction.date,
+        value,
+        sector_name: sector?.name,
+      });
     }
 
     toast({ title: "Transação adicionada" });
@@ -410,12 +424,18 @@ export default function Financas() {
       return;
     }
 
+    // If status changed to paid/received, mark calendar block as completed
+    if (status === "paid" || status === "received") {
+      await completeFinanceBlock(editingTransaction.id);
+    }
+
     toast({ title: "Transação atualizada" });
     setEditingTransaction(null);
     fetchData();
   };
 
   const handleDeleteTransaction = async (id: string) => {
+    await deleteFinanceBlock(id);
     await supabase.from("finance_transactions").delete().eq("id", id);
     toast({ title: "Transação excluída" });
     fetchData();

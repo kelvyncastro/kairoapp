@@ -5,7 +5,7 @@ import { ptBR } from 'date-fns/locale';
 import {
   CalendarBlock,
 } from '@/types/calendar-blocks';
-import { Check, GripVertical } from 'lucide-react';
+import { Check, GripVertical, DollarSign } from 'lucide-react';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -381,8 +381,11 @@ export function CalendarDayView({
                     <div
                       className={cn(
                         "absolute left-2 right-4 rounded-lg px-3 py-1.5 cursor-grab active:cursor-grabbing",
-                        "text-primary-foreground overflow-hidden group shadow-sm bg-primary",
+                        "text-primary-foreground overflow-hidden group shadow-sm",
                         "hover:shadow-lg hover:brightness-110 transition-all",
+                        block.source_type === 'finance'
+                          ? "border-2 border-dashed border-yellow-400/70 bg-gradient-to-r from-primary to-primary/80"
+                          : "bg-primary",
                         block.status === 'completed' && "opacity-60"
                       )}
                       style={{
@@ -392,7 +395,11 @@ export function CalendarDayView({
                       onMouseDown={(e) => handleBlockMouseDown(e, block)}
                     >
                       <div className="flex items-start gap-2 h-full">
-                        <GripVertical className="h-4 w-4 opacity-0 group-hover:opacity-70 transition-opacity flex-shrink-0 cursor-grab mt-0.5" />
+                        {block.source_type === 'finance' ? (
+                          <DollarSign className="h-4 w-4 flex-shrink-0 mt-0.5 text-yellow-300" />
+                        ) : (
+                          <GripVertical className="h-4 w-4 opacity-0 group-hover:opacity-70 transition-opacity flex-shrink-0 cursor-grab mt-0.5" />
+                        )}
                         
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">

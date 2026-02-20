@@ -3,6 +3,8 @@ export type CalendarBlockStatus = 'pending' | 'in_progress' | 'completed' | 'can
 export type CalendarPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type CalendarRecurrenceType = 'none' | 'daily' | 'weekly' | 'monthly' | 'custom';
 
+export type CalendarSourceType = 'manual' | 'finance';
+
 export interface CalendarBlock {
   id: string;
   user_id: string;
@@ -23,6 +25,8 @@ export interface CalendarBlock {
   actual_start_time?: string | null;
   actual_end_time?: string | null;
   completed_at?: string | null;
+  source_type: CalendarSourceType;
+  finance_transaction_id?: string | null;
   created_at: string;
   updated_at: string;
 }
