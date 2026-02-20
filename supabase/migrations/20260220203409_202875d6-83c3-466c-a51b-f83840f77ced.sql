@@ -1,0 +1,2 @@
+ALTER TABLE public.notifications DROP CONSTRAINT notifications_type_check;
+ALTER TABLE public.notifications ADD CONSTRAINT notifications_type_check CHECK (type = ANY (ARRAY['ranking_invite'::text, 'ranking_started'::text, 'ranking_ended'::text, 'ranking_update'::text, 'general'::text, 'calendar_reminder'::text]));
