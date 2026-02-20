@@ -49,6 +49,7 @@ import { FolderIconRenderer } from "@/components/tasks/FolderIconRenderer";
 import { ExpensesBySectorChart } from "@/components/finance/ExpensesBySectorChart";
 import { DailyExpensesChart } from "@/components/finance/DailyExpensesChart";
 import { InvestmentsTab } from "@/components/finance/InvestmentsTab";
+import { FinanceReportExport } from "@/components/finance/FinanceReportExport";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
