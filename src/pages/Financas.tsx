@@ -211,6 +211,7 @@ const defaultSectors: { name: string; color_label: string; icon: string }[] = [
 export default function Financas() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { createFinanceBlock, completeFinanceBlock, deleteFinanceBlock } = useFinanceCalendarSync();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
