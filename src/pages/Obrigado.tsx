@@ -11,6 +11,13 @@ export default function Obrigado() {
   const [countdown, setCountdown] = useState(10);
   const hasLaunchedConfetti = useRef(false);
 
+  // Fire Meta Pixel Purchase event
+  useEffect(() => {
+    if (typeof window !== "undefined" && (window as any).fbq) {
+      (window as any).fbq("track", "Purchase", { currency: "BRL", value: 0 });
+    }
+  }, []);
+
   // Launch confetti on first render
   useEffect(() => {
     if (hasLaunchedConfetti.current) return;
