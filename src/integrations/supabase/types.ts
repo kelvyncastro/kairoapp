@@ -25,6 +25,7 @@ export type Database = {
           description: string | null
           duration_minutes: number | null
           end_time: string
+          finance_transaction_id: string | null
           id: string
           is_recurrence_paused: boolean | null
           priority: Database["public"]["Enums"]["calendar_priority"]
@@ -32,6 +33,7 @@ export type Database = {
           recurrence_parent_id: string | null
           recurrence_rule: Json | null
           recurrence_type: Database["public"]["Enums"]["calendar_recurrence_type"]
+          source_type: string
           start_time: string
           status: Database["public"]["Enums"]["calendar_block_status"]
           title: string
@@ -48,6 +50,7 @@ export type Database = {
           description?: string | null
           duration_minutes?: number | null
           end_time: string
+          finance_transaction_id?: string | null
           id?: string
           is_recurrence_paused?: boolean | null
           priority?: Database["public"]["Enums"]["calendar_priority"]
@@ -55,6 +58,7 @@ export type Database = {
           recurrence_parent_id?: string | null
           recurrence_rule?: Json | null
           recurrence_type?: Database["public"]["Enums"]["calendar_recurrence_type"]
+          source_type?: string
           start_time: string
           status?: Database["public"]["Enums"]["calendar_block_status"]
           title: string
@@ -71,6 +75,7 @@ export type Database = {
           description?: string | null
           duration_minutes?: number | null
           end_time?: string
+          finance_transaction_id?: string | null
           id?: string
           is_recurrence_paused?: boolean | null
           priority?: Database["public"]["Enums"]["calendar_priority"]
@@ -78,6 +83,7 @@ export type Database = {
           recurrence_parent_id?: string | null
           recurrence_rule?: Json | null
           recurrence_type?: Database["public"]["Enums"]["calendar_recurrence_type"]
+          source_type?: string
           start_time?: string
           status?: Database["public"]["Enums"]["calendar_block_status"]
           title?: string
@@ -85,6 +91,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "calendar_blocks_finance_transaction_id_fkey"
+            columns: ["finance_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "finance_transactions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "calendar_blocks_recurrence_parent_id_fkey"
             columns: ["recurrence_parent_id"]
