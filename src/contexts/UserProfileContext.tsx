@@ -42,6 +42,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('user_profiles')
