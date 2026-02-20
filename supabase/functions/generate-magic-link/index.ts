@@ -20,11 +20,14 @@ serve(async (req) => {
 
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
+    // ✅ SUA URL REAL
+    const redirectTo = `https://kairoapp.lovable.app/primeiro-acesso?email=${encodeURIComponent(email)}`;
+
     const { data, error } = await supabase.auth.admin.generateLink({
       type: "magiclink",
       email,
       options: {
-        redirectTo: "https://kairoapp.lovable.app/primeiro-acesso",
+        redirectTo,
       },
     });
 
