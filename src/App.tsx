@@ -11,7 +11,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import AppLayout from "@/components/layout/AppLayout";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { WelcomePanel } from "@/components/onboarding/WelcomePanel";
+import PrimeiroAcesso from "./pages/PrimeiroAcesso";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import Obrigado from "./pages/Obrigado";
@@ -37,7 +37,7 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1 } },
 });
 
-function AppWithOnboarding() {
+function OnboardingGuard({ children }: { children: React.ReactNode }) {
   const { needsOnboarding, loading } = useUserProfile();
 
   if (loading) {
@@ -49,10 +49,10 @@ function AppWithOnboarding() {
   }
 
   if (needsOnboarding) {
-    return <WelcomePanel />;
+    return <Navigate to="/primeiro-acesso" replace />;
   }
 
-  return <AppLayout />;
+  return <>{children}</>;
 }
 
 const App = () => {
@@ -81,10 +81,17 @@ const App = () => {
                     <Route path="/obrigado" element={<Obrigado />} />
                     <Route path="/privacidade" element={<Privacidade />} />
                     <Route path="/termos" element={<Termos />} />
+                    <Route path="/primeiro-acesso" element={
+                      <ProtectedRoute>
+                        <PrimeiroAcesso />
+                      </ProtectedRoute>
+                    } />
                     <Route
                       element={
                         <ProtectedRoute>
-                          <AppWithOnboarding />
+                          <OnboardingGuard>
+                            <AppLayout />
+                          </OnboardingGuard>
                         </ProtectedRoute>
                       }
                     >

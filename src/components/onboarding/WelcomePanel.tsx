@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useUserProfile, AppTheme } from "@/contexts/UserProfileContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ const THEME_OPTIONS: { id: AppTheme; label: string; color: string }[] = [
 
 export function WelcomePanel() {
   const { updateProfile, uploadAvatar } = useUserProfile();
+  const navigate = useNavigate();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [birthDate, setBirthDate] = useState('');
@@ -83,6 +85,7 @@ export function WelcomePanel() {
       });
 
       toast.success('Bem-vindo ao Kairo!');
+      navigate('/dashboard', { replace: true });
     } catch (error) {
       toast.error('Erro ao salvar perfil');
       console.error(error);
