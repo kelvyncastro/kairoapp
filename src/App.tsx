@@ -87,6 +87,7 @@ const App = () => {
                     <Route path="/obrigado" element={<Obrigado />} />
                     <Route path="/privacidade" element={<Privacidade />} />
                     <Route path="/termos" element={<Termos />} />
+                    <Route path="/lista/:shareCode" element={<ListaMercadoCompartilhada />} />
                     <Route path="/primeiro-acesso" element={
                       <ProtectedRoute>
                         <PrimeiroAcesso />
