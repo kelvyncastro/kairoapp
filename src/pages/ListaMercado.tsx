@@ -341,6 +341,43 @@ export default function ListaMercado() {
     toast.success("Lista copiada!");
   };
 
+  const handleShareList = async () => {
+    if (!activeListId) return;
+    setSharingList(true);
+    try {
+      // Check if already has share_code
+      const { data: existing } = await supabase
+        .from("grocery_lists")
+        .select("share_code")
+        .eq("id", activeListId)
+        .single();
+
+      let code = (existing as any)?.share_code;
+
+      if (!code) {
+        // Generate a random 10-char code
+        code = Array.from(crypto.getRandomValues(new Uint8Array(5)))
+          .map((b) => b.toString(36).padStart(2, "0"))
+          .join("")
+          .slice(0, 10);
+
+        await supabase
+          .from("grocery_lists")
+          .update({ share_code: code } as any)
+          .eq("id", activeListId);
+      }
+
+      const shareUrl = `${window.location.origin}/lista/${code}`;
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success("Link copiado! Compartilhe com quem quiser.", { duration: 4000 });
+    } catch (e) {
+      console.error(e);
+      toast.error("Erro ao gerar link de compartilhamento.");
+    } finally {
+      setSharingList(false);
+    }
+  };
+
   if (loadingInitial) {
     return (
       <div className="h-full flex items-center justify-center">
