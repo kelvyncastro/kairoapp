@@ -3,11 +3,15 @@ import { useNotesStore } from '@/hooks/useNotesStore';
 import { NotesSidebar } from '@/components/notes/NotesSidebar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Star, Save, MoreHorizontal, Copy, Trash2, PanelLeftOpen, PanelLeftClose } from 'lucide-react';
+import { Star, Save, MoreHorizontal, Copy, Trash2, PanelLeftOpen, PanelLeftClose, ShoppingCart, Loader2 } from 'lucide-react';
 import { NotesRichEditor } from '@/components/notes/NotesRichEditor';
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from '@/components/ui/popover';
@@ -19,11 +23,14 @@ import { Separator } from '@/components/ui/separator';
 
 export default function Notas() {
   const store = useNotesStore();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [emojiSearch, setEmojiSearch] = useState('');
   const [emojiCategory, setEmojiCategory] = useState('frequent');
+  const [creatingGroceryList, setCreatingGroceryList] = useState(false);
 
   const favoritePages = store.pages.filter(p => p.isFavorite && !p.isArchived);
   const recentPages = [...store.pages].filter(p => !p.isArchived).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()).slice(0, 5);
@@ -35,6 +42,65 @@ export default function Notas() {
 
   const handleMoveToFolder = (pageId: string, folderId: string | null) => {
     store.updatePageFolder(pageId, folderId);
+  };
+
+  const handleCreateGroceryList = async () => {
+    if (!user || !store.selectedPage) return;
+    setCreatingGroceryList(true);
+    try {
+      // Extract plain text from HTML content
+      const div = document.createElement('div');
+      div.innerHTML = store.selectedPage.content;
+      const textContent = div.textContent || div.innerText || '';
+
+      if (!textContent.trim()) {
+        toast.error('A nota está vazia.');
+        return;
+      }
+
+      // Send to categorize-grocery edge function
+      const { data, error } = await supabase.functions.invoke('categorize-grocery', {
+        body: { items: textContent.trim() },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      const categories = (data.categories || []).map((c: any) => ({
+        ...c,
+        items: c.items.map((item: any) =>
+          typeof item === 'string' ? item : item.name || item.item || String(item)
+        ),
+      }));
+
+      if (categories.length === 0) {
+        toast.error('Nenhum ingrediente encontrado na nota.');
+        return;
+      }
+
+      // Create grocery list in DB
+      const { error: insertError } = await supabase.from('grocery_lists').insert({
+        user_id: user.id,
+        categories: categories as any,
+        checked_items: {} as any,
+        status: 'active',
+      });
+
+      if (insertError) throw insertError;
+
+      toast.success(`Lista de mercado criada com ${categories.length} categorias!`, {
+        action: {
+          label: 'Ver lista',
+          onClick: () => navigate('/lista-mercado'),
+        },
+        duration: 5000,
+      });
+    } catch (e: any) {
+      console.error('Error creating grocery list from note:', e);
+      toast.error(e.message || 'Erro ao criar lista de mercado.');
+    } finally {
+      setCreatingGroceryList(false);
+    }
   };
 
   const searchResults = searchEmojis(emojiSearch);
@@ -125,6 +191,12 @@ export default function Notas() {
                     <DropdownMenuItem onClick={() => store.duplicatePage(store.selectedPage!.id)} className="gap-2">
                       <Copy className="h-4 w-4" /> Duplicar
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleCreateGroceryList} disabled={creatingGroceryList} className="gap-2">
+                      {creatingGroceryList ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" />}
+                      {creatingGroceryList ? 'Criando lista...' : 'Criar lista de mercado'}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => { store.archivePage(store.selectedPage!.id); }} className="gap-2 text-destructive">
                       <Trash2 className="h-4 w-4" /> Arquivar
                     </DropdownMenuItem>
