@@ -119,9 +119,9 @@ export default function RadialOrbitalTimeline({
       <div className="relative" style={{ width: "420px", height: "420px" }}>
         <div ref={orbitRef} className="absolute inset-0 flex items-center justify-center">
           {/* Orbit rings */}
-          <div className="absolute w-[400px] h-[400px] rounded-full border border-border/20" />
-          <div className="absolute w-[300px] h-[300px] rounded-full border border-border/10" />
-          <div className="absolute w-[200px] h-[200px] rounded-full border border-border/10" />
+          <div className="absolute w-[320px] h-[320px] rounded-full border border-border/20" />
+          <div className="absolute w-[240px] h-[240px] rounded-full border border-border/10" />
+          <div className="absolute w-[160px] h-[160px] rounded-full border border-border/10" />
 
           {/* Center logo */}
           <div className="absolute w-14 h-14 rounded-full overflow-hidden ring-2 ring-primary/30 shadow-lg shadow-primary/20 z-10">
