@@ -215,19 +215,22 @@ const testimonials = [
     name: "Lucas M.",
     role: "Empreendedor",
     content: "O Kairo transformou minha produtividade. Consigo acompanhar tudo em um só lugar.",
-    rating: 5
+    rating: 5,
+    avatar: lucasAvatar,
   },
   {
     name: "Amanda S.",
     role: "Designer",
     content: "Interface limpa e intuitiva. Finalmente um app que realmente uso todos os dias.",
-    rating: 5
+    rating: 5,
+    avatar: amandaAvatar,
   },
   {
     name: "Rafael C.",
     role: "Desenvolvedor",
     content: "O sistema de consistência me mantém motivado. Já estou há 60 dias sem parar!",
-    rating: 5
+    rating: 5,
+    avatar: rafaelAvatar,
   }
 ];
 
