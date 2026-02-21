@@ -42,7 +42,10 @@ export default function Notas() {
     // Extract plain text from HTML
     const div = document.createElement('div');
     div.innerHTML = store.selectedPage.content;
-    const text = div.textContent || div.innerText || '';
+    div.querySelectorAll('p, br, li, h1, h2, h3, h4, h5, h6, div').forEach(el => {
+      el.prepend(document.createTextNode('\n'));
+    });
+    const text = (div.textContent || div.innerText || '').replace(/\n{2,}/g, '\n');
     return detectFoodIngredients(text);
   }, [store.selectedPage?.content, store.selectedPage?.id, groceryBannerDismissed]);
 
