@@ -44,6 +44,65 @@ export default function Notas() {
     store.updatePageFolder(pageId, folderId);
   };
 
+  const handleCreateGroceryList = async () => {
+    if (!user || !store.selectedPage) return;
+    setCreatingGroceryList(true);
+    try {
+      // Extract plain text from HTML content
+      const div = document.createElement('div');
+      div.innerHTML = store.selectedPage.content;
+      const textContent = div.textContent || div.innerText || '';
+
+      if (!textContent.trim()) {
+        toast.error('A nota está vazia.');
+        return;
+      }
+
+      // Send to categorize-grocery edge function
+      const { data, error } = await supabase.functions.invoke('categorize-grocery', {
+        body: { items: textContent.trim() },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      const categories = (data.categories || []).map((c: any) => ({
+        ...c,
+        items: c.items.map((item: any) =>
+          typeof item === 'string' ? item : item.name || item.item || String(item)
+        ),
+      }));
+
+      if (categories.length === 0) {
+        toast.error('Nenhum ingrediente encontrado na nota.');
+        return;
+      }
+
+      // Create grocery list in DB
+      const { error: insertError } = await supabase.from('grocery_lists').insert({
+        user_id: user.id,
+        categories: categories as any,
+        checked_items: {} as any,
+        status: 'active',
+      });
+
+      if (insertError) throw insertError;
+
+      toast.success(`Lista de mercado criada com ${categories.length} categorias!`, {
+        action: {
+          label: 'Ver lista',
+          onClick: () => navigate('/lista-mercado'),
+        },
+        duration: 5000,
+      });
+    } catch (e: any) {
+      console.error('Error creating grocery list from note:', e);
+      toast.error(e.message || 'Erro ao criar lista de mercado.');
+    } finally {
+      setCreatingGroceryList(false);
+    }
+  };
+
   const searchResults = searchEmojis(emojiSearch);
 
   if (store.loading) {
