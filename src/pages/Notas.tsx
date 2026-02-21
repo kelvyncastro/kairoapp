@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNotesStore } from '@/hooks/useNotesStore';
 import { NotesSidebar } from '@/components/notes/NotesSidebar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Star, Save, MoreHorizontal, Copy, Trash2, PanelLeftOpen, PanelLeftClose, ShoppingCart, Loader2 } from 'lucide-react';
+import { Star, Save, MoreHorizontal, Copy, Trash2, PanelLeftOpen, PanelLeftClose, ShoppingCart, Loader2, X } from 'lucide-react';
 import { NotesRichEditor } from '@/components/notes/NotesRichEditor';
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,6 +20,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { EMOJI_CATEGORIES, searchEmojis } from '@/lib/emoji-data';
 import { Separator } from '@/components/ui/separator';
+import { detectFoodIngredients } from '@/lib/food-detector';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export default function Notas() {
   const store = useNotesStore();
@@ -31,6 +33,23 @@ export default function Notas() {
   const [emojiSearch, setEmojiSearch] = useState('');
   const [emojiCategory, setEmojiCategory] = useState('frequent');
   const [creatingGroceryList, setCreatingGroceryList] = useState(false);
+  const [groceryBannerDismissed, setGroceryBannerDismissed] = useState<string | null>(null);
+
+  // Detect food ingredients in the current note
+  const showGroceryBanner = useMemo(() => {
+    if (!store.selectedPage) return false;
+    if (groceryBannerDismissed === store.selectedPage.id) return false;
+    // Extract plain text from HTML
+    const div = document.createElement('div');
+    div.innerHTML = store.selectedPage.content;
+    const text = div.textContent || div.innerText || '';
+    return detectFoodIngredients(text);
+  }, [store.selectedPage?.content, store.selectedPage?.id, groceryBannerDismissed]);
+
+  // Reset dismiss when switching pages
+  useEffect(() => {
+    setGroceryBannerDismissed(null);
+  }, [store.selectedPageId]);
 
   const favoritePages = store.pages.filter(p => p.isFavorite && !p.isArchived);
   const recentPages = [...store.pages].filter(p => !p.isArchived).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()).slice(0, 5);
@@ -44,11 +63,10 @@ export default function Notas() {
     store.updatePageFolder(pageId, folderId);
   };
 
-  const handleCreateGroceryList = async () => {
+  const handleAddToGroceryList = useCallback(async () => {
     if (!user || !store.selectedPage) return;
     setCreatingGroceryList(true);
     try {
-      // Extract plain text from HTML content
       const div = document.createElement('div');
       div.innerHTML = store.selectedPage.content;
       const textContent = div.textContent || div.innerText || '';
@@ -58,7 +76,7 @@ export default function Notas() {
         return;
       }
 
-      // Send to categorize-grocery edge function
+      // Categorize ingredients
       const { data, error } = await supabase.functions.invoke('categorize-grocery', {
         body: { items: textContent.trim() },
       });
@@ -66,42 +84,68 @@ export default function Notas() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      const categories = (data.categories || []).map((c: any) => ({
+      const incoming = (data.categories || []).map((c: any) => ({
         ...c,
         items: c.items.map((item: any) =>
           typeof item === 'string' ? item : item.name || item.item || String(item)
         ),
       }));
 
-      if (categories.length === 0) {
+      if (incoming.length === 0) {
         toast.error('Nenhum ingrediente encontrado na nota.');
         return;
       }
 
-      // Create grocery list in DB
-      const { error: insertError } = await supabase.from('grocery_lists').insert({
-        user_id: user.id,
-        categories: categories as any,
-        checked_items: {} as any,
-        status: 'active',
-      });
+      // Check for existing active list
+      const { data: existingLists } = await supabase
+        .from('grocery_lists')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1);
 
-      if (insertError) throw insertError;
+      if (existingLists && existingLists.length > 0) {
+        // Merge with existing list
+        const existing = existingLists[0];
+        const existingCategories = (existing.categories as any) || [];
 
-      toast.success(`Lista de mercado criada com ${categories.length} categorias!`, {
-        action: {
-          label: 'Ver lista',
-          onClick: () => navigate('/lista-mercado'),
-        },
-        duration: 5000,
-      });
+        // Merge categories
+        const merged = mergeCategories(existingCategories, incoming);
+
+        await supabase
+          .from('grocery_lists')
+          .update({ categories: merged as any })
+          .eq('id', existing.id);
+
+        const newItemCount = incoming.reduce((acc: number, c: any) => acc + c.items.length, 0);
+        toast.success(`${newItemCount} ingredientes adicionados à lista existente!`, {
+          action: { label: 'Ver lista', onClick: () => navigate('/lista-mercado') },
+          duration: 5000,
+        });
+      } else {
+        // Create new list
+        await supabase.from('grocery_lists').insert({
+          user_id: user.id,
+          categories: incoming as any,
+          checked_items: {} as any,
+          status: 'active',
+        });
+
+        toast.success(`Lista de mercado criada com ${incoming.length} categorias!`, {
+          action: { label: 'Ver lista', onClick: () => navigate('/lista-mercado') },
+          duration: 5000,
+        });
+      }
+
+      setGroceryBannerDismissed(store.selectedPage.id);
     } catch (e: any) {
       console.error('Error creating grocery list from note:', e);
       toast.error(e.message || 'Erro ao criar lista de mercado.');
     } finally {
       setCreatingGroceryList(false);
     }
-  };
+  }, [user, store.selectedPage, navigate]);
 
   const searchResults = searchEmojis(emojiSearch);
 
@@ -151,10 +195,10 @@ export default function Notas() {
       )}
 
       {/* Main content */}
-      <div className="flex-1 h-full flex flex-col min-w-0">
+      <div className="flex-1 h-full flex flex-col min-w-0 relative">
         {store.selectedPage ? (
           <>
-            {/* Top bar - synced title (read-only display) */}
+            {/* Top bar */}
             <div className="flex items-center gap-2 px-4 py-3 border-b border-border/30 flex-shrink-0">
               <Button variant="ghost" size="icon" className="h-8 w-8 group" onClick={() => setSidebarOpen(!sidebarOpen)}>
                 <div className={cn("transition-transform duration-300", !sidebarOpen && "rotate-180")}>
@@ -191,12 +235,6 @@ export default function Notas() {
                     <DropdownMenuItem onClick={() => store.duplicatePage(store.selectedPage!.id)} className="gap-2">
                       <Copy className="h-4 w-4" /> Duplicar
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleCreateGroceryList} disabled={creatingGroceryList} className="gap-2">
-                      {creatingGroceryList ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" />}
-                      {creatingGroceryList ? 'Criando lista...' : 'Criar lista de mercado'}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => { store.archivePage(store.selectedPage!.id); }} className="gap-2 text-destructive">
                       <Trash2 className="h-4 w-4" /> Arquivar
                     </DropdownMenuItem>
@@ -312,6 +350,46 @@ export default function Notas() {
                 />
               </div>
             </div>
+
+            {/* Floating grocery list banner */}
+            <AnimatePresence>
+              {showGroceryBanner && (
+                <motion.div
+                  initial={{ y: 80, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 80, opacity: 0 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[calc(100%-2rem)] max-w-md"
+                >
+                  <div className="flex items-center gap-3 bg-primary/10 border border-primary/30 backdrop-blur-md rounded-xl px-4 py-3 shadow-lg">
+                    <span className="text-xl">🛒</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-foreground">Ingredientes detectados!</p>
+                      <p className="text-[11px] text-muted-foreground">Adicionar à lista de mercado?</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="h-8 gap-1.5 text-xs flex-shrink-0"
+                      onClick={handleAddToGroceryList}
+                      disabled={creatingGroceryList}
+                    >
+                      {creatingGroceryList ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <ShoppingCart className="h-3.5 w-3.5" />
+                      )}
+                      {creatingGroceryList ? 'Adicionando...' : 'Adicionar'}
+                    </Button>
+                    <button
+                      onClick={() => setGroceryBannerDismissed(store.selectedPage!.id)}
+                      className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </>
         ) : (
           /* Empty state */
@@ -329,4 +407,26 @@ export default function Notas() {
       </div>
     </div>
   );
+}
+
+// Merge incoming categories into existing ones without duplicating items
+function mergeCategories(existing: any[], incoming: any[]): any[] {
+  const map = new Map<string, any>();
+  for (const cat of existing) {
+    map.set(cat.name, { ...cat, items: [...(cat.items || [])] });
+  }
+  for (const cat of incoming) {
+    if (map.has(cat.name)) {
+      const ex = map.get(cat.name)!;
+      const existingSet = new Set(ex.items.map((i: string) => i.toLowerCase()));
+      for (const item of cat.items) {
+        if (!existingSet.has(item.toLowerCase())) {
+          ex.items.push(item);
+        }
+      }
+    } else {
+      map.set(cat.name, { ...cat, items: [...(cat.items || [])] });
+    }
+  }
+  return Array.from(map.values());
 }
