@@ -191,6 +191,12 @@ export default function Notas() {
                     <DropdownMenuItem onClick={() => store.duplicatePage(store.selectedPage!.id)} className="gap-2">
                       <Copy className="h-4 w-4" /> Duplicar
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleCreateGroceryList} disabled={creatingGroceryList} className="gap-2">
+                      {creatingGroceryList ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" />}
+                      {creatingGroceryList ? 'Criando lista...' : 'Criar lista de mercado'}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => { store.archivePage(store.selectedPage!.id); }} className="gap-2 text-destructive">
                       <Trash2 className="h-4 w-4" /> Arquivar
                     </DropdownMenuItem>
