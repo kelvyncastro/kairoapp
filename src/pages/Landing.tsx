@@ -24,7 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import kairoLogo from "@/assets/kairo-penguin.png";
 
-import { AppShowcaseCarousel } from "@/components/landing/AppShowcaseCarousel";
+
 import RadialOrbitalTimeline from "@/components/ui/radial-orbital-timeline";
 
 const orbitalTimelineData = [
@@ -431,8 +431,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* App Showcase Carousel */}
-      <AppShowcaseCarousel />
 
       {/* Orbital Timeline Section */}
       <section className="relative z-10 py-16 px-4 sm:px-6 lg:px-8">
