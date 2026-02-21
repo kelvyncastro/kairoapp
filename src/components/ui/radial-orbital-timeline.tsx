@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { ArrowRight, Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +24,7 @@ export default function RadialOrbitalTimeline({
 }: RadialOrbitalTimelineProps) {
   const [expandedItems, setExpandedItems] = useState<Record<number, boolean>>({});
   const [rotationAngle, setRotationAngle] = useState(0);
+  const isMobile = useIsMobile();
   const [autoRotate, setAutoRotate] = useState(true);
   const [pulseEffect, setPulseEffect] = useState<Record<number, boolean>>({});
   const [centerOffset] = useState({ x: 0, y: 0 });
@@ -90,14 +92,14 @@ export default function RadialOrbitalTimeline({
 
   const calculateNodePosition = useCallback((index: number, total: number) => {
     const angle = ((index / total) * 360 + rotationAngle) % 360;
-    const radius = 160;
+    const radius = isMobile ? 160 : 200;
     const radian = (angle * Math.PI) / 180;
     const x = radius * Math.cos(radian) + centerOffset.x;
     const y = radius * Math.sin(radian) + centerOffset.y;
     const zIndex = Math.round(100 + 50 * Math.cos(radian));
     const opacity = Math.max(0.4, Math.min(1, 0.4 + 0.6 * ((1 + Math.sin(radian)) / 2)));
     return { x, y, zIndex, opacity };
-  }, [rotationAngle, centerOffset]);
+  }, [rotationAngle, centerOffset, isMobile]);
 
   const getRelatedItems = (itemId: number): number[] => {
     const item = timelineData.find((i) => i.id === itemId);
@@ -116,12 +118,12 @@ export default function RadialOrbitalTimeline({
       className="relative w-full flex items-center justify-center"
       style={{ minHeight: "500px", overflow: "visible" }}
     >
-      <div className="relative" style={{ width: "420px", height: "420px" }}>
+      <div className="relative" style={{ width: isMobile ? "420px" : "520px", height: isMobile ? "420px" : "520px" }}>
         <div ref={orbitRef} className="absolute inset-0 flex items-center justify-center">
           {/* Orbit rings */}
-          <div className="absolute w-[320px] h-[320px] rounded-full border border-border/20" />
-          <div className="absolute w-[240px] h-[240px] rounded-full border border-border/10" />
-          <div className="absolute w-[160px] h-[160px] rounded-full border border-border/10" />
+          <div className={`absolute rounded-full border border-border/20 ${isMobile ? "w-[320px] h-[320px]" : "w-[400px] h-[400px]"}`} />
+          <div className={`absolute rounded-full border border-border/10 ${isMobile ? "w-[240px] h-[240px]" : "w-[300px] h-[300px]"}`} />
+          <div className={`absolute rounded-full border border-border/10 ${isMobile ? "w-[160px] h-[160px]" : "w-[200px] h-[200px]"}`} />
 
           {/* Center logo */}
           <div className="absolute w-14 h-14 rounded-full overflow-hidden ring-2 ring-primary/30 shadow-lg shadow-primary/20 z-10">
