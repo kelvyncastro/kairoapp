@@ -527,6 +527,10 @@ export default function ListaMercado() {
                 <Copy className="h-3.5 w-3.5" />
                 <span className="hidden md:inline ml-1 text-xs">Copiar</span>
               </Button>
+              <Button variant="outline" size="icon" className="h-7 w-7 md:w-auto md:px-2" onClick={handleShareList} disabled={sharingList} title="Compartilhar">
+                {sharingList ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Share2 className="h-3.5 w-3.5" />}
+                <span className="hidden md:inline ml-1 text-xs">Compartilhar</span>
+              </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" size="icon" className="h-7 w-7 md:w-auto md:px-2" title="Nova lista">
