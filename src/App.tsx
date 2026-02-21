@@ -31,6 +31,7 @@ import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import Notas from "./pages/Notas";
 import ListaMercado from "./pages/ListaMercado";
+import ListaMercadoCompartilhada from "./pages/ListaMercadoCompartilhada";
 import Privacidade from "./pages/Privacidade";
 import Termos from "./pages/Termos";
 
@@ -86,6 +87,7 @@ const App = () => {
                     <Route path="/obrigado" element={<Obrigado />} />
                     <Route path="/privacidade" element={<Privacidade />} />
                     <Route path="/termos" element={<Termos />} />
+                    <Route path="/lista/:shareCode" element={<ListaMercadoCompartilhada />} />
                     <Route path="/primeiro-acesso" element={
                       <ProtectedRoute>
                         <PrimeiroAcesso />

@@ -7,7 +7,7 @@ import { NeonCheckbox } from "@/components/ui/animated-check-box";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { ShoppingCart, Sparkles, RotateCcw, Copy, Plus, CheckCircle2, Archive, ArrowLeft, Trash2, DollarSign } from "lucide-react";
+import { ShoppingCart, Sparkles, RotateCcw, Copy, Plus, CheckCircle2, Archive, ArrowLeft, Trash2, DollarSign, Share2, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
@@ -50,6 +50,7 @@ interface GroceryList {
   status: string;
   created_at: string;
   completed_at: string | null;
+  share_code: string | null;
 }
 
 function normalizeItems(items: any[]): string[] {
@@ -78,6 +79,7 @@ export default function ListaMercado() {
   const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
   const [purchaseAmount, setPurchaseAmount] = useState("");
   const [confirmingPurchase, setConfirmingPurchase] = useState(false);
+  const [sharingList, setSharingList] = useState(false);
 
   // Load active list on mount
   useEffect(() => {
@@ -339,6 +341,43 @@ export default function ListaMercado() {
     toast.success("Lista copiada!");
   };
 
+  const handleShareList = async () => {
+    if (!activeListId) return;
+    setSharingList(true);
+    try {
+      // Check if already has share_code
+      const { data: existing } = await supabase
+        .from("grocery_lists")
+        .select("share_code")
+        .eq("id", activeListId)
+        .single();
+
+      let code = (existing as any)?.share_code;
+
+      if (!code) {
+        // Generate a random 10-char code
+        code = Array.from(crypto.getRandomValues(new Uint8Array(5)))
+          .map((b) => b.toString(36).padStart(2, "0"))
+          .join("")
+          .slice(0, 10);
+
+        await supabase
+          .from("grocery_lists")
+          .update({ share_code: code } as any)
+          .eq("id", activeListId);
+      }
+
+      const shareUrl = `${window.location.origin}/lista/${code}`;
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success("Link copiado! Compartilhe com quem quiser.", { duration: 4000 });
+    } catch (e) {
+      console.error(e);
+      toast.error("Erro ao gerar link de compartilhamento.");
+    } finally {
+      setSharingList(false);
+    }
+  };
+
   if (loadingInitial) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -487,6 +526,10 @@ export default function ListaMercado() {
               <Button variant="outline" size="icon" className="h-7 w-7 md:w-auto md:px-2" onClick={() => handleCopyList()} title="Copiar">
                 <Copy className="h-3.5 w-3.5" />
                 <span className="hidden md:inline ml-1 text-xs">Copiar</span>
+              </Button>
+              <Button variant="outline" size="icon" className="h-7 w-7 md:w-auto md:px-2" onClick={handleShareList} disabled={sharingList} title="Compartilhar">
+                {sharingList ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Share2 className="h-3.5 w-3.5" />}
+                <span className="hidden md:inline ml-1 text-xs">Compartilhar</span>
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
