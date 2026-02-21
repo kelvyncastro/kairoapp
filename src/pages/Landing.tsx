@@ -23,6 +23,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import kairoLogo from "@/assets/kairo-penguin.png";
+import lucasAvatar from "@/assets/testimonials/lucas.jpg";
+import amandaAvatar from "@/assets/testimonials/amanda.jpg";
+import rafaelAvatar from "@/assets/testimonials/rafael.jpg";
 
 
 import RadialOrbitalTimeline from "@/components/ui/radial-orbital-timeline";
