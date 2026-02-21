@@ -31,6 +31,7 @@ import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import Notas from "./pages/Notas";
 import ListaMercado from "./pages/ListaMercado";
+import ListaMercadoCompartilhada from "./pages/ListaMercadoCompartilhada";
 import Privacidade from "./pages/Privacidade";
 import Termos from "./pages/Termos";
 
