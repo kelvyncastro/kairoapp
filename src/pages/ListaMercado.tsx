@@ -79,6 +79,7 @@ export default function ListaMercado() {
   const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
   const [purchaseAmount, setPurchaseAmount] = useState("");
   const [confirmingPurchase, setConfirmingPurchase] = useState(false);
+  const [sharingList, setSharingList] = useState(false);
 
   // Load active list on mount
   useEffect(() => {
