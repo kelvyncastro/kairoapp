@@ -69,6 +69,25 @@ export default function ListaMercadoCompartilhada() {
     };
   }, [shareCode]);
 
+  const toggleItem = async (categoryName: string, item: string) => {
+    if (!shareCode) return;
+
+    const newChecked = { ...checked };
+    if (!newChecked[categoryName]) {
+      newChecked[categoryName] = {};
+    }
+    newChecked[categoryName][item] = !newChecked[categoryName][item];
+
+    // Optimistic update
+    setChecked(newChecked);
+
+    // Persist via RPC (no auth needed, uses SECURITY DEFINER)
+    await supabase.rpc("update_shared_grocery_checked", {
+      p_share_code: shareCode,
+      p_checked_items: newChecked as any,
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -109,7 +128,7 @@ export default function ListaMercadoCompartilhada() {
             Lista de Mercado
           </h1>
           <p className="text-sm text-muted-foreground">
-            Acompanhe em tempo real
+            Marque os itens conforme for comprando
           </p>
         </div>
 
@@ -155,10 +174,14 @@ export default function ListaMercadoCompartilhada() {
                     {cat.items.map((item) => {
                       const isChecked = !!checked[cat.name]?.[item];
                       return (
-                        <div key={item} className="flex items-center gap-3 p-2 rounded-lg">
+                        <div
+                          key={item}
+                          className="flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                          onClick={() => toggleItem(cat.name, item)}
+                        >
                           <NeonCheckbox
                             checked={isChecked}
-                            disabled
+                            onChange={() => toggleItem(cat.name, item)}
                             rounded={false}
                             size={18}
                           />

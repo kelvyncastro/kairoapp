@@ -1634,6 +1634,10 @@ export type Database = {
         Args: { _ranking_id: string; _user_id: string }
         Returns: boolean
       }
+      update_shared_grocery_checked: {
+        Args: { p_checked_items: Json; p_share_code: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "user"
