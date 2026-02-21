@@ -438,8 +438,8 @@ export default function Landing() {
       </section>
 
 
-      {/* Orbital Timeline Section */}
-      <section className="relative z-10 py-16 px-4 sm:px-6 lg:px-8">
+      {/* Orbital Timeline Section - Mobile Only */}
+      <section className="relative z-10 py-16 px-4 sm:px-6 lg:px-8 md:hidden">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
