@@ -118,7 +118,7 @@ export default function RadialOrbitalTimeline({
       className="relative w-full flex items-center justify-center"
       style={{ minHeight: "500px", overflow: "visible" }}
     >
-      <div className="relative" style={{ width: isMobile ? "420px" : "520px", height: isMobile ? "420px" : "520px" }}>
+      <div className="relative" style={{ width: isMobile ? "420px" : "560px", height: isMobile ? "420px" : "560px" }}>
         <div ref={orbitRef} className="absolute inset-0 flex items-center justify-center">
           {/* Orbit rings */}
           <div className={`absolute rounded-full border ${isMobile ? "w-[320px] h-[320px] border-border/20" : "w-[440px] h-[440px] border-border/40"}`} />
