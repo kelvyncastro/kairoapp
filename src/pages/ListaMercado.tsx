@@ -368,7 +368,7 @@ export default function ListaMercado() {
       }
 
       // Always use the published Kairo URL
-      const shareUrl = `https://kairoapp.lovable.app/lista/${code}`;
+      const shareUrl = `https://cairoapp.com.br/lista/${code}`;
       await navigator.clipboard.writeText(shareUrl);
       toast.success("Link copiado! Compartilhe com quem quiser.", { duration: 4000 });
     } catch (e) {
