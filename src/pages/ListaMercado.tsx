@@ -50,6 +50,7 @@ interface GroceryList {
   status: string;
   created_at: string;
   completed_at: string | null;
+  share_code: string | null;
 }
 
 function normalizeItems(items: any[]): string[] {
