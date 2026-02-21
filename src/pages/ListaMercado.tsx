@@ -367,7 +367,11 @@ export default function ListaMercado() {
           .eq("id", activeListId);
       }
 
-      const shareUrl = `${window.location.origin}/lista/${code}`;
+      // Use published URL, not preview URL
+      const baseUrl = window.location.hostname.includes('preview--')
+        ? 'https://kairoapp.lovable.app'
+        : window.location.origin;
+      const shareUrl = `${baseUrl}/lista/${code}`;
       await navigator.clipboard.writeText(shareUrl);
       toast.success("Link copiado! Compartilhe com quem quiser.", { duration: 4000 });
     } catch (e) {
