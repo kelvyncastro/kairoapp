@@ -99,7 +99,7 @@ export default function RadialOrbitalTimeline({
     const zIndex = Math.round(100 + 50 * Math.cos(radian));
     const opacity = Math.max(0.4, Math.min(1, 0.4 + 0.6 * ((1 + Math.sin(radian)) / 2)));
     return { x, y, zIndex, opacity };
-  }, [rotationAngle, centerOffset]);
+  }, [rotationAngle, centerOffset, isMobile]);
 
   const getRelatedItems = (itemId: number): number[] => {
     const item = timelineData.find((i) => i.id === itemId);
