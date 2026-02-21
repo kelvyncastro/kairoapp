@@ -88,16 +88,16 @@ export default function RadialOrbitalTimeline({
     setRotationAngle(270 - targetAngle);
   };
 
-  const calculateNodePosition = (index: number, total: number) => {
+  const calculateNodePosition = useCallback((index: number, total: number) => {
     const angle = ((index / total) * 360 + rotationAngle) % 360;
-    const radius = 200;
+    const radius = 160;
     const radian = (angle * Math.PI) / 180;
     const x = radius * Math.cos(radian) + centerOffset.x;
     const y = radius * Math.sin(radian) + centerOffset.y;
     const zIndex = Math.round(100 + 50 * Math.cos(radian));
     const opacity = Math.max(0.4, Math.min(1, 0.4 + 0.6 * ((1 + Math.sin(radian)) / 2)));
     return { x, y, zIndex, opacity };
-  };
+  }, [rotationAngle, centerOffset]);
 
   const getRelatedItems = (itemId: number): number[] => {
     const item = timelineData.find((i) => i.id === itemId);
@@ -113,15 +113,15 @@ export default function RadialOrbitalTimeline({
     <div
       ref={containerRef}
       onClick={handleContainerClick}
-      className="relative w-full flex items-center justify-center overflow-hidden"
-      style={{ minHeight: "550px" }}
+      className="relative w-full flex items-center justify-center"
+      style={{ minHeight: "500px", overflow: "visible" }}
     >
-      <div className="relative" style={{ width: "500px", height: "500px" }}>
+      <div className="relative" style={{ width: "420px", height: "420px" }}>
         <div ref={orbitRef} className="absolute inset-0 flex items-center justify-center">
           {/* Orbit rings */}
-          <div className="absolute w-[400px] h-[400px] rounded-full border border-border/20" />
-          <div className="absolute w-[300px] h-[300px] rounded-full border border-border/10" />
-          <div className="absolute w-[200px] h-[200px] rounded-full border border-border/10" />
+          <div className="absolute w-[320px] h-[320px] rounded-full border border-border/20" />
+          <div className="absolute w-[240px] h-[240px] rounded-full border border-border/10" />
+          <div className="absolute w-[160px] h-[160px] rounded-full border border-border/10" />
 
           {/* Center logo */}
           <div className="absolute w-14 h-14 rounded-full overflow-hidden ring-2 ring-primary/30 shadow-lg shadow-primary/20 z-10">
