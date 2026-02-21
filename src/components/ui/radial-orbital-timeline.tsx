@@ -121,9 +121,9 @@ export default function RadialOrbitalTimeline({
       <div className="relative" style={{ width: isMobile ? "420px" : "520px", height: isMobile ? "420px" : "520px" }}>
         <div ref={orbitRef} className="absolute inset-0 flex items-center justify-center">
           {/* Orbit rings */}
-          <div className={`absolute rounded-full border border-border/20 ${isMobile ? "w-[320px] h-[320px]" : "w-[400px] h-[400px]"}`} />
-          <div className={`absolute rounded-full border border-border/10 ${isMobile ? "w-[240px] h-[240px]" : "w-[300px] h-[300px]"}`} />
-          <div className={`absolute rounded-full border border-border/10 ${isMobile ? "w-[160px] h-[160px]" : "w-[200px] h-[200px]"}`} />
+          <div className={`absolute rounded-full border ${isMobile ? "w-[320px] h-[320px] border-border/20" : "w-[440px] h-[440px] border-border/40"}`} />
+          <div className={`absolute rounded-full border ${isMobile ? "w-[240px] h-[240px] border-border/10" : "w-[340px] h-[340px] border-border/20"}`} />
+          <div className={`absolute rounded-full border ${isMobile ? "w-[160px] h-[160px] border-border/10" : "w-[220px] h-[220px] border-border/15"}`} />
 
           {/* Center logo */}
           <div className="absolute w-14 h-14 rounded-full overflow-hidden ring-2 ring-primary/30 shadow-lg shadow-primary/20 z-10">
