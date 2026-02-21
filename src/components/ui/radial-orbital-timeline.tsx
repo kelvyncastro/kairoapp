@@ -113,10 +113,10 @@ export default function RadialOrbitalTimeline({
     <div
       ref={containerRef}
       onClick={handleContainerClick}
-      className="relative w-full flex items-center justify-center overflow-hidden"
-      style={{ minHeight: "550px" }}
+      className="relative w-full flex items-center justify-center"
+      style={{ minHeight: "500px", overflow: "visible" }}
     >
-      <div className="relative" style={{ width: "500px", height: "500px" }}>
+      <div className="relative" style={{ width: "420px", height: "420px" }}>
         <div ref={orbitRef} className="absolute inset-0 flex items-center justify-center">
           {/* Orbit rings */}
           <div className="absolute w-[400px] h-[400px] rounded-full border border-border/20" />
