@@ -261,6 +261,10 @@ export default function Notas() {
                   <Star className={cn('h-4 w-4', store.selectedPage.isFavorite && 'fill-yellow-400 text-yellow-400')} />
                 </Button>
 
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShareDialogOpen(true)} title="Compartilhar">
+                  <Share2 className="h-4 w-4" />
+                </Button>
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-8 w-8">
