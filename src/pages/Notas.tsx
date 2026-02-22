@@ -62,9 +62,7 @@ export default function Notas() {
   // Detect food ingredients in the current note
   const showGroceryBanner = useMemo(() => {
     if (!store.selectedPage) return false;
-    // If dismissed for this page and content hasn't changed, don't show
-    if (groceryDismissedContent?.pageId === store.selectedPage.id && groceryDismissedContent.content === store.selectedPage.content) return false;
-    // Extract plain text from HTML
+    if (groceryDismissedPages.has(store.selectedPage.id)) return false;
     const div = document.createElement('div');
     div.innerHTML = store.selectedPage.content;
     div.querySelectorAll('p, br, li, h1, h2, h3, h4, h5, h6, div').forEach(el => {
@@ -72,7 +70,7 @@ export default function Notas() {
     });
     const text = (div.textContent || div.innerText || '').replace(/\n{2,}/g, '\n');
     return detectFoodIngredients(text);
-  }, [store.selectedPage?.content, store.selectedPage?.id, groceryDismissedContent]);
+  }, [store.selectedPage?.content, store.selectedPage?.id, groceryDismissedPages]);
 
   const favoritePages = store.pages.filter(p => p.isFavorite && !p.isArchived);
   const recentPages = [...store.pages].filter(p => !p.isArchived).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()).slice(0, 5);
