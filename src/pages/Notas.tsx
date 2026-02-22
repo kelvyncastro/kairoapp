@@ -291,6 +291,22 @@ export default function Notas() {
                   </Badge>
                 )}
 
+                {/* Active collaborators */}
+                {collaboration.activeUsers.length > 0 && (
+                  <div className="flex items-center gap-1">
+                    {collaboration.activeUsers.map(u => (
+                      <div
+                        key={u.userId}
+                        className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow-sm border-2 border-background"
+                        style={{ backgroundColor: u.color }}
+                        title={`${u.userName} está editando`}
+                      >
+                        {u.userName.charAt(0).toUpperCase()}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-8 w-8">
