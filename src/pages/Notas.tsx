@@ -422,7 +422,6 @@ export default function Notas() {
                     placeholder="Sem titulo"
                     readOnly={store.isSharedPage && store.sharedPagePermission !== 'edit'}
                   />
-                  />
                 </div>
 
                 <NotesRichEditor
