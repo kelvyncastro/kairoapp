@@ -75,6 +75,7 @@ export async function loadPagesFromDb(userId: string): Promise<NotesPage[]> {
     title: p.title,
     icon: p.icon,
     folderId: p.folder_id,
+    parentId: (p as any).parent_id || null,
     isFavorite: p.is_favorite,
     isArchived: p.is_archived,
     status: p.status as 'draft' | 'published',
