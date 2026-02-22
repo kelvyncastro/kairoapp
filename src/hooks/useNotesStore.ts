@@ -15,6 +15,7 @@ export function useNotesStore() {
   const { user } = useAuth();
   const [pages, setPages] = useState<NotesPage[]>([]);
   const [folders, setFolders] = useState<NotesFolder[]>([]);
+  const [sharedPages, setSharedPages] = useState<(NotesPage & { permission: 'view' | 'edit'; ownerName?: string })[]>([]);
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'idle'>('idle');
