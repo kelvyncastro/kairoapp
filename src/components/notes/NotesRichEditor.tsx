@@ -155,16 +155,28 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
     },
   });
 
+  // Sync external content (e.g., from remote collaborator)
+  const isRemoteUpdateRef = useRef(false);
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
+      isRemoteUpdateRef.current = true;
+      const { from } = editor.state.selection;
       editor.commands.setContent(content);
+      // Restore cursor position after remote update
+      try {
+        const maxPos = editor.state.doc.content.size;
+        editor.commands.setTextSelection(Math.min(from, maxPos));
+      } catch {}
+      isRemoteUpdateRef.current = false;
     }
   }, [content, editor]);
 
-  const toggle = useCallback((action: string) => {
-    if (!editor) return;
-    setIsInteractingWithToolbar(false);
-    switch (action) {
+  // Render remote cursors as decorations
+  useEffect(() => {
+    if (!editor || remoteCursors.length === 0) return;
+    // We'll render cursor indicators via DOM overlay instead of TipTap decorations
+    // because it's simpler and doesn't require a plugin
+  }, [editor, remoteCursors]);
       case 'bold': editor.chain().focus().toggleBold().run(); break;
       case 'italic': editor.chain().focus().toggleItalic().run(); break;
       case 'underline': editor.chain().focus().toggleUnderline().run(); break;
