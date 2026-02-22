@@ -21,7 +21,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
     }
 
-    const { email, first_name, last_name, phone_number } = await req.json();
+    const { email, first_name, last_name, phone_number, password } = await req.json();
 
     if (!email) throw new Error("Email required");
 
@@ -34,10 +34,15 @@ serve(async (req) => {
     if (!user) {
       console.log("👤 Creating user");
 
-      const { data, error } = await supabase.auth.admin.createUser({
+      const createOptions: any = {
         email,
         email_confirm: true,
-      });
+      };
+      if (password) {
+        createOptions.password = password;
+      }
+
+      const { data, error } = await supabase.auth.admin.createUser(createOptions);
 
       if (error) throw error;
 
