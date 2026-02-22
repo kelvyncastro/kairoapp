@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Star, Save, MoreHorizontal, Copy, Trash2, PanelLeftOpen, PanelLeftClose, ShoppingCart, Loader2, X, ImagePlus, Share2, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { NotesRichEditor } from '@/components/notes/NotesRichEditor';
+import { useNoteCollaboration } from '@/hooks/useNoteCollaboration';
 import { ShareNoteDialog } from '@/components/notes/ShareNoteDialog';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -35,15 +36,34 @@ export default function Notas() {
   const [emojiSearch, setEmojiSearch] = useState('');
   const [emojiCategory, setEmojiCategory] = useState('frequent');
   const [creatingGroceryList, setCreatingGroceryList] = useState(false);
-  const [groceryBannerDismissed, setGroceryBannerDismissed] = useState<string | null>(null);
+  const [groceryDismissedContent, setGroceryDismissedContent] = useState<{ pageId: string; content: string } | null>(null);
   const [uploadingIcon, setUploadingIcon] = useState(false);
   const iconFileRef = useRef<HTMLInputElement>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
+  // Real-time collaboration for shared notes
+  const collaboration = useNoteCollaboration(
+    store.selectedPageId,
+    store.isSharedPage
+  );
+
+  // Listen for remote content updates
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail.pageId === store.selectedPageId) {
+        store.updateContent(detail.pageId, detail.content);
+      }
+    };
+    window.addEventListener('note-remote-content', handler);
+    return () => window.removeEventListener('note-remote-content', handler);
+  }, [store.selectedPageId]);
+
   // Detect food ingredients in the current note
   const showGroceryBanner = useMemo(() => {
     if (!store.selectedPage) return false;
-    if (groceryBannerDismissed === store.selectedPage.id) return false;
+    // If dismissed for this page and content hasn't changed, don't show
+    if (groceryDismissedContent?.pageId === store.selectedPage.id && groceryDismissedContent.content === store.selectedPage.content) return false;
     // Extract plain text from HTML
     const div = document.createElement('div');
     div.innerHTML = store.selectedPage.content;
@@ -52,12 +72,7 @@ export default function Notas() {
     });
     const text = (div.textContent || div.innerText || '').replace(/\n{2,}/g, '\n');
     return detectFoodIngredients(text);
-  }, [store.selectedPage?.content, store.selectedPage?.id, groceryBannerDismissed]);
-
-  // Reset dismiss when switching pages
-  useEffect(() => {
-    setGroceryBannerDismissed(null);
-  }, [store.selectedPageId]);
+  }, [store.selectedPage?.content, store.selectedPage?.id, groceryDismissedContent]);
 
   const favoritePages = store.pages.filter(p => p.isFavorite && !p.isArchived);
   const recentPages = [...store.pages].filter(p => !p.isArchived).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()).slice(0, 5);
@@ -150,7 +165,7 @@ export default function Notas() {
         });
       }
 
-      setGroceryBannerDismissed(store.selectedPage.id);
+      setGroceryDismissedContent({ pageId: store.selectedPage.id, content: store.selectedPage.content });
     } catch (e: any) {
       console.error('Error creating grocery list from note:', e);
       toast.error(e.message || 'Erro ao criar lista de mercado.');
@@ -274,6 +289,22 @@ export default function Notas() {
                     <Users className="h-3 w-3" />
                     {store.sharedPagePermission === 'edit' ? 'Editar' : 'Visualizar'}
                   </Badge>
+                )}
+
+                {/* Active collaborators */}
+                {collaboration.activeUsers.length > 0 && (
+                  <div className="flex items-center gap-1">
+                    {collaboration.activeUsers.map(u => (
+                      <div
+                        key={u.userId}
+                        className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow-sm border-2 border-background"
+                        style={{ backgroundColor: u.color }}
+                        title={`${u.userName} está editando`}
+                      >
+                        {u.userName.charAt(0).toUpperCase()}
+                      </div>
+                    ))}
+                  </div>
                 )}
 
                 <DropdownMenu>
@@ -426,8 +457,13 @@ export default function Notas() {
 
                 <NotesRichEditor
                   content={store.selectedPage.content}
-                  onChange={(content) => store.updateContent(store.selectedPage!.id, content)}
+                  onChange={(content) => {
+                    store.updateContent(store.selectedPage!.id, content);
+                    collaboration.broadcastContent(content);
+                  }}
                   editable={!store.isSharedPage || store.sharedPagePermission === 'edit'}
+                  remoteCursors={collaboration.remoteCursors}
+                  onCursorChange={collaboration.broadcastCursor}
                 />
               </div>
             </div>
@@ -462,7 +498,7 @@ export default function Notas() {
                       {creatingGroceryList ? 'Adicionando...' : 'Adicionar'}
                     </Button>
                     <button
-                      onClick={() => setGroceryBannerDismissed(store.selectedPage!.id)}
+                      onClick={() => setGroceryDismissedContent({ pageId: store.selectedPage!.id, content: store.selectedPage!.content })}
                       className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
                     >
                       <X className="h-4 w-4" />

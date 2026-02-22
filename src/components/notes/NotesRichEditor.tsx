@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import type { RemoteCursor } from '@/hooks/useNoteCollaboration';
 
 interface NotesRichEditorProps {
   content: string;
@@ -26,6 +27,8 @@ interface NotesRichEditorProps {
   placeholder?: string;
   className?: string;
   editable?: boolean;
+  remoteCursors?: RemoteCursor[];
+  onCursorChange?: (position: number) => void;
 }
 
 const TEXT_COLORS = [
@@ -52,7 +55,7 @@ const HIGHLIGHT_COLORS = [
   { name: 'Cinza', color: '#e5e7eb' },
 ];
 
-export function NotesRichEditor({ content, onChange, placeholder = 'Comece a escrever...', className, editable = true }: NotesRichEditorProps) {
+export function NotesRichEditor({ content, onChange, placeholder = 'Comece a escrever...', className, editable = true, remoteCursors = [], onCursorChange }: NotesRichEditorProps) {
   const [showToolbar, setShowToolbar] = useState(false);
   const [toolbarPosition, setToolbarPosition] = useState({ top: 0, left: 0 });
   const [isInteractingWithToolbar, setIsInteractingWithToolbar] = useState(false);
@@ -119,6 +122,12 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
+    onTransaction: ({ editor }) => {
+      if (onCursorChange) {
+        const pos = editor.state.selection.from;
+        onCursorChange(pos);
+      }
+    },
     onBlur: () => {
       setTimeout(() => {
         if (!isInteractingWithToolbar) setShowToolbar(false);
@@ -146,11 +155,28 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
     },
   });
 
+  // Sync external content (e.g., from remote collaborator)
+  const isRemoteUpdateRef = useRef(false);
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
+      isRemoteUpdateRef.current = true;
+      const { from } = editor.state.selection;
       editor.commands.setContent(content);
+      // Restore cursor position after remote update
+      try {
+        const maxPos = editor.state.doc.content.size;
+        editor.commands.setTextSelection(Math.min(from, maxPos));
+      } catch {}
+      isRemoteUpdateRef.current = false;
     }
   }, [content, editor]);
+
+  // Render remote cursors as decorations
+  useEffect(() => {
+    if (!editor || remoteCursors.length === 0) return;
+    // We'll render cursor indicators via DOM overlay instead of TipTap decorations
+    // because it's simpler and doesn't require a plugin
+  }, [editor, remoteCursors]);
 
   const toggle = useCallback((action: string) => {
     if (!editor) return;
@@ -298,7 +324,39 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
         </div>
       )}
 
-      <EditorContent editor={editor} />
+      <div className="relative">
+        <EditorContent editor={editor} />
+        {/* Remote cursor indicators */}
+        {remoteCursors.map(cursor => {
+          if (!editor) return null;
+          try {
+            const pos = Math.min(cursor.position, editor.state.doc.content.size);
+            const coords = editor.view.coordsAtPos(pos);
+            const containerRect = containerRef.current?.getBoundingClientRect();
+            if (!containerRect) return null;
+            return (
+              <div
+                key={cursor.userId}
+                className="absolute pointer-events-none z-40 transition-all duration-150"
+                style={{
+                  top: coords.top - containerRect.top,
+                  left: coords.left - containerRect.left,
+                }}
+              >
+                <div className="w-0.5 h-5 rounded-full animate-pulse" style={{ backgroundColor: cursor.color }} />
+                <div
+                  className="absolute -top-5 left-0 text-[9px] font-medium px-1.5 py-0.5 rounded-md whitespace-nowrap text-white shadow-sm"
+                  style={{ backgroundColor: cursor.color }}
+                >
+                  {cursor.userName}
+                </div>
+              </div>
+            );
+          } catch {
+            return null;
+          }
+        })}
+      </div>
 
       <style>{`
         .is-editor-empty:first-child::before {
