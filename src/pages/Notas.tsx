@@ -146,7 +146,7 @@ export default function Notas() {
         });
       }
 
-      setGroceryBannerDismissed(store.selectedPage.id);
+      setGroceryDismissedContent({ pageId: store.selectedPage.id, content: store.selectedPage.content });
     } catch (e: any) {
       console.error('Error creating grocery list from note:', e);
       toast.error(e.message || 'Erro ao criar lista de mercado.');
