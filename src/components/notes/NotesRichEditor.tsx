@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import type { RemoteCursor } from '@/hooks/useNoteCollaboration';
 
 interface NotesRichEditorProps {
   content: string;
@@ -26,6 +27,8 @@ interface NotesRichEditorProps {
   placeholder?: string;
   className?: string;
   editable?: boolean;
+  remoteCursors?: RemoteCursor[];
+  onCursorChange?: (position: number) => void;
 }
 
 const TEXT_COLORS = [
