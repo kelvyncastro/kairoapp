@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import {
   Search, Plus, Star, Clock, FolderOpen, ChevronRight, ChevronDown,
-  MoreHorizontal, Copy, FolderInput, Archive, Trash2, Edit3, FileText, FolderPlus,
+  MoreHorizontal, Copy, FolderInput, Archive, Trash2, Edit3, FileText, FolderPlus, Users,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
