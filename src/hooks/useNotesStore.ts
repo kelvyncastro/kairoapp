@@ -319,7 +319,7 @@ export function useNotesStore() {
   });
 
   return {
-    pages, folders, sharedPages, selectedPageId, selectedPage, searchQuery, saveStatus, loading,
+    pages, folders, sharedPages, selectedPageId, selectedPage, isSharedPage, sharedPagePermission, searchQuery, saveStatus, loading,
     filteredPages,
     setSelectedPageId, setSearchQuery,
     createPage, deletePage, duplicatePage, archivePage,
