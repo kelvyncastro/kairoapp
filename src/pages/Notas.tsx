@@ -35,7 +35,7 @@ export default function Notas() {
   const [emojiSearch, setEmojiSearch] = useState('');
   const [emojiCategory, setEmojiCategory] = useState('frequent');
   const [creatingGroceryList, setCreatingGroceryList] = useState(false);
-  const [groceryBannerDismissed, setGroceryBannerDismissed] = useState<string | null>(null);
+  const [groceryDismissedContent, setGroceryDismissedContent] = useState<{ pageId: string; content: string } | null>(null);
   const [uploadingIcon, setUploadingIcon] = useState(false);
   const iconFileRef = useRef<HTMLInputElement>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
