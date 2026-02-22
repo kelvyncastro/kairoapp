@@ -42,7 +42,7 @@ export function ShareNoteDialog({ open, onClose, pageId, pageTitle }: ShareNoteD
     setLoadingShares(true);
     try {
       const { data, error } = await supabase
-        .from('notes_shares')
+        .from('notes_shares' as any)
         .select('id, shared_with_id, permission')
         .eq('page_id', pageId)
         .eq('owner_id', user.id);
