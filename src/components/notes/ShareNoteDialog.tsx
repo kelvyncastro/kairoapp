@@ -149,7 +149,7 @@ export function ShareNoteDialog({ open, onClose, pageId, pageTitle }: ShareNoteD
 
   const handleRemoveShare = async (shareId: string) => {
     try {
-      const { error } = await supabase.from('notes_shares').delete().eq('id', shareId);
+      const { error } = await supabase.from('notes_shares' as any).delete().eq('id', shareId);
       if (error) throw error;
       setShares(prev => prev.filter(s => s.id !== shareId));
       toast.success('Compartilhamento removido.');
