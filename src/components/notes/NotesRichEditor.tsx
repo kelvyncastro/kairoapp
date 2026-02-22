@@ -324,7 +324,39 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
         </div>
       )}
 
-      <EditorContent editor={editor} />
+      <div className="relative">
+        <EditorContent editor={editor} />
+        {/* Remote cursor indicators */}
+        {remoteCursors.map(cursor => {
+          if (!editor) return null;
+          try {
+            const pos = Math.min(cursor.position, editor.state.doc.content.size);
+            const coords = editor.view.coordsAtPos(pos);
+            const containerRect = containerRef.current?.getBoundingClientRect();
+            if (!containerRect) return null;
+            return (
+              <div
+                key={cursor.userId}
+                className="absolute pointer-events-none z-40 transition-all duration-150"
+                style={{
+                  top: coords.top - containerRect.top,
+                  left: coords.left - containerRect.left,
+                }}
+              >
+                <div className="w-0.5 h-5 rounded-full animate-pulse" style={{ backgroundColor: cursor.color }} />
+                <div
+                  className="absolute -top-5 left-0 text-[9px] font-medium px-1.5 py-0.5 rounded-md whitespace-nowrap text-white shadow-sm"
+                  style={{ backgroundColor: cursor.color }}
+                >
+                  {cursor.userName}
+                </div>
+              </div>
+            );
+          } catch {
+            return null;
+          }
+        })}
+      </div>
 
       <style>{`
         .is-editor-empty:first-child::before {
