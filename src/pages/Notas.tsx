@@ -41,6 +41,24 @@ export default function Notas() {
   const iconFileRef = useRef<HTMLInputElement>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
+  // Real-time collaboration for shared notes
+  const collaboration = useNoteCollaboration(
+    store.selectedPageId,
+    store.isSharedPage
+  );
+
+  // Listen for remote content updates
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail.pageId === store.selectedPageId) {
+        store.updateContent(detail.pageId, detail.content);
+      }
+    };
+    window.addEventListener('note-remote-content', handler);
+    return () => window.removeEventListener('note-remote-content', handler);
+  }, [store.selectedPageId]);
+
   // Detect food ingredients in the current note
   const showGroceryBanner = useMemo(() => {
     if (!store.selectedPage) return false;
