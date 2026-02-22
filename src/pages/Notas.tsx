@@ -156,6 +156,30 @@ export default function Notas() {
     }
   }, [user, store.selectedPage, navigate]);
 
+  const handleIconImageUpload = useCallback(async (file: File) => {
+    if (!user || !store.selectedPage) return;
+    setUploadingIcon(true);
+    try {
+      const ext = file.name.split('.').pop() || 'png';
+      const path = `${user.id}/${store.selectedPage.id}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('note-icons')
+        .upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = supabase.storage
+        .from('note-icons')
+        .getPublicUrl(path);
+      store.updatePageIcon(store.selectedPage.id, publicUrl);
+      setEmojiOpen(false);
+      toast.success('Ícone atualizado!');
+    } catch (e: any) {
+      console.error('Error uploading icon:', e);
+      toast.error('Erro ao enviar imagem.');
+    } finally {
+      setUploadingIcon(false);
+    }
+  }, [user, store.selectedPage, store]);
+
   const searchResults = searchEmojis(emojiSearch);
 
   if (store.loading) {
