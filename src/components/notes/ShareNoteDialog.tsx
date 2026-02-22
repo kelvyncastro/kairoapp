@@ -162,7 +162,7 @@ export function ShareNoteDialog({ open, onClose, pageId, pageTitle }: ShareNoteD
   const handleUpdatePermission = async (shareId: string, newPermission: 'view' | 'edit') => {
     try {
       const { error } = await supabase
-        .from('notes_shares')
+        .from('notes_shares' as any)
         .update({ permission: newPermission })
         .eq('id', shareId);
       if (error) throw error;
