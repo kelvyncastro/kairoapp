@@ -320,17 +320,20 @@ export default function Notas() {
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-popover">
-                    <DropdownMenuItem onClick={() => store.saveVersion(store.selectedPage!.id)} className="gap-2">
-                      <Save className="h-4 w-4" /> Salvar versao
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => store.duplicatePage(store.selectedPage!.id)} className="gap-2">
-                      <Copy className="h-4 w-4" /> Duplicar
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => { store.archivePage(store.selectedPage!.id); }} className="gap-2 text-destructive">
-                      <Trash2 className="h-4 w-4" /> Arquivar
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
+                    <DropdownMenuContent align="end" className="bg-popover">
+                      <DropdownMenuItem onClick={() => store.saveVersion(store.selectedPage!.id)} className="gap-2">
+                        <Save className="h-4 w-4" /> Salvar versao
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => store.duplicatePage(store.selectedPage!.id)} className="gap-2">
+                        <Copy className="h-4 w-4" /> Duplicar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { store.archivePage(store.selectedPage!.id); }} className="gap-2">
+                        <Trash2 className="h-4 w-4" /> Arquivar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { store.deletePage(store.selectedPage!.id); }} className="gap-2 text-destructive focus:text-destructive">
+                        <Trash2 className="h-4 w-4" /> Excluir permanentemente
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
                 </DropdownMenu>
               </div>
             </div>
