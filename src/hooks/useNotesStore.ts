@@ -105,7 +105,9 @@ export function useNotesStore() {
     return () => { cancelled = true; };
   }, [user]);
 
-  const selectedPage = pages.find(p => p.id === selectedPageId) || null;
+  const selectedPage = pages.find(p => p.id === selectedPageId) || sharedPages.find(p => p.id === selectedPageId) || null;
+  const isSharedPage = sharedPages.some(p => p.id === selectedPageId);
+  const sharedPagePermission = sharedPages.find(p => p.id === selectedPageId)?.permission || null;
 
   // Save a page to DB (debounced for content updates)
   const savePageToDb = useCallback(async (page: NotesPage) => {
