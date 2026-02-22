@@ -24,6 +24,7 @@ interface NotesSidebarProps {
   folders: NotesFolder[];
   favoritePages: NotesPage[];
   recentPages: NotesPage[];
+  sharedPages?: (NotesPage & { permission: 'view' | 'edit'; ownerName?: string })[];
   selectedPageId: string | null;
   searchQuery: string;
   onSearchChange: (q: string) => void;
