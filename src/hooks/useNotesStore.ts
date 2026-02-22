@@ -41,9 +41,57 @@ export function useNotesStore() {
           loadPagesFromDb(user.id),
         ]);
 
+        // Load shared notes
+        const { data: sharesData } = await supabase
+          .from('notes_shares')
+          .select('page_id, permission, owner_id')
+          .eq('shared_with_id', user.id);
+
+        let sharedNotes: (NotesPage & { permission: 'view' | 'edit'; ownerName?: string })[] = [];
+        if (sharesData && sharesData.length > 0) {
+          const pageIds = sharesData.map(s => s.page_id);
+          const { data: sharedPagesData } = await supabase
+            .from('notes_pages')
+            .select('*')
+            .in('id', pageIds);
+
+          // Get owner names
+          const ownerIds = [...new Set(sharesData.map(s => s.owner_id))];
+          const { data: ownerProfiles } = await supabase
+            .from('user_profiles')
+            .select('user_id, first_name')
+            .in('user_id', ownerIds);
+
+          const ownerMap = new Map((ownerProfiles || []).map(p => [p.user_id, p.first_name]));
+          const shareMap = new Map(sharesData.map(s => [s.page_id, s]));
+
+          sharedNotes = (sharedPagesData || []).map(p => {
+            const share = shareMap.get(p.id);
+            return {
+              id: p.id,
+              title: p.title,
+              icon: p.icon,
+              folderId: p.folder_id,
+              isFavorite: p.is_favorite,
+              isArchived: p.is_archived,
+              status: p.status as 'draft' | 'published',
+              tags: p.tags || [],
+              content: p.content,
+              comments: (p.comments as any) || [],
+              activityLog: (p.activity_log as any) || [],
+              versions: (p.versions as any) || [],
+              createdAt: p.created_at,
+              updatedAt: p.updated_at,
+              permission: (share?.permission || 'view') as 'view' | 'edit',
+              ownerName: ownerMap.get(share?.owner_id || '') || undefined,
+            };
+          });
+        }
+
         if (!cancelled) {
           setFolders(dbFolders);
           setPages(dbPages);
+          setSharedPages(sharedNotes);
           setLoading(false);
         }
       } catch (e) {
