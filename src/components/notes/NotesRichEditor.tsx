@@ -177,6 +177,11 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
     // We'll render cursor indicators via DOM overlay instead of TipTap decorations
     // because it's simpler and doesn't require a plugin
   }, [editor, remoteCursors]);
+
+  const toggle = useCallback((action: string) => {
+    if (!editor) return;
+    setIsInteractingWithToolbar(false);
+    switch (action) {
       case 'bold': editor.chain().focus().toggleBold().run(); break;
       case 'italic': editor.chain().focus().toggleItalic().run(); break;
       case 'underline': editor.chain().focus().toggleUnderline().run(); break;
