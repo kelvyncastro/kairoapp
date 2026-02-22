@@ -52,7 +52,7 @@ const HIGHLIGHT_COLORS = [
   { name: 'Cinza', color: '#e5e7eb' },
 ];
 
-export function NotesRichEditor({ content, onChange, placeholder = 'Comece a escrever...', className }: NotesRichEditorProps) {
+export function NotesRichEditor({ content, onChange, placeholder = 'Comece a escrever...', className, editable = true }: NotesRichEditorProps) {
   const [showToolbar, setShowToolbar] = useState(false);
   const [toolbarPosition, setToolbarPosition] = useState({ top: 0, left: 0 });
   const [isInteractingWithToolbar, setIsInteractingWithToolbar] = useState(false);
