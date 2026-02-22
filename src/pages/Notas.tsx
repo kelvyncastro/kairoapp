@@ -420,6 +420,8 @@ export default function Notas() {
                     value={store.selectedPage.title}
                     onChange={(e) => store.updatePageTitle(store.selectedPage!.id, e.target.value)}
                     placeholder="Sem titulo"
+                    readOnly={store.isSharedPage && store.sharedPagePermission !== 'edit'}
+                  />
                   />
                 </div>
 
