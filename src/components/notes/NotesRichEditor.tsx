@@ -104,7 +104,7 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
             editor?.chain().focus().toggleBulletList().run();
             return true;
           }
-          if (textBefore === '[]' || textBefore === '[ ]') {
+          if (textBefore === '[]' || textBefore === '[ ]' || textBefore === '()' || textBefore === '( )') {
             const tr = state.tr.delete($from.pos - textBefore.length, $from.pos);
             view.dispatch(tr);
             editor?.chain().focus().toggleTaskList().run();
