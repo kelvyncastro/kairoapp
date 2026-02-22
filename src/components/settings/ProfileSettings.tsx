@@ -206,11 +206,11 @@ export function ProfileSettings() {
                   </div>
                 </motion.div>
                 <p className="text-xs text-muted-foreground mt-3">Clique para alterar</p>
-                <p className="text-xs text-muted-foreground">Máximo 5MB</p>
+                <p className="text-xs text-muted-foreground">Máximo 10MB · JPG, PNG, GIF, WebP, SVG, AVIF, HEIC</p>
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml,image/avif,image/heic,image/heif"
                   className="hidden"
                   onChange={handleFileChange}
                 />

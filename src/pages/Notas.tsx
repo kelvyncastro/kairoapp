@@ -458,7 +458,7 @@ export default function Notas() {
                       {creatingGroceryList ? 'Adicionando...' : 'Adicionar'}
                     </Button>
                     <button
-                      onClick={() => setGroceryBannerDismissed(store.selectedPage!.id)}
+                      onClick={() => setGroceryDismissedContent({ pageId: store.selectedPage!.id, content: store.selectedPage!.content })}
                       className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
                     >
                       <X className="h-4 w-4" />
