@@ -353,7 +353,11 @@ function PageItem({ page, isSelected, folders, onSelect, onDelete, onDuplicate, 
         )}
         onClick={onSelect}
       >
-        <span className="text-sm flex-shrink-0">{page.icon}</span>
+        <span className="text-sm flex-shrink-0">
+          {page.icon.startsWith('http') ? (
+            <img src={page.icon} alt="" className="w-4 h-4 rounded object-cover" />
+          ) : page.icon}
+        </span>
         <span className="truncate">{page.title}</span>
         {page.isFavorite && <Star className="h-2.5 w-2.5 text-yellow-500 fill-yellow-500 flex-shrink-0" />}
       </button>
