@@ -42,7 +42,7 @@ interface NotesSidebarProps {
 }
 
 export function NotesSidebar({
-  pages, folders, favoritePages, recentPages,
+  pages, folders, favoritePages, recentPages, sharedPages = [],
   selectedPageId, searchQuery,
   onSearchChange, onSelectPage, onCreatePage,
   onDeletePage, onDuplicatePage, onArchivePage, onMoveToFolder,
