@@ -43,7 +43,8 @@ export default function Notas() {
   // Detect food ingredients in the current note
   const showGroceryBanner = useMemo(() => {
     if (!store.selectedPage) return false;
-    if (groceryBannerDismissed === store.selectedPage.id) return false;
+    // If dismissed for this page and content hasn't changed, don't show
+    if (groceryDismissedContent?.pageId === store.selectedPage.id && groceryDismissedContent.content === store.selectedPage.content) return false;
     // Extract plain text from HTML
     const div = document.createElement('div');
     div.innerHTML = store.selectedPage.content;
