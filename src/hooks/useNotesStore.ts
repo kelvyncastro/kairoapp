@@ -44,9 +44,9 @@ export function useNotesStore() {
 
         // Load shared notes
         const { data: sharesData } = await supabase
-          .from('notes_shares')
+          .from('notes_shares' as any)
           .select('page_id, permission, owner_id')
-          .eq('shared_with_id', user.id);
+          .eq('shared_with_id', user.id) as { data: { page_id: string; permission: string; owner_id: string }[] | null };
 
         let sharedNotes: (NotesPage & { permission: 'view' | 'edit'; ownerName?: string })[] = [];
         if (sharesData && sharesData.length > 0) {
