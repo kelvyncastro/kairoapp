@@ -36,7 +36,7 @@ export default function Notas() {
   const [emojiSearch, setEmojiSearch] = useState('');
   const [emojiCategory, setEmojiCategory] = useState('frequent');
   const [creatingGroceryList, setCreatingGroceryList] = useState(false);
-  const [groceryDismissedContent, setGroceryDismissedContent] = useState<{ pageId: string; content: string } | null>(null);
+  const [groceryDismissedPages, setGroceryDismissedPages] = useState<Set<string>>(new Set());
   const [uploadingIcon, setUploadingIcon] = useState(false);
   const iconFileRef = useRef<HTMLInputElement>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
@@ -62,9 +62,7 @@ export default function Notas() {
   // Detect food ingredients in the current note
   const showGroceryBanner = useMemo(() => {
     if (!store.selectedPage) return false;
-    // If dismissed for this page and content hasn't changed, don't show
-    if (groceryDismissedContent?.pageId === store.selectedPage.id && groceryDismissedContent.content === store.selectedPage.content) return false;
-    // Extract plain text from HTML
+    if (groceryDismissedPages.has(store.selectedPage.id)) return false;
     const div = document.createElement('div');
     div.innerHTML = store.selectedPage.content;
     div.querySelectorAll('p, br, li, h1, h2, h3, h4, h5, h6, div').forEach(el => {
@@ -72,7 +70,7 @@ export default function Notas() {
     });
     const text = (div.textContent || div.innerText || '').replace(/\n{2,}/g, '\n');
     return detectFoodIngredients(text);
-  }, [store.selectedPage?.content, store.selectedPage?.id, groceryDismissedContent]);
+  }, [store.selectedPage?.content, store.selectedPage?.id, groceryDismissedPages]);
 
   const favoritePages = store.pages.filter(p => p.isFavorite && !p.isArchived);
   const recentPages = [...store.pages].filter(p => !p.isArchived).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()).slice(0, 5);
@@ -165,7 +163,7 @@ export default function Notas() {
         });
       }
 
-      setGroceryDismissedContent({ pageId: store.selectedPage.id, content: store.selectedPage.content });
+      setGroceryDismissedPages(prev => new Set(prev).add(store.selectedPage!.id));
     } catch (e: any) {
       console.error('Error creating grocery list from note:', e);
       toast.error(e.message || 'Erro ao criar lista de mercado.');
@@ -556,7 +554,7 @@ export default function Notas() {
                       {creatingGroceryList ? 'Adicionando...' : 'Adicionar'}
                     </Button>
                     <button
-                      onClick={() => setGroceryDismissedContent({ pageId: store.selectedPage!.id, content: store.selectedPage!.content })}
+                      onClick={() => setGroceryDismissedPages(prev => new Set(prev).add(store.selectedPage!.id))}
                       className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
                     >
                       <X className="h-4 w-4" />
