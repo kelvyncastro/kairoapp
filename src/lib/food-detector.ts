@@ -94,13 +94,15 @@ export function detectFoodIngredients(text: string): boolean {
     }
   }
   
-  // Calculate what percentage of lines contain food keywords
+  // If very few food words compared to total content lines, it's not a grocery list
   const totalLines = Math.max(lines.length, 1);
   const foodRatio = matches / totalLines;
   
-  // Only trigger if a significant portion of the content is food-related
-  // This prevents triggering on a list of non-food items that happens to have a few food words
-  if (foodRatio < 0.3) return false;
+  // Require at least 3 strong (non-ambiguous) food matches
+  if (strongMatches < 3) return false;
   
-  return strongMatches >= 5 && matches >= 7;
+  // If less than 20% of lines are food-related AND total matches are low, skip
+  if (foodRatio < 0.2 && matches < 5) return false;
+  
+  return matches >= 4;
 }
