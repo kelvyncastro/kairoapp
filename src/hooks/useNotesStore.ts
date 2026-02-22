@@ -236,8 +236,29 @@ export function useNotesStore() {
   }, [updateAndSavePage]);
 
   const updateContent = useCallback((pageId: string, content: string) => {
-    debouncedSave(prev => prev.map(p => p.id === pageId ? { ...p, content, updatedAt: new Date().toISOString() } : p));
-  }, [debouncedSave]);
+    // Check if it's a shared page
+    const isShared = sharedPages.some(p => p.id === pageId);
+    if (isShared) {
+      // Update shared page content directly via supabase
+      setSharedPages(prev => prev.map(p => p.id === pageId ? { ...p, content, updatedAt: new Date().toISOString() } : p));
+      setSaveStatus('saving');
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(async () => {
+        try {
+          await supabase
+            .from('notes_pages')
+            .update({ content, updated_at: new Date().toISOString() })
+            .eq('id', pageId);
+          setSaveStatus('saved');
+          setTimeout(() => setSaveStatus('idle'), 2000);
+        } catch (e) {
+          console.error('Error saving shared page:', e);
+        }
+      }, 400);
+    } else {
+      debouncedSave(prev => prev.map(p => p.id === pageId ? { ...p, content, updatedAt: new Date().toISOString() } : p));
+    }
+  }, [debouncedSave, sharedPages]);
 
   const saveVersion = useCallback((pageId: string) => {
     const page = pages.find(p => p.id === pageId);
