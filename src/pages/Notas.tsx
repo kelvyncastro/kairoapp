@@ -294,6 +294,29 @@ export default function Notas() {
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-80 p-0" align="start">
+                      {/* Upload image option */}
+                      <div className="p-2 border-b border-border">
+                        <button
+                          onClick={() => iconFileRef.current?.click()}
+                          disabled={uploadingIcon}
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium hover:bg-muted/50 transition-colors text-muted-foreground hover:text-foreground"
+                        >
+                          <ImagePlus className="h-4 w-4" />
+                          {uploadingIcon ? 'Enviando...' : 'Importar imagem'}
+                        </button>
+                        <input
+                          ref={iconFileRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleIconImageUpload(file);
+                            e.target.value = '';
+                          }}
+                        />
+                      </div>
+
                       <div className="p-2 border-b border-border">
                         <Input
                           placeholder="Buscar emoji... (ex: fogo, coracao, estrela)"
