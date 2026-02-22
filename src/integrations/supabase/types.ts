@@ -760,6 +760,7 @@ export type Database = {
           id: string
           is_archived: boolean
           is_favorite: boolean
+          parent_id: string | null
           status: string
           tags: string[]
           title: string
@@ -777,6 +778,7 @@ export type Database = {
           id?: string
           is_archived?: boolean
           is_favorite?: boolean
+          parent_id?: string | null
           status?: string
           tags?: string[]
           title?: string
@@ -794,6 +796,7 @@ export type Database = {
           id?: string
           is_archived?: boolean
           is_favorite?: boolean
+          parent_id?: string | null
           status?: string
           tags?: string[]
           title?: string
@@ -807,6 +810,13 @@ export type Database = {
             columns: ["folder_id"]
             isOneToOne: false
             referencedRelation: "notes_folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_pages_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "notes_pages"
             referencedColumns: ["id"]
           },
         ]
