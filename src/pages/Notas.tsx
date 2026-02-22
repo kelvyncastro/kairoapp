@@ -416,6 +416,7 @@ export default function Notas() {
                 <NotesRichEditor
                   content={store.selectedPage.content}
                   onChange={(content) => store.updateContent(store.selectedPage!.id, content)}
+                  editable={!store.isSharedPage || store.sharedPagePermission === 'edit'}
                 />
               </div>
             </div>
