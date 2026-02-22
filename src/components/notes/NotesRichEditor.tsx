@@ -122,6 +122,12 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
+    onTransaction: ({ editor }) => {
+      if (onCursorChange) {
+        const pos = editor.state.selection.from;
+        onCursorChange(pos);
+      }
+    },
     onBlur: () => {
       setTimeout(() => {
         if (!isInteractingWithToolbar) setShowToolbar(false);
