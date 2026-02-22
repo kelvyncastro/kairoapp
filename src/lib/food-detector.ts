@@ -74,17 +74,16 @@ export function detectFoodIngredients(text: string): boolean {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '');
   
-  const isList = hasListStructure(text);
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
   
   let matches = 0;
-  let strongMatches = 0; // non-ambiguous food words
+  let strongMatches = 0;
   
   for (const keyword of FOOD_KEYWORDS) {
     const normalizedKeyword = keyword
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '');
     
-    // Use word boundary matching
     const escaped = normalizedKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`(?:^|[\\s,;.!?()\\[\\]{}:/"'\\-•*])${escaped}(?:$|[\\s,;.!?()\\[\\]{}:/"'\\-•*s])`, 'i');
     
@@ -95,9 +94,13 @@ export function detectFoodIngredients(text: string): boolean {
     }
   }
   
-  // If it's a list structure, lower threshold (likely a grocery/recipe list)
-  if (isList) return strongMatches >= 3 || matches >= 5;
+  // Calculate what percentage of lines contain food keywords
+  const totalLines = Math.max(lines.length, 1);
+  const foodRatio = matches / totalLines;
   
-  // For normal text (paragraphs), require much higher confidence
-  return strongMatches >= 6 && matches >= 8;
+  // Only trigger if a significant portion of the content is food-related
+  // This prevents triggering on a list of non-food items that happens to have a few food words
+  if (foodRatio < 0.3) return false;
+  
+  return strongMatches >= 5 && matches >= 7;
 }
