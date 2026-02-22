@@ -1,14 +1,14 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNotesStore } from '@/hooks/useNotesStore';
 import { NotesSidebar } from '@/components/notes/NotesSidebar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Star, Save, MoreHorizontal, Copy, Trash2, PanelLeftOpen, PanelLeftClose, ShoppingCart, Loader2, X } from 'lucide-react';
+import { Star, Save, MoreHorizontal, Copy, Trash2, PanelLeftOpen, PanelLeftClose, ShoppingCart, Loader2, X, ImagePlus } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { NotesRichEditor } from '@/components/notes/NotesRichEditor';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -34,6 +34,8 @@ export default function Notas() {
   const [emojiCategory, setEmojiCategory] = useState('frequent');
   const [creatingGroceryList, setCreatingGroceryList] = useState(false);
   const [groceryBannerDismissed, setGroceryBannerDismissed] = useState<string | null>(null);
+  const [uploadingIcon, setUploadingIcon] = useState(false);
+  const iconFileRef = useRef<HTMLInputElement>(null);
 
   // Detect food ingredients in the current note
   const showGroceryBanner = useMemo(() => {
@@ -154,6 +156,30 @@ export default function Notas() {
     }
   }, [user, store.selectedPage, navigate]);
 
+  const handleIconImageUpload = useCallback(async (file: File) => {
+    if (!user || !store.selectedPage) return;
+    setUploadingIcon(true);
+    try {
+      const ext = file.name.split('.').pop() || 'png';
+      const path = `${user.id}/${store.selectedPage.id}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('note-icons')
+        .upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = supabase.storage
+        .from('note-icons')
+        .getPublicUrl(path);
+      store.updatePageIcon(store.selectedPage.id, publicUrl);
+      setEmojiOpen(false);
+      toast.success('Ícone atualizado!');
+    } catch (e: any) {
+      console.error('Error uploading icon:', e);
+      toast.error('Erro ao enviar imagem.');
+    } finally {
+      setUploadingIcon(false);
+    }
+  }, [user, store.selectedPage, store]);
+
   const searchResults = searchEmojis(emojiSearch);
 
   if (store.loading) {
@@ -213,7 +239,11 @@ export default function Notas() {
                 </div>
               </Button>
 
-              <span className="text-sm">{store.selectedPage.icon}</span>
+              <span className="text-sm flex-shrink-0">
+                {store.selectedPage.icon.startsWith('http') ? (
+                  <img src={store.selectedPage.icon} alt="" className="w-5 h-5 rounded object-cover" />
+                ) : store.selectedPage.icon}
+              </span>
               <span className="text-sm font-semibold truncate flex-1">{store.selectedPage.title || 'Sem titulo'}</span>
 
               <div className="flex items-center gap-1">
@@ -258,10 +288,35 @@ export default function Notas() {
                   <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
                     <PopoverTrigger asChild>
                       <button className="text-4xl hover:bg-muted/50 rounded-lg p-1 transition-colors flex-shrink-0 mt-0.5">
-                        {store.selectedPage.icon}
+                        {store.selectedPage.icon.startsWith('http') ? (
+                          <img src={store.selectedPage.icon} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                        ) : store.selectedPage.icon}
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-80 p-0" align="start">
+                      {/* Upload image option */}
+                      <div className="p-2 border-b border-border">
+                        <button
+                          onClick={() => iconFileRef.current?.click()}
+                          disabled={uploadingIcon}
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium hover:bg-muted/50 transition-colors text-muted-foreground hover:text-foreground"
+                        >
+                          <ImagePlus className="h-4 w-4" />
+                          {uploadingIcon ? 'Enviando...' : 'Importar imagem'}
+                        </button>
+                        <input
+                          ref={iconFileRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleIconImageUpload(file);
+                            e.target.value = '';
+                          }}
+                        />
+                      </div>
+
                       <div className="p-2 border-b border-border">
                         <Input
                           placeholder="Buscar emoji... (ex: fogo, coracao, estrela)"
