@@ -532,7 +532,7 @@ export default function Notas() {
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 80, opacity: 0 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[min(calc(100vw-2rem),28rem)]"
+                  className="fixed bottom-4 left-4 right-4 z-50 max-w-md mx-auto"
                 >
                   <div className="relative bg-card border border-border backdrop-blur-md rounded-xl px-3 py-2.5 shadow-xl">
                     {/* Close button */}
