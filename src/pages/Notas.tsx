@@ -239,7 +239,11 @@ export default function Notas() {
                 </div>
               </Button>
 
-              <span className="text-sm">{store.selectedPage.icon}</span>
+              <span className="text-sm flex-shrink-0">
+                {store.selectedPage.icon.startsWith('http') ? (
+                  <img src={store.selectedPage.icon} alt="" className="w-5 h-5 rounded object-cover" />
+                ) : store.selectedPage.icon}
+              </span>
               <span className="text-sm font-semibold truncate flex-1">{store.selectedPage.title || 'Sem titulo'}</span>
 
               <div className="flex items-center gap-1">
