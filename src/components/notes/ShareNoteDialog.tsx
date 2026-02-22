@@ -126,7 +126,7 @@ export function ShareNoteDialog({ open, onClose, pageId, pageTitle }: ShareNoteD
     if (!foundUser || !user) return;
     setSharing(true);
     try {
-      const { error } = await supabase.from('notes_shares').upsert({
+      const { error } = await supabase.from('notes_shares' as any).upsert({
         page_id: pageId,
         owner_id: user.id,
         shared_with_id: foundUser.user_id,
