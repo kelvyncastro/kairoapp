@@ -258,6 +258,13 @@ export default function Notas() {
                 </div>
               </Button>
 
+              {/* Back to parent if sub-page */}
+              {store.selectedPage.parentId && (
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => store.setSelectedPageId(store.selectedPage!.parentId)}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              )}
+
               <span className="text-sm flex-shrink-0">
                 {store.selectedPage.icon.startsWith('http') ? (
                   <img src={store.selectedPage.icon} alt="" className="w-5 h-5 rounded object-cover" />
