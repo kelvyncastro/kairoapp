@@ -6,6 +6,7 @@ import {
   deletePageFromDb, deleteFolderFromDb,
   hasLocalData, migrateLocalToDb,
 } from '@/lib/notes-storage';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
