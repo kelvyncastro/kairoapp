@@ -37,6 +37,7 @@ export default function Notas() {
   const [groceryBannerDismissed, setGroceryBannerDismissed] = useState<string | null>(null);
   const [uploadingIcon, setUploadingIcon] = useState(false);
   const iconFileRef = useRef<HTMLInputElement>(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
   // Detect food ingredients in the current note
   const showGroceryBanner = useMemo(() => {
