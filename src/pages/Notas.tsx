@@ -288,7 +288,9 @@ export default function Notas() {
                   <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
                     <PopoverTrigger asChild>
                       <button className="text-4xl hover:bg-muted/50 rounded-lg p-1 transition-colors flex-shrink-0 mt-0.5">
-                        {store.selectedPage.icon}
+                        {store.selectedPage.icon.startsWith('http') ? (
+                          <img src={store.selectedPage.icon} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                        ) : store.selectedPage.icon}
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-80 p-0" align="start">
