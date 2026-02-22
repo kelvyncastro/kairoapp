@@ -441,8 +441,13 @@ export default function Notas() {
 
                 <NotesRichEditor
                   content={store.selectedPage.content}
-                  onChange={(content) => store.updateContent(store.selectedPage!.id, content)}
+                  onChange={(content) => {
+                    store.updateContent(store.selectedPage!.id, content);
+                    collaboration.broadcastContent(content);
+                  }}
                   editable={!store.isSharedPage || store.sharedPagePermission === 'edit'}
+                  remoteCursors={collaboration.remoteCursors}
+                  onCursorChange={collaboration.broadcastCursor}
                 />
               </div>
             </div>
