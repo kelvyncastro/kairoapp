@@ -13,12 +13,13 @@ import { cn } from '@/lib/utils';
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
   List, ListOrdered, CheckCircle2, Quote, Minus, Code,
-  Type, Highlighter, Heading1, Heading2, Heading3, Pilcrow,
+  Type, Highlighter, Heading1, Heading2, Heading3, Pilcrow, GripVertical,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { NotesBlockMenu } from './NotesBlockMenu';
 import type { RemoteCursor } from '@/hooks/useNoteCollaboration';
 
 interface NotesRichEditorProps {
@@ -29,6 +30,8 @@ interface NotesRichEditorProps {
   editable?: boolean;
   remoteCursors?: RemoteCursor[];
   onCursorChange?: (position: number) => void;
+  onInsertPage?: () => void;
+  onInsertImage?: () => void;
 }
 
 const TEXT_COLORS = [
@@ -55,11 +58,13 @@ const HIGHLIGHT_COLORS = [
   { name: 'Cinza', color: '#e5e7eb' },
 ];
 
-export function NotesRichEditor({ content, onChange, placeholder = 'Comece a escrever...', className, editable = true, remoteCursors = [], onCursorChange }: NotesRichEditorProps) {
+export function NotesRichEditor({ content, onChange, placeholder = 'Comece a escrever...', className, editable = true, remoteCursors = [], onCursorChange, onInsertPage, onInsertImage }: NotesRichEditorProps) {
   const [showToolbar, setShowToolbar] = useState(false);
   const [toolbarPosition, setToolbarPosition] = useState({ top: 0, left: 0 });
   const [isInteractingWithToolbar, setIsInteractingWithToolbar] = useState(false);
+  const [hoveredBlockPos, setHoveredBlockPos] = useState<{ top: number; show: boolean }>({ top: 0, show: false });
   const containerRef = useRef<HTMLDivElement>(null);
+  const blockMenuTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   const editor = useEditor({
     extensions: [
@@ -91,7 +96,7 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
     editorProps: {
       attributes: {
         class: cn(
-          'prose prose-sm dark:prose-invert max-w-none focus:outline-none min-h-[300px] p-6',
+          'prose prose-sm dark:prose-invert max-w-none focus:outline-none min-h-[300px] p-6 pl-12',
           'prose-p:my-1 prose-ul:my-1 prose-ol:my-1',
           'prose-h1:text-2xl prose-h1:font-bold prose-h1:my-3',
           'prose-h2:text-xl prose-h2:font-bold prose-h2:my-2',
@@ -114,6 +119,15 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
             view.dispatch(tr);
             editor?.chain().focus().toggleTaskList().run();
             return true;
+          }
+        }
+        // Slash command to open block menu
+        if (event.key === '/') {
+          const { state } = view;
+          const { $from } = state.selection;
+          const textBefore = $from.parent.textContent.slice(0, $from.parentOffset);
+          if (textBefore === '') {
+            // Show block menu at cursor position - handled by the floating "+"
           }
         }
         return false;
@@ -155,14 +169,52 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
     },
   });
 
-  // Sync external content (e.g., from remote collaborator)
+  // Track hovered block for showing "+" and drag handle
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!editor || !containerRef.current) return;
+    if (blockMenuTimeoutRef.current) clearTimeout(blockMenuTimeoutRef.current);
+    
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const editorEl = containerRef.current.querySelector('.ProseMirror');
+    if (!editorEl) return;
+
+    // Find the block element under the mouse
+    const y = e.clientY;
+    const elements = editorEl.querySelectorAll(':scope > *');
+    let found = false;
+    
+    for (const el of elements) {
+      const rect = el.getBoundingClientRect();
+      if (y >= rect.top - 4 && y <= rect.bottom + 4) {
+        setHoveredBlockPos({
+          top: rect.top - containerRect.top,
+          show: true,
+        });
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      blockMenuTimeoutRef.current = setTimeout(() => {
+        setHoveredBlockPos(prev => ({ ...prev, show: false }));
+      }, 200);
+    }
+  }, [editor]);
+
+  const handleMouseLeave = useCallback(() => {
+    blockMenuTimeoutRef.current = setTimeout(() => {
+      setHoveredBlockPos(prev => ({ ...prev, show: false }));
+    }, 500);
+  }, []);
+
+  // Sync external content
   const isRemoteUpdateRef = useRef(false);
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
       isRemoteUpdateRef.current = true;
       const { from } = editor.state.selection;
       editor.commands.setContent(content);
-      // Restore cursor position after remote update
       try {
         const maxPos = editor.state.doc.content.size;
         editor.commands.setTextSelection(Math.min(from, maxPos));
@@ -171,11 +223,9 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
     }
   }, [content, editor]);
 
-  // Render remote cursors as decorations
+  // Render remote cursors
   useEffect(() => {
     if (!editor || remoteCursors.length === 0) return;
-    // We'll render cursor indicators via DOM overlay instead of TipTap decorations
-    // because it's simpler and doesn't require a plugin
   }, [editor, remoteCursors]);
 
   const toggle = useCallback((action: string) => {
@@ -237,7 +287,13 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
   );
 
   return (
-    <div ref={containerRef} className={cn('relative', className)}>
+    <div
+      ref={containerRef}
+      className={cn('relative', className)}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* Floating selection toolbar */}
       {showToolbar && (
         <div
           className="absolute z-50 flex items-center gap-0.5 bg-popover border border-border rounded-lg shadow-lg p-1 animate-in fade-in-0 zoom-in-95"
@@ -321,6 +377,55 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
+        </div>
+      )}
+
+      {/* Floating "+" and drag handle */}
+      {editable && hoveredBlockPos.show && (
+        <div
+          className="absolute z-30 flex items-center gap-0.5 transition-all duration-100"
+          style={{ top: hoveredBlockPos.top, left: 4 }}
+          onMouseEnter={() => {
+            if (blockMenuTimeoutRef.current) clearTimeout(blockMenuTimeoutRef.current);
+            setHoveredBlockPos(prev => ({ ...prev, show: true }));
+          }}
+          onMouseLeave={() => {
+            blockMenuTimeoutRef.current = setTimeout(() => {
+              setHoveredBlockPos(prev => ({ ...prev, show: false }));
+            }, 500);
+          }}
+        >
+          <NotesBlockMenu
+            editor={editor}
+            onInsertPage={onInsertPage}
+            onInsertImage={onInsertImage}
+          />
+          <button
+            className="flex items-center justify-center w-6 h-6 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all duration-150 cursor-grab active:cursor-grabbing"
+            title="Arrastar bloco"
+            draggable
+            onMouseDown={(e) => e.preventDefault()}
+            onDragStart={(e) => {
+              // Find the block at this position and set drag data
+              const editorEl = containerRef.current?.querySelector('.ProseMirror');
+              if (!editorEl) return;
+              const elements = editorEl.querySelectorAll(':scope > *');
+              const containerRect = containerRef.current?.getBoundingClientRect();
+              if (!containerRect) return;
+              
+              for (const el of elements) {
+                const rect = el.getBoundingClientRect();
+                const relTop = rect.top - containerRect.top;
+                if (Math.abs(relTop - hoveredBlockPos.top) < 10) {
+                  e.dataTransfer.setDragImage(el as HTMLElement, 0, 0);
+                  e.dataTransfer.setData('text/block-index', String(Array.from(elements).indexOf(el)));
+                  break;
+                }
+              }
+            }}
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
         </div>
       )}
 
@@ -429,6 +534,12 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
         .ProseMirror pre { background: hsl(var(--muted) / 0.5); border-radius: 0.5rem; padding: 1rem; font-family: monospace; font-size: 0.875rem; margin: 0.5rem 0; overflow-x: auto; }
         .ProseMirror blockquote { border-left: 4px solid hsl(var(--primary) / 0.4); padding-left: 1rem; font-style: italic; color: hsl(var(--muted-foreground)); margin: 0.5rem 0; }
         .ProseMirror hr { border: none; border-top: 1px solid hsl(var(--border)); margin: 1rem 0; }
+        .ProseMirror > * {
+          transition: background-color 0.15s;
+        }
+        .ProseMirror > *:hover {
+          border-radius: 4px;
+        }
       `}</style>
     </div>
   );
