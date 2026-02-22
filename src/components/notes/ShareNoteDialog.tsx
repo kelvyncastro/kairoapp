@@ -98,9 +98,9 @@ export function ShareNoteDialog({ open, onClose, pageId, pageTitle }: ShareNoteD
     setSearching(true);
     setFoundUser(null);
     try {
-      const { data, error } = await supabase.rpc('find_user_for_sharing', {
+      const { data, error } = await supabase.rpc('find_user_for_sharing' as any, {
         p_identifier: identifier.trim(),
-      });
+      }) as { data: { user_id: string; first_name: string; avatar_url: string; public_id: string }[] | null; error: any };
 
       if (error) throw error;
 
