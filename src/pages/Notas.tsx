@@ -34,6 +34,8 @@ export default function Notas() {
   const [emojiCategory, setEmojiCategory] = useState('frequent');
   const [creatingGroceryList, setCreatingGroceryList] = useState(false);
   const [groceryBannerDismissed, setGroceryBannerDismissed] = useState<string | null>(null);
+  const [uploadingIcon, setUploadingIcon] = useState(false);
+  const iconFileRef = useRef<HTMLInputElement>(null);
 
   // Detect food ingredients in the current note
   const showGroceryBanner = useMemo(() => {
