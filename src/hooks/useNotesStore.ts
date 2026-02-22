@@ -355,7 +355,7 @@ export function useNotesStore() {
 
   return {
     pages, folders, sharedPages, selectedPageId, selectedPage, isSharedPage, sharedPagePermission, searchQuery, saveStatus, loading,
-    filteredPages,
+    filteredPages, getChildPages,
     setSelectedPageId, setSearchQuery,
     createPage, deletePage, duplicatePage, archivePage,
     toggleFavorite, updatePageTitle, updatePageIcon, updatePageFolder, updatePageStatus,
