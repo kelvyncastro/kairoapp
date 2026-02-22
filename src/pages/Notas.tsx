@@ -554,8 +554,17 @@ export default function Notas() {
                       {creatingGroceryList ? 'Adicionando...' : 'Adicionar'}
                     </Button>
                     <button
-                      onClick={() => setGroceryDismissedPages(prev => new Set(prev).add(store.selectedPage!.id))}
-                      className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        setGroceryDismissedPages(prev => {
+                          const next = new Set(prev);
+                          next.add(store.selectedPage!.id);
+                          return next;
+                        });
+                      }}
+                      className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors flex-shrink-0"
+                      title="Fechar"
                     >
                       <X className="h-4 w-4" />
                     </button>
