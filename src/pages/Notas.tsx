@@ -53,12 +53,7 @@ export default function Notas() {
     });
     const text = (div.textContent || div.innerText || '').replace(/\n{2,}/g, '\n');
     return detectFoodIngredients(text);
-  }, [store.selectedPage?.content, store.selectedPage?.id, groceryBannerDismissed]);
-
-  // Reset dismiss when switching pages
-  useEffect(() => {
-    setGroceryBannerDismissed(null);
-  }, [store.selectedPageId]);
+  }, [store.selectedPage?.content, store.selectedPage?.id, groceryDismissedContent]);
 
   const favoritePages = store.pages.filter(p => p.isFavorite && !p.isArchived);
   const recentPages = [...store.pages].filter(p => !p.isArchived).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()).slice(0, 5);
