@@ -404,9 +404,10 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
             className="flex items-center justify-center w-6 h-6 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all duration-150 cursor-grab active:cursor-grabbing"
             title="Arrastar bloco"
             draggable
-            onMouseDown={(e) => e.preventDefault()}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+            }}
             onDragStart={(e) => {
-              // Find the block at this position and set drag data
               const editorEl = containerRef.current?.querySelector('.ProseMirror');
               if (!editorEl) return;
               const elements = editorEl.querySelectorAll(':scope > *');
@@ -417,11 +418,20 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
                 const rect = el.getBoundingClientRect();
                 const relTop = rect.top - containerRect.top;
                 if (Math.abs(relTop - hoveredBlockPos.top) < 10) {
+                  e.dataTransfer.effectAllowed = 'move';
                   e.dataTransfer.setDragImage(el as HTMLElement, 0, 0);
                   e.dataTransfer.setData('text/block-index', String(Array.from(elements).indexOf(el)));
+                  (el as HTMLElement).style.opacity = '0.4';
                   break;
                 }
               }
+            }}
+            onDragEnd={() => {
+              const editorEl = containerRef.current?.querySelector('.ProseMirror');
+              if (!editorEl) return;
+              editorEl.querySelectorAll(':scope > *').forEach(el => {
+                (el as HTMLElement).style.opacity = '';
+              });
             }}
           >
             <GripVertical className="h-4 w-4" />
@@ -429,7 +439,83 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
         </div>
       )}
 
-      <div className="relative">
+      <div
+        className="relative"
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          // Show drop indicator
+          const editorEl = containerRef.current?.querySelector('.ProseMirror');
+          if (!editorEl) return;
+          const elements = editorEl.querySelectorAll(':scope > *');
+          elements.forEach(el => (el as HTMLElement).classList.remove('border-t-2', 'border-primary'));
+          for (const el of elements) {
+            const rect = el.getBoundingClientRect();
+            if (e.clientY < rect.top + rect.height / 2) {
+              (el as HTMLElement).classList.add('border-t-2', 'border-primary');
+              break;
+            }
+          }
+        }}
+        onDragLeave={() => {
+          const editorEl = containerRef.current?.querySelector('.ProseMirror');
+          if (!editorEl) return;
+          editorEl.querySelectorAll(':scope > *').forEach(el => (el as HTMLElement).classList.remove('border-t-2', 'border-primary'));
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          const editorEl = containerRef.current?.querySelector('.ProseMirror');
+          if (!editorEl || !editor) return;
+          editorEl.querySelectorAll(':scope > *').forEach(el => {
+            (el as HTMLElement).classList.remove('border-t-2', 'border-primary');
+            (el as HTMLElement).style.opacity = '';
+          });
+          const fromIndex = parseInt(e.dataTransfer.getData('text/block-index'), 10);
+          if (isNaN(fromIndex)) return;
+          
+          const elements = editorEl.querySelectorAll(':scope > *');
+          let toIndex = elements.length;
+          for (let i = 0; i < elements.length; i++) {
+            const rect = elements[i].getBoundingClientRect();
+            if (e.clientY < rect.top + rect.height / 2) {
+              toIndex = i;
+              break;
+            }
+          }
+          if (fromIndex === toIndex || fromIndex + 1 === toIndex) return;
+          
+          // Use ProseMirror transaction to move the block
+          const { state } = editor;
+          const { doc, tr } = state;
+          let blockFrom = 0, blockTo = 0, pos = 0;
+          let currentIndex = 0;
+          doc.forEach((node, offset) => {
+            if (currentIndex === fromIndex) {
+              blockFrom = offset;
+              blockTo = offset + node.nodeSize;
+            }
+            currentIndex++;
+          });
+          
+          const nodeToMove = doc.slice(blockFrom, blockTo);
+          // Delete old
+          const tr1 = tr.delete(blockFrom, blockTo);
+          // Calculate new position
+          let targetPos = 0;
+          let idx = 0;
+          const adjustedTo = toIndex > fromIndex ? toIndex - 1 : toIndex;
+          tr1.doc.forEach((node, offset) => {
+            if (idx === adjustedTo) {
+              targetPos = offset;
+            }
+            idx++;
+          });
+          if (adjustedTo >= idx) targetPos = tr1.doc.content.size;
+          
+          tr1.insert(targetPos, nodeToMove.content);
+          editor.view.dispatch(tr1);
+        }}
+      >
         <EditorContent editor={editor} />
         {/* Remote cursor indicators */}
         {remoteCursors.map(cursor => {
