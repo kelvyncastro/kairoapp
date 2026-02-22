@@ -404,9 +404,10 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
             className="flex items-center justify-center w-6 h-6 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all duration-150 cursor-grab active:cursor-grabbing"
             title="Arrastar bloco"
             draggable
-            onMouseDown={(e) => e.preventDefault()}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+            }}
             onDragStart={(e) => {
-              // Find the block at this position and set drag data
               const editorEl = containerRef.current?.querySelector('.ProseMirror');
               if (!editorEl) return;
               const elements = editorEl.querySelectorAll(':scope > *');
@@ -417,11 +418,20 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
                 const rect = el.getBoundingClientRect();
                 const relTop = rect.top - containerRect.top;
                 if (Math.abs(relTop - hoveredBlockPos.top) < 10) {
+                  e.dataTransfer.effectAllowed = 'move';
                   e.dataTransfer.setDragImage(el as HTMLElement, 0, 0);
                   e.dataTransfer.setData('text/block-index', String(Array.from(elements).indexOf(el)));
+                  (el as HTMLElement).style.opacity = '0.4';
                   break;
                 }
               }
+            }}
+            onDragEnd={() => {
+              const editorEl = containerRef.current?.querySelector('.ProseMirror');
+              if (!editorEl) return;
+              editorEl.querySelectorAll(':scope > *').forEach(el => {
+                (el as HTMLElement).style.opacity = '';
+              });
             }}
           >
             <GripVertical className="h-4 w-4" />
