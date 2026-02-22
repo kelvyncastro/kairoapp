@@ -3,7 +3,7 @@ import { useNotesStore } from '@/hooks/useNotesStore';
 import { NotesSidebar } from '@/components/notes/NotesSidebar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Star, Save, MoreHorizontal, Copy, Trash2, PanelLeftOpen, PanelLeftClose, ShoppingCart, Loader2, X, ImagePlus, Share2, Users } from 'lucide-react';
+import { Star, Save, MoreHorizontal, Copy, Trash2, PanelLeftOpen, PanelLeftClose, ShoppingCart, Loader2, X, ImagePlus, Share2, Users, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { NotesRichEditor } from '@/components/notes/NotesRichEditor';
 import { useNoteCollaboration } from '@/hooks/useNoteCollaboration';
@@ -258,6 +258,13 @@ export default function Notas() {
                 </div>
               </Button>
 
+              {/* Back to parent if sub-page */}
+              {store.selectedPage.parentId && (
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => store.setSelectedPageId(store.selectedPage!.parentId)}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              )}
+
               <span className="text-sm flex-shrink-0">
                 {store.selectedPage.icon.startsWith('http') ? (
                   <img src={store.selectedPage.icon} alt="" className="w-5 h-5 rounded object-cover" />
@@ -455,6 +462,53 @@ export default function Notas() {
                   />
                 </div>
 
+                {/* Sub-pages gallery */}
+                {(() => {
+                  const childPages = store.getChildPages(store.selectedPage!.id);
+                  if (childPages.length === 0 && !store.isSharedPage) return null;
+                  return (
+                    <div className="mb-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Páginas</span>
+                        {!store.isSharedPage && (
+                          <button
+                            onClick={() => store.createPage(store.selectedPage?.folderId, store.selectedPage?.id)}
+                            className="text-xs text-primary hover:text-primary/80 font-medium"
+                          >
+                            + Nova
+                          </button>
+                        )}
+                      </div>
+                      {childPages.length > 0 && (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {childPages.map(child => (
+                            <button
+                              key={child.id}
+                              onClick={() => store.setSelectedPageId(child.id)}
+                              className="flex items-center gap-2 p-3 rounded-xl border border-border/50 bg-muted/30 hover:bg-muted/60 transition-colors text-left group"
+                            >
+                              <span className="text-lg flex-shrink-0">
+                                {child.icon.startsWith('http') ? (
+                                  <img src={child.icon} alt="" className="w-5 h-5 rounded object-cover" />
+                                ) : child.icon}
+                              </span>
+                              <span className="text-xs font-medium truncate">{child.title || 'Sem titulo'}</span>
+                            </button>
+                          ))}
+                          {!store.isSharedPage && (
+                            <button
+                              onClick={() => store.createPage(store.selectedPage?.folderId, store.selectedPage?.id)}
+                              className="flex items-center justify-center gap-1.5 p-3 rounded-xl border border-dashed border-border/50 hover:border-primary/40 hover:bg-muted/30 transition-colors text-muted-foreground hover:text-foreground"
+                            >
+                              <span className="text-xs">+ Nova página</span>
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
                 <NotesRichEditor
                   content={store.selectedPage.content}
                   onChange={(content) => {
@@ -464,6 +518,7 @@ export default function Notas() {
                   editable={!store.isSharedPage || store.sharedPagePermission === 'edit'}
                   remoteCursors={collaboration.remoteCursors}
                   onCursorChange={collaboration.broadcastCursor}
+                  onInsertPage={() => store.createPage(store.selectedPage?.folderId, store.selectedPage?.id)}
                 />
               </div>
             </div>

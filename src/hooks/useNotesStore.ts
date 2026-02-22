@@ -73,6 +73,7 @@ export function useNotesStore() {
               title: p.title,
               icon: p.icon,
               folderId: p.folder_id,
+              parentId: (p as any).parent_id || null,
               isFavorite: p.is_favorite,
               isArchived: p.is_archived,
               status: p.status as 'draft' | 'published',
@@ -151,11 +152,12 @@ export function useNotesStore() {
     } : p));
   };
 
-  const createPage = useCallback(async (folderId?: string | null) => {
+  const createPage = useCallback(async (folderId?: string | null, parentId?: string | null) => {
     if (!user) return null;
     const newPage: NotesPage = {
       id: uid(), title: 'Sem titulo', icon: '📄',
-      folderId: folderId || null, isFavorite: false, isArchived: false,
+      folderId: folderId || null, parentId: parentId || null,
+      isFavorite: false, isArchived: false,
       status: 'draft', tags: [],
       content: '<p></p>',
       comments: [], activityLog: [{ id: uid(), action: 'criou', details: 'Pagina criada', timestamp: new Date().toISOString() }],
@@ -163,7 +165,7 @@ export function useNotesStore() {
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
     };
     setPages(prev => [newPage, ...prev]);
-    setSelectedPageId(newPage.id);
+    if (!parentId) setSelectedPageId(newPage.id);
     await savePageToDb(newPage);
     toast.success('Nota criada!');
     return newPage;
@@ -340,14 +342,20 @@ export function useNotesStore() {
 
   const filteredPages = pages.filter(p => {
     if (p.isArchived) return false;
+    if (p.parentId) return false; // Don't show sub-pages in main list
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return p.title.toLowerCase().includes(q) || (p.content || '').toLowerCase().includes(q);
   });
 
+  // Get child pages for a given parent
+  const getChildPages = useCallback((parentId: string) => {
+    return pages.filter(p => p.parentId === parentId && !p.isArchived);
+  }, [pages]);
+
   return {
     pages, folders, sharedPages, selectedPageId, selectedPage, isSharedPage, sharedPagePermission, searchQuery, saveStatus, loading,
-    filteredPages,
+    filteredPages, getChildPages,
     setSelectedPageId, setSearchQuery,
     createPage, deletePage, duplicatePage, archivePage,
     toggleFavorite, updatePageTitle, updatePageIcon, updatePageFolder, updatePageStatus,
