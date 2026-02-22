@@ -811,6 +811,44 @@ export type Database = {
           },
         ]
       }
+      notes_shares: {
+        Row: {
+          created_at: string
+          id: string
+          owner_id: string
+          page_id: string
+          permission: string
+          shared_with_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          owner_id: string
+          page_id: string
+          permission?: string
+          shared_with_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          owner_id?: string
+          page_id?: string
+          permission?: string
+          shared_with_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notes_shares_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "notes_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -1607,6 +1645,15 @@ export type Database = {
       create_default_finance_sectors: {
         Args: { p_user_id: string }
         Returns: undefined
+      }
+      find_user_for_sharing: {
+        Args: { p_identifier: string }
+        Returns: {
+          avatar_url: string
+          first_name: string
+          public_id: string
+          user_id: string
+        }[]
       }
       generate_public_id: { Args: never; Returns: string }
       get_public_user_profiles: {
