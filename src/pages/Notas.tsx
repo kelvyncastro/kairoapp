@@ -3,9 +3,10 @@ import { useNotesStore } from '@/hooks/useNotesStore';
 import { NotesSidebar } from '@/components/notes/NotesSidebar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Star, Save, MoreHorizontal, Copy, Trash2, PanelLeftOpen, PanelLeftClose, ShoppingCart, Loader2, X, ImagePlus } from 'lucide-react';
+import { Star, Save, MoreHorizontal, Copy, Trash2, PanelLeftOpen, PanelLeftClose, ShoppingCart, Loader2, X, ImagePlus, Share2, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { NotesRichEditor } from '@/components/notes/NotesRichEditor';
+import { ShareNoteDialog } from '@/components/notes/ShareNoteDialog';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -16,6 +17,7 @@ import {
   Popover, PopoverContent, PopoverTrigger,
 } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { EMOJI_CATEGORIES, searchEmojis } from '@/lib/emoji-data';
@@ -36,6 +38,7 @@ export default function Notas() {
   const [groceryBannerDismissed, setGroceryBannerDismissed] = useState<string | null>(null);
   const [uploadingIcon, setUploadingIcon] = useState(false);
   const iconFileRef = useRef<HTMLInputElement>(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
   // Detect food ingredients in the current note
   const showGroceryBanner = useMemo(() => {
@@ -204,6 +207,7 @@ export default function Notas() {
             folders={store.folders}
             favoritePages={favoritePages}
             recentPages={recentPages}
+            sharedPages={store.sharedPages}
             selectedPageId={store.selectedPageId}
             searchQuery={store.searchQuery}
             onSearchChange={store.setSearchQuery}
@@ -258,6 +262,19 @@ export default function Notas() {
                   onClick={() => store.toggleFavorite(store.selectedPage!.id)}>
                   <Star className={cn('h-4 w-4', store.selectedPage.isFavorite && 'fill-yellow-400 text-yellow-400')} />
                 </Button>
+
+                {!store.isSharedPage && (
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShareDialogOpen(true)} title="Compartilhar">
+                    <Share2 className="h-4 w-4" />
+                  </Button>
+                )}
+
+                {store.isSharedPage && (
+                  <Badge variant="secondary" className="text-[10px] h-6 gap-1">
+                    <Users className="h-3 w-3" />
+                    {store.sharedPagePermission === 'edit' ? 'Editar' : 'Visualizar'}
+                  </Badge>
+                )}
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -403,12 +420,14 @@ export default function Notas() {
                     value={store.selectedPage.title}
                     onChange={(e) => store.updatePageTitle(store.selectedPage!.id, e.target.value)}
                     placeholder="Sem titulo"
+                    readOnly={store.isSharedPage && store.sharedPagePermission !== 'edit'}
                   />
                 </div>
 
                 <NotesRichEditor
                   content={store.selectedPage.content}
                   onChange={(content) => store.updateContent(store.selectedPage!.id, content)}
+                  editable={!store.isSharedPage || store.sharedPagePermission === 'edit'}
                 />
               </div>
             </div>
@@ -452,6 +471,14 @@ export default function Notas() {
                 </motion.div>
               )}
             </AnimatePresence>
+            {store.selectedPage && (
+              <ShareNoteDialog
+                open={shareDialogOpen}
+                onClose={() => setShareDialogOpen(false)}
+                pageId={store.selectedPage.id}
+                pageTitle={store.selectedPage.title}
+              />
+            )}
           </>
         ) : (
           /* Empty state */

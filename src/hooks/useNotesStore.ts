@@ -6,6 +6,7 @@ import {
   deletePageFromDb, deleteFolderFromDb,
   hasLocalData, migrateLocalToDb,
 } from '@/lib/notes-storage';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -15,6 +16,7 @@ export function useNotesStore() {
   const { user } = useAuth();
   const [pages, setPages] = useState<NotesPage[]>([]);
   const [folders, setFolders] = useState<NotesFolder[]>([]);
+  const [sharedPages, setSharedPages] = useState<(NotesPage & { permission: 'view' | 'edit'; ownerName?: string })[]>([]);
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'idle'>('idle');
@@ -40,9 +42,57 @@ export function useNotesStore() {
           loadPagesFromDb(user.id),
         ]);
 
+        // Load shared notes
+        const { data: sharesData } = await supabase
+          .from('notes_shares' as any)
+          .select('page_id, permission, owner_id')
+          .eq('shared_with_id', user.id) as { data: { page_id: string; permission: string; owner_id: string }[] | null };
+
+        let sharedNotes: (NotesPage & { permission: 'view' | 'edit'; ownerName?: string })[] = [];
+        if (sharesData && sharesData.length > 0) {
+          const pageIds = sharesData.map(s => s.page_id);
+          const { data: sharedPagesData } = await supabase
+            .from('notes_pages')
+            .select('*')
+            .in('id', pageIds);
+
+          // Get owner names
+          const ownerIds = [...new Set(sharesData.map(s => s.owner_id))];
+          const { data: ownerProfiles } = await supabase
+            .from('user_profiles')
+            .select('user_id, first_name')
+            .in('user_id', ownerIds);
+
+          const ownerMap = new Map((ownerProfiles || []).map(p => [p.user_id, p.first_name]));
+          const shareMap = new Map(sharesData.map(s => [s.page_id, s]));
+
+          sharedNotes = (sharedPagesData || []).map(p => {
+            const share = shareMap.get(p.id);
+            return {
+              id: p.id,
+              title: p.title,
+              icon: p.icon,
+              folderId: p.folder_id,
+              isFavorite: p.is_favorite,
+              isArchived: p.is_archived,
+              status: p.status as 'draft' | 'published',
+              tags: p.tags || [],
+              content: p.content,
+              comments: (p.comments as any) || [],
+              activityLog: (p.activity_log as any) || [],
+              versions: (p.versions as any) || [],
+              createdAt: p.created_at,
+              updatedAt: p.updated_at,
+              permission: (share?.permission || 'view') as 'view' | 'edit',
+              ownerName: ownerMap.get(share?.owner_id || '') || undefined,
+            };
+          });
+        }
+
         if (!cancelled) {
           setFolders(dbFolders);
           setPages(dbPages);
+          setSharedPages(sharedNotes);
           setLoading(false);
         }
       } catch (e) {
@@ -55,7 +105,9 @@ export function useNotesStore() {
     return () => { cancelled = true; };
   }, [user]);
 
-  const selectedPage = pages.find(p => p.id === selectedPageId) || null;
+  const selectedPage = pages.find(p => p.id === selectedPageId) || sharedPages.find(p => p.id === selectedPageId) || null;
+  const isSharedPage = sharedPages.some(p => p.id === selectedPageId);
+  const sharedPagePermission = sharedPages.find(p => p.id === selectedPageId)?.permission || null;
 
   // Save a page to DB (debounced for content updates)
   const savePageToDb = useCallback(async (page: NotesPage) => {
@@ -163,8 +215,14 @@ export function useNotesStore() {
   }, [updateAndSavePage]);
 
   const updatePageTitle = useCallback((pageId: string, title: string) => {
-    updateAndSavePage(pageId, p => ({ ...p, title, updatedAt: new Date().toISOString() }));
-  }, [updateAndSavePage]);
+    const isShared = sharedPages.some(p => p.id === pageId);
+    if (isShared) {
+      setSharedPages(prev => prev.map(p => p.id === pageId ? { ...p, title, updatedAt: new Date().toISOString() } : p));
+      supabase.from('notes_pages').update({ title, updated_at: new Date().toISOString() }).eq('id', pageId);
+    } else {
+      updateAndSavePage(pageId, p => ({ ...p, title, updatedAt: new Date().toISOString() }));
+    }
+  }, [updateAndSavePage, sharedPages]);
 
   const updatePageIcon = useCallback((pageId: string, icon: string) => {
     updateAndSavePage(pageId, p => ({ ...p, icon, updatedAt: new Date().toISOString() }));
@@ -184,8 +242,29 @@ export function useNotesStore() {
   }, [updateAndSavePage]);
 
   const updateContent = useCallback((pageId: string, content: string) => {
-    debouncedSave(prev => prev.map(p => p.id === pageId ? { ...p, content, updatedAt: new Date().toISOString() } : p));
-  }, [debouncedSave]);
+    // Check if it's a shared page
+    const isShared = sharedPages.some(p => p.id === pageId);
+    if (isShared) {
+      // Update shared page content directly via supabase
+      setSharedPages(prev => prev.map(p => p.id === pageId ? { ...p, content, updatedAt: new Date().toISOString() } : p));
+      setSaveStatus('saving');
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(async () => {
+        try {
+          await supabase
+            .from('notes_pages')
+            .update({ content, updated_at: new Date().toISOString() })
+            .eq('id', pageId);
+          setSaveStatus('saved');
+          setTimeout(() => setSaveStatus('idle'), 2000);
+        } catch (e) {
+          console.error('Error saving shared page:', e);
+        }
+      }, 400);
+    } else {
+      debouncedSave(prev => prev.map(p => p.id === pageId ? { ...p, content, updatedAt: new Date().toISOString() } : p));
+    }
+  }, [debouncedSave, sharedPages]);
 
   const saveVersion = useCallback((pageId: string) => {
     const page = pages.find(p => p.id === pageId);
@@ -267,7 +346,7 @@ export function useNotesStore() {
   });
 
   return {
-    pages, folders, selectedPageId, selectedPage, searchQuery, saveStatus, loading,
+    pages, folders, sharedPages, selectedPageId, selectedPage, isSharedPage, sharedPagePermission, searchQuery, saveStatus, loading,
     filteredPages,
     setSelectedPageId, setSearchQuery,
     createPage, deletePage, duplicatePage, archivePage,

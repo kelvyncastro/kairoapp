@@ -25,6 +25,7 @@ interface NotesRichEditorProps {
   onChange: (content: string) => void;
   placeholder?: string;
   className?: string;
+  editable?: boolean;
 }
 
 const TEXT_COLORS = [
@@ -51,7 +52,7 @@ const HIGHLIGHT_COLORS = [
   { name: 'Cinza', color: '#e5e7eb' },
 ];
 
-export function NotesRichEditor({ content, onChange, placeholder = 'Comece a escrever...', className }: NotesRichEditorProps) {
+export function NotesRichEditor({ content, onChange, placeholder = 'Comece a escrever...', className, editable = true }: NotesRichEditorProps) {
   const [showToolbar, setShowToolbar] = useState(false);
   const [toolbarPosition, setToolbarPosition] = useState({ top: 0, left: 0 });
   const [isInteractingWithToolbar, setIsInteractingWithToolbar] = useState(false);
@@ -82,7 +83,8 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
       Placeholder.configure({ placeholder, emptyEditorClass: 'is-editor-empty' }),
     ],
     content,
-    autofocus: 'end',
+    editable,
+    autofocus: editable ? 'end' : false,
     editorProps: {
       attributes: {
         class: cn(

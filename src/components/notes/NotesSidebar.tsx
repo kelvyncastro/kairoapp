@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import {
   Search, Plus, Star, Clock, FolderOpen, ChevronRight, ChevronDown,
-  MoreHorizontal, Copy, FolderInput, Archive, Trash2, Edit3, FileText, FolderPlus,
+  MoreHorizontal, Copy, FolderInput, Archive, Trash2, Edit3, FileText, FolderPlus, Users,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -24,6 +24,7 @@ interface NotesSidebarProps {
   folders: NotesFolder[];
   favoritePages: NotesPage[];
   recentPages: NotesPage[];
+  sharedPages?: (NotesPage & { permission: 'view' | 'edit'; ownerName?: string })[];
   selectedPageId: string | null;
   searchQuery: string;
   onSearchChange: (q: string) => void;
@@ -41,7 +42,7 @@ interface NotesSidebarProps {
 }
 
 export function NotesSidebar({
-  pages, folders, favoritePages, recentPages,
+  pages, folders, favoritePages, recentPages, sharedPages = [],
   selectedPageId, searchQuery,
   onSearchChange, onSelectPage, onCreatePage,
   onDeletePage, onDuplicatePage, onArchivePage, onMoveToFolder,
@@ -281,6 +282,35 @@ export function NotesSidebar({
                   />
                 ))}
               </div>
+            </SidebarSection>
+          )}
+
+          {/* Shared with me */}
+          {sharedPages.length > 0 && (
+            <SidebarSection title="Compartilhadas" icon={<Users className="h-3.5 w-3.5" />} collapsed={!!collapsedSections['shared']} onToggle={() => toggleSection('shared')}>
+              {sharedPages.map(page => (
+                <div key={page.id} className="group flex items-center gap-1">
+                  <button
+                    className={cn(
+                      'flex items-center gap-2 flex-1 text-xs py-1.5 px-2 rounded-lg transition-colors text-left truncate',
+                      page.id === selectedPageId ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted/50'
+                    )}
+                    onClick={() => onSelectPage(page.id)}
+                  >
+                    <span className="text-sm flex-shrink-0">
+                      {page.icon.startsWith('http') ? (
+                        <img src={page.icon} alt="" className="w-4 h-4 rounded object-cover" />
+                      ) : page.icon}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <span className="truncate block">{page.title}</span>
+                      <span className="text-[9px] text-muted-foreground block">
+                        {page.ownerName || 'Alguém'} · {page.permission === 'edit' ? 'Editar' : 'Ver'}
+                      </span>
+                    </div>
+                  </button>
+                </div>
+              ))}
             </SidebarSection>
           )}
         </div>
