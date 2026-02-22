@@ -532,9 +532,9 @@ export default function Notas() {
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 80, opacity: 0 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[calc(100%-2rem)] max-w-md"
+                  className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] max-w-md px-1 sm:px-0"
                 >
-                  <div className="flex items-center gap-3 bg-primary/10 border border-primary/30 backdrop-blur-md rounded-xl px-4 py-3 shadow-lg">
+                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 bg-primary/10 border border-primary/30 backdrop-blur-md rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 shadow-lg">
                     <span className="text-xl">🛒</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium text-foreground">Ingredientes detectados!</p>
