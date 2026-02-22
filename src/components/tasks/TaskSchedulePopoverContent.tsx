@@ -280,7 +280,7 @@ export function TaskSchedulePopoverContent({
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Selecione a recorrência" />
               </SelectTrigger>
-              <SelectContent className="bg-popover">
+              <SelectContent className="bg-popover z-[200] max-h-[300px]" position="popper" sideOffset={4}>
                 {RECURRENCE_OPTIONS.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
                     {opt.label}
