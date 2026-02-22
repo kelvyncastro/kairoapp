@@ -215,8 +215,14 @@ export function useNotesStore() {
   }, [updateAndSavePage]);
 
   const updatePageTitle = useCallback((pageId: string, title: string) => {
-    updateAndSavePage(pageId, p => ({ ...p, title, updatedAt: new Date().toISOString() }));
-  }, [updateAndSavePage]);
+    const isShared = sharedPages.some(p => p.id === pageId);
+    if (isShared) {
+      setSharedPages(prev => prev.map(p => p.id === pageId ? { ...p, title, updatedAt: new Date().toISOString() } : p));
+      supabase.from('notes_pages').update({ title, updated_at: new Date().toISOString() }).eq('id', pageId);
+    } else {
+      updateAndSavePage(pageId, p => ({ ...p, title, updatedAt: new Date().toISOString() }));
+    }
+  }, [updateAndSavePage, sharedPages]);
 
   const updatePageIcon = useCallback((pageId: string, icon: string) => {
     updateAndSavePage(pageId, p => ({ ...p, icon, updatedAt: new Date().toISOString() }));
