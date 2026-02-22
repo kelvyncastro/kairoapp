@@ -87,8 +87,13 @@ export function ProfileSettings() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('A imagem deve ter no máximo 5MB');
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/avif', 'image/heic', 'image/heif'];
+      if (!allowedTypes.includes(file.type) && !file.name.match(/\.(jpg|jpeg|png|gif|webp|svg|avif|heic|heif)$/i)) {
+        toast.error('Formato não suportado. Use JPG, PNG, GIF, WebP, SVG, AVIF ou HEIC.');
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('A imagem deve ter no máximo 10MB');
         return;
       }
       setAvatarFile(file);
