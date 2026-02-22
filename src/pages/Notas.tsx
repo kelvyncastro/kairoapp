@@ -206,6 +206,7 @@ export default function Notas() {
             folders={store.folders}
             favoritePages={favoritePages}
             recentPages={recentPages}
+            sharedPages={store.sharedPages}
             selectedPageId={store.selectedPageId}
             searchQuery={store.searchQuery}
             onSearchChange={store.setSearchQuery}
