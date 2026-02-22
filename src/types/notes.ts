@@ -5,6 +5,7 @@ export interface NotesPage {
   title: string;
   icon: string;
   folderId: string | null;
+  parentId: string | null;
   isFavorite: boolean;
   isArchived: boolean;
   status: PageStatus;
