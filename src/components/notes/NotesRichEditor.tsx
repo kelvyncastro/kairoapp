@@ -83,7 +83,8 @@ export function NotesRichEditor({ content, onChange, placeholder = 'Comece a esc
       Placeholder.configure({ placeholder, emptyEditorClass: 'is-editor-empty' }),
     ],
     content,
-    autofocus: 'end',
+    editable,
+    autofocus: editable ? 'end' : false,
     editorProps: {
       attributes: {
         class: cn(
