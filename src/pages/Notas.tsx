@@ -3,9 +3,10 @@ import { useNotesStore } from '@/hooks/useNotesStore';
 import { NotesSidebar } from '@/components/notes/NotesSidebar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Star, Save, MoreHorizontal, Copy, Trash2, PanelLeftOpen, PanelLeftClose, ShoppingCart, Loader2, X, ImagePlus } from 'lucide-react';
+import { Star, Save, MoreHorizontal, Copy, Trash2, PanelLeftOpen, PanelLeftClose, ShoppingCart, Loader2, X, ImagePlus, Share2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { NotesRichEditor } from '@/components/notes/NotesRichEditor';
+import { ShareNoteDialog } from '@/components/notes/ShareNoteDialog';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
