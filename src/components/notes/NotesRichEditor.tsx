@@ -25,6 +25,7 @@ interface NotesRichEditorProps {
   onChange: (content: string) => void;
   placeholder?: string;
   className?: string;
+  editable?: boolean;
 }
 
 const TEXT_COLORS = [
