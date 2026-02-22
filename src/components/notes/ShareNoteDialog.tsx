@@ -45,7 +45,7 @@ export function ShareNoteDialog({ open, onClose, pageId, pageTitle }: ShareNoteD
         .from('notes_shares' as any)
         .select('id, shared_with_id, permission')
         .eq('page_id', pageId)
-        .eq('owner_id', user.id);
+        .eq('owner_id', user.id) as { data: { id: string; shared_with_id: string; permission: string }[] | null; error: any };
 
       if (error) throw error;
 
