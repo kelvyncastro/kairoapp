@@ -152,11 +152,12 @@ export function useNotesStore() {
     } : p));
   };
 
-  const createPage = useCallback(async (folderId?: string | null) => {
+  const createPage = useCallback(async (folderId?: string | null, parentId?: string | null) => {
     if (!user) return null;
     const newPage: NotesPage = {
       id: uid(), title: 'Sem titulo', icon: '📄',
-      folderId: folderId || null, isFavorite: false, isArchived: false,
+      folderId: folderId || null, parentId: parentId || null,
+      isFavorite: false, isArchived: false,
       status: 'draft', tags: [],
       content: '<p></p>',
       comments: [], activityLog: [{ id: uid(), action: 'criou', details: 'Pagina criada', timestamp: new Date().toISOString() }],
@@ -164,7 +165,7 @@ export function useNotesStore() {
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
     };
     setPages(prev => [newPage, ...prev]);
-    setSelectedPageId(newPage.id);
+    if (!parentId) setSelectedPageId(newPage.id);
     await savePageToDb(newPage);
     toast.success('Nota criada!');
     return newPage;

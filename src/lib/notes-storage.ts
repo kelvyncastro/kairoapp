@@ -120,6 +120,7 @@ export async function upsertPage(userId: string, page: NotesPage): Promise<strin
       title: page.title,
       icon: page.icon,
       folder_id: page.folderId,
+      parent_id: page.parentId,
       is_favorite: page.isFavorite,
       is_archived: page.isArchived,
       status: page.status,
@@ -128,7 +129,7 @@ export async function upsertPage(userId: string, page: NotesPage): Promise<strin
       comments: page.comments as any,
       activity_log: page.activityLog as any,
       versions: page.versions as any,
-    }, { onConflict: 'id' })
+    } as any, { onConflict: 'id' })
     .select('id')
     .single();
 
