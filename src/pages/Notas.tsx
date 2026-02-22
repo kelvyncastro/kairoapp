@@ -532,27 +532,10 @@ export default function Notas() {
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 80, opacity: 0 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] max-w-md px-1 sm:px-0"
+                  className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] max-w-md"
                 >
-                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 bg-primary/10 border border-primary/30 backdrop-blur-md rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 shadow-lg">
-                    <span className="text-xl">🛒</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-foreground">Ingredientes detectados!</p>
-                      <p className="text-[11px] text-muted-foreground">Adicionar à lista de mercado?</p>
-                    </div>
-                    <Button
-                      size="sm"
-                      className="h-8 gap-1.5 text-xs flex-shrink-0"
-                      onClick={handleAddToGroceryList}
-                      disabled={creatingGroceryList}
-                    >
-                      {creatingGroceryList ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <ShoppingCart className="h-3.5 w-3.5" />
-                      )}
-                      {creatingGroceryList ? 'Adicionando...' : 'Adicionar'}
-                    </Button>
+                  <div className="relative bg-primary/10 border border-primary/30 backdrop-blur-md rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 shadow-lg">
+                    {/* Close button - top right */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -563,11 +546,31 @@ export default function Notas() {
                           return next;
                         });
                       }}
-                      className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors flex-shrink-0"
+                      className="absolute -top-2 -right-2 p-1 rounded-full bg-muted border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-colors z-10"
                       title="Fechar"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-3.5 w-3.5" />
                     </button>
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <span className="text-lg flex-shrink-0">🛒</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-foreground">Ingredientes detectados!</p>
+                        <p className="text-[11px] text-muted-foreground">Adicionar à lista de mercado?</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        className="h-8 gap-1.5 text-xs flex-shrink-0"
+                        onClick={handleAddToGroceryList}
+                        disabled={creatingGroceryList}
+                      >
+                        {creatingGroceryList ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <ShoppingCart className="h-3.5 w-3.5" />
+                        )}
+                        {creatingGroceryList ? 'Adicionando...' : 'Adicionar'}
+                      </Button>
+                    </div>
                   </div>
                 </motion.div>
               )}
