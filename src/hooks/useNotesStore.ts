@@ -342,10 +342,16 @@ export function useNotesStore() {
 
   const filteredPages = pages.filter(p => {
     if (p.isArchived) return false;
+    if (p.parentId) return false; // Don't show sub-pages in main list
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return p.title.toLowerCase().includes(q) || (p.content || '').toLowerCase().includes(q);
   });
+
+  // Get child pages for a given parent
+  const getChildPages = useCallback((parentId: string) => {
+    return pages.filter(p => p.parentId === parentId && !p.isArchived);
+  }, [pages]);
 
   return {
     pages, folders, sharedPages, selectedPageId, selectedPage, isSharedPage, sharedPagePermission, searchQuery, saveStatus, loading,
