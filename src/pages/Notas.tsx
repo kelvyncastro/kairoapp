@@ -458,6 +458,14 @@ export default function Notas() {
                 </motion.div>
               )}
             </AnimatePresence>
+            {store.selectedPage && (
+              <ShareNoteDialog
+                open={shareDialogOpen}
+                onClose={() => setShareDialogOpen(false)}
+                pageId={store.selectedPage.id}
+                pageTitle={store.selectedPage.title}
+              />
+            )}
           </>
         ) : (
           /* Empty state */
