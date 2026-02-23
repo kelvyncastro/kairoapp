@@ -26,6 +26,11 @@ import {
   Trophy,
   CheckCircle2,
   AlertCircle,
+  PanelBottom,
+  PanelTop,
+  PanelLeft,
+  PanelRight,
+  Navigation,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ThemeSelector } from "./ThemeSelector";
