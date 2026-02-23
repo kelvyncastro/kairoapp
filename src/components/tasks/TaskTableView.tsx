@@ -316,19 +316,19 @@ export function TaskTableView({
           variant="ghost"
           size="sm"
           className={cn(
-            "h-6 text-[11px] border border-border/50 rounded-md gap-1.5 px-2",
-            showCompleted && "bg-muted/60 border-primary/30"
+            "h-7 text-xs rounded-lg gap-1.5 px-2.5 transition-all",
+            showCompleted && "bg-primary/10 text-primary border-primary/20"
           )}
           onClick={onToggleShowCompleted}
         >
           {showCompleted ? (
-            <EyeOff className="h-3 w-3" />
+            <EyeOff className="h-3.5 w-3.5" />
           ) : (
-            <Archive className="h-3 w-3" />
+            <Archive className="h-3.5 w-3.5" />
           )}
           Fechados
           {completedTasksCount > 0 && (
-            <span className="text-[10px] bg-muted/80 px-1 py-0 rounded">
+            <span className="text-[10px] bg-muted/60 px-1.5 py-0.5 rounded-full font-semibold">
               {completedTasksCount}
             </span>
           )}
