@@ -330,56 +330,37 @@ export function ProfileSettings() {
           </SettingsSection>
 
           <SettingsSection 
-            title="Preferências de Exibição" 
-            description="Personalize como o conteúdo é exibido em cada dispositivo"
-            icon={Monitor}
+            title="Posição da Barra de Navegação" 
+            description="Escolha onde a barra de navegação ficará posicionada"
+            icon={Navigation}
           >
-            <div className="space-y-6">
-              {/* Desktop Settings */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Monitor className="h-4 w-4 text-primary" />
-                  <h4 className="font-medium text-sm">Desktop</h4>
-                </div>
-                <div className="pl-6 space-y-1 border-l-2 border-border">
-                  <div className="p-3 rounded-lg bg-muted/30">
-                    <p className="text-sm text-muted-foreground">
-                      Sidebar lateral expansível com menu completo e tooltips no modo recolhido.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Mobile Settings */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Smartphone className="h-4 w-4 text-primary" />
-                  <h4 className="font-medium text-sm">Mobile</h4>
-                </div>
-                <div className="pl-6 space-y-1 border-l-2 border-border">
-                  <div className="p-3 rounded-lg bg-muted/30">
-                    <p className="text-sm text-muted-foreground">
-                      Navegação inferior com efeito spotlight e menu lateral acessível pelo botão de hambúrguer.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Visual Preview */}
-              <div className="grid grid-cols-2 gap-4 pt-2">
-                <div className="aspect-[4/3] rounded-lg border border-border bg-muted/20 p-3 flex flex-col">
-                  <div className="flex gap-2 flex-1">
-                    <div className="w-1/4 bg-primary/20 rounded-md" />
-                    <div className="flex-1 bg-muted/50 rounded-md" />
-                  </div>
-                  <p className="text-[10px] text-muted-foreground text-center mt-2">Desktop</p>
-                </div>
-                <div className="aspect-[4/3] rounded-lg border border-border bg-muted/20 p-3 flex flex-col">
-                  <div className="flex-1 bg-muted/50 rounded-md" />
-                  <div className="h-3 bg-primary/20 rounded-md mt-2" />
-                  <p className="text-[10px] text-muted-foreground text-center mt-2">Mobile</p>
-                </div>
-              </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {([
+                { value: 'bottom' as NavPosition, label: 'Embaixo', icon: PanelBottom },
+                { value: 'top' as NavPosition, label: 'Em cima', icon: PanelTop },
+                { value: 'left' as NavPosition, label: 'Esquerda', icon: PanelLeft },
+                { value: 'right' as NavPosition, label: 'Direita', icon: PanelRight },
+              ]).map(opt => {
+                const Icon = opt.icon;
+                const isSelected = navPosition === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => setNavPosition(opt.value)}
+                    className={cn(
+                      "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200",
+                      isSelected
+                        ? "border-primary bg-primary/10 shadow-md"
+                        : "border-border/50 bg-muted/20 hover:border-border hover:bg-muted/40"
+                    )}
+                  >
+                    <Icon className={cn("h-6 w-6", isSelected ? "text-primary" : "text-muted-foreground")} />
+                    <span className={cn("text-sm font-medium", isSelected ? "text-primary" : "text-muted-foreground")}>
+                      {opt.label}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </SettingsSection>
         </TabsContent>
