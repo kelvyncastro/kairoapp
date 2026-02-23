@@ -295,7 +295,7 @@ export function NotesHome({
                         ) : (
                           <span className="flex-1 font-medium">{folder.name}</span>
                         )}
-                        <span className="text-xs text-muted-foreground">{folderPages.length}</span>
+                        <span className="text-sm text-muted-foreground">{folderPages.length}</span>
                       </button>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
