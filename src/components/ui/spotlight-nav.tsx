@@ -41,7 +41,7 @@ const NavItem: React.FC<NavItemProps> = ({
       onClick={onClick}
       className={cn(
         "relative flex flex-col items-center justify-center transition-all duration-200",
-        vertical ? "min-h-[50px] py-1 px-2 w-full" : "min-w-[50px] py-1.5 px-1"
+        vertical ? "min-h-[56px] py-1.5 px-2 w-full" : "min-w-[56px] py-2 px-1.5"
       )}
       aria-label={label}
     >
@@ -60,11 +60,11 @@ const NavItem: React.FC<NavItemProps> = ({
           ? "text-primary scale-105" 
           : "text-muted-foreground"
       )}>
-        <Icon className="h-5 w-5" />
+        <Icon className="h-6 w-6" />
       </div>
 
       <span className={cn(
-        "mt-0.5 text-[9px] font-medium transition-colors duration-200 whitespace-nowrap leading-none",
+        "mt-1 text-[10px] font-medium transition-colors duration-200 whitespace-nowrap leading-none",
         isActive ? "text-primary" : "text-muted-foreground/70"
       )}>
         {label}
@@ -238,7 +238,7 @@ export function SpotlightNav() {
       <div className={containerClasses}>
         <div className={glowLineClasses} style={glowLineStyle} />
         
-        <div className="flex items-center h-[56px]">
+        <div className="flex items-center h-[62px]">
           <nav 
             ref={scrollRef}
             className="flex-1 flex items-center justify-center overflow-x-auto scrollbar-hide px-1 gap-0"
