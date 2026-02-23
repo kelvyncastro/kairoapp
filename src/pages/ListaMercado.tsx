@@ -66,6 +66,7 @@ function normalizeItems(items: any[]): string[] {
 
 export default function ListaMercado() {
   const { user } = useAuth();
+  const { contentPaddingBottom } = useNavPadding();
   const [inputText, setInputText] = useState("");
   const [categories, setCategories] = useState<CategoryGroup[]>([]);
   const [loading, setLoading] = useState(false);
