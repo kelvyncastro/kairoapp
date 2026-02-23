@@ -310,25 +310,25 @@ export function TaskTableView({
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Column settings */}
-      <div className="flex justify-end gap-1.5 px-4 py-1 border-b border-border/10 flex-shrink-0 bg-muted/5">
+      <div className="flex justify-end gap-1.5 px-4 py-1.5 border-b border-border/10 flex-shrink-0">
         {/* Fechados toggle */}
         <Button
           variant="ghost"
           size="sm"
           className={cn(
-            "h-6 text-[11px] border border-border/50 rounded-md gap-1.5 px-2",
-            showCompleted && "bg-muted/60 border-primary/30"
+            "h-7 text-xs rounded-lg gap-1.5 px-2.5 transition-all",
+            showCompleted && "bg-primary/10 text-primary border-primary/20"
           )}
           onClick={onToggleShowCompleted}
         >
           {showCompleted ? (
-            <EyeOff className="h-3 w-3" />
+            <EyeOff className="h-3.5 w-3.5" />
           ) : (
-            <Archive className="h-3 w-3" />
+            <Archive className="h-3.5 w-3.5" />
           )}
           Fechados
           {completedTasksCount > 0 && (
-            <span className="text-[10px] bg-muted/80 px-1 py-0 rounded">
+            <span className="text-[10px] bg-muted/60 px-1.5 py-0.5 rounded-full font-semibold">
               {completedTasksCount}
             </span>
           )}
@@ -337,8 +337,8 @@ export function TaskTableView({
         {/* Colunas dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-6 text-[11px] border border-border/50 rounded-md px-2">
-              <Settings2 className="h-3 w-3 mr-1" />
+            <Button variant="ghost" size="sm" className="h-7 text-xs rounded-lg px-2.5 gap-1.5">
+              <Settings2 className="h-3.5 w-3.5" />
               Colunas
             </Button>
           </DropdownMenuTrigger>
@@ -363,34 +363,39 @@ export function TaskTableView({
         const folderTasks = groupedTasks[folder.id] || [];
 
         return (
-          <div key={folder.id} className="border-b border-border/10">
+          <div key={folder.id} className="border-b border-border/5">
             {/* Folder header */}
             <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-10">
               <button
                 onClick={() => toggleFolder(folder.id)}
-                className="w-full flex items-center gap-2 px-4 py-2 hover:bg-muted/20 transition-colors"
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-muted/15 transition-colors"
               >
                 {isFolderExpanded(folder.id) ? (
-                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground/60" />
                 ) : (
-                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60" />
                 )}
-                <FolderIconRenderer 
-                  icon={folder.icon} 
-                  color={folder.color}
-                  className="h-3.5 w-3.5"
-                />
-                <span className="font-medium text-sm">{folder.name}</span>
+                <div
+                  className="w-6 h-6 rounded-md flex items-center justify-center"
+                  style={{ backgroundColor: `${folder.color}15` }}
+                >
+                  <FolderIconRenderer 
+                    icon={folder.icon} 
+                    color={folder.color}
+                    className="h-3.5 w-3.5"
+                  />
+                </div>
+                <span className="font-semibold text-sm">{folder.name}</span>
                 <span 
-                  className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
+                  className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
                   style={{ 
-                    backgroundColor: `${folder.color}20`,
+                    backgroundColor: `${folder.color}15`,
                     color: folder.color 
                   }}
                 >
-                  {folderTasks.length}
+                  {folderTasks.filter(t => !t.completed).length}
                 </span>
-                <span className="text-[11px] text-muted-foreground/60 ml-auto">
+                <span className="text-[11px] text-muted-foreground/40 ml-auto font-medium">
                   {folderTasks.filter(t => t.completed).length}/{folderTasks.length}
                 </span>
               </button>
@@ -556,7 +561,7 @@ function InlineAddTask({ onAdd }: InlineAddTaskProps) {
     return (
       <button
         onClick={() => setIsAdding(true)}
-        className="w-full flex items-center gap-2 px-6 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors"
+        className="w-full flex items-center gap-2 px-6 py-2.5 text-sm text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/10 transition-all"
       >
         <Plus className="h-4 w-4 ml-6" />
         <span>Adicionar Tarefa</span>
@@ -1029,7 +1034,7 @@ function TaskTable({
     <div className="overflow-x-auto">
       {/* Table header */}
       <div 
-        className="flex items-center px-4 py-1 text-[11px] text-muted-foreground/70 border-b border-border/10 bg-muted/5 uppercase tracking-wide"
+        className="flex items-center px-4 py-1.5 text-[11px] text-muted-foreground/50 border-b border-border/5 uppercase tracking-wider font-medium"
         style={{ display: 'grid', gridTemplateColumns }}
       >
         <span></span>
@@ -1059,12 +1064,13 @@ function TaskTable({
       </div>
 
       {/* Task rows */}
-      {tasks.map((task) => (
+      {tasks.map((task, index) => (
         <div
           key={task.id}
           className={cn(
-            "group flex items-center px-4 py-1.5 hover:bg-muted/15 transition-colors border-b border-border/5",
-            task.completed && "opacity-40"
+            "group flex items-center px-4 py-2 hover:bg-muted/10 transition-all duration-150 border-b border-border/[0.03]",
+            task.completed && "opacity-30",
+            index % 2 === 0 && "bg-muted/[0.02]"
           )}
           style={{ display: 'grid', gridTemplateColumns }}
         >

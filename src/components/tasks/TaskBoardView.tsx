@@ -162,8 +162,8 @@ export function TaskBoardView({
   };
 
   return (
-    <div className="flex-1 overflow-hidden p-2 md:p-3">
-      <div className="flex gap-2.5 md:gap-3 h-full overflow-x-auto">
+    <div className="flex-1 overflow-hidden p-3 md:p-4">
+      <div className="flex gap-3 md:gap-4 h-full overflow-x-auto pb-2">
         {sortedStatuses.map((status) => {
           const columnTasks = tasksByStatus[status.id] || [];
           const isEditing = editingStatusId === status.id;
@@ -171,7 +171,7 @@ export function TaskBoardView({
           return (
             <div
               key={status.id}
-              className="flex flex-col w-52 md:w-60 shrink-0 group/column h-full"
+              className="flex flex-col w-56 md:w-64 shrink-0 group/column h-full"
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, status.id)}
             >
@@ -236,17 +236,18 @@ export function TaskBoardView({
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 mb-2 px-1">
+                <div className="flex items-center gap-2 mb-2.5 px-1">
+                  <div
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ backgroundColor: status.color }}
+                  />
                   <span
-                    className="text-[10px] font-bold px-2 py-0.5 rounded tracking-wide"
-                    style={{ 
-                      backgroundColor: `${status.color}20`,
-                      color: status.color 
-                    }}
+                    className="text-[11px] font-semibold tracking-wide"
+                    style={{ color: status.color }}
                   >
                     {status.name.toUpperCase()}
                   </span>
-                  <span className="text-[10px] text-muted-foreground/60 font-medium">{columnTasks.length}</span>
+                  <span className="text-[10px] text-muted-foreground/40 font-medium">{columnTasks.length}</span>
                   
                   {/* Status options menu */}
                   {(onUpdateStatus || onDeleteStatus) && (
@@ -286,15 +287,14 @@ export function TaskBoardView({
               {/* Add task button */}
               <button
                 onClick={() => onCreateTask(status.id)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 mb-1.5 text-xs rounded-md border border-dashed border-border/40 text-muted-foreground/60 hover:text-foreground hover:border-border/60 transition-colors"
-                style={{ color: `${status.color}80` }}
+                className="flex items-center gap-1.5 px-3 py-2 mb-2 text-xs rounded-lg border border-dashed border-border/20 text-muted-foreground/40 hover:text-muted-foreground hover:border-border/40 hover:bg-muted/5 transition-all"
               >
                 <Plus className="h-3.5 w-3.5" />
                 <span>Adicionar</span>
               </button>
 
               {/* Task cards - Scrollable */}
-              <div className="flex-1 space-y-1.5 overflow-y-auto pr-0.5">
+              <div className="flex-1 space-y-2 overflow-y-auto pr-0.5 pb-2">
                 {columnTasks.map((task) => {
                   const priorityInfo = getPriorityLabel(task.priority);
                   const dueDate = formatDate(task.due_date || task.date);
@@ -305,8 +305,8 @@ export function TaskBoardView({
                       draggable
                       onDragStart={(e) => handleDragStart(e, task)}
                       className={cn(
-                        "group bg-card border border-border/20 rounded-lg p-2.5 cursor-grab active:cursor-grabbing hover:border-border/50 hover:shadow-sm transition-all",
-                        task.completed && "opacity-40"
+                        "group bg-card/80 border border-border/10 rounded-xl p-3 cursor-grab active:cursor-grabbing hover:border-border/30 hover:shadow-md hover:bg-card transition-all duration-200",
+                        task.completed && "opacity-30"
                       )}
                     >
                       {/* Task header */}
@@ -425,7 +425,7 @@ export function TaskBoardView({
 
         {/* Add column button */}
         {onCreateStatus && (
-          <div className="w-52 md:w-60 shrink-0">
+          <div className="w-56 md:w-64 shrink-0">
             {isAddingStatus ? (
               <div className="space-y-3 p-3 bg-card border border-border/30 rounded-lg">
                 <Input
