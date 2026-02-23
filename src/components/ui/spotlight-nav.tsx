@@ -117,21 +117,20 @@ export function SpotlightNav() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
-      {/* Glass background */}
-      <div className="relative mx-2 mb-2 rounded-2xl border border-border/50 bg-card/80 backdrop-blur-xl shadow-lg overflow-hidden">
+      <div className="relative mx-1.5 mb-1.5 rounded-2xl border border-border/40 bg-card/85 backdrop-blur-xl shadow-lg overflow-hidden">
         {/* Top glow line */}
         <div 
           className="absolute top-0 left-0 right-0 h-px"
           style={{
-            background: `linear-gradient(90deg, transparent, hsl(var(--primary) / 0.4), transparent)`,
+            background: `linear-gradient(90deg, transparent, hsl(var(--primary) / 0.3), transparent)`,
           }}
         />
         
-        <div className="flex items-center">
-          {/* Main nav items - scrollable */}
+        <div className="flex items-center h-[52px]">
+          {/* Main nav items - scrollable & centered */}
           <nav 
             ref={scrollRef}
-            className="flex-1 flex items-center overflow-x-auto scrollbar-hide px-1 py-1 gap-0.5"
+            className="flex-1 flex items-center justify-center overflow-x-auto scrollbar-hide px-1 gap-0"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
           >
             {NAV_ITEMS.map((item, index) => (
@@ -146,10 +145,10 @@ export function SpotlightNav() {
           </nav>
 
           {/* Separator */}
-          <div className="w-px h-8 bg-border/50 flex-shrink-0" />
+          <div className="w-px h-7 bg-border/30 flex-shrink-0" />
 
-          {/* Settings + Admin + Profile */}
-          <div className="flex items-center gap-0.5 px-1 flex-shrink-0">
+          {/* Config + Admin + Profile */}
+          <div className="flex items-center gap-0 px-0.5 flex-shrink-0">
             <NavItem
               icon={Settings}
               label="Config"
@@ -168,16 +167,16 @@ export function SpotlightNav() {
             {/* Profile photo */}
             <button
               onClick={() => navigate('/configuracoes')}
-              className="relative flex flex-col items-center justify-center min-w-[56px] py-2 px-1 transition-all duration-300"
+              className="relative flex flex-col items-center justify-center min-w-[40px] py-1.5 px-0.5 transition-all duration-200"
               aria-label="Perfil"
             >
-              <Avatar className="h-6 w-6 ring-2 ring-border/50">
+              <Avatar className="h-5 w-5 ring-[1.5px] ring-border/40">
                 <AvatarImage src={profile?.avatar_url || undefined} />
-                <AvatarFallback className="text-[8px] bg-primary/10 text-primary font-semibold">
+                <AvatarFallback className="text-[7px] bg-primary/10 text-primary font-semibold">
                   {getInitials()}
                 </AvatarFallback>
               </Avatar>
-              <span className="mt-0.5 text-[9px] font-medium text-muted-foreground whitespace-nowrap">
+              <span className="mt-0.5 text-[8px] font-medium text-muted-foreground/60 whitespace-nowrap leading-none">
                 Perfil
               </span>
             </button>
