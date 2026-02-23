@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
 import { Outlet, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/contexts/UserProfileContext";
+import { useNavPosition } from "@/contexts/NavPositionContext";
 import {
   Settings,
   LogOut,
@@ -29,20 +29,27 @@ export default function AppLayout() {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { profile, getInitials, getDisplayName } = useUserProfile();
+  const { navPosition } = useNavPosition();
 
-  // Smart calendar reminders (30min, 15min, 1min before events)
   useCalendarReminders();
 
   const handleSignOut = async () => {
     await signOut();
   };
 
+  const contentPadding = cn(
+    "flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden p-4 md:p-6 relative",
+    navPosition === 'bottom' && "pb-24",
+    navPosition === 'top' && "pt-20",
+    navPosition === 'left' && "pl-20",
+    navPosition === 'right' && "pr-20",
+  );
+
   return (
     <TooltipProvider delayDuration={0}>
       <div className="flex flex-col h-screen w-full bg-background overflow-hidden">
         {/* Topbar */}
         <header className="flex-shrink-0 sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6">
-          {/* Left: Logo */}
           <div className="flex items-center gap-2">
             <Link to="/dashboard" className="flex items-center gap-2">
               <img src={kairoLogo} alt="Kairo" className="h-7 w-7 rounded-xl" />
@@ -88,11 +95,11 @@ export default function AppLayout() {
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden p-4 md:p-6 pb-20 relative">
+        <div className={contentPadding}>
           <Outlet />
         </div>
 
-        {/* Bottom Navigation (all screen sizes) */}
+        {/* Navigation */}
         <SpotlightNav />
       </div>
     </TooltipProvider>

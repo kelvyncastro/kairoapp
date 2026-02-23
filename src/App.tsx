@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { UserProfileProvider, useUserProfile } from "@/contexts/UserProfileContext";
 import { SoundProvider } from "@/contexts/SoundContext";
+import { NavPositionProvider } from "@/contexts/NavPositionContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import AppLayout from "@/components/layout/AppLayout";
@@ -75,8 +76,9 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <UserProfileProvider>
-          <SoundProvider>
-            <TooltipProvider>
+            <SoundProvider>
+              <NavPositionProvider>
+              <TooltipProvider>
               <Toaster />
               <Sonner />
               <BrowserRouter>
@@ -127,6 +129,7 @@ const App = () => {
                 </ErrorBoundary>
               </BrowserRouter>
             </TooltipProvider>
+              </NavPositionProvider>
           </SoundProvider>
         </UserProfileProvider>
       </AuthProvider>
