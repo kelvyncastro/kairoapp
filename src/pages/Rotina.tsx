@@ -260,28 +260,34 @@ export default function Rotina() {
         {/* Toolbar */}
         <div className="flex items-center gap-2 px-4 md:px-6 py-2 border-b border-border/10 overflow-x-auto">
           {/* View mode */}
-          <div className="flex items-center bg-muted/40 rounded-lg p-0.5 shrink-0">
+          <div className="flex items-center bg-muted/50 rounded-lg p-0.5 shrink-0">
             <Button 
-              variant={viewMode === 'list' ? 'secondary' : 'ghost'} 
+              variant={viewMode === 'list' ? 'default' : 'ghost'} 
               size="sm"
-              className="h-7 px-2.5 text-xs rounded-md"
+              className={cn(
+                "h-7 px-3 text-xs rounded-md gap-1.5 transition-all",
+                viewMode === 'list' && "shadow-sm"
+              )}
               onClick={() => setViewMode('list')}
             >
-              <LayoutList className="h-3.5 w-3.5 md:mr-1.5" />
+              <LayoutList className="h-3.5 w-3.5" />
               <span className="hidden md:inline">Lista</span>
             </Button>
             <Button 
-              variant={viewMode === 'board' ? 'secondary' : 'ghost'} 
+              variant={viewMode === 'board' ? 'default' : 'ghost'} 
               size="sm"
-              className="h-7 px-2.5 text-xs rounded-md"
+              className={cn(
+                "h-7 px-3 text-xs rounded-md gap-1.5 transition-all",
+                viewMode === 'board' && "shadow-sm"
+              )}
               onClick={() => setViewMode('board')}
             >
-              <LayoutGrid className="h-3.5 w-3.5 md:mr-1.5" />
+              <LayoutGrid className="h-3.5 w-3.5" />
               <span className="hidden md:inline">Quadro</span>
             </Button>
           </div>
 
-          <div className="h-3.5 w-px bg-border/30 shrink-0 hidden sm:block" />
+          <div className="h-4 w-px bg-border/20 shrink-0 hidden sm:block" />
 
           {/* Month Selector */}
           <MonthSelector
