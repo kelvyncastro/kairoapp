@@ -153,10 +153,12 @@ export function TaskSchedulePopoverContent({
   const selectedStart = startDate ? parseDateString(startDate) : undefined;
   const selectedDue = dueDate ? parseDateString(dueDate) : undefined;
 
+  const [showDueDate, setShowDueDate] = useState(!!dueDate);
+
   const currentRule = recurringRule || "DAILY";
 
   const showStart = calendarMode === "both" || calendarMode === "start";
-  const showDue = calendarMode === "both" || calendarMode === "due";
+  const showDue = calendarMode === "due";
 
   // Base date to compute recurrence highlights (prefer start, fallback to due)
   const baseRecurrenceDate = selectedStart || selectedDue;
@@ -196,12 +198,12 @@ export function TaskSchedulePopoverContent({
 
   return (
     <div className="p-3 space-y-4">
-      {/* Datas (separadas visualmente) */}
       <div className="space-y-4">
+        {/* Start date - always visible in "both" mode */}
         {showStart && (
           <section className="rounded-lg border bg-card p-3 space-y-2">
             <div className="flex items-center justify-between gap-2">
-              <Label className="text-xs">Data de início</Label>
+              <Label className="text-xs font-medium">Data de início</Label>
               {startDate && (
                 <Button
                   variant="ghost"
@@ -228,10 +230,11 @@ export function TaskSchedulePopoverContent({
           </section>
         )}
 
+        {/* Due date - toggleable in "both" mode, always visible in "due" mode */}
         {showDue && (
           <section className="rounded-lg border bg-card p-3 space-y-2">
             <div className="flex items-center justify-between gap-2">
-              <Label className="text-xs">Data de vencimento</Label>
+              <Label className="text-xs font-medium">Data de vencimento</Label>
               {dueDate && (
                 <Button
                   variant="ghost"
@@ -256,6 +259,49 @@ export function TaskSchedulePopoverContent({
               modifiersStyles={modifiersStyles}
             />
           </section>
+        )}
+
+        {/* Toggle due date - only in "both" mode */}
+        {calendarMode === "both" && !showDue && (
+          <>
+            {!showDueDate ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full text-xs gap-2"
+                onClick={() => setShowDueDate(true)}
+              >
+                <CalendarClock className="h-3.5 w-3.5" />
+                Definir data de vencimento
+              </Button>
+            ) : (
+              <section className="rounded-lg border bg-card p-3 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <Label className="text-xs font-medium">Data de vencimento</Label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs"
+                    onClick={() => {
+                      setShowDueDate(false);
+                      onChange({ due_date: null });
+                    }}
+                  >
+                    <X className="h-3 w-3 mr-1" /> Remover
+                  </Button>
+                </div>
+                <Calendar
+                  mode="single"
+                  selected={selectedDue}
+                  onSelect={setDueDate}
+                  locale={ptBR}
+                  className="pointer-events-auto"
+                  modifiers={modifiers}
+                  modifiersStyles={modifiersStyles}
+                />
+              </section>
+            )}
+          </>
         )}
       </div>
 

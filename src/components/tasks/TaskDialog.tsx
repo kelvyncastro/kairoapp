@@ -270,11 +270,11 @@ export function TaskDialog({
               </Select>
             </div>
 
-            {/* Due date */}
+            {/* Dates & Recurrence */}
             <div className="space-y-2 col-span-2">
               <Label className="flex items-center gap-2">
                 <CalendarIcon className="h-3.5 w-3.5" />
-                Datas e Recorrência
+                Data e Recorrência
               </Label>
               <Popover>
                 <PopoverTrigger asChild>
@@ -282,20 +282,21 @@ export function TaskDialog({
                     variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal",
-                      !formData.due_date && !formData.start_date && "text-muted-foreground"
+                      !formData.start_date && !formData.due_date && "text-muted-foreground"
                     )}
                   >
                     <div className="flex flex-col items-start gap-0.5">
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs">
                         {formData.start_date 
-                          ? `Início: ${format(new Date(formData.start_date), "d 'de' MMM", { locale: ptBR })}`
-                          : "Início: -"
+                          ? `📅 ${format(new Date(formData.start_date), "d 'de' MMM", { locale: ptBR })}`
+                          : "📅 Sem data de início"
                         }
-                        {" → "}
-                        {formData.due_date 
-                          ? `Venc: ${format(new Date(formData.due_date), "d 'de' MMM", { locale: ptBR })}`
-                          : "Venc: -"
-                        }
+                        {formData.due_date && (
+                          <span className="text-muted-foreground">
+                            {" → "}
+                            {format(new Date(formData.due_date), "d 'de' MMM", { locale: ptBR })}
+                          </span>
+                        )}
                       </span>
                       {formData.is_recurring && (
                         <span className="text-xs text-primary">
