@@ -60,7 +60,7 @@ const NavItem: React.FC<NavItemProps> = ({
           ? "text-primary scale-105" 
           : "text-muted-foreground"
       )}>
-        <Icon className="h-5 w-5" />
+        <Icon className="h-6 w-6" />
       </div>
 
       <span className={cn(
