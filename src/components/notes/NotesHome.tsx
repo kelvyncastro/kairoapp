@@ -67,6 +67,7 @@ export function NotesHome({
   const [renamingFolder, setRenamingFolder] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [activeTab, setActiveTab] = useState<'recent' | 'folders'>('recent');
+  const [orphansCollapsed, setOrphansCollapsed] = useState(false);
 
   // Filter pages
   const filteredPages = useMemo(() => {
