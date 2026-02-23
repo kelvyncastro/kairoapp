@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { cn } from "@/lib/utils";
 import { useUserProfile, AppTheme } from "@/contexts/UserProfileContext";
 import { useNavPosition, NavPosition } from "@/contexts/NavPositionContext";
 import { useAuth } from "@/contexts/AuthContext";
