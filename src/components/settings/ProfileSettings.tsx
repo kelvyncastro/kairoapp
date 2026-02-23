@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useUserProfile, AppTheme } from "@/contexts/UserProfileContext";
+import { useNavPosition, NavPosition } from "@/contexts/NavPositionContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSound } from "@/contexts/SoundContext";
 import { Button } from "@/components/ui/button";
