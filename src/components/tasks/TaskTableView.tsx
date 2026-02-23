@@ -310,25 +310,25 @@ export function TaskTableView({
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Column settings */}
-      <div className="flex justify-end gap-2 px-4 py-1.5 border-b border-border/20 flex-shrink-0">
+      <div className="flex justify-end gap-1.5 px-4 py-1 border-b border-border/10 flex-shrink-0 bg-muted/5">
         {/* Fechados toggle */}
         <Button
           variant="ghost"
           size="sm"
           className={cn(
-            "h-7 text-xs border-2 border-border rounded-lg gap-1.5",
-            showCompleted && "bg-muted border-primary/50"
+            "h-6 text-[11px] border border-border/50 rounded-md gap-1.5 px-2",
+            showCompleted && "bg-muted/60 border-primary/30"
           )}
           onClick={onToggleShowCompleted}
         >
           {showCompleted ? (
-            <EyeOff className="h-3.5 w-3.5" />
+            <EyeOff className="h-3 w-3" />
           ) : (
-            <Archive className="h-3.5 w-3.5" />
+            <Archive className="h-3 w-3" />
           )}
           Fechados
           {completedTasksCount > 0 && (
-            <span className="text-xs bg-muted px-1.5 py-0.5 rounded-full">
+            <span className="text-[10px] bg-muted/80 px-1 py-0 rounded">
               {completedTasksCount}
             </span>
           )}
