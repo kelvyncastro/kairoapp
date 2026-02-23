@@ -287,8 +287,7 @@ export function TaskBoardView({
               {/* Add task button */}
               <button
                 onClick={() => onCreateTask(status.id)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 mb-1.5 text-xs rounded-md border border-dashed border-border/40 text-muted-foreground/60 hover:text-foreground hover:border-border/60 transition-colors"
-                style={{ color: `${status.color}80` }}
+                className="flex items-center gap-1.5 px-3 py-2 mb-2 text-xs rounded-lg border border-dashed border-border/20 text-muted-foreground/40 hover:text-muted-foreground hover:border-border/40 hover:bg-muted/5 transition-all"
               >
                 <Plus className="h-3.5 w-3.5" />
                 <span>Adicionar</span>
