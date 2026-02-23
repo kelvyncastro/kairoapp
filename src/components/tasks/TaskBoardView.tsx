@@ -294,7 +294,7 @@ export function TaskBoardView({
               </button>
 
               {/* Task cards - Scrollable */}
-              <div className="flex-1 space-y-2 overflow-y-auto pr-1">
+              <div className="flex-1 space-y-1.5 overflow-y-auto pr-0.5">
                 {columnTasks.map((task) => {
                   const priorityInfo = getPriorityLabel(task.priority);
                   const dueDate = formatDate(task.due_date || task.date);
@@ -305,8 +305,8 @@ export function TaskBoardView({
                       draggable
                       onDragStart={(e) => handleDragStart(e, task)}
                       className={cn(
-                        "group bg-card border border-border/30 rounded-lg p-3 cursor-grab active:cursor-grabbing hover:border-border/60 transition-colors",
-                        task.completed && "opacity-50"
+                        "group bg-card border border-border/20 rounded-lg p-2.5 cursor-grab active:cursor-grabbing hover:border-border/50 hover:shadow-sm transition-all",
+                        task.completed && "opacity-40"
                       )}
                     >
                       {/* Task header */}
