@@ -968,7 +968,7 @@ function TaskTable({
         return (
           <EditableSchedule
             task={task}
-            displayValue={task.due_date || task.date}
+            displayValue={task.due_date}
             placeholder="Vencimento"
             calendarMode="due"
             onUpdate={(updates) => onUpdateTask(task.id, updates)}
