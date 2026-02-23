@@ -127,7 +127,7 @@ export function TaskDialog({
       status_id: formData.status_id,
       start_date: formData.start_date,
       due_date: formData.due_date,
-      date: formData.due_date || format(new Date(), 'yyyy-MM-dd'),
+      date: formData.start_date || formData.due_date || format(new Date(), 'yyyy-MM-dd'),
       time_estimate_minutes: formData.time_estimate_minutes,
       labels: formData.labels,
     });
