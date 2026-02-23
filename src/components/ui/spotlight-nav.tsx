@@ -36,10 +36,9 @@ const NavItem: React.FC<NavItemProps> = ({
   return (
     <button
       onClick={onClick}
-      className="relative flex flex-col items-center justify-center min-w-[44px] py-1.5 px-0.5 transition-all duration-200"
+      className="relative flex flex-col items-center justify-center min-w-[50px] py-1.5 px-1 transition-all duration-200"
       aria-label={label}
     >
-      {/* Active glow */}
       {isActive && (
         <div 
           className="absolute inset-1 rounded-lg blur-md opacity-25"
@@ -49,20 +48,18 @@ const NavItem: React.FC<NavItemProps> = ({
         />
       )}
       
-      {/* Icon */}
       <div className={cn(
         "relative z-10 transition-all duration-200",
         isActive 
           ? "text-primary scale-105" 
-          : "text-muted-foreground/70"
+          : "text-muted-foreground"
       )}>
-        <Icon className="h-[18px] w-[18px]" />
+        <Icon className="h-5 w-5" />
       </div>
 
-      {/* Label */}
       <span className={cn(
-        "mt-0.5 text-[8px] font-medium transition-colors duration-200 whitespace-nowrap leading-none",
-        isActive ? "text-primary" : "text-muted-foreground/60"
+        "mt-0.5 text-[9px] font-medium transition-colors duration-200 whitespace-nowrap leading-none",
+        isActive ? "text-primary" : "text-muted-foreground/70"
       )}>
         {label}
       </span>
