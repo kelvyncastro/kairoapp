@@ -247,6 +247,9 @@ export function TaskSchedulePopoverContent({
                 setShowDueDate(v);
                 if (!v) {
                   onChange({ due_date: null });
+                } else if (startDate) {
+                  // Pre-fill due date with start date when enabling
+                  onChange({ due_date: startDate });
                 }
               }}
             />
