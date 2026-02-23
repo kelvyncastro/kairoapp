@@ -425,7 +425,7 @@ export function TaskBoardView({
 
         {/* Add column button */}
         {onCreateStatus && (
-          <div className="w-52 md:w-60 shrink-0">
+          <div className="w-56 md:w-64 shrink-0">
             {isAddingStatus ? (
               <div className="space-y-3 p-3 bg-card border border-border/30 rounded-lg">
                 <Input
