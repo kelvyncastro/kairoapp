@@ -64,7 +64,7 @@ const NavItem: React.FC<NavItemProps> = ({
       </div>
 
       <span className={cn(
-        "mt-0.5 text-[9px] font-medium transition-colors duration-200 whitespace-nowrap leading-none",
+        "mt-1 text-[10px] font-medium transition-colors duration-200 whitespace-nowrap leading-none",
         isActive ? "text-primary" : "text-muted-foreground/70"
       )}>
         {label}
