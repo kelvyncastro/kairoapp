@@ -182,7 +182,7 @@ export function NotesHome({
                     <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
                       {groupLabels[group]}
                     </h3>
-                    <div className="space-y-0.5">
+                    <div className="space-y-1">
                       {items.map(page => (
                         <PageListItem
                           key={page.id}
