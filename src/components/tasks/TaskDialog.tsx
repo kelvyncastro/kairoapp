@@ -106,8 +106,8 @@ export function TaskDialog({
         recurring_rule: 'DAILY',
         folder_id: defaultFolderId || null,
         status_id: defaultStatus?.id || null,
-        start_date: null,
-        due_date: format(new Date(), 'yyyy-MM-dd'),
+        start_date: format(new Date(), 'yyyy-MM-dd'),
+        due_date: null,
         time_estimate_minutes: null,
         labels: [],
       });
