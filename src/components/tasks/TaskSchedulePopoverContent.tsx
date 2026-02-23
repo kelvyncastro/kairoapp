@@ -261,34 +261,39 @@ export function TaskSchedulePopoverContent({
           </section>
         )}
 
-        {/* Toggle due date - only in "both" mode */}
+        {/* Due date toggle - switch style like recurrence, only in "both" mode */}
         {calendarMode === "both" && !showDue && (
-          <>
-            {!showDueDate ? (
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full text-xs gap-2"
-                onClick={() => setShowDueDate(true)}
-              >
-                <CalendarClock className="h-3.5 w-3.5" />
-                Definir data de vencimento
-              </Button>
-            ) : (
+          <div className="border-t pt-3 space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="flex items-center gap-2 text-sm">📅 Definir vencimento</Label>
+              <Switch
+                checked={showDueDate}
+                onCheckedChange={(v) => {
+                  setShowDueDate(v);
+                  if (!v) {
+                    onChange({ due_date: null });
+                  }
+                }}
+              />
+            </div>
+
+            {showDueDate && (
               <section className="rounded-lg border bg-card p-3 space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <Label className="text-xs font-medium">Data de vencimento</Label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 px-2 text-xs"
-                    onClick={() => {
-                      setShowDueDate(false);
-                      onChange({ due_date: null });
-                    }}
-                  >
-                    <X className="h-3 w-3 mr-1" /> Remover
-                  </Button>
+                  {dueDate && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => {
+                        onChange({ due_date: null });
+                        onAfterSelectDate?.();
+                      }}
+                    >
+                      <X className="h-3 w-3 mr-1" /> Limpar
+                    </Button>
+                  )}
                 </div>
                 <Calendar
                   mode="single"
@@ -301,7 +306,7 @@ export function TaskSchedulePopoverContent({
                 />
               </section>
             )}
-          </>
+          </div>
         )}
       </div>
 
