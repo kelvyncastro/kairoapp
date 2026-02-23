@@ -238,7 +238,7 @@ export function SpotlightNav() {
       <div className={containerClasses}>
         <div className={glowLineClasses} style={glowLineStyle} />
         
-        <div className="flex items-center h-[56px]">
+        <div className="flex items-center h-[62px]">
           <nav 
             ref={scrollRef}
             className="flex-1 flex items-center justify-center overflow-x-auto scrollbar-hide px-1 gap-0"
