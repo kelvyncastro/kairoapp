@@ -37,12 +37,15 @@ export default function AppLayout() {
     await signOut();
   };
 
-  const contentPadding = cn(
+  // The content area needs to shrink/offset to make room for the nav bar.
+  // Using margin instead of padding so that `absolute inset-0` children
+  // are also constrained within the available space.
+  const contentAreaClasses = cn(
     "flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden p-4 md:p-6 relative",
-    navPosition === 'bottom' && "pb-24",
-    navPosition === 'top' && "pt-20",
-    navPosition === 'left' && "pl-20",
-    navPosition === 'right' && "pr-20",
+    navPosition === 'bottom' && "mb-[72px]",
+    navPosition === 'top' && "mt-[72px]",
+    navPosition === 'left' && "ml-[72px]",
+    navPosition === 'right' && "mr-[72px]",
   );
 
   return (
@@ -94,8 +97,8 @@ export default function AppLayout() {
           </div>
         </header>
 
-        {/* Page Content */}
-        <div className={contentPadding}>
+        {/* Page Content - margin reserves space for the nav bar */}
+        <div className={contentAreaClasses}>
           <Outlet />
         </div>
 
