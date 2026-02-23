@@ -310,7 +310,7 @@ export function TaskBoardView({
                       )}
                     >
                       {/* Task header */}
-                      <div className="flex items-start gap-2 mb-2">
+                      <div className="flex items-start gap-2 mb-1.5">
                         <NeonCheckbox
                           checked={task.completed}
                           rounded={false}
