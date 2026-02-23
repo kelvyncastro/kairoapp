@@ -66,7 +66,7 @@ export function NotesHome({
   const [newFolderName, setNewFolderName] = useState('');
   const [renamingFolder, setRenamingFolder] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
-  const [activeTab, setActiveTab] = useState<'recent' | 'folders'>('recent');
+  const [activeTab, setActiveTab] = useState<'recent' | 'pages' | 'folders'>('recent');
   const [orphansCollapsed, setOrphansCollapsed] = useState(false);
 
   // Filter pages
@@ -145,6 +145,17 @@ export function NotesHome({
             )}
           >
             Recentes
+          </button>
+          <button
+            onClick={() => setActiveTab('pages')}
+            className={cn(
+              'px-3 py-2 text-xs font-medium transition-colors border-b-2 -mb-px',
+              activeTab === 'pages'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            )}
+          >
+            Páginas
           </button>
           <button
             onClick={() => setActiveTab('folders')}
@@ -242,8 +253,35 @@ export function NotesHome({
                 </div>
               )}
             </>
+          ) : activeTab === 'pages' ? (
+            /* All pages tab */
+            <div className="space-y-1">
+              {filteredPages.length === 0 ? (
+                <div className="text-center py-16 text-muted-foreground">
+                  <FileText className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                  <p className="text-sm font-medium">Nenhuma página criada</p>
+                  <p className="text-xs mt-1">Crie sua primeira nota acima</p>
+                </div>
+              ) : (
+                [...filteredPages]
+                  .sort((a, b) => a.title.localeCompare(b.title))
+                  .map(page => (
+                    <PageListItem
+                      key={page.id}
+                      page={page}
+                      folderName={getFolderName(page.folderId)}
+                      folders={folders}
+                      onSelect={() => onSelectPage(page.id)}
+                      onDelete={() => setDeleteTarget({ type: 'page', id: page.id })}
+                      onDuplicate={() => onDuplicatePage(page.id)}
+                      onArchive={() => onArchivePage(page.id)}
+                      onMoveToFolder={(fid) => onMoveToFolder(page.id, fid)}
+                      onToggleFavorite={() => onToggleFavorite(page.id)}
+                    />
+                  ))
+              )}
+            </div>
           ) : (
-            /* Folders tab */
             <div className="space-y-4">
               {/* Create folder button */}
               <div className="flex justify-end">
