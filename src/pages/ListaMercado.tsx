@@ -677,17 +677,17 @@ export default function ListaMercado() {
           })}
         </AnimatePresence>
       </div>
-      </div>
 
-      {/* Confirm Purchase Button */}
-      {categories.length > 0 && (
-        <div className="flex-shrink-0 px-4 md:px-6 pb-4">
-          <Button size="lg" className="w-full gap-2" onClick={() => { setShowPurchaseDialog(true); setPurchaseAmount(""); }}>
-            <CheckCircle2 className="h-5 w-5" />
-            Confirmar Compra
-          </Button>
-        </div>
-      )}
+        {/* Confirm Purchase Button - inside scroll area */}
+        {categories.length > 0 && (
+          <div className="px-0 pb-4 pt-2">
+            <Button size="lg" className="w-full gap-2" onClick={() => { setShowPurchaseDialog(true); setPurchaseAmount(""); }}>
+              <CheckCircle2 className="h-5 w-5" />
+              Confirmar Compra
+            </Button>
+          </div>
+        )}
+      </div>
 
       {/* Purchase Amount Dialog */}
       <Dialog open={showPurchaseDialog} onOpenChange={(open) => { if (!confirmingPurchase) { setShowPurchaseDialog(open); if (!open) setPurchaseAmount(""); } }}>
