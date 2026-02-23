@@ -561,7 +561,7 @@ function InlineAddTask({ onAdd }: InlineAddTaskProps) {
     return (
       <button
         onClick={() => setIsAdding(true)}
-        className="w-full flex items-center gap-2 px-6 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors"
+        className="w-full flex items-center gap-2 px-6 py-2.5 text-sm text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/10 transition-all"
       >
         <Plus className="h-4 w-4 ml-6" />
         <span>Adicionar Tarefa</span>
