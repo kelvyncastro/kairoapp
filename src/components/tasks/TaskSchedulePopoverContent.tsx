@@ -197,119 +197,73 @@ export function TaskSchedulePopoverContent({
   };
 
   return (
-    <div className="p-3 space-y-4">
-      <div className="space-y-4">
-        {/* Start date - always visible in "both" mode */}
-        {showStart && (
-          <section className="rounded-lg border bg-card p-3 space-y-2">
-            <div className="flex items-center justify-between gap-2">
-              <Label className="text-xs font-medium">Data de início</Label>
-              {startDate && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 px-2 text-xs"
-                  onClick={() => {
-                    onChange({ start_date: null });
-                    onAfterSelectDate?.();
-                  }}
-                >
-                  <X className="h-3 w-3 mr-1" /> Limpar
-                </Button>
-              )}
-            </div>
-            <Calendar
-              mode="single"
-              selected={selectedStart}
-              onSelect={setStartDate}
-              locale={ptBR}
-              className="pointer-events-auto"
-              modifiers={modifiers}
-              modifiersStyles={modifiersStyles}
+    <div className="p-3 space-y-3">
+      {/* Start date - always visible in "both" and "start" modes */}
+      {showStart && (
+        <section className="space-y-2">
+          <Label className="text-xs font-medium">Data de início</Label>
+          <Calendar
+            mode="single"
+            selected={selectedStart}
+            onSelect={setStartDate}
+            locale={ptBR}
+            className="pointer-events-auto"
+            modifiers={modifiers}
+            modifiersStyles={modifiersStyles}
+          />
+        </section>
+      )}
+
+      {/* Due date - always visible in "due" mode */}
+      {showDue && (
+        <section className="space-y-2">
+          <Label className="text-xs font-medium">Data de vencimento</Label>
+          <Calendar
+            mode="single"
+            selected={selectedDue}
+            onSelect={setDueDate}
+            locale={ptBR}
+            className="pointer-events-auto"
+            modifiers={modifiers}
+            modifiersStyles={modifiersStyles}
+          />
+        </section>
+      )}
+
+      {/* Due date toggle - only in "both" mode */}
+      {calendarMode === "both" && (
+        <div className="border-t pt-3 space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="flex items-center gap-2 text-sm">📅 Definir vencimento</Label>
+            <Switch
+              checked={showDueDate}
+              onCheckedChange={(v) => {
+                setShowDueDate(v);
+                if (!v) {
+                  onChange({ due_date: null });
+                }
+              }}
             />
-          </section>
-        )}
-
-        {/* Due date - toggleable in "both" mode, always visible in "due" mode */}
-        {showDue && (
-          <section className="rounded-lg border bg-card p-3 space-y-2">
-            <div className="flex items-center justify-between gap-2">
-              <Label className="text-xs font-medium">Data de vencimento</Label>
-              {dueDate && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 px-2 text-xs"
-                  onClick={() => {
-                    onChange({ due_date: null });
-                    onAfterSelectDate?.();
-                  }}
-                >
-                  <X className="h-3 w-3 mr-1" /> Limpar
-                </Button>
-              )}
-            </div>
-            <Calendar
-              mode="single"
-              selected={selectedDue}
-              onSelect={setDueDate}
-              locale={ptBR}
-              className="pointer-events-auto"
-              modifiers={modifiers}
-              modifiersStyles={modifiersStyles}
-            />
-          </section>
-        )}
-
-        {/* Due date toggle - switch style like recurrence, only in "both" mode */}
-        {calendarMode === "both" && !showDue && (
-          <div className="border-t pt-3 space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="flex items-center gap-2 text-sm">📅 Definir vencimento</Label>
-              <Switch
-                checked={showDueDate}
-                onCheckedChange={(v) => {
-                  setShowDueDate(v);
-                  if (!v) {
-                    onChange({ due_date: null });
-                  }
-                }}
-              />
-            </div>
-
-            {showDueDate && (
-              <section className="rounded-lg border bg-card p-3 space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <Label className="text-xs font-medium">Data de vencimento</Label>
-                  {dueDate && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 px-2 text-xs"
-                      onClick={() => {
-                        onChange({ due_date: null });
-                        onAfterSelectDate?.();
-                      }}
-                    >
-                      <X className="h-3 w-3 mr-1" /> Limpar
-                    </Button>
-                  )}
-                </div>
-                <Calendar
-                  mode="single"
-                  selected={selectedDue}
-                  onSelect={setDueDate}
-                  locale={ptBR}
-                  className="pointer-events-auto"
-                  modifiers={modifiers}
-                  modifiersStyles={modifiersStyles}
-                />
-              </section>
-            )}
           </div>
-        )}
-      </div>
 
+          {showDueDate && (
+            <section className="space-y-2">
+              <Label className="text-xs font-medium">Data de vencimento</Label>
+              <Calendar
+                mode="single"
+                selected={selectedDue}
+                onSelect={setDueDate}
+                locale={ptBR}
+                className="pointer-events-auto"
+                modifiers={modifiers}
+                modifiersStyles={modifiersStyles}
+              />
+            </section>
+          )}
+        </div>
+      )}
+
+      {/* Recurrence toggle */}
       <div className="border-t pt-3 space-y-3">
         <div className="flex items-center justify-between">
           <Label className="flex items-center gap-2 text-sm">🔄 Tarefa recorrente</Label>
