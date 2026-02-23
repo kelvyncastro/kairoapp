@@ -171,7 +171,7 @@ export function TaskBoardView({
           return (
             <div
               key={status.id}
-              className="flex flex-col w-52 md:w-60 shrink-0 group/column h-full"
+              className="flex flex-col w-56 md:w-64 shrink-0 group/column h-full"
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, status.id)}
             >
