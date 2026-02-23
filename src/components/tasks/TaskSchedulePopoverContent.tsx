@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { X, CalendarClock } from "lucide-react";
 import { ptBR } from "date-fns/locale";
 import { addDays, addWeeks, addMonths, getDay, startOfMonth, endOfMonth } from "date-fns";
@@ -155,6 +155,11 @@ export function TaskSchedulePopoverContent({
 
   const [showDueDate, setShowDueDate] = useState(!!dueDate);
 
+  // Sync toggle state with actual dueDate prop (e.g. after saving/reopening)
+  useEffect(() => {
+    setShowDueDate(!!dueDate);
+  }, [dueDate]);
+
   const currentRule = recurringRule || "DAILY";
 
   const showStart = calendarMode === "both" || calendarMode === "start";
@@ -242,6 +247,9 @@ export function TaskSchedulePopoverContent({
                 setShowDueDate(v);
                 if (!v) {
                   onChange({ due_date: null });
+                } else if (startDate) {
+                  // Pre-fill due date with start date when enabling
+                  onChange({ due_date: startDate });
                 }
               }}
             />
