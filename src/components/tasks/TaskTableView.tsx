@@ -363,34 +363,39 @@ export function TaskTableView({
         const folderTasks = groupedTasks[folder.id] || [];
 
         return (
-          <div key={folder.id} className="border-b border-border/10">
+          <div key={folder.id} className="border-b border-border/5">
             {/* Folder header */}
             <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-10">
               <button
                 onClick={() => toggleFolder(folder.id)}
-                className="w-full flex items-center gap-2 px-4 py-2 hover:bg-muted/20 transition-colors"
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-muted/15 transition-colors"
               >
                 {isFolderExpanded(folder.id) ? (
-                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground/60" />
                 ) : (
-                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60" />
                 )}
-                <FolderIconRenderer 
-                  icon={folder.icon} 
-                  color={folder.color}
-                  className="h-3.5 w-3.5"
-                />
-                <span className="font-medium text-sm">{folder.name}</span>
+                <div
+                  className="w-6 h-6 rounded-md flex items-center justify-center"
+                  style={{ backgroundColor: `${folder.color}15` }}
+                >
+                  <FolderIconRenderer 
+                    icon={folder.icon} 
+                    color={folder.color}
+                    className="h-3.5 w-3.5"
+                  />
+                </div>
+                <span className="font-semibold text-sm">{folder.name}</span>
                 <span 
-                  className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
+                  className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
                   style={{ 
-                    backgroundColor: `${folder.color}20`,
+                    backgroundColor: `${folder.color}15`,
                     color: folder.color 
                   }}
                 >
-                  {folderTasks.length}
+                  {folderTasks.filter(t => !t.completed).length}
                 </span>
-                <span className="text-[11px] text-muted-foreground/60 ml-auto">
+                <span className="text-[11px] text-muted-foreground/40 ml-auto font-medium">
                   {folderTasks.filter(t => t.completed).length}/{folderTasks.length}
                 </span>
               </button>
