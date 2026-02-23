@@ -40,6 +40,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export function ProfileSettings() {
   const { profile, updateProfile, uploadAvatar, getInitials } = useUserProfile();
+  const { navPosition, setNavPosition } = useNavPosition();
   const { user, signOut } = useAuth();
   const { soundEnabled, toggleSound } = useSound();
   const [firstName, setFirstName] = useState('');
