@@ -162,8 +162,8 @@ export function TaskBoardView({
   };
 
   return (
-    <div className="flex-1 overflow-hidden p-2 md:p-3">
-      <div className="flex gap-2.5 md:gap-3 h-full overflow-x-auto">
+    <div className="flex-1 overflow-hidden p-3 md:p-4">
+      <div className="flex gap-3 md:gap-4 h-full overflow-x-auto pb-2">
         {sortedStatuses.map((status) => {
           const columnTasks = tasksByStatus[status.id] || [];
           const isEditing = editingStatusId === status.id;
