@@ -463,7 +463,7 @@ export function ProfileSettings() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50"
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50"
           >
             <Button
               onClick={handleSave}

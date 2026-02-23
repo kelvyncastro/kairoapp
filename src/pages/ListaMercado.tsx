@@ -568,7 +568,7 @@ export default function ListaMercado() {
       </div>
 
       {/* Content - Scrollable */}
-      <div className="flex-1 overflow-y-auto min-h-0 px-4 md:px-6 pt-4 pb-2 space-y-4">
+      <div className={cn("flex-1 overflow-y-auto min-h-0 px-4 md:px-6 pt-4 pb-2 space-y-4", contentPaddingBottom)}>
         {/* Input Section */}
         <AnimatePresence mode="wait">
           {categories.length === 0 && (
