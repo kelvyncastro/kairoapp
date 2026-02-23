@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { LayoutList, LayoutGrid, FolderOpen } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useTaskData } from '@/hooks/useTaskData';
 import { useSavedFilters } from '@/hooks/useSavedFilters';
