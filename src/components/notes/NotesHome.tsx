@@ -348,23 +348,33 @@ export function NotesHome({
                 if (orphans.length === 0) return null;
                 return (
                   <div className="space-y-1">
-                    <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
-                      Sem pasta
-                    </h3>
-                    {orphans.map(page => (
-                      <PageListItem
-                        key={page.id}
-                        page={page}
-                        folderName={null}
-                        folders={folders}
-                        onSelect={() => onSelectPage(page.id)}
-                        onDelete={() => setDeleteTarget({ type: 'page', id: page.id })}
-                        onDuplicate={() => onDuplicatePage(page.id)}
-                        onArchive={() => onArchivePage(page.id)}
-                        onMoveToFolder={(fid) => onMoveToFolder(page.id, fid)}
-                        onToggleFavorite={() => onToggleFavorite(page.id)}
-                      />
-                    ))}
+                    <button
+                      onClick={() => setOrphansCollapsed(prev => !prev)}
+                      className="flex items-center gap-3 text-base py-3 px-3 rounded-xl hover:bg-muted/50 transition-colors text-left w-full"
+                    >
+                      {orphansCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      <FileText className="h-5 w-5 text-muted-foreground" />
+                      <span className="flex-1 font-medium">Sem pasta</span>
+                      <span className="text-sm text-muted-foreground">{orphans.length}</span>
+                    </button>
+                    {!orphansCollapsed && (
+                      <div className="ml-6 space-y-1">
+                        {orphans.map(page => (
+                          <PageListItem
+                            key={page.id}
+                            page={page}
+                            folderName={null}
+                            folders={folders}
+                            onSelect={() => onSelectPage(page.id)}
+                            onDelete={() => setDeleteTarget({ type: 'page', id: page.id })}
+                            onDuplicate={() => onDuplicatePage(page.id)}
+                            onArchive={() => onArchivePage(page.id)}
+                            onMoveToFolder={(fid) => onMoveToFolder(page.id, fid)}
+                            onToggleFavorite={() => onToggleFavorite(page.id)}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })()}
