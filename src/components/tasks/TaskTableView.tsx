@@ -337,8 +337,8 @@ export function TaskTableView({
         {/* Colunas dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-7 text-xs border-2 border-border rounded-lg">
-              <Settings2 className="h-3.5 w-3.5 mr-1.5" />
+            <Button variant="ghost" size="sm" className="h-6 text-[11px] border border-border/50 rounded-md px-2">
+              <Settings2 className="h-3 w-3 mr-1" />
               Colunas
             </Button>
           </DropdownMenuTrigger>
