@@ -222,13 +222,13 @@ export default function Rotina() {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden bg-background">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-border/30">
+        {/* Header - more compact */}
+        <div className="flex items-center justify-between px-4 md:px-6 py-2.5 border-b border-border/20">
           <div className="flex items-center gap-3">
             {/* Mobile folder button */}
             <Sheet open={folderSheetOpen} onOpenChange={setFolderSheetOpen}>
               <SheetTrigger asChild className="md:hidden">
-                <Button variant="outline" size="sm" className="gap-2">
+                <Button variant="outline" size="sm" className="gap-2 h-8">
                   <FolderOpen className="h-4 w-4" />
                   <span className="max-w-24 truncate">
                     {selectedFolder?.name || 'Todas'}
@@ -249,37 +249,44 @@ export default function Rotina() {
             </Sheet>
             
             <div>
-              <h1 className="text-xl md:text-2xl font-bold">Tarefas</h1>
-              <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Suas tarefas e projetos</p>
+              <h1 className="text-lg md:text-xl font-bold leading-tight">Tarefas</h1>
+            </div>
+          </div>
+
+          {/* Stats pills */}
+          <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/40 rounded-lg px-2.5 py-1">
+              <span className="font-semibold text-foreground">{filteredTasks.filter(t => !t.completed).length}</span>
+              <span>pendentes</span>
             </div>
           </div>
         </div>
 
-        {/* Toolbar */}
-        <div className="flex items-center gap-2 md:gap-3 px-4 md:px-6 py-2 md:py-3 border-b border-border/30 overflow-x-auto">
+        {/* Toolbar - tighter */}
+        <div className="flex items-center gap-2 px-4 md:px-6 py-1.5 border-b border-border/15 overflow-x-auto bg-muted/5">
           {/* View mode */}
-          <div className="flex items-center gap-1 bg-muted/30 rounded-md p-0.5 shrink-0">
+          <div className="flex items-center bg-muted/40 rounded-lg p-0.5 shrink-0">
             <Button 
               variant={viewMode === 'list' ? 'secondary' : 'ghost'} 
               size="sm"
-              className="h-7 px-2"
+              className="h-7 px-2.5 text-xs rounded-md"
               onClick={() => setViewMode('list')}
             >
-              <LayoutList className="h-4 w-4 md:mr-1.5" />
+              <LayoutList className="h-3.5 w-3.5 md:mr-1.5" />
               <span className="hidden md:inline">Lista</span>
             </Button>
             <Button 
               variant={viewMode === 'board' ? 'secondary' : 'ghost'} 
               size="sm"
-              className="h-7 px-2"
+              className="h-7 px-2.5 text-xs rounded-md"
               onClick={() => setViewMode('board')}
             >
-              <LayoutGrid className="h-4 w-4 md:mr-1.5" />
+              <LayoutGrid className="h-3.5 w-3.5 md:mr-1.5" />
               <span className="hidden md:inline">Quadro</span>
             </Button>
           </div>
 
-          <div className="h-4 w-px bg-border/50 shrink-0 hidden sm:block" />
+          <div className="h-3.5 w-px bg-border/30 shrink-0 hidden sm:block" />
 
           {/* Month Selector */}
           <MonthSelector
@@ -287,7 +294,7 @@ export default function Rotina() {
             onDateChange={setSelectedMonth}
           />
 
-          <div className="h-4 w-px bg-border/50 shrink-0 hidden sm:block" />
+          <div className="h-3.5 w-px bg-border/30 shrink-0 hidden sm:block" />
 
           {/* Advanced Filters */}
           <TaskFiltersAdvanced
