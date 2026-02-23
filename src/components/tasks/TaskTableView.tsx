@@ -698,7 +698,7 @@ function EditableSchedule({
       <PopoverContent className="w-auto p-0 bg-popover" align="start">
         <TaskSchedulePopoverContent
           startDate={task.start_date}
-          dueDate={task.due_date || task.date}
+          dueDate={task.due_date}
           isRecurring={task.is_recurring}
           recurringRule={task.recurring_rule}
           calendarMode={calendarMode}

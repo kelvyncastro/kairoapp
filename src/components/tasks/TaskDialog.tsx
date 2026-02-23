@@ -92,7 +92,7 @@ export function TaskDialog({
         folder_id: task.folder_id,
         status_id: task.status_id,
         start_date: task.start_date,
-        due_date: task.due_date || task.date,
+        due_date: task.due_date,
         time_estimate_minutes: task.time_estimate_minutes,
         labels: task.labels || [],
       });
