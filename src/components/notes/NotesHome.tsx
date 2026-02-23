@@ -67,6 +67,7 @@ export function NotesHome({
   const [renamingFolder, setRenamingFolder] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [activeTab, setActiveTab] = useState<'recent' | 'folders'>('recent');
+  const [orphansCollapsed, setOrphansCollapsed] = useState(false);
 
   // Filter pages
   const filteredPages = useMemo(() => {
@@ -182,7 +183,7 @@ export function NotesHome({
                     <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
                       {groupLabels[group]}
                     </h3>
-                    <div className="space-y-0.5">
+                    <div className="space-y-1">
                       {items.map(page => (
                         <PageListItem
                           key={page.id}
@@ -275,13 +276,13 @@ export function NotesHome({
                 const folderPages = pages.filter(p => p.folderId === folder.id && !p.isArchived && !p.parentId);
                 return (
                   <div key={folder.id} className="space-y-1">
-                    <div className="flex items-center gap-2 group">
+                   <div className="flex items-center gap-2 group">
                       <button
-                        className="flex items-center gap-2 flex-1 text-sm py-2 px-2 rounded-xl hover:bg-muted/50 transition-colors text-left"
+                        className="flex items-center gap-3 flex-1 text-base py-3 px-3 rounded-xl hover:bg-muted/50 transition-colors text-left"
                         onClick={() => onToggleFolder(folder.id)}
                       >
-                        {folder.isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-                        <FolderOpen className="h-4 w-4 text-primary/70" />
+                        {folder.isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                        <FolderOpen className="h-5 w-5 text-primary/70" />
                         {renamingFolder === folder.id ? (
                           <input
                             className="flex-1 bg-transparent outline-none text-sm"
@@ -295,7 +296,7 @@ export function NotesHome({
                         ) : (
                           <span className="flex-1 font-medium">{folder.name}</span>
                         )}
-                        <span className="text-xs text-muted-foreground">{folderPages.length}</span>
+                        <span className="text-sm text-muted-foreground">{folderPages.length}</span>
                       </button>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -348,23 +349,33 @@ export function NotesHome({
                 if (orphans.length === 0) return null;
                 return (
                   <div className="space-y-1">
-                    <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
-                      Sem pasta
-                    </h3>
-                    {orphans.map(page => (
-                      <PageListItem
-                        key={page.id}
-                        page={page}
-                        folderName={null}
-                        folders={folders}
-                        onSelect={() => onSelectPage(page.id)}
-                        onDelete={() => setDeleteTarget({ type: 'page', id: page.id })}
-                        onDuplicate={() => onDuplicatePage(page.id)}
-                        onArchive={() => onArchivePage(page.id)}
-                        onMoveToFolder={(fid) => onMoveToFolder(page.id, fid)}
-                        onToggleFavorite={() => onToggleFavorite(page.id)}
-                      />
-                    ))}
+                    <button
+                      onClick={() => setOrphansCollapsed(prev => !prev)}
+                      className="flex items-center gap-3 text-base py-3 px-3 rounded-xl hover:bg-muted/50 transition-colors text-left w-full"
+                    >
+                      {orphansCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      <FileText className="h-5 w-5 text-muted-foreground" />
+                      <span className="flex-1 font-medium">Sem pasta</span>
+                      <span className="text-sm text-muted-foreground">{orphans.length}</span>
+                    </button>
+                    {!orphansCollapsed && (
+                      <div className="ml-6 space-y-1">
+                        {orphans.map(page => (
+                          <PageListItem
+                            key={page.id}
+                            page={page}
+                            folderName={null}
+                            folders={folders}
+                            onSelect={() => onSelectPage(page.id)}
+                            onDelete={() => setDeleteTarget({ type: 'page', id: page.id })}
+                            onDuplicate={() => onDuplicatePage(page.id)}
+                            onArchive={() => onArchivePage(page.id)}
+                            onMoveToFolder={(fid) => onMoveToFolder(page.id, fid)}
+                            onToggleFavorite={() => onToggleFavorite(page.id)}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })()}
@@ -415,16 +426,16 @@ function PageListItem({ page, folderName, folders, onSelect, onDelete, onDuplica
     <div className="group flex items-center gap-1">
       <button
         onClick={onSelect}
-        className="flex items-center gap-3 flex-1 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors text-left min-w-0"
+        className="flex items-center gap-3 flex-1 px-3 py-3.5 rounded-xl hover:bg-muted/50 transition-colors text-left min-w-0"
       >
-        <span className="text-lg flex-shrink-0">
+        <span className="text-xl flex-shrink-0">
           {page.icon.startsWith('http') ? (
-            <img src={page.icon} alt="" className="w-5 h-5 rounded object-cover" />
+            <img src={page.icon} alt="" className="w-6 h-6 rounded object-cover" />
           ) : page.icon}
         </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium truncate">{page.title || 'Sem titulo'}</span>
+            <span className="text-base font-medium truncate">{page.title || 'Sem titulo'}</span>
             {page.isFavorite && <Star className="h-3 w-3 text-yellow-400 fill-yellow-400 flex-shrink-0" />}
           </div>
           {folderName && (
