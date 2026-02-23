@@ -1034,7 +1034,7 @@ function TaskTable({
     <div className="overflow-x-auto">
       {/* Table header */}
       <div 
-        className="flex items-center px-4 py-1 text-[11px] text-muted-foreground/70 border-b border-border/10 bg-muted/5 uppercase tracking-wide"
+        className="flex items-center px-4 py-1.5 text-[11px] text-muted-foreground/50 border-b border-border/5 uppercase tracking-wider font-medium"
         style={{ display: 'grid', gridTemplateColumns }}
       >
         <span></span>
