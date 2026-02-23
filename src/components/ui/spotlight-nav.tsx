@@ -41,7 +41,7 @@ const NavItem: React.FC<NavItemProps> = ({
       onClick={onClick}
       className={cn(
         "relative flex flex-col items-center justify-center transition-all duration-200",
-        vertical ? "min-h-[50px] py-1 px-2 w-full" : "min-w-[50px] py-1.5 px-1"
+        vertical ? "min-h-[56px] py-1.5 px-2 w-full" : "min-w-[56px] py-2 px-1.5"
       )}
       aria-label={label}
     >
