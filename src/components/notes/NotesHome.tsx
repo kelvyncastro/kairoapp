@@ -275,13 +275,13 @@ export function NotesHome({
                 const folderPages = pages.filter(p => p.folderId === folder.id && !p.isArchived && !p.parentId);
                 return (
                   <div key={folder.id} className="space-y-1">
-                    <div className="flex items-center gap-2 group">
+                   <div className="flex items-center gap-2 group">
                       <button
-                        className="flex items-center gap-2 flex-1 text-sm py-2 px-2 rounded-xl hover:bg-muted/50 transition-colors text-left"
+                        className="flex items-center gap-3 flex-1 text-base py-3 px-3 rounded-xl hover:bg-muted/50 transition-colors text-left"
                         onClick={() => onToggleFolder(folder.id)}
                       >
-                        {folder.isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-                        <FolderOpen className="h-4 w-4 text-primary/70" />
+                        {folder.isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                        <FolderOpen className="h-5 w-5 text-primary/70" />
                         {renamingFolder === folder.id ? (
                           <input
                             className="flex-1 bg-transparent outline-none text-sm"
