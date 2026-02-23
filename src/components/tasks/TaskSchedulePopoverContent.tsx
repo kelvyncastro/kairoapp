@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { X, CalendarClock } from "lucide-react";
 import { ptBR } from "date-fns/locale";
 import { addDays, addWeeks, addMonths, getDay, startOfMonth, endOfMonth } from "date-fns";
 
