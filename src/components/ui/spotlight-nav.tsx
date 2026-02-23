@@ -69,6 +69,14 @@ const NavItem: React.FC<NavItemProps> = ({
       )}>
         {label}
       </span>
+
+      {/* Active indicator dot */}
+      <div className={cn(
+        "mt-0.5 h-1 w-1 rounded-full transition-all duration-300",
+        isActive 
+          ? "bg-primary scale-100" 
+          : "bg-transparent scale-0"
+      )} />
     </button>
   );
 };
