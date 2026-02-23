@@ -162,8 +162,8 @@ export function TaskBoardView({
   };
 
   return (
-    <div className="flex-1 overflow-hidden p-3 md:p-4">
-      <div className="flex gap-3 md:gap-4 h-full overflow-x-auto">
+    <div className="flex-1 overflow-hidden p-2 md:p-3">
+      <div className="flex gap-2.5 md:gap-3 h-full overflow-x-auto">
         {sortedStatuses.map((status) => {
           const columnTasks = tasksByStatus[status.id] || [];
           const isEditing = editingStatusId === status.id;
@@ -171,7 +171,7 @@ export function TaskBoardView({
           return (
             <div
               key={status.id}
-              className="flex flex-col w-56 md:w-64 shrink-0 group/column h-full"
+              className="flex flex-col w-52 md:w-60 shrink-0 group/column h-full"
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, status.id)}
             >
@@ -236,17 +236,17 @@ export function TaskBoardView({
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 mb-3 px-1">
+                <div className="flex items-center gap-2 mb-2 px-1">
                   <span
-                    className="text-xs font-semibold px-2.5 py-1 rounded"
+                    className="text-[10px] font-bold px-2 py-0.5 rounded tracking-wide"
                     style={{ 
-                      backgroundColor: `${status.color}30`,
+                      backgroundColor: `${status.color}20`,
                       color: status.color 
                     }}
                   >
                     {status.name.toUpperCase()}
                   </span>
-                  <span className="text-xs text-muted-foreground">{columnTasks.length}</span>
+                  <span className="text-[10px] text-muted-foreground/60 font-medium">{columnTasks.length}</span>
                   
                   {/* Status options menu */}
                   {(onUpdateStatus || onDeleteStatus) && (
@@ -286,15 +286,15 @@ export function TaskBoardView({
               {/* Add task button */}
               <button
                 onClick={() => onCreateTask(status.id)}
-                className="flex items-center gap-2 px-3 py-2 mb-2 text-sm rounded-lg border border-dashed border-border/50 text-muted-foreground hover:text-foreground hover:border-border transition-colors"
-                style={{ color: status.color }}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 mb-1.5 text-xs rounded-md border border-dashed border-border/40 text-muted-foreground/60 hover:text-foreground hover:border-border/60 transition-colors"
+                style={{ color: `${status.color}80` }}
               >
-                <Plus className="h-4 w-4" />
-                <span>Adicionar Tarefa</span>
+                <Plus className="h-3.5 w-3.5" />
+                <span>Adicionar</span>
               </button>
 
               {/* Task cards - Scrollable */}
-              <div className="flex-1 space-y-2 overflow-y-auto pr-1">
+              <div className="flex-1 space-y-1.5 overflow-y-auto pr-0.5">
                 {columnTasks.map((task) => {
                   const priorityInfo = getPriorityLabel(task.priority);
                   const dueDate = formatDate(task.due_date || task.date);
@@ -305,12 +305,12 @@ export function TaskBoardView({
                       draggable
                       onDragStart={(e) => handleDragStart(e, task)}
                       className={cn(
-                        "group bg-card border border-border/30 rounded-lg p-3 cursor-grab active:cursor-grabbing hover:border-border/60 transition-colors",
-                        task.completed && "opacity-50"
+                        "group bg-card border border-border/20 rounded-lg p-2.5 cursor-grab active:cursor-grabbing hover:border-border/50 hover:shadow-sm transition-all",
+                        task.completed && "opacity-40"
                       )}
                     >
                       {/* Task header */}
-                      <div className="flex items-start gap-2 mb-2">
+                      <div className="flex items-start gap-2 mb-1.5">
                         <NeonCheckbox
                           checked={task.completed}
                           rounded={false}
@@ -425,7 +425,7 @@ export function TaskBoardView({
 
         {/* Add column button */}
         {onCreateStatus && (
-          <div className="w-56 md:w-64 shrink-0">
+          <div className="w-52 md:w-60 shrink-0">
             {isAddingStatus ? (
               <div className="space-y-3 p-3 bg-card border border-border/30 rounded-lg">
                 <Input
