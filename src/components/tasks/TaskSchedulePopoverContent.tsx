@@ -155,6 +155,11 @@ export function TaskSchedulePopoverContent({
 
   const [showDueDate, setShowDueDate] = useState(!!dueDate);
 
+  // Sync toggle state with actual dueDate prop (e.g. after saving/reopening)
+  useEffect(() => {
+    setShowDueDate(!!dueDate);
+  }, [dueDate]);
+
   const currentRule = recurringRule || "DAILY";
 
   const showStart = calendarMode === "both" || calendarMode === "start";
