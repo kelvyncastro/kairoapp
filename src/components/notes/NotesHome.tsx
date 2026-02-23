@@ -147,6 +147,17 @@ export function NotesHome({
             Recentes
           </button>
           <button
+            onClick={() => setActiveTab('pages')}
+            className={cn(
+              'px-3 py-2 text-xs font-medium transition-colors border-b-2 -mb-px',
+              activeTab === 'pages'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            )}
+          >
+            Páginas
+          </button>
+          <button
             onClick={() => setActiveTab('folders')}
             className={cn(
               'px-3 py-2 text-xs font-medium transition-colors border-b-2 -mb-px',
