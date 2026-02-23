@@ -1063,8 +1063,8 @@ function TaskTable({
         <div
           key={task.id}
           className={cn(
-            "group flex items-center px-4 py-2 hover:bg-muted/20 transition-colors border-b border-border/5",
-            task.completed && "opacity-50"
+            "group flex items-center px-4 py-1.5 hover:bg-muted/15 transition-colors border-b border-border/5",
+            task.completed && "opacity-40"
           )}
           style={{ display: 'grid', gridTemplateColumns }}
         >
