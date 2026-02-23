@@ -129,6 +129,7 @@ const App = () => {
                 </ErrorBoundary>
               </BrowserRouter>
             </TooltipProvider>
+              </NavPositionProvider>
           </SoundProvider>
         </UserProfileProvider>
       </AuthProvider>
