@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { ShoppingCart, Sparkles, RotateCcw, Copy, Plus, CheckCircle2, Archive, ArrowLeft, Trash2, DollarSign, Share2, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useNavPadding } from "@/hooks/useNavPadding";
 import {
   Dialog,
   DialogContent,
@@ -65,6 +66,7 @@ function normalizeItems(items: any[]): string[] {
 
 export default function ListaMercado() {
   const { user } = useAuth();
+  const { contentPaddingBottom } = useNavPadding();
   const [inputText, setInputText] = useState("");
   const [categories, setCategories] = useState<CategoryGroup[]>([]);
   const [loading, setLoading] = useState(false);
@@ -566,7 +568,7 @@ export default function ListaMercado() {
       </div>
 
       {/* Content - Scrollable */}
-      <div className="flex-1 overflow-y-auto min-h-0 px-4 md:px-6 pt-4 pb-2 space-y-4">
+      <div className={cn("flex-1 overflow-y-auto min-h-0 px-4 md:px-6 pt-4 pb-2 space-y-4", contentPaddingBottom)}>
         {/* Input Section */}
         <AnimatePresence mode="wait">
           {categories.length === 0 && (
@@ -675,17 +677,17 @@ export default function ListaMercado() {
           })}
         </AnimatePresence>
       </div>
-      </div>
 
-      {/* Confirm Purchase Button */}
-      {categories.length > 0 && (
-        <div className="flex-shrink-0 px-4 md:px-6 pb-4">
-          <Button size="lg" className="w-full gap-2" onClick={() => { setShowPurchaseDialog(true); setPurchaseAmount(""); }}>
-            <CheckCircle2 className="h-5 w-5" />
-            Confirmar Compra
-          </Button>
-        </div>
-      )}
+        {/* Confirm Purchase Button - inside scroll area */}
+        {categories.length > 0 && (
+          <div className="px-0 pb-4 pt-2">
+            <Button size="lg" className="w-full gap-2" onClick={() => { setShowPurchaseDialog(true); setPurchaseAmount(""); }}>
+              <CheckCircle2 className="h-5 w-5" />
+              Confirmar Compra
+            </Button>
+          </div>
+        )}
+      </div>
 
       {/* Purchase Amount Dialog */}
       <Dialog open={showPurchaseDialog} onOpenChange={(open) => { if (!confirmingPurchase) { setShowPurchaseDialog(open); if (!open) setPurchaseAmount(""); } }}>
