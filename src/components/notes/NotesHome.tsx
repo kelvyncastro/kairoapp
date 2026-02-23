@@ -426,7 +426,7 @@ function PageListItem({ page, folderName, folders, onSelect, onDelete, onDuplica
     <div className="group flex items-center gap-1">
       <button
         onClick={onSelect}
-        className="flex items-center gap-3 flex-1 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors text-left min-w-0"
+        className="flex items-center gap-3 flex-1 px-3 py-3.5 rounded-xl hover:bg-muted/50 transition-colors text-left min-w-0"
       >
         <span className="text-lg flex-shrink-0">
           {page.icon.startsWith('http') ? (
