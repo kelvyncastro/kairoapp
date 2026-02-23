@@ -1064,12 +1064,13 @@ function TaskTable({
       </div>
 
       {/* Task rows */}
-      {tasks.map((task) => (
+      {tasks.map((task, index) => (
         <div
           key={task.id}
           className={cn(
-            "group flex items-center px-4 py-1.5 hover:bg-muted/15 transition-colors border-b border-border/5",
-            task.completed && "opacity-40"
+            "group flex items-center px-4 py-2 hover:bg-muted/10 transition-all duration-150 border-b border-border/[0.03]",
+            task.completed && "opacity-30",
+            index % 2 === 0 && "bg-muted/[0.02]"
           )}
           style={{ display: 'grid', gridTemplateColumns }}
         >
