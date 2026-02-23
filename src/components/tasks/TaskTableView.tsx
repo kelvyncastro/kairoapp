@@ -310,7 +310,7 @@ export function TaskTableView({
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Column settings */}
-      <div className="flex justify-end gap-1.5 px-4 py-1 border-b border-border/10 flex-shrink-0 bg-muted/5">
+      <div className="flex justify-end gap-1.5 px-4 py-1.5 border-b border-border/10 flex-shrink-0">
         {/* Fechados toggle */}
         <Button
           variant="ghost"
