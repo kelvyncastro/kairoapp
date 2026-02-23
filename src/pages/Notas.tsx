@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from '@/components/ui/popover';
@@ -29,7 +29,33 @@ export default function Notas() {
   const store = useNotesStore();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useIsMobile();
+
+  // Sync selectedPageId with URL search param
+  useEffect(() => {
+    const pageIdFromUrl = searchParams.get('page');
+    if (pageIdFromUrl && !store.loading && pageIdFromUrl !== store.selectedPageId) {
+      // Check if the page exists
+      const exists = store.pages.some(p => p.id === pageIdFromUrl) || store.sharedPages.some(p => p.id === pageIdFromUrl);
+      if (exists) {
+        store.setSelectedPageId(pageIdFromUrl);
+      } else {
+        // Page not found, clear param
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [store.loading, searchParams]);
+
+  // Update URL when selected page changes
+  useEffect(() => {
+    const currentParam = searchParams.get('page');
+    if (store.selectedPageId && store.selectedPageId !== currentParam) {
+      setSearchParams({ page: store.selectedPageId }, { replace: true });
+    } else if (!store.selectedPageId && currentParam) {
+      setSearchParams({}, { replace: true });
+    }
+  }, [store.selectedPageId]);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [emojiSearch, setEmojiSearch] = useState('');
   const [emojiCategory, setEmojiCategory] = useState('frequent');
