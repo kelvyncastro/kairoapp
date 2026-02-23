@@ -36,13 +36,13 @@ const NavItem: React.FC<NavItemProps> = ({
   return (
     <button
       onClick={onClick}
-      className="relative flex flex-col items-center justify-center min-w-[56px] py-2 px-1 transition-all duration-300"
+      className="relative flex flex-col items-center justify-center min-w-[44px] py-1.5 px-0.5 transition-all duration-200"
       aria-label={label}
     >
       {/* Active glow */}
       {isActive && (
         <div 
-          className="absolute inset-0 rounded-xl blur-lg opacity-30"
+          className="absolute inset-1 rounded-lg blur-md opacity-25"
           style={{ 
             background: `radial-gradient(circle, hsl(var(--primary)) 0%, transparent 70%)`,
           }}
@@ -51,29 +51,21 @@ const NavItem: React.FC<NavItemProps> = ({
       
       {/* Icon */}
       <div className={cn(
-        "relative z-10 transition-all duration-300",
+        "relative z-10 transition-all duration-200",
         isActive 
-          ? "text-primary scale-110" 
-          : "text-muted-foreground"
+          ? "text-primary scale-105" 
+          : "text-muted-foreground/70"
       )}>
-        <Icon className="h-5 w-5" />
+        <Icon className="h-[18px] w-[18px]" />
       </div>
 
       {/* Label */}
       <span className={cn(
-        "mt-0.5 text-[9px] font-medium transition-colors duration-300 whitespace-nowrap",
-        isActive ? "text-primary" : "text-muted-foreground"
+        "mt-0.5 text-[8px] font-medium transition-colors duration-200 whitespace-nowrap leading-none",
+        isActive ? "text-primary" : "text-muted-foreground/60"
       )}>
         {label}
       </span>
-
-      {/* Active indicator dot */}
-      <div className={cn(
-        "mt-0.5 h-1 w-1 rounded-full transition-all duration-300",
-        isActive 
-          ? "bg-primary scale-100" 
-          : "bg-transparent scale-0"
-      )} />
     </button>
   );
 };
