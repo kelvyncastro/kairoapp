@@ -231,8 +231,8 @@ export function TaskSchedulePopoverContent({
         </section>
       )}
 
-      {/* Due date toggle - only in "both" mode */}
-      {calendarMode === "both" && (
+      {/* Due date toggle */}
+      {showToggles && (
         <div className="border-t pt-3 space-y-3">
           <div className="flex items-center justify-between">
             <Label className="flex items-center gap-2 text-sm">📅 Definir vencimento</Label>
