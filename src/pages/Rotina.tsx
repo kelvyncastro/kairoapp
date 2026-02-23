@@ -222,13 +222,13 @@ export default function Rotina() {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden bg-background">
-        {/* Header - more compact */}
-        <div className="flex items-center justify-between px-4 md:px-6 py-2.5 border-b border-border/20">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-border/10">
           <div className="flex items-center gap-3">
             {/* Mobile folder button */}
             <Sheet open={folderSheetOpen} onOpenChange={setFolderSheetOpen}>
               <SheetTrigger asChild className="md:hidden">
-                <Button variant="outline" size="sm" className="gap-2 h-8">
+                <Button variant="outline" size="sm" className="gap-2 h-8 border-border/30">
                   <FolderOpen className="h-4 w-4" />
                   <span className="max-w-24 truncate">
                     {selectedFolder?.name || 'Todas'}
@@ -248,22 +248,17 @@ export default function Rotina() {
               </SheetContent>
             </Sheet>
             
-            <div>
-              <h1 className="text-lg md:text-xl font-bold leading-tight">Tarefas</h1>
-            </div>
-          </div>
-
-          {/* Stats pills */}
-          <div className="flex items-center gap-2">
-            <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/40 rounded-lg px-2.5 py-1">
-              <span className="font-semibold text-foreground">{filteredTasks.filter(t => !t.completed).length}</span>
-              <span>pendentes</span>
+            <div className="flex items-center gap-3">
+              <h1 className="text-lg md:text-xl font-bold leading-tight tracking-tight">Tarefas</h1>
+              <div className="hidden sm:flex items-center gap-1.5 text-[11px] bg-primary/10 text-primary rounded-full px-2.5 py-0.5 font-semibold">
+                {filteredTasks.filter(t => !t.completed).length} pendentes
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Toolbar - tighter */}
-        <div className="flex items-center gap-2 px-4 md:px-6 py-1.5 border-b border-border/15 overflow-x-auto bg-muted/5">
+        {/* Toolbar */}
+        <div className="flex items-center gap-2 px-4 md:px-6 py-2 border-b border-border/10 overflow-x-auto">
           {/* View mode */}
           <div className="flex items-center bg-muted/40 rounded-lg p-0.5 shrink-0">
             <Button 
