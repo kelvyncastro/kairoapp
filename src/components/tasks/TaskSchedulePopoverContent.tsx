@@ -159,6 +159,7 @@ export function TaskSchedulePopoverContent({
 
   const showStart = calendarMode === "both" || calendarMode === "start";
   const showDue = calendarMode === "due";
+  const showToggles = calendarMode === "both" || calendarMode === "start";
 
   // Base date to compute recurrence highlights (prefer start, fallback to due)
   const baseRecurrenceDate = selectedStart || selectedDue;
