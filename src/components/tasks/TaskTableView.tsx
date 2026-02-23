@@ -363,35 +363,35 @@ export function TaskTableView({
         const folderTasks = groupedTasks[folder.id] || [];
 
         return (
-          <div key={folder.id} className="border-b border-border/20">
+          <div key={folder.id} className="border-b border-border/10">
             {/* Folder header */}
             <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-10">
               <button
                 onClick={() => toggleFolder(folder.id)}
-                className="w-full flex items-center gap-2 px-4 py-3 hover:bg-muted/30 transition-colors"
+                className="w-full flex items-center gap-2 px-4 py-2 hover:bg-muted/20 transition-colors"
               >
                 {isFolderExpanded(folder.id) ? (
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
                 ) : (
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
                 )}
                 <FolderIconRenderer 
                   icon={folder.icon} 
                   color={folder.color}
-                  className="h-4 w-4"
+                  className="h-3.5 w-3.5"
                 />
-                <span className="font-medium">{folder.name}</span>
+                <span className="font-medium text-sm">{folder.name}</span>
                 <span 
-                  className="text-xs font-medium px-2 py-0.5 rounded"
+                  className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
                   style={{ 
-                    backgroundColor: `${folder.color}30`,
+                    backgroundColor: `${folder.color}20`,
                     color: folder.color 
                   }}
                 >
-                  {folder.name.toUpperCase()}
+                  {folderTasks.length}
                 </span>
-                <span className="text-xs text-muted-foreground ml-auto">
-                  {folderTasks.length} tarefas
+                <span className="text-[11px] text-muted-foreground/60 ml-auto">
+                  {folderTasks.filter(t => t.completed).length}/{folderTasks.length}
                 </span>
               </button>
             </div>
