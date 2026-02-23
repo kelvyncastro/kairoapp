@@ -428,14 +428,14 @@ function PageListItem({ page, folderName, folders, onSelect, onDelete, onDuplica
         onClick={onSelect}
         className="flex items-center gap-3 flex-1 px-3 py-3.5 rounded-xl hover:bg-muted/50 transition-colors text-left min-w-0"
       >
-        <span className="text-lg flex-shrink-0">
+        <span className="text-xl flex-shrink-0">
           {page.icon.startsWith('http') ? (
-            <img src={page.icon} alt="" className="w-5 h-5 rounded object-cover" />
+            <img src={page.icon} alt="" className="w-6 h-6 rounded object-cover" />
           ) : page.icon}
         </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium truncate">{page.title || 'Sem titulo'}</span>
+            <span className="text-base font-medium truncate">{page.title || 'Sem titulo'}</span>
             {page.isFavorite && <Star className="h-3 w-3 text-yellow-400 fill-yellow-400 flex-shrink-0" />}
           </div>
           {folderName && (
