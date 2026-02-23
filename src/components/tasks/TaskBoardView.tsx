@@ -236,17 +236,18 @@ export function TaskBoardView({
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 mb-2 px-1">
+                <div className="flex items-center gap-2 mb-2.5 px-1">
+                  <div
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ backgroundColor: status.color }}
+                  />
                   <span
-                    className="text-[10px] font-bold px-2 py-0.5 rounded tracking-wide"
-                    style={{ 
-                      backgroundColor: `${status.color}20`,
-                      color: status.color 
-                    }}
+                    className="text-[11px] font-semibold tracking-wide"
+                    style={{ color: status.color }}
                   >
                     {status.name.toUpperCase()}
                   </span>
-                  <span className="text-[10px] text-muted-foreground/60 font-medium">{columnTasks.length}</span>
+                  <span className="text-[10px] text-muted-foreground/40 font-medium">{columnTasks.length}</span>
                   
                   {/* Status options menu */}
                   {(onUpdateStatus || onDeleteStatus) && (
