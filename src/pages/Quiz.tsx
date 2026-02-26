@@ -603,7 +603,12 @@ export default function Quiz() {
                           }`}
                         >
                           <span className="text-lg flex-shrink-0">{opt.icon}</span>
-                          <span className="font-medium text-[13px] leading-snug flex-1">{opt.label}</span>
+                          <div className="flex-1 min-w-0">
+                            <span className="block font-semibold text-[13px] leading-snug">{opt.label}</span>
+                            {opt.description && (
+                              <span className="block text-[11px] text-muted-foreground leading-snug mt-0.5">{opt.description}</span>
+                            )}
+                          </div>
                           {q.multiSelect && (
                             <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all ${
                               isMultiSelected ? "border-primary bg-primary" : "border-muted-foreground/20"
