@@ -458,24 +458,24 @@ export default function Quiz() {
             </motion.div>
 
             {/* Title */}
-            <motion.h1
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="text-[22px] sm:text-3xl font-bold leading-tight mb-2.5"
-            >
-              Descubra seu perfil de produtividade
-            </motion.h1>
+              <motion.h1
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="text-[22px] sm:text-3xl font-bold leading-tight mb-2.5"
+              >
+                Descubra seu estilo de produtividade
+              </motion.h1>
 
-            {/* Subtitle */}
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="text-[13px] text-muted-foreground leading-relaxed mb-6 max-w-[280px]"
-            >
-              Responda 6 perguntas rápidas e receba recomendações personalizadas.
-            </motion.p>
+              {/* Subtitle */}
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                className="text-[13px] text-muted-foreground leading-relaxed mb-6 max-w-[300px]"
+              >
+                Em 3 minutos, entenda qual é a melhor forma de organizar sua vida e quais ferramentas da Kairo são perfeitas para você.
+              </motion.p>
 
             {/* Social proof */}
             <motion.div
