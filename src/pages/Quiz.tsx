@@ -615,7 +615,7 @@ export default function Quiz() {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", damping: 10, delay: 0.2 }}
-                className="text-6xl mb-4"
+                className="text-5xl sm:text-6xl mb-3"
               >
                 {profile?.emoji}
               </motion.div>
