@@ -642,7 +642,7 @@ export default function Quiz() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="bg-card border border-border rounded-xl p-6 mb-6 text-left"
+                className="bg-card border border-border rounded-xl p-4 sm:p-6 mb-4 sm:mb-6 text-left"
               >
                 <h3 className="font-semibold mb-3">
                   📌 Módulos recomendados para você:
