@@ -536,7 +536,7 @@ export default function Quiz() {
                           onClick={() => handleSelect(idx)}
                           whileHover={{ scale: 1.01 }}
                           whileTap={{ scale: 0.98 }}
-                          className={`flex items-center gap-4 w-full text-left p-4 rounded-xl border transition-all duration-200 ${
+                          className={`flex items-center gap-3 w-full text-left p-3 sm:p-4 rounded-xl border transition-all duration-200 ${
                             isMultiSelected
                               ? "border-primary bg-primary/10"
                               : "border-border bg-card hover:border-muted-foreground/40 hover:bg-accent/50"
