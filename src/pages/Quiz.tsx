@@ -713,7 +713,7 @@ export default function Quiz() {
   };
 
   const profile = finished ? determineProfile(answers) : null;
-  const feedbackText = selectedOption !== null ? q.options[selectedOption].feedback : "";
+  const feedbackData = selectedOption !== null ? q.options[selectedOption].feedback : null;
 
   // ── Splash Screen ──
   if (!started) {
