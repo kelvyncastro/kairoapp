@@ -527,7 +527,7 @@ export default function Quiz() {
                   </h2>
 
                   {/* Options */}
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-2 sm:gap-3">
                     {q.options.map((opt, idx) => {
                       const isMultiSelected = multiSelected.includes(idx);
                       return (
