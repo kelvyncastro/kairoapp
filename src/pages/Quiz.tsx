@@ -503,7 +503,7 @@ export default function Quiz() {
       </header>
 
       {/* Content */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-8">
+      <main className="flex-1 flex flex-col items-center px-3 sm:px-4 py-4 sm:py-8 overflow-y-auto">
         <AnimatePresence mode="wait">
           {!finished ? (
             <motion.div
