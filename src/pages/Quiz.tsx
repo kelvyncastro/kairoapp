@@ -932,31 +932,67 @@ export default function Quiz() {
                   )}
                 </>
               ) : (
-                /* Feedback */
-                <div className="flex flex-col items-center text-center pt-6">
-                  <motion.div
-                    initial={{ scale: 0, rotate: -15 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ type: "spring", damping: 10, stiffness: 180 }}
-                    className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 shadow-lg shadow-primary/10"
-                  >
-                    <Sparkles className="h-5 w-5 text-primary" />
-                  </motion.div>
+                /* Feedback - Structured Card */
+                <div className="flex flex-col pt-2 pb-4">
+                  {feedbackData && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.35, ease: "easeOut" }}
+                      className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl overflow-hidden"
+                    >
+                      {/* Header */}
+                      <div className="px-4 pt-4 pb-3 border-b border-border/20 bg-primary/5">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                            <Sparkles className="h-4 w-4 text-primary" />
+                          </div>
+                          <h3 className="text-[15px] font-bold leading-tight">{feedbackData.title}</h3>
+                        </div>
+                        <p className="text-[12px] text-muted-foreground leading-relaxed">{feedbackData.insight}</p>
+                      </div>
 
-                  <motion.p
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.12 }}
-                    className="text-muted-foreground text-[13px] leading-relaxed max-w-[280px] mb-6"
-                  >
-                    {feedbackText}
-                  </motion.p>
+                      {/* Steps */}
+                      <div className="px-4 py-3 border-b border-border/20">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-primary/70 mb-2">
+                          {feedbackData.stepsLabel || "Faça AGORA"}
+                        </p>
+                        <div className="space-y-2">
+                          {feedbackData.steps.map((step, i) => (
+                            <motion.div
+                              key={i}
+                              initial={{ opacity: 0, x: -8 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.15 + i * 0.06 }}
+                              className="flex items-start gap-2.5"
+                            >
+                              <span className="flex-shrink-0 w-5 h-5 rounded-md bg-secondary/80 flex items-center justify-center text-[10px] font-bold text-foreground/70 mt-0.5">
+                                {i + 1}
+                              </span>
+                              <span className="text-[12px] leading-snug text-foreground/90">{step}</span>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
 
+                      {/* Kairo Tip */}
+                      <div className="px-4 py-3 bg-primary/[0.03]">
+                        <div className="flex items-start gap-2">
+                          <img src={kairoLogo} alt="Kairo" className="w-4 h-4 rounded-sm mt-0.5 flex-shrink-0" />
+                          <p className="text-[11px] text-muted-foreground leading-relaxed">
+                            <span className="font-semibold text-foreground/80">Na Kairo:</span> {feedbackData.kairoTip}
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Next Button */}
                   <motion.div
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.25 }}
-                    className="w-full"
+                    transition={{ delay: 0.3 }}
+                    className="mt-4"
                   >
                     <Button onClick={handleNext} className="w-full h-11 rounded-xl gap-2 text-sm font-semibold">
                       {currentQ < totalQ - 1 ? "Próxima pergunta" : "Ver meu resultado"}
