@@ -591,7 +591,7 @@ export default function Quiz() {
                     <Sparkles className="h-5 w-5 sm:h-7 sm:w-7 text-primary" />
                   </motion.div>
 
-                  <p className="text-muted-foreground text-sm sm:text-base leading-relaxed max-w-md mx-auto mb-8">
+                  <p className="text-muted-foreground text-sm leading-relaxed max-w-md mx-auto mb-6 sm:mb-8">
                     {feedbackText}
                   </p>
 
