@@ -517,12 +517,12 @@ export default function Quiz() {
               {!showFeedback ? (
                 <>
                   {/* Category label */}
-                  <p className="text-xs font-semibold tracking-widest text-primary text-center mb-4 uppercase">
+                  <p className="text-xs font-semibold tracking-widest text-primary text-center mb-2 sm:mb-4 uppercase">
                     {q.category}
                   </p>
 
                   {/* Question */}
-                  <h2 className="text-xl sm:text-2xl font-bold text-center mb-10 leading-snug">
+                  <h2 className="text-lg sm:text-2xl font-bold text-center mb-5 sm:mb-10 leading-snug">
                     {q.question}
                   </h2>
 
