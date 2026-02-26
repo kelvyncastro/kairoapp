@@ -542,7 +542,7 @@ export default function Quiz() {
                               : "border-border bg-card hover:border-muted-foreground/40 hover:bg-accent/50"
                           }`}
                         >
-                          <span className="text-2xl flex-shrink-0">
+                          <span className="text-xl sm:text-2xl flex-shrink-0">
                             {opt.icon}
                           </span>
                           <div className="flex-1 min-w-0">
