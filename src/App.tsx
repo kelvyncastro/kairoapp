@@ -35,6 +35,7 @@ import ListaMercado from "./pages/ListaMercado";
 import ListaMercadoCompartilhada from "./pages/ListaMercadoCompartilhada";
 import Privacidade from "./pages/Privacidade";
 import Termos from "./pages/Termos";
+import Quiz from "./pages/Quiz";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1 } },
