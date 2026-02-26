@@ -91,6 +91,7 @@ const App = () => {
                     <Route path="/privacidade" element={<Privacidade />} />
                     <Route path="/termos" element={<Termos />} />
                     <Route path="/lista/:shareCode" element={<ListaMercadoCompartilhada />} />
+                    <Route path="/quiz" element={<Quiz />} />
                     <Route path="/primeiro-acesso" element={
                       <ProtectedRoute>
                         <PrimeiroAcesso />
