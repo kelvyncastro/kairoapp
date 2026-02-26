@@ -462,7 +462,7 @@ export default function Quiz() {
     <div className="min-h-[100dvh] bg-background text-foreground flex flex-col">
       {/* Header */}
       <header className="w-full border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-4">
+        <div className="max-w-2xl mx-auto px-3 sm:px-4 py-2 sm:py-3 flex items-center gap-3">
           {currentQ > 0 && !showFeedback && !finished ? (
             <button
               onClick={handleBack}
