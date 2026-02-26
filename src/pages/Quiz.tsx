@@ -11,41 +11,38 @@ import { Link } from "react-router-dom";
 function AnimatedBackground() {
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-      {/* Floating orbs */}
-      {[...Array(6)].map((_, i) => (
+      {[...Array(5)].map((_, i) => (
         <motion.div
           key={i}
-          className="absolute rounded-full bg-primary/[0.04]"
+          className="absolute rounded-full bg-primary/[0.03]"
           style={{
-            width: `${120 + i * 60}px`,
-            height: `${120 + i * 60}px`,
+            width: `${100 + i * 50}px`,
+            height: `${100 + i * 50}px`,
             left: `${(i * 23) % 80}%`,
             top: `${(i * 31) % 80}%`,
           }}
           animate={{
-            x: [0, 30 * (i % 2 === 0 ? 1 : -1), 0],
-            y: [0, 20 * (i % 2 === 0 ? -1 : 1), 0],
-            scale: [1, 1.1, 1],
-            opacity: [0.3, 0.6, 0.3],
+            x: [0, 20 * (i % 2 === 0 ? 1 : -1), 0],
+            y: [0, 15 * (i % 2 === 0 ? -1 : 1), 0],
+            scale: [1, 1.08, 1],
+            opacity: [0.3, 0.5, 0.3],
           }}
           transition={{
-            duration: 8 + i * 2,
+            duration: 10 + i * 2,
             repeat: Infinity,
             ease: "easeInOut",
-            delay: i * 0.8,
+            delay: i * 0.5,
           }}
         />
       ))}
-      {/* Subtle grid */}
       <div
-        className="absolute inset-0 opacity-[0.02]"
+        className="absolute inset-0 opacity-[0.015]"
         style={{
           backgroundImage: `radial-gradient(circle, hsl(var(--primary)) 1px, transparent 1px)`,
-          backgroundSize: "40px 40px",
+          backgroundSize: "32px 32px",
         }}
       />
-      {/* Top glow */}
-      <div className="absolute top-[-40%] left-1/2 -translate-x-1/2 w-[120vw] h-[60vh] rounded-full bg-primary/[0.06] blur-[120px]" />
+      <div className="absolute top-[-30%] left-1/2 -translate-x-1/2 w-[100vw] h-[50vh] rounded-full bg-primary/[0.05] blur-[100px]" />
     </div>
   );
 }
@@ -241,7 +238,7 @@ export default function Quiz() {
       <div className="min-h-[100dvh] bg-background text-foreground flex flex-col relative overflow-hidden">
         <AnimatedBackground />
 
-        <main className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
+        <main className="flex-1 flex flex-col items-center justify-center px-5 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -253,10 +250,10 @@ export default function Quiz() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", damping: 12, delay: 0.2 }}
-              className="mb-8"
+              className="mb-6"
             >
-              <div className="w-20 h-20 rounded-3xl bg-card/80 backdrop-blur-xl border border-border/40 flex items-center justify-center shadow-2xl shadow-primary/10">
-                <img src={kairoLogo} alt="Kairo" className="w-12 h-12 rounded-xl" />
+              <div className="w-16 h-16 rounded-2xl bg-card/80 backdrop-blur-xl border border-border/40 flex items-center justify-center shadow-2xl shadow-primary/10">
+                <img src={kairoLogo} alt="Kairo" className="w-10 h-10 rounded-lg" />
               </div>
             </motion.div>
 
@@ -265,10 +262,10 @@ export default function Quiz() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4 }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/8 border border-primary/15 mb-5"
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/8 border border-primary/15 mb-4"
             >
               <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              <span className="text-[10px] font-bold tracking-[0.15em] text-primary/80 uppercase">
+              <span className="text-[10px] font-bold tracking-[0.12em] text-primary/80 uppercase">
                 Quiz personalizado
               </span>
             </motion.div>
@@ -278,7 +275,7 @@ export default function Quiz() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className="text-2xl sm:text-3xl font-bold leading-tight mb-3"
+              className="text-[22px] sm:text-3xl font-bold leading-tight mb-2.5"
             >
               Descubra seu perfil de produtividade
             </motion.h1>
@@ -288,9 +285,9 @@ export default function Quiz() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
-              className="text-sm text-muted-foreground leading-relaxed mb-8 max-w-xs"
+              className="text-[13px] text-muted-foreground leading-relaxed mb-6 max-w-[280px]"
             >
-              Responda 6 perguntas rápidas e receba recomendações personalizadas para organizar sua vida.
+              Responda 6 perguntas rápidas e receba recomendações personalizadas.
             </motion.p>
 
             {/* Social proof */}
@@ -298,14 +295,12 @@ export default function Quiz() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.7 }}
-              className="flex items-center gap-1.5 mb-6"
+              className="flex items-center gap-1.5 mb-5"
             >
               {[...Array(5)].map((_, i) => (
-                <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                <Star key={i} className="h-3 w-3 fill-amber-400 text-amber-400" />
               ))}
-              <span className="text-xs text-muted-foreground ml-1">
-                +500 pessoas já fizeram
-              </span>
+              <span className="text-[11px] text-muted-foreground ml-1">+500 já fizeram</span>
             </motion.div>
 
             {/* CTA */}
@@ -317,19 +312,19 @@ export default function Quiz() {
             >
               <Button
                 onClick={() => setStarted(true)}
-                className="w-full h-14 rounded-2xl text-sm font-bold tracking-wide uppercase gap-2 shadow-xl shadow-primary/20"
+                className="w-full h-12 rounded-2xl text-sm font-bold tracking-wide uppercase gap-2 shadow-xl shadow-primary/20"
               >
                 Começar agora
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </motion.div>
 
-            {/* Time estimate */}
+            {/* Time */}
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.9 }}
-              className="text-[11px] text-muted-foreground/60 mt-4"
+              className="text-[11px] text-muted-foreground/50 mt-3"
             >
               ⏱ Leva menos de 2 minutos
             </motion.p>
@@ -345,25 +340,25 @@ export default function Quiz() {
       <AnimatedBackground />
 
       {/* Header */}
-      <header className="w-full bg-background/60 backdrop-blur-2xl sticky top-0 z-50 border-b border-border/20">
-        <div className="max-w-lg mx-auto px-4 py-3 flex items-center">
+      <header className="w-full bg-background/60 backdrop-blur-2xl sticky top-0 z-50 border-b border-border/20 safe-area-top">
+        <div className="max-w-lg mx-auto px-4 py-2.5 flex items-center">
           {currentQ > 0 && !showFeedback && !finished ? (
-            <button onClick={handleBack} className="p-1.5 -ml-1.5 rounded-full hover:bg-accent transition-colors">
+            <button onClick={handleBack} className="p-1 -ml-1 rounded-full active:bg-accent transition-colors">
               <ChevronLeft className="h-5 w-5 text-muted-foreground" />
             </button>
           ) : (
-            <div className="w-8" />
+            <div className="w-7" />
           )}
           <div className="flex-1 flex justify-center">
-            <img src={kairoLogo} alt="Kairo" className="h-6 w-6 rounded-md" />
+            <img src={kairoLogo} alt="Kairo" className="h-5 w-5 rounded-md" />
           </div>
-          <span className="text-[11px] text-muted-foreground font-semibold tabular-nums w-8 text-right">
+          <span className="text-[11px] text-muted-foreground font-semibold tabular-nums w-7 text-right">
             {finished ? totalQ : currentQ + 1}/{totalQ}
           </span>
         </div>
 
         {/* Progress */}
-        <div className="max-w-lg mx-auto px-4 pb-2.5">
+        <div className="max-w-lg mx-auto px-4 pb-2">
           <div className="flex gap-1">
             {Array.from({ length: totalQ }).map((_, i) => (
               <div key={i} className="flex-1 h-[3px] rounded-full overflow-hidden bg-muted/40">
@@ -380,26 +375,26 @@ export default function Quiz() {
       </header>
 
       {/* Content */}
-      <main className="flex-1 flex flex-col items-center px-4 py-5 overflow-y-auto relative z-10">
+      <main className="flex-1 flex flex-col items-center px-4 py-4 overflow-y-auto relative z-10">
         <AnimatePresence mode="wait">
           {!finished ? (
             <motion.div
               key={`q-${currentQ}-${showFeedback ? "fb" : "q"}`}
-              initial={{ opacity: 0, y: 24 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.35, ease: "easeOut" }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
               className="w-full max-w-lg"
             >
               {!showFeedback ? (
                 <>
                   {/* Question */}
-                  <div className="mb-6">
-                    <h2 className="text-lg sm:text-xl font-bold text-center leading-snug mb-1.5">
+                  <div className="mb-4">
+                    <h2 className="text-[17px] sm:text-xl font-bold text-center leading-snug mb-1">
                       {q.question}
                     </h2>
                     {q.subtitle && (
-                      <p className="text-xs text-muted-foreground text-center">{q.subtitle}</p>
+                      <p className="text-[11px] text-muted-foreground text-center">{q.subtitle}</p>
                     )}
                   </div>
 
@@ -411,23 +406,20 @@ export default function Quiz() {
                         <motion.button
                           key={idx}
                           onClick={() => handleSelect(idx)}
-                          initial={{ opacity: 0, y: 10 }}
+                          initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: idx * 0.04, duration: 0.3 }}
-                          whileTap={{ scale: 0.97 }}
-                          className={`group flex items-center gap-3.5 w-full text-left px-4 py-3.5 rounded-2xl border transition-all duration-200 ${
+                          transition={{ delay: idx * 0.03, duration: 0.25 }}
+                          className={`group flex items-center gap-3 w-full text-left px-3.5 py-3 rounded-xl border transition-all duration-150 active:scale-[0.98] ${
                             isMultiSelected
-                              ? "border-primary/40 bg-primary/8 shadow-[0_0_24px_-6px] shadow-primary/15"
-                              : "border-border/40 bg-card/40 backdrop-blur-sm active:bg-accent/50"
+                              ? "border-primary/40 bg-primary/8 shadow-[0_0_20px_-6px] shadow-primary/15"
+                              : "border-border/30 bg-card/40 backdrop-blur-sm active:bg-accent/40"
                           }`}
                         >
-                          <span className="text-xl flex-shrink-0 group-active:scale-110 transition-transform">
-                            {opt.icon}
-                          </span>
+                          <span className="text-lg flex-shrink-0">{opt.icon}</span>
                           <span className="font-medium text-[13px] leading-snug flex-1">{opt.label}</span>
                           {q.multiSelect && (
                             <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                              isMultiSelected ? "border-primary bg-primary scale-105" : "border-muted-foreground/25"
+                              isMultiSelected ? "border-primary bg-primary" : "border-muted-foreground/20"
                             }`}>
                               {isMultiSelected && <Check className="h-3 w-3 text-primary-foreground" />}
                             </div>
@@ -439,15 +431,11 @@ export default function Quiz() {
 
                   {/* Multi-select continue */}
                   {q.multiSelect && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="mt-5"
-                    >
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4">
                       <Button
                         onClick={handleMultiContinue}
                         disabled={multiSelected.length === 0}
-                        className="w-full h-12 rounded-2xl gap-2 text-sm font-semibold disabled:opacity-30"
+                        className="w-full h-11 rounded-xl gap-2 text-sm font-semibold disabled:opacity-30"
                       >
                         Continuar
                         <ArrowRight className="h-4 w-4" />
@@ -457,21 +445,21 @@ export default function Quiz() {
                 </>
               ) : (
                 /* Feedback */
-                <div className="flex flex-col items-center text-center pt-8">
+                <div className="flex flex-col items-center text-center pt-6">
                   <motion.div
                     initial={{ scale: 0, rotate: -15 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ type: "spring", damping: 10, stiffness: 180 }}
-                    className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-5 shadow-lg shadow-primary/10"
+                    className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 shadow-lg shadow-primary/10"
                   >
-                    <Sparkles className="h-6 w-6 text-primary" />
+                    <Sparkles className="h-5 w-5 text-primary" />
                   </motion.div>
 
                   <motion.p
-                    initial={{ opacity: 0, y: 8 }}
+                    initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.15 }}
-                    className="text-muted-foreground text-[13px] leading-relaxed max-w-xs mb-8"
+                    transition={{ delay: 0.12 }}
+                    className="text-muted-foreground text-[13px] leading-relaxed max-w-[280px] mb-6"
                   >
                     {feedbackText}
                   </motion.p>
@@ -479,10 +467,10 @@ export default function Quiz() {
                   <motion.div
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
+                    transition={{ delay: 0.25 }}
                     className="w-full"
                   >
-                    <Button onClick={handleNext} className="w-full h-12 rounded-2xl gap-2 text-sm font-semibold">
+                    <Button onClick={handleNext} className="w-full h-11 rounded-xl gap-2 text-sm font-semibold">
                       {currentQ < totalQ - 1 ? "Próxima pergunta" : "Ver meu resultado"}
                       <ArrowRight className="h-4 w-4" />
                     </Button>
@@ -500,15 +488,15 @@ export default function Quiz() {
               className="w-full max-w-lg"
             >
               {/* Profile card */}
-              <div className="relative rounded-3xl border border-border/30 overflow-hidden mb-4">
+              <div className="relative rounded-2xl border border-border/30 overflow-hidden mb-3">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/5" />
                 <div className="absolute inset-0 bg-card/60 backdrop-blur-2xl" />
-                <div className="relative z-10 p-6 text-center">
+                <div className="relative z-10 p-5 text-center">
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", damping: 10, delay: 0.2 }}
-                    className="text-5xl mb-3"
+                    className="text-4xl mb-2"
                   >
                     {profile?.emoji}
                   </motion.div>
@@ -517,16 +505,16 @@ export default function Quiz() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/8 border border-primary/15 mb-2"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/8 border border-primary/15 mb-1.5"
                   >
-                    <span className="text-[9px] font-bold tracking-[0.15em] text-primary/70 uppercase">Seu perfil</span>
+                    <span className="text-[9px] font-bold tracking-[0.12em] text-primary/70 uppercase">Seu perfil</span>
                   </motion.div>
 
                   <motion.h2
-                    initial={{ opacity: 0, y: 12 }}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.35 }}
-                    className="text-xl font-bold mb-2"
+                    className="text-lg font-bold mb-1.5"
                   >
                     {profile?.title}
                   </motion.h2>
@@ -535,7 +523,7 @@ export default function Quiz() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.45 }}
-                    className="text-sm text-muted-foreground leading-relaxed"
+                    className="text-xs text-muted-foreground leading-relaxed"
                   >
                     {profile?.description}
                   </motion.p>
@@ -544,17 +532,17 @@ export default function Quiz() {
 
               {/* Modules */}
               <motion.div
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="bg-card/50 backdrop-blur-sm border border-border/25 rounded-2xl p-4 mb-3"
+                className="bg-card/50 backdrop-blur-sm border border-border/25 rounded-xl p-3.5 mb-2.5"
               >
-                <p className="text-xs font-semibold mb-3 flex items-center gap-2">
+                <p className="text-[11px] font-semibold mb-2 flex items-center gap-1.5">
                   <span>📌</span> Módulos recomendados
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {profile?.modules.map((m) => (
-                    <span key={m} className="px-3 py-1.5 bg-primary/8 text-primary text-xs font-semibold rounded-xl border border-primary/15">
+                    <span key={m} className="px-2.5 py-1 bg-primary/8 text-primary text-[11px] font-semibold rounded-lg border border-primary/15">
                       {m}
                     </span>
                   ))}
@@ -563,34 +551,34 @@ export default function Quiz() {
 
               {/* Tip */}
               <motion.div
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.55 }}
-                className="bg-card/50 backdrop-blur-sm border border-border/25 rounded-2xl p-4 mb-3"
+                className="bg-card/50 backdrop-blur-sm border border-border/25 rounded-xl p-3.5 mb-2.5"
               >
-                <p className="text-xs font-semibold mb-1.5 flex items-center gap-2">
+                <p className="text-[11px] font-semibold mb-1 flex items-center gap-1.5">
                   <span>💡</span> Dica para começar
                 </p>
-                <p className="text-xs text-muted-foreground leading-relaxed">{profile?.tip}</p>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">{profile?.tip}</p>
               </motion.div>
 
               {/* Steps */}
               <motion.div
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
-                className="bg-card/50 backdrop-blur-sm border border-border/25 rounded-2xl p-4 mb-6"
+                className="bg-card/50 backdrop-blur-sm border border-border/25 rounded-xl p-3.5 mb-5"
               >
-                <p className="text-xs font-semibold mb-3 flex items-center gap-2">
+                <p className="text-[11px] font-semibold mb-2.5 flex items-center gap-1.5">
                   <span>🚀</span> Próximos passos
                 </p>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {["Comece com o módulo recomendado", "Dedique 5 min para explorar", "Crie seu primeiro item", "Mantenha consistência por 7 dias"].map((step, i) => (
-                    <div key={i} className="flex items-center gap-2.5">
-                      <div className="w-5 h-5 rounded-full bg-primary/10 border border-primary/15 flex items-center justify-center flex-shrink-0">
-                        <span className="text-[9px] font-bold text-primary">{i + 1}</span>
+                    <div key={i} className="flex items-center gap-2">
+                      <div className="w-4.5 h-4.5 rounded-full bg-primary/10 border border-primary/15 flex items-center justify-center flex-shrink-0">
+                        <span className="text-[8px] font-bold text-primary">{i + 1}</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">{step}</p>
+                      <p className="text-[11px] text-muted-foreground">{step}</p>
                     </div>
                   ))}
                 </div>
@@ -598,20 +586,20 @@ export default function Quiz() {
 
               {/* CTA */}
               <motion.div
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7 }}
                 className="flex flex-col gap-2"
               >
                 <Link to="/#pricing">
-                  <Button className="w-full h-14 rounded-2xl gap-2 text-sm font-bold tracking-wide uppercase shadow-xl shadow-primary/20">
+                  <Button className="w-full h-12 rounded-xl gap-2 text-sm font-bold tracking-wide uppercase shadow-xl shadow-primary/20">
                     <Sparkles className="h-4 w-4" />
                     Comece sua jornada agora
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
                 <Link to="/">
-                  <Button variant="ghost" className="w-full h-10 rounded-2xl text-xs text-muted-foreground">
+                  <Button variant="ghost" className="w-full h-9 rounded-xl text-[11px] text-muted-foreground">
                     Saiba mais sobre o Kairo
                   </Button>
                 </Link>
