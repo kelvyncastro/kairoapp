@@ -49,11 +49,19 @@ function AnimatedBackground() {
 
 // ── Quiz Data ──────────────────────────────────────────────
 
+interface FeedbackData {
+  title: string;
+  insight: string;
+  steps: string[];
+  stepsLabel?: string;
+  kairoTip: string;
+}
+
 interface QuizOption {
   icon: string;
   label: string;
   description?: string;
-  feedback: string;
+  feedback: FeedbackData;
 }
 
 interface QuizQuestion {
