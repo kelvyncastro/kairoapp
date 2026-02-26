@@ -459,10 +459,10 @@ export default function Quiz() {
     selectedOption !== null ? q.options[selectedOption].feedback : "";
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <div className="min-h-[100dvh] bg-background text-foreground flex flex-col">
       {/* Header */}
       <header className="w-full border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-4">
+        <div className="max-w-2xl mx-auto px-3 sm:px-4 py-2 sm:py-3 flex items-center gap-3">
           {currentQ > 0 && !showFeedback && !finished ? (
             <button
               onClick={handleBack}
@@ -483,8 +483,8 @@ export default function Quiz() {
         </div>
 
         {/* Progress */}
-        <div className="max-w-2xl mx-auto px-4 pb-3">
-          <div className="flex items-center gap-3">
+        <div className="max-w-2xl mx-auto px-3 sm:px-4 pb-2 sm:pb-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             {Array.from({ length: totalQ }).map((_, i) => (
               <div key={i} className="flex-1 flex items-center gap-1">
                 <div
@@ -503,7 +503,7 @@ export default function Quiz() {
       </header>
 
       {/* Content */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-8">
+      <main className="flex-1 flex flex-col items-center px-3 sm:px-4 py-4 sm:py-8 overflow-y-auto">
         <AnimatePresence mode="wait">
           {!finished ? (
             <motion.div
@@ -517,17 +517,17 @@ export default function Quiz() {
               {!showFeedback ? (
                 <>
                   {/* Category label */}
-                  <p className="text-xs font-semibold tracking-widest text-primary text-center mb-4 uppercase">
+                  <p className="text-xs font-semibold tracking-widest text-primary text-center mb-2 sm:mb-4 uppercase">
                     {q.category}
                   </p>
 
                   {/* Question */}
-                  <h2 className="text-xl sm:text-2xl font-bold text-center mb-10 leading-snug">
+                  <h2 className="text-lg sm:text-2xl font-bold text-center mb-5 sm:mb-10 leading-snug">
                     {q.question}
                   </h2>
 
                   {/* Options */}
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-2 sm:gap-3">
                     {q.options.map((opt, idx) => {
                       const isMultiSelected = multiSelected.includes(idx);
                       return (
@@ -536,13 +536,13 @@ export default function Quiz() {
                           onClick={() => handleSelect(idx)}
                           whileHover={{ scale: 1.01 }}
                           whileTap={{ scale: 0.98 }}
-                          className={`flex items-center gap-4 w-full text-left p-4 rounded-xl border transition-all duration-200 ${
+                          className={`flex items-center gap-3 w-full text-left p-3 sm:p-4 rounded-xl border transition-all duration-200 ${
                             isMultiSelected
                               ? "border-primary bg-primary/10"
                               : "border-border bg-card hover:border-muted-foreground/40 hover:bg-accent/50"
                           }`}
                         >
-                          <span className="text-2xl flex-shrink-0">
+                          <span className="text-xl sm:text-2xl flex-shrink-0">
                             {opt.icon}
                           </span>
                           <div className="flex-1 min-w-0">
@@ -586,12 +586,12 @@ export default function Quiz() {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", damping: 12 }}
-                    className="w-16 h-16 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center mx-auto mb-6"
+                    className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center mx-auto mb-4 sm:mb-6"
                   >
-                    <Sparkles className="h-7 w-7 text-primary" />
+                    <Sparkles className="h-5 w-5 sm:h-7 sm:w-7 text-primary" />
                   </motion.div>
 
-                  <p className="text-muted-foreground text-sm sm:text-base leading-relaxed max-w-md mx-auto mb-8">
+                  <p className="text-muted-foreground text-sm leading-relaxed max-w-md mx-auto mb-6 sm:mb-8">
                     {feedbackText}
                   </p>
 
@@ -615,7 +615,7 @@ export default function Quiz() {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", damping: 10, delay: 0.2 }}
-                className="text-6xl mb-4"
+                className="text-5xl sm:text-6xl mb-3"
               >
                 {profile?.emoji}
               </motion.div>
@@ -624,7 +624,7 @@ export default function Quiz() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-2xl sm:text-3xl font-bold mb-2"
+                className="text-xl sm:text-3xl font-bold mb-2"
               >
                 Você é: {profile?.title}
               </motion.h2>
@@ -633,7 +633,7 @@ export default function Quiz() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
-                className="text-muted-foreground mb-6"
+                className="text-muted-foreground text-sm sm:text-base mb-4 sm:mb-6"
               >
                 {profile?.description}
               </motion.p>
@@ -642,7 +642,7 @@ export default function Quiz() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="bg-card border border-border rounded-xl p-6 mb-6 text-left"
+                className="bg-card border border-border rounded-xl p-4 sm:p-6 mb-4 sm:mb-6 text-left"
               >
                 <h3 className="font-semibold mb-3">
                   📌 Módulos recomendados para você:
@@ -666,7 +666,7 @@ export default function Quiz() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
-                className="bg-card border border-border rounded-xl p-6 mb-8 text-left"
+                className="bg-card border border-border rounded-xl p-4 sm:p-6 mb-6 sm:mb-8 text-left"
               >
                 <h3 className="font-semibold mb-3">🚀 Próximos passos:</h3>
                 <ol className="text-sm text-muted-foreground space-y-2">
