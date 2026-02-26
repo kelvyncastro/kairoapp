@@ -80,249 +80,537 @@ const questions: QuizQuestion[] = [
         icon: "📋",
         label: "Organizar todas as minhas tarefas",
         description: "Tenho muitas coisas para fazer e não consigo priorizar",
-        feedback:
-          "Na Kairo tem a ferramenta perfeita para isso! 📋 O módulo de Gestão de Tarefas permite que você organize suas atividades em um Kanban visual, onde você vê claramente o que precisa fazer, o que está em progresso e o que já foi concluído. Você também pode usar listas simples se preferir algo mais direto, ou até mesmo timers para manter o foco em cada tarefa. Muitos usuários conseguem aumentar sua produtividade em até 40% apenas reorganizando suas tarefas de forma visual.",
+        feedback: {
+          title: "Você sofre com Sobrecarga Cognitiva",
+          insight: "Seu cérebro gasta energia tentando lembrar de tudo em vez de executar. Resultado: 40% menos produtividade.",
+          stepsLabel: "Faça AGORA",
+          steps: [
+            "Escreva tudo que está na sua cabeça (brain dump)",
+            "Organize em 3 grupos: Hoje, Esta Semana, Este Mês",
+            "Escolha apenas 3 tarefas para hoje",
+            "Revise 5 minutos toda noite",
+          ],
+          kairoTip: "O módulo de Tarefas organiza automaticamente. Você vê apenas as 3 prioritárias no dashboard.",
+        },
       },
       {
         icon: "🎯",
         label: "Manter consistência com meus objetivos",
         description: "Defino metas mas não consigo acompanhar o progresso",
-        feedback:
-          "Excelente notícia: a Kairo foi feita para isso! 🎯 Com o módulo de Metas Inteligentes, você define seus objetivos e acompanha o progresso com visualização clara. Mas o diferencial é o sistema de Streaks de Consistência, aquele sistema de não quebrar a corrente que mantém você motivado dia após dia. Usuários que usam esse recurso aumentam sua taxa de sucesso em objetivos em mais de 3x.",
+        feedback: {
+          title: "Você sofre com Falta de Accountability Visual",
+          insight: "Objetivos sem acompanhamento visual são apenas desejos. Pessoas que rastreiam metas têm 3x mais chances de alcançá-las.",
+          stepsLabel: "Faça AGORA",
+          steps: [
+            "Defina 1 meta clara (não 10)",
+            "Crie marcos intermediários",
+            "Escolha um rastreador visual",
+            "Revise toda semana",
+          ],
+          kairoTip: "Metas com marcos automáticos + Streaks (não quebrar a corrente) = motivação garantida.",
+        },
       },
       {
         icon: "💰",
         label: "Controlar minhas finanças",
         description: "Não tenho visibilidade sobre meus gastos e receitas",
-        feedback:
-          "A Kairo tem um assistente financeiro inteligente! 💰 O módulo de Controle Financeiro não é só um lugar para anotar gastos. Com análise por IA, você recebe insights automáticos sobre seus padrões de gasto, categorias onde você mais gasta e recomendações para economizar. Muitos usuários economizam 15-20% apenas vendo seus gastos de forma clara.",
+        feedback: {
+          title: "Você sofre com Falta de Visibilidade",
+          insight: "78% das pessoas não sabem para onde seu dinheiro vai. Quem rastreia economiza 20%.",
+          stepsLabel: "Faça AGORA",
+          steps: [
+            "Categorize seus últimos 3 meses de gastos",
+            "Identifique \"vazamentos\" (café, apps, assinaturas)",
+            "Crie uma meta: \"Economizar R$500/mês\"",
+            "Rastreie diariamente",
+          ],
+          kairoTip: "Rastreamento automático + IA que identifica padrões + gráficos em tempo real.",
+        },
       },
       {
         icon: "⏰",
         label: "Gerenciar meu tempo",
         description: "Sinto que o tempo passa rápido e não consigo fazer tudo",
-        feedback:
-          "O Kairo é especialista em gestão de tempo! ⏰ Além das tarefas, o calendário integrado permite que você visualize seu tempo de forma macro. O sistema também permite timers para cada atividade, criando blocos de tempo focado. Usuários que usam essa abordagem relatam ganhar em média 2-3 horas produtivas por dia.",
+        feedback: {
+          title: "Você sofre com Falta de Estrutura Temporal",
+          insight: "Sem estrutura, o tempo desaparece. Pessoas que estruturam ganham 2-3 horas produtivas por dia.",
+          stepsLabel: "Faça AGORA",
+          steps: [
+            "Identifique seus \"energy peaks\" (quando você é mais produtivo)",
+            "Trabalhe em blocos de 90 minutos + 15 min pausa",
+            "Diga \"não\" a reuniões desnecessárias",
+            "Revise semanalmente como gastou seu tempo",
+          ],
+          kairoTip: "Calendário integrado + timer para blocos focados + sincronização em tempo real.",
+        },
       },
       {
         icon: "🧠",
         label: "Manter foco e evitar distrações",
         description: "Tenho dificuldade em manter a concentração",
-        feedback:
-          "A Kairo ajuda você a manter o foco! 🧠 Com o sistema de Streaks de Consistência e metas com progresso visual, você cria um ambiente que recompensa o foco. O timer integrado para tarefas ajuda você a trabalhar em blocos de tempo sem distrações. Usuários que usam essas ferramentas aumentam seu tempo de foco em até 60%.",
+        feedback: {
+          title: "Você sofre com Fragmentação de Atenção",
+          insight: "Cada mudança de contexto leva 15-25 min para recuperar foco. 5 interrupções = 2 horas perdidas.",
+          stepsLabel: "Faça AGORA",
+          steps: [
+            "Crie \"blocos de foco\" de 90 minutos sem interrupções",
+            "Defina 2-3 horários específicos para email/Slack",
+            "Use Pomodoro: 25 min foco + 5 min pausa",
+            "Elimine distrações físicas (telefone longe)",
+          ],
+          kairoTip: "Dashboard limpo (sem ruído) + timer integrado + Streaks para manter consistência.",
+        },
       },
     ],
   },
   {
     question: "Pergunta 2: Seu Estilo de Trabalho",
-    subtitle: "Como você prefere trabalhar e se organizar?",
+    subtitle: "Como você naturalmente prefere trabalhar?",
     options: [
       {
         icon: "📊",
         label: "Vejo tudo em um dashboard centralizado",
         description: "Prefiro ter uma visão geral de tudo em um único lugar",
-        feedback:
-          "Você vai amar o Dashboard da Kairo! 📊 O Dashboard Completo foi feito para pessoas como você. Você consegue visualizar em um único painel: tarefas do dia, progresso das metas, streaks de hábitos e resumo financeiro. É como ter um centro de controle da sua vida em um só lugar.",
+        feedback: {
+          title: "Você é um Visual Integrador",
+          insight: "Você precisa ver o quadro geral. Pessoas que veem contexto completo tomam melhores decisões.",
+          stepsLabel: "Recomendação",
+          steps: [
+            "Crie um \"dashboard mental\" toda segunda",
+            "Use regra 80/20: foque nos 20% que geram 80% dos resultados",
+            "Mantenha um scorecard pessoal (5-7 métricas)",
+          ],
+          kairoTip: "Dashboard que mostra tudo: tarefas, metas, hábitos, finanças. Tudo em um lugar.",
+        },
       },
       {
         icon: "✅",
         label: "Prefiro listas simples e diretas",
         description: "Gosto de marcar tarefas conforme as completo",
-        feedback:
-          "Simplicidade é poder, e a Kairo entende isso! ✅ O módulo de Tarefas em Listas permite criar listas simples e diretas, marcar conforme completa e ver seu progresso crescer. Sem distrações e sem complexidade desnecessária.",
+        feedback: {
+          title: "Você é um Executor Focado",
+          insight: "Você quer clareza e ação. Pessoas que usam listas completam 30% mais tarefas.",
+          stepsLabel: "Recomendação",
+          steps: [
+            "Regra \"3 tarefas por dia\" (seu cérebro não foca em mais)",
+            "Crie listas por contexto (Trabalho, Casa, Pessoal)",
+            "Revise toda noite (5 minutos)",
+          ],
+          kairoTip: "Tarefas simples e diretas. Sem complicação. Marque como feito e pronto.",
+        },
       },
       {
         icon: "📅",
         label: "Gosto de visualizar em calendário",
         description: "Prefiro ver minhas atividades distribuídas no tempo",
-        feedback:
-          "O calendário da Kairo é seu melhor amigo! 📅 Você consegue visualizar tarefas, metas e hábitos distribuídos no tempo. Isso ajuda a ver o quadro geral da semana e do mês, identificar dias sobrecarregados e planejar com antecedência.",
+        feedback: {
+          title: "Você é um Planejador Temporal",
+          insight: "Você pensa em termos de tempo. Pessoas que planejam temporalmente têm 50% menos estresse.",
+          stepsLabel: "Recomendação",
+          steps: [
+            "Planeje sua semana todo domingo",
+            "Use \"time blocking\": 9-11h = Projeto A, 14-16h = Reuniões",
+            "Deixe 20% do tempo livre para o inesperado",
+          ],
+          kairoTip: "Calendário integrado que mostra tudo distribuído no tempo.",
+        },
       },
       {
         icon: "🎨",
         label: "Preciso de um visual limpo e minimalista",
         description: "Design clean e sem poluição visual é essencial",
-        feedback:
-          "A Kairo foi feita com design minimalista em mente! 🎨 Cada pixel foi pensado para não distrair. A interface é clean, intuitiva e sem poluição visual. Você vê apenas o que importa, quando importa.",
+        feedback: {
+          title: "Você é um Minimalista Focado",
+          insight: "Poluição visual = poluição mental. Pessoas em ambientes minimalistas têm 30% mais foco.",
+          stepsLabel: "Recomendação",
+          steps: [
+            "Dashboard deve ter apenas o essencial",
+            "Remova tudo que não é crítico",
+            "Revise mensalmente: \"Isso ainda é essencial?\"",
+          ],
+          kairoTip: "Design minimalista por padrão. Sem ruído, sem distração.",
+        },
       },
       {
         icon: "🔄",
         label: "Gosto de acompanhar progresso visual",
         description: "Preciso ver meu progresso em gráficos e estatísticas",
-        feedback:
-          "Gráficos e estatísticas são seu combustível! 🔄 A Kairo oferece visualizações detalhadas de seu progresso em hábitos, metas e finanças. Usuários visuais como você tendem a manter 3x mais consistência.",
+        feedback: {
+          title: "Você é um Motivado Visual",
+          insight: "Você precisa VER o progresso. Pessoas motivadas visualmente têm 5x mais consistência.",
+          stepsLabel: "Recomendação",
+          steps: [
+            "Crie métricas visuais (não \"fazer exercício\", mas \"20 exercícios/semana\")",
+            "Use gráficos e acompanhe tendências",
+            "Celebre marcos visuais de progresso",
+          ],
+          kairoTip: "Gráficos detalhados de progresso em hábitos, metas e finanças.",
+        },
       },
     ],
   },
   {
-    question: "Pergunta 3: Frequência de Uso",
-    subtitle: "Com que frequência você precisa acompanhar suas atividades e objetivos?",
+    question: "Pergunta 3: Frequência de Acompanhamento",
+    subtitle: "Com que frequência você acompanha suas atividades?",
     options: [
       {
         icon: "⚡",
         label: "Diariamente, várias vezes ao dia",
         description: "Preciso revisar e atualizar constantemente",
-        feedback:
-          "A Kairo foi feita para pessoas ativas como você! ⚡ Com sincronização instantânea entre dispositivos, você consegue atualizar tarefas, marcar hábitos e acompanhar metas em tempo real. Tudo é otimizado para velocidade e eficiência.",
+        feedback: {
+          title: "Você é um Otimizador Contínuo",
+          insight: "Você quer estar sempre ajustando. Ótimo para crescimento, mas cuidado com obsessão.",
+          stepsLabel: "Recomendação",
+          steps: [
+            "Defina \"horários de revisão\" (9h, 14h, 18h) em vez de revisar constantemente",
+            "Diferencie: revisão rápida (2 min) vs análise profunda (30 min, 1x/semana)",
+            "Nem tudo precisa ser otimizado",
+          ],
+          kairoTip: "Sincronização instantânea + notificações inteligentes (sem obsessão).",
+        },
       },
       {
         icon: "📅",
         label: "Diariamente, uma vez ao dia",
         description: "Faço uma revisão diária das minhas atividades",
-        feedback:
-          "A rotina diária é o melhor momento para usar a Kairo! 📅 Muitos usuários fazem uma revisão matinal de 5-10 minutos e uma revisão rápida à noite para marcar o que foi concluído. Essa rotina simples cria consistência e clareza.",
+        feedback: {
+          title: "Você é um Revisor Consistente",
+          insight: "Você tem ritual diário. Excelente! Pessoas com revisão diária têm 70% mais consistência.",
+          stepsLabel: "Recomendação",
+          steps: [
+            "Crie ritual: manhã (planejar) ou noite (revisar). Sempre 10 minutos.",
+            "Use sistema de streaks (não quebrar a corrente)",
+            "Faça gráficos semanais para ver melhoria",
+          ],
+          kairoTip: "Dashboard perfeito para seu ritual diário. 5-10 minutos e pronto.",
+        },
       },
       {
         icon: "📆",
         label: "Algumas vezes por semana",
         description: "Acompanho meu progresso 2-3 vezes na semana",
-        feedback:
-          "A Kairo se adapta ao seu ritmo! 📆 Você não precisa acessar todos os dias. Com revisões semanais, você consegue ter visão clara do que foi feito e do que vem pela frente, mantendo progresso acumulado.",
+        feedback: {
+          title: "Você é um Planejador Flexível",
+          insight: "Você é equilibrado. Consistente mas não obsessivo.",
+          stepsLabel: "Recomendação",
+          steps: [
+            "Escolha 2-3 dias específicos (seg, qua, sex)",
+            "Faça revisão mais profunda nesses dias",
+            "Combine com revisão semanal no domingo",
+          ],
+          kairoTip: "Adapta ao seu ritmo. Sem pressão de acessar diariamente.",
+        },
       },
       {
         icon: "🗓",
         label: "Semanalmente",
         description: "Faço uma revisão semanal do que foi feito",
-        feedback:
-          "Planejamento semanal é uma estratégia poderosa! 🗓 A Kairo oferece relatórios semanais que facilitam análise de padrões, identificação de bloqueios e ajustes de estratégia para a próxima semana.",
+        feedback: {
+          title: "Você é um Planejador Estratégico",
+          insight: "Você vê padrões que outros não veem. Excelente para visão macro.",
+          stepsLabel: "Recomendação",
+          steps: [
+            "Ritual semanal: domingo à noite ou segunda de manhã (30-60 min)",
+            "Fórmula: Revisar → Refletir → Planejar",
+            "Identifique vitórias e aprendizados",
+          ],
+          kairoTip: "Relatórios semanais + tendências + histórico. Perfeito para planejamento estratégico.",
+        },
       },
       {
         icon: "📋",
         label: "Mensalmente",
         description: "Prefiro acompanhar em ciclos mensais",
-        feedback:
-          "Planejamento mensal é perfeito para visão macro! 📋 Defina metas para o mês, acompanhe o progresso e faça uma análise completa no final. O histórico permite enxergar sua evolução mês a mês.",
+        feedback: {
+          title: "Você é um Visionário de Longo Prazo",
+          insight: "Você não fica preso em detalhes. Excelente para objetivos maiores.",
+          stepsLabel: "Recomendação",
+          steps: [
+            "Ritual mensal: último ou primeiro dia do mês (60-90 min)",
+            "Fórmula: Revisar → Analisar → Planejar",
+            "Crie \"experimentos\" para o próximo mês",
+          ],
+          kairoTip: "Relatórios mensais + tendências de longo prazo. Visão macro garantida.",
+        },
       },
     ],
   },
   {
-    question: "Pergunta 4: Áreas de Foco",
-    subtitle: "Quais áreas você quer organizar e acompanhar? (Você pode escolher mais de uma)",
+    question: "Pergunta 4: Suas Áreas de Foco",
+    subtitle: "Quais áreas você quer organizar? (Múltipla seleção)",
     multiSelect: true,
     options: [
       {
         icon: "🎯",
         label: "Metas e objetivos pessoais",
         description: "Quero definir e acompanhar meus objetivos de longo prazo",
-        feedback:
-          "Metas são o coração da Kairo! 🎯 O módulo de Metas Inteligentes permite definir objetivos com marcos intermediários e acompanhar o progresso em tempo real.",
+        feedback: {
+          title: "Você é um Construtor de Futuro",
+          insight: "92% das pessoas não alcançam metas porque não as acompanham. Você vai ser diferente.",
+          stepsLabel: "Faça AGORA",
+          steps: [
+            "Defina 3 metas para 90 dias (não 10)",
+            "Crie 3-4 marcos intermediários por meta",
+            "Revise toda semana",
+          ],
+          kairoTip: "Metas com marcos automáticos + progresso visual + histórico.",
+        },
       },
       {
         icon: "📝",
         label: "Tarefas do trabalho",
         description: "Preciso gerenciar minhas tarefas profissionais",
-        feedback:
-          "Organize seu trabalho com precisão! 📝 O módulo de Gestão de Tarefas é perfeito para profissionais: subtarefas, prioridades, prazos e acompanhamento visual do status de cada projeto.",
+        feedback: {
+          title: "Você é um Profissional Organizado",
+          insight: "Pessoas que organizam tarefas são 40% mais produtivas.",
+          stepsLabel: "Faça AGORA",
+          steps: [
+            "Brain dump: escreva tudo que precisa fazer",
+            "Escolha 3 tarefas prioritárias para hoje",
+            "Revise toda noite",
+          ],
+          kairoTip: "Kanban visual + priorização + prazos. Nunca mais esquece nada.",
+        },
       },
       {
         icon: "🏃",
         label: "Hábitos e rotinas",
         description: "Quero criar e manter hábitos saudáveis",
-        feedback:
-          "Construa hábitos que mudam sua vida! 🏃 O módulo de Hábitos Rastreáveis com streaks de consistência mantém você motivado e disciplinado no dia a dia.",
+        feedback: {
+          title: "Você é um Construtor de Hábitos",
+          insight: "Leva 66 dias para um hábito se formar. Hábitos visuais têm 5x mais sucesso.",
+          stepsLabel: "Faça AGORA",
+          steps: [
+            "Escolha 1-2 hábitos (não 10)",
+            "Defina um gatilho (depois do café? antes de dormir?)",
+            "Crie rastreador visual (calendário na parede)",
+          ],
+          kairoTip: "Streaks (não quebrar a corrente) + visualização de progresso.",
+        },
       },
       {
         icon: "💵",
         label: "Finanças pessoais",
         description: "Preciso controlar meus gastos e receitas",
-        feedback:
-          "Tome controle do seu dinheiro! 💵 O módulo financeiro com IA gera insights sobre padrões de gasto e mostra gráficos claros para ajudar você a economizar mais.",
+        feedback: {
+          title: "Você é um Gestor Financeiro",
+          insight: "Pessoas que rastreiam economizam 20%. Quem não rastreia não sabe para onde o dinheiro vai.",
+          stepsLabel: "Faça AGORA",
+          steps: [
+            "Categorize últimos 3 meses de gastos",
+            "Identifique \"vazamentos\"",
+            "Crie meta: \"Economizar R$X/mês\"",
+          ],
+          kairoTip: "Rastreamento automático + IA + gráficos + insights.",
+        },
       },
       {
         icon: "🛒",
         label: "Compras e lista de mercado",
         description: "Gosto de organizar minhas compras",
-        feedback:
-          "Nunca mais esqueça o que comprar! 🛒 O módulo de lista de mercado é simples e poderoso, com checklist prático e sincronização para facilitar sua rotina.",
+        feedback: {
+          title: "Você é um Organizador Prático",
+          insight: "Pessoas que fazem lista gastam 30% menos. Você esquece 25% do que precisa se não anotar.",
+          stepsLabel: "Faça AGORA",
+          steps: [
+            "Crie \"lista mestre\" de compras",
+            "Organize por categoria",
+            "Marque conforme compra",
+          ],
+          kairoTip: "Listas compartilháveis + sincronização em tempo real.",
+        },
       },
       {
         icon: "📝",
         label: "Anotações e ideias",
         description: "Preciso capturar e organizar minhas ideias",
-        feedback:
-          "Capture suas ideias antes que desapareçam! 📝 O módulo de Notas ajuda a organizar pensamentos, insights e referências em um espaço simples e sempre acessível.",
+        feedback: {
+          title: "Você é um Criativo Capturador",
+          insight: "Você esquece 90% das suas ideias em 24 horas. Ideias capturadas têm 10x mais chances de serem executadas.",
+          stepsLabel: "Faça AGORA",
+          steps: [
+            "Crie sistema de captura (telefone, papel, qualquer lugar)",
+            "Revise ideias toda semana",
+            "Organize por tema",
+          ],
+          kairoTip: "Captura rápida + sincronização + organização por categoria.",
+        },
       },
     ],
   },
   {
-    question: "Pergunta 5: Objetivo Principal",
+    question: "Pergunta 5: Seu Objetivo Principal",
     subtitle: "O que você quer alcançar com melhor organização?",
     options: [
       {
         icon: "🚀",
         label: "Aumentar minha produtividade",
         description: "Quero fazer mais em menos tempo",
-        feedback:
-          "A Kairo é feita para produtivos! 🚀 Usuários relatam aumentos de produtividade de 30-50% porque tudo fica organizado, priorizado e visível, reduzindo ruído mental.",
+        feedback: {
+          title: "Você quer fazer mais em menos tempo",
+          insight: "40% da produtividade vem de organização. 30% de foco. 20% de energia. 10% de ferramentas.",
+          stepsLabel: "Faça AGORA",
+          steps: [
+            "Elimine distrações (notificações, abas, telefone)",
+            "Trabalhe em blocos: 90 min foco + 15 min pausa",
+            "Faça tarefa importante PRIMEIRO (antes de email)",
+          ],
+          kairoTip: "Dashboard limpo + timer + Kanban visual. Foco garantido.",
+        },
       },
       {
         icon: "😌",
         label: "Reduzir estresse e ansiedade",
         description: "Sinto que organização me ajudaria a ficar mais tranquilo",
-        feedback:
-          "A organização é o antídoto para a ansiedade! 😌 Quando tudo está visível e organizado, seu cérebro relaxa. Muitos usuários relatam redução de estresse por ter tudo em um único lugar confiável.",
+        feedback: {
+          title: "Você quer paz mental",
+          insight: "73% do estresse vem de não saber o que fazer. Pessoas organizadas têm 60% menos ansiedade.",
+          stepsLabel: "Faça AGORA",
+          steps: [
+            "Brain dump: escreva tudo que está na cabeça",
+            "Crie um \"sistema confiável\" onde tudo fica registrado",
+            "Revise regularmente",
+          ],
+          kairoTip: "Seu \"sistema confiável\" centralizado. Seu cérebro relaxa.",
+        },
       },
       {
         icon: "💪",
         label: "Manter consistência e disciplina",
         description: "Quero construir hábitos e manter disciplina",
-        feedback:
-          "A consistência é a chave do sucesso! 💪 O sistema de streaks é psicologicamente poderoso e, com metas visuais, cria um ambiente que recompensa a disciplina diária.",
+        feedback: {
+          title: "Você quer construir hábitos que mudam vidas",
+          insight: "Consistência vence talento. Pequenos passos consistentes vencem grandes passos inconsistentes.",
+          stepsLabel: "Faça AGORA",
+          steps: [
+            "Escolha 1-2 hábitos",
+            "Crie rastreador visual",
+            "Comece pequeno (20 min é melhor que 1h que você não vai fazer)",
+          ],
+          kairoTip: "Streaks + visualização = vício positivo que mantém você consistente.",
+        },
       },
       {
         icon: "🎓",
         label: "Aprender e crescer pessoalmente",
         description: "Quero investir em meu desenvolvimento",
-        feedback:
-          "Crescimento pessoal começa com organização! 🎓 Crie metas de aprendizado, organize estudos em tarefas e acompanhe hábitos de leitura para evoluir com constância.",
+        feedback: {
+          title: "Você quer evoluir como pessoa",
+          insight: "Pessoas que aprendem consistentemente ganham 50% mais.",
+          stepsLabel: "Faça AGORA",
+          steps: [
+            "Defina uma habilidade para desenvolver",
+            "Crie plano: cursos, livros, prática",
+            "Rastreie progresso",
+          ],
+          kairoTip: "Rastreie aprendizado + organize cursos + monitore hábitos de prática.",
+        },
       },
       {
         icon: "💰",
         label: "Melhorar minha situação financeira",
         description: "Quero ter melhor controle e aumentar minha renda",
-        feedback:
-          "Dinheiro segue quem o acompanha! 💰 Com controle financeiro e análise por IA, você identifica oportunidades de economia e toma decisões mais estratégicas.",
+        feedback: {
+          title: "Você quer tomar controle das finanças",
+          insight: "Dinheiro segue quem o acompanha. Você pode aumentar renda em 20-30% apenas com visibilidade.",
+          stepsLabel: "Faça AGORA",
+          steps: [
+            "Audit: categorize últimos 3 meses",
+            "Identifique vazamentos",
+            "Crie meta financeira clara",
+          ],
+          kairoTip: "Rastreamento automático + IA para insights + metas financeiras.",
+        },
       },
       {
         icon: "⚖️",
         label: "Equilibrar vida pessoal e profissional",
         description: "Quero separar e balancear essas áreas",
-        feedback:
-          "Equilíbrio é a chave da felicidade! ⚖️ A Kairo permite organizar trabalho, objetivos pessoais, hábitos e finanças em um único lugar, com visão clara para ajustar prioridades.",
+        feedback: {
+          title: "Você quer viver bem em todas as áreas",
+          insight: "Falta de equilíbrio causa 60% do burnout. Pessoas equilibradas são 3x mais felizes.",
+          stepsLabel: "Faça AGORA",
+          steps: [
+            "Defina suas áreas: Trabalho, Família, Saúde, Finanças, Desenvolvimento, Lazer",
+            "Crie uma meta por área",
+            "Revise semanalmente o equilíbrio",
+          ],
+          kairoTip: "Dashboard mostra todas as áreas. Você vê o equilíbrio visualmente.",
+        },
       },
     ],
   },
   {
-    question: "Pergunta 6: Experiência Anterior",
-    subtitle: "Você já usou apps de produtividade ou organização antes?",
+    question: "Pergunta 6: Sua Experiência com Ferramentas",
+    subtitle: "Você já usou apps de produtividade antes?",
     options: [
       {
         icon: "✨",
         label: "Não, essa é minha primeira vez",
         description: "Estou começando agora com ferramentas de organização",
-        feedback:
-          "Bem-vindo! Você está no lugar certo! ✨ A Kairo foi feita para ser intuitiva. Comece com um módulo, aprenda como funciona e depois explore os outros no seu ritmo.",
+        feedback: {
+          title: "Bem-vindo! Você está no lugar certo",
+          insight: "Não tenha medo. Comece pequeno. Leva 2-3 semanas para se acostumar.",
+          stepsLabel: "Faça AGORA",
+          steps: [
+            "Escolha um módulo para começar (recomendamos Tarefas ou Hábitos)",
+            "Dedique 15 minutos para explorar",
+            "Crie seu primeiro item",
+            "Use por 7 dias",
+          ],
+          kairoTip: "Interface intuitiva. Você não precisa de experiência anterior. Comece simples, explore depois.",
+        },
       },
       {
         icon: "🔄",
         label: "Sim, mas não consegui manter consistência",
         description: "Tentei mas abandonei por falta de hábito",
-        feedback:
-          "Você não está sozinho, e a Kairo foi feita para resolver isso! 🔄 O sistema de streaks e a interface simples ajudam a manter motivação sem sobrecarga.",
+        feedback: {
+          title: "Você não está sozinho. Dessa vez vai ser diferente",
+          insight: "Você provavelmente abandonou porque: ferramenta complicada, se sentiu sobrecarregado, faltou motivação visual.",
+          stepsLabel: "Faça AGORA",
+          steps: [
+            "Comece com APENAS um hábito",
+            "Crie ritual (sempre mesmo horário)",
+            "Vise 80%, não 100%",
+            "Celebre pequenas vitórias",
+          ],
+          kairoTip: "Streaks cria dinâmica viciante. Você não quer quebrar a corrente. Dessa vez vai ser diferente.",
+        },
       },
       {
         icon: "✅",
         label: "Sim, e tenho experiência com eles",
         description: "Já uso apps e conheço bem como funcionam",
-        feedback:
-          "Você vai amar a Kairo! ✅ Como alguém experiente, você vai aproveitar a integração de tarefas, hábitos, metas, finanças e calendário em um único ecossistema.",
+        feedback: {
+          title: "Você vai apreciar a Kairo",
+          insight: "Como alguém com experiência, você vai entender o valor de uma ferramenta bem feita.",
+          stepsLabel: "O que você vai amar",
+          steps: [
+            "Tudo integrado (não fragmentado)",
+            "Simples mas poderoso",
+            "Design limpo (sem complicação desnecessária)",
+            "Sincronização perfeita",
+          ],
+          kairoTip: "Eficiência que você nunca viu. Tudo conectado. É o app que você estava esperando.",
+        },
       },
       {
         icon: "🎯",
         label: "Sim, mas quero algo mais completo",
         description: "Usava algo simples e quero algo mais robusto",
-        feedback:
-          "A Kairo é exatamente o que você procura! 🎯 Se faltava profundidade no que você usava antes, aqui você tem uma suíte completa que cresce com suas necessidades.",
+        feedback: {
+          title: "Você está pronto para o upgrade",
+          insight: "Se você sentia falta de integração, análise profunda e sincronização, a Kairo é exatamente o que você procura.",
+          stepsLabel: "O que você vai ganhar",
+          steps: [
+            "Suite completa integrada",
+            "Análise profunda com IA",
+            "Sincronização instantânea",
+            "Crescimento sem limite",
+          ],
+          kairoTip: "Tudo em um lugar. Use o que precisa, quando precisa. É a suite completa que você queria.",
+        },
       },
     ],
   },
