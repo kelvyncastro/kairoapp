@@ -588,7 +588,7 @@ export default function Quiz() {
                     transition={{ type: "spring", damping: 12 }}
                     className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center mx-auto mb-4 sm:mb-6"
                   >
-                    <Sparkles className="h-7 w-7 text-primary" />
+                    <Sparkles className="h-5 w-5 sm:h-7 sm:w-7 text-primary" />
                   </motion.div>
 
                   <p className="text-muted-foreground text-sm sm:text-base leading-relaxed max-w-md mx-auto mb-8">
