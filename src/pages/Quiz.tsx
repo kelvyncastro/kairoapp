@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Sparkles, Check, ChevronLeft, Star } from "lucide-react";
+import { ArrowRight, Sparkles, Check, ChevronLeft, Star, CheckCircle2, Target, Flame, Wallet, Calendar, BarChart3, Clock, Shield, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import confetti from "canvas-confetti";
 import kairoLogo from "@/assets/kairo-penguin.png";
@@ -479,16 +479,16 @@ export default function Quiz() {
               )}
             </motion.div>
           ) : (
-            /* ── Result Screen ── */
+            /* ── Result Screen with Benefits & Pricing ── */
             <motion.div
               key="result"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
-              className="w-full max-w-lg"
+              className="w-full max-w-lg pb-8"
             >
               {/* Profile card */}
-              <div className="relative rounded-2xl border border-border/30 overflow-hidden mb-3">
+              <div className="relative rounded-2xl border border-border/30 overflow-hidden mb-6">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/5" />
                 <div className="absolute inset-0 bg-card/60 backdrop-blur-2xl" />
                 <div className="relative z-10 p-5 text-center">
@@ -500,7 +500,6 @@ export default function Quiz() {
                   >
                     {profile?.emoji}
                   </motion.div>
-
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -509,7 +508,6 @@ export default function Quiz() {
                   >
                     <span className="text-[9px] font-bold tracking-[0.12em] text-primary/70 uppercase">Seu perfil</span>
                   </motion.div>
-
                   <motion.h2
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -518,7 +516,6 @@ export default function Quiz() {
                   >
                     {profile?.title}
                   </motion.h2>
-
                   <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -530,74 +527,171 @@ export default function Quiz() {
                 </div>
               </div>
 
-              {/* Modules */}
+              {/* Modules + Tip compact */}
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="bg-card/50 backdrop-blur-sm border border-border/25 rounded-xl p-3.5 mb-2.5"
+                className="flex gap-2 mb-6"
               >
-                <p className="text-[11px] font-semibold mb-2 flex items-center gap-1.5">
-                  <span>📌</span> Módulos recomendados
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {profile?.modules.map((m) => (
-                    <span key={m} className="px-2.5 py-1 bg-primary/8 text-primary text-[11px] font-semibold rounded-lg border border-primary/15">
-                      {m}
-                    </span>
-                  ))}
+                <div className="flex-1 bg-card/50 backdrop-blur-sm border border-border/25 rounded-xl p-3">
+                  <p className="text-[10px] font-semibold mb-1.5 flex items-center gap-1">📌 Recomendados</p>
+                  <div className="flex flex-wrap gap-1">
+                    {profile?.modules.map((m) => (
+                      <span key={m} className="px-2 py-0.5 bg-primary/8 text-primary text-[10px] font-semibold rounded-md border border-primary/15">{m}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex-1 bg-card/50 backdrop-blur-sm border border-border/25 rounded-xl p-3">
+                  <p className="text-[10px] font-semibold mb-1 flex items-center gap-1">💡 Dica</p>
+                  <p className="text-[10px] text-muted-foreground leading-relaxed">{profile?.tip}</p>
                 </div>
               </motion.div>
 
-              {/* Tip */}
+              {/* Benefits Section */}
               <motion.div
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.55 }}
-                className="bg-card/50 backdrop-blur-sm border border-border/25 rounded-xl p-3.5 mb-2.5"
+                className="mb-6"
               >
-                <p className="text-[11px] font-semibold mb-1 flex items-center gap-1.5">
-                  <span>💡</span> Dica para começar
-                </p>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">{profile?.tip}</p>
-              </motion.div>
-
-              {/* Steps */}
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                className="bg-card/50 backdrop-blur-sm border border-border/25 rounded-xl p-3.5 mb-5"
-              >
-                <p className="text-[11px] font-semibold mb-2.5 flex items-center gap-1.5">
-                  <span>🚀</span> Próximos passos
-                </p>
-                <div className="space-y-1.5">
-                  {["Comece com o módulo recomendado", "Dedique 5 min para explorar", "Crie seu primeiro item", "Mantenha consistência por 7 dias"].map((step, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <div className="w-4.5 h-4.5 rounded-full bg-primary/10 border border-primary/15 flex items-center justify-center flex-shrink-0">
-                        <span className="text-[8px] font-bold text-primary">{i + 1}</span>
+                <h3 className="text-base font-bold text-center mb-4">O que você ganha com a Kairo</h3>
+                <div className="space-y-2">
+                  {[
+                    { icon: Target, title: "Metas Inteligentes", desc: "Progresso visual e histórico detalhado" },
+                    { icon: Flame, title: "Streaks de Consistência", desc: "Sequências e conquistas diárias" },
+                    { icon: Wallet, title: "Controle Financeiro", desc: "Categorias, gráficos e análise por IA" },
+                    { icon: Calendar, title: "Gestão de Tarefas", desc: "Kanban, listas e timers integrados" },
+                    { icon: BarChart3, title: "Hábitos Rastreáveis", desc: "Progresso semanal visual" },
+                    { icon: TrendingUp, title: "Dashboard Completo", desc: "Toda sua vida em um painel" },
+                  ].map((item, i) => (
+                    <motion.div
+                      key={item.title}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.6 + i * 0.05 }}
+                      className="flex items-center gap-3 p-3 rounded-xl border border-border/30 bg-card/40 backdrop-blur-sm"
+                    >
+                      <div className="h-8 w-8 rounded-lg bg-secondary/80 flex items-center justify-center shrink-0">
+                        <item.icon className="h-4 w-4" />
                       </div>
-                      <p className="text-[11px] text-muted-foreground">{step}</p>
-                    </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold">{item.title}</p>
+                        <p className="text-[10px] text-muted-foreground">{item.desc}</p>
+                      </div>
+                    </motion.div>
                   ))}
                 </div>
               </motion.div>
 
-              {/* CTA */}
+              {/* Differentiators */}
               <motion.div
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7 }}
-                className="flex flex-col gap-2"
+                className="mb-6"
               >
-                <Link to="/#pricing">
-                  <Button className="w-full h-12 rounded-xl gap-2 text-sm font-bold tracking-wide uppercase shadow-xl shadow-primary/20">
-                    <Sparkles className="h-4 w-4" />
-                    Comece sua jornada agora
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { icon: CheckCircle2, title: "Design Minimalista", desc: "Foco no que importa" },
+                    { icon: Shield, title: "Dados Seguros", desc: "Criptografados na nuvem" },
+                    { icon: Clock, title: "Sync Instantâneo", desc: "Todos os dispositivos" },
+                    { icon: Sparkles, title: "IA Integrada", desc: "Assistente financeiro" },
+                  ].map((item, i) => (
+                    <motion.div
+                      key={item.title}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.75 + i * 0.05 }}
+                      className="p-3 rounded-xl border border-border/30 bg-card/40 backdrop-blur-sm text-center"
+                    >
+                      <item.icon className="h-4 w-4 mx-auto mb-1.5 text-success" />
+                      <p className="text-[11px] font-semibold">{item.title}</p>
+                      <p className="text-[9px] text-muted-foreground">{item.desc}</p>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Pricing Cards */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.85 }}
+                className="mb-4"
+              >
+                <h3 className="text-base font-bold text-center mb-1">Escolha seu plano</h3>
+                <p className="text-[11px] text-muted-foreground text-center mb-4">Acesso total a todas as funcionalidades</p>
+
+                {/* Annual Plan - Primary */}
+                <div className="relative p-5 rounded-2xl border border-primary/30 bg-background/60 backdrop-blur-xl overflow-hidden mb-3">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/10" />
+                  <motion.div
+                    className="absolute -top-0.5 -right-0.5 bg-foreground text-background text-[9px] font-bold px-2.5 py-0.5 rounded-bl-lg rounded-tr-xl"
+                    animate={{ scale: [1, 1.05, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    Mais Popular
+                  </motion.div>
+                  <div className="relative z-10">
+                    <div className="text-[10px] font-medium text-muted-foreground mb-0.5">Anual</div>
+                    <div className="flex items-baseline gap-1 mb-0.5">
+                      <span className="text-2xl font-bold">R$197,90</span>
+                      <span className="text-muted-foreground text-xs">/ano</span>
+                    </div>
+                    <p className="text-muted-foreground line-through text-[10px] mb-0.5">R$397,90/ano</p>
+                    <p className="text-success text-[11px] font-medium mb-2">Economize R$160,90 — apenas R$16,49/mês</p>
+                    <ul className="space-y-1.5 mb-4">
+                      {["Acesso total a tudo", "45% de desconto", "Prioridade em novos recursos", "Suporte VIP"].map((item, i) => (
+                        <li key={i} className="flex items-center gap-2">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
+                          <span className="text-[11px]">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <a href="https://pay.kirvano.com/44bf7ce3-3b3b-442b-9983-9f612db21135" target="_blank" rel="noopener noreferrer" className="block">
+                      <Button className="w-full h-11 bg-foreground text-background hover:bg-foreground/90 text-sm font-semibold rounded-xl">
+                        Começar Agora
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Monthly Plan */}
+                <div className="relative p-5 rounded-2xl border border-border/50 bg-background/60 backdrop-blur-xl overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5" />
+                  <div className="relative z-10">
+                    <div className="text-[10px] font-medium text-muted-foreground mb-0.5">Mensal</div>
+                    <div className="flex items-baseline gap-1 mb-0.5">
+                      <span className="text-2xl font-bold">R$29,90</span>
+                      <span className="text-muted-foreground text-xs">/mês</span>
+                    </div>
+                    <p className="text-muted-foreground line-through text-[10px] mb-2">R$39,90/mês</p>
+                    <p className="text-muted-foreground text-[11px] mb-3">Pague mês a mês, cancele quando quiser</p>
+                    <ul className="space-y-1.5 mb-4">
+                      {["Acesso total", "Sincronização em tempo real", "Suporte prioritário", "Atualizações contínuas"].map((item, i) => (
+                        <li key={i} className="flex items-center gap-2">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
+                          <span className="text-[11px]">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <a href="https://pay.kirvano.com/cb78dfd0-c8e0-40bb-a16b-951ba74a0a02" target="_blank" rel="noopener noreferrer" className="block">
+                      <Button variant="outline" className="w-full h-11 backdrop-blur-sm bg-background/50 text-sm rounded-xl">
+                        Começar Agora
+                      </Button>
+                    </a>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Back to landing */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1 }}
+              >
                 <Link to="/">
                   <Button variant="ghost" className="w-full h-9 rounded-xl text-[11px] text-muted-foreground">
                     Saiba mais sobre o Kairo
