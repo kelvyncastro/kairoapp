@@ -624,7 +624,7 @@ export default function Quiz() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-2xl sm:text-3xl font-bold mb-2"
+                className="text-xl sm:text-3xl font-bold mb-2"
               >
                 Você é: {profile?.title}
               </motion.h2>
