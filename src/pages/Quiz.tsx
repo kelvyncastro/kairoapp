@@ -633,7 +633,7 @@ export default function Quiz() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
-                className="text-muted-foreground mb-6"
+                className="text-muted-foreground text-sm sm:text-base mb-4 sm:mb-6"
               >
                 {profile?.description}
               </motion.p>
