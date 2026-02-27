@@ -1,10 +1,67 @@
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserProfile } from "@/contexts/UserProfileContext";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, LogOut } from "lucide-react";
+import { AlertTriangle, LogOut, CreditCard, Loader2, ExternalLink } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 import kairoLogo from "@/assets/kairo-penguin.png";
 
 export default function AssinaturaInativa() {
   const { signOut } = useAuth();
+  const { subscriptionInfo, checkSubscription } = useUserProfile();
+  const [loadingCheckout, setLoadingCheckout] = useState(false);
+  const [loadingPortal, setLoadingPortal] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const isPastDue = subscriptionInfo?.status === "past_due";
+
+  const handleStartTrial = async () => {
+    setLoadingCheckout(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-checkout");
+      if (error) throw error;
+      if (data?.error) {
+        toast({ title: "Erro", description: data.error, variant: "destructive" });
+        return;
+      }
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast({ title: "Erro", description: "Não foi possível iniciar o checkout.", variant: "destructive" });
+    } finally {
+      setLoadingCheckout(false);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    setLoadingPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("customer-portal");
+      if (error) throw error;
+      if (data?.error) {
+        toast({ title: "Erro", description: data.error, variant: "destructive" });
+        return;
+      }
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (error) {
+      console.error("Portal error:", error);
+      toast({ title: "Erro", description: "Não foi possível abrir o portal.", variant: "destructive" });
+    } finally {
+      setLoadingPortal(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await checkSubscription();
+    setRefreshing(false);
+    toast({ title: "Status atualizado", description: "Verificação de assinatura concluída." });
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -20,18 +77,61 @@ export default function AssinaturaInativa() {
         </div>
 
         <div className="space-y-2">
-          <h1 className="text-xl font-bold text-foreground">Acesso Suspenso</h1>
+          <h1 className="text-xl font-bold text-foreground">
+            {isPastDue ? "Pagamento Pendente" : "Acesso Suspenso"}
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Sua assinatura está inativa. Para continuar usando o Kairo, 
-            é necessário reativar sua assinatura.
+            {isPastDue
+              ? "Seu pagamento falhou. Atualize seu método de pagamento para continuar usando o Kairo."
+              : "Sua assinatura está inativa. Comece seu teste grátis de 7 dias ou reative sua assinatura."}
           </p>
         </div>
 
-        <div className="pt-2">
+        <div className="space-y-3 pt-2">
+          {isPastDue ? (
+            <Button
+              onClick={handleManageSubscription}
+              disabled={loadingPortal}
+              className="w-full"
+            >
+              {loadingPortal ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <ExternalLink className="mr-2 h-4 w-4" />
+              )}
+              Atualizar Pagamento
+            </Button>
+          ) : (
+            <Button
+              onClick={handleStartTrial}
+              disabled={loadingCheckout}
+              className="w-full"
+            >
+              {loadingCheckout ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <CreditCard className="mr-2 h-4 w-4" />
+              )}
+              Teste Grátis por 7 Dias
+            </Button>
+          )}
+
           <Button
             variant="outline"
-            onClick={() => signOut()}
+            onClick={handleRefresh}
+            disabled={refreshing}
             className="w-full"
+          >
+            {refreshing ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : null}
+            Já paguei — Verificar status
+          </Button>
+
+          <Button
+            variant="ghost"
+            onClick={() => signOut()}
+            className="w-full text-muted-foreground"
           >
             <LogOut className="mr-2 h-4 w-4" />
             Sair
