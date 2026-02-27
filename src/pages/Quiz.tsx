@@ -1573,27 +1573,6 @@ export default function Quiz() {
                 </div>
               </motion.div>
 
-              {/* Login CTA - Pulsing */}
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.95 }}
-                className="mb-6"
-              >
-                <div className="relative p-5 rounded-2xl border-2 border-primary/40 bg-primary/5 backdrop-blur-xl overflow-hidden">
-                  <motion.div
-                    className="absolute inset-0 border-2 border-primary/30 rounded-2xl"
-                    animate={{ opacity: [0.3, 0.8, 0.3], scale: [1, 1.02, 1] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                  <div className="relative z-10 text-center">
-                    <motion.div
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
-                      className="w-12 h-12 mx-auto mb-3 rounded-full bg-primary/15 flex items-center justify-center"
-                    >
-                    
-
               {/* Free Trial Card */}
                 <PricingCard />
 
