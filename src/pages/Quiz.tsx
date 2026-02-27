@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Sparkles, Check, ChevronLeft, Star, CheckCircle2, Target, Flame, Wallet, Calendar, BarChart3, Clock, Shield, TrendingUp, ChevronDown, LogIn, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import confetti from "canvas-confetti";
+
 import kairoLogo from "@/assets/kairo-penguin.png";
 import { Link } from "react-router-dom";
 
