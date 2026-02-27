@@ -1104,7 +1104,7 @@ export default function Quiz() {
                   </div>
 
                   {/* Options */}
-                  <div className="flex flex-col gap-2.5">
+                  <div className="flex flex-col gap-3">
                     {q.options.map((opt, idx) => {
                       const isMultiSelected = multiSelected.includes(idx);
                       return (
@@ -1114,7 +1114,7 @@ export default function Quiz() {
                           initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: idx * 0.03, duration: 0.25 }}
-                          className={`group flex items-center gap-3 w-full text-left px-4 py-3.5 rounded-xl border transition-all duration-150 active:scale-[0.98] ${
+                          className={`group flex items-center gap-4 w-full text-left px-5 py-4 rounded-xl border transition-all duration-150 active:scale-[0.98] ${
                             isMultiSelected
                               ? "border-primary/40 bg-primary/8 shadow-[0_0_20px_-6px] shadow-primary/15"
                               : "border-border/30 bg-card/40 backdrop-blur-sm active:bg-accent/40"
