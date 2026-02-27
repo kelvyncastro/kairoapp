@@ -1044,7 +1044,7 @@ export default function Quiz() {
 
       {/* Header */}
       <header className="w-full bg-background/60 backdrop-blur-2xl sticky top-0 z-50 border-b border-border/20 safe-area-top">
-        <div className="max-w-lg mx-auto px-4 py-3 flex items-center">
+        <div className="max-w-2xl mx-auto px-5 py-3 flex items-center">
           {currentQ > 0 && !showFeedback && !finished ? (
             <button onClick={handleBack} className="p-1.5 -ml-1 rounded-full active:bg-accent transition-colors">
               <ChevronLeft className="h-5 w-5 text-muted-foreground" />
