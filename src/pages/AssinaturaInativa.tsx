@@ -165,7 +165,7 @@ export default function AssinaturaInativa() {
                     <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">-65%</span>
                   </div>
                 )}
-                <p className="text-xs font-medium text-emerald-500">
+                <p className="text-xs font-medium text-primary">
                   {isYearly
                     ? "Apenas R$5,83/mês — Economize R$128,00"
                     : "Cancele quando quiser, sem compromisso"}
