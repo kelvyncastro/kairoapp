@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import confetti from "canvas-confetti";
+
 import { Flame, Trophy, Crown, X, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -23,61 +23,9 @@ export function AchievementCelebration({ badge, onClose }: AchievementCelebratio
     if (badge) {
       setIsVisible(true);
       
-      // Fire confetti
-      const duration = 3000;
-      const end = Date.now() + duration;
-
-      const colors = getConfettiColors(badge.color);
-
-      const frame = () => {
-        confetti({
-          particleCount: 3,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0, y: 0.7 },
-          colors,
-        });
-        confetti({
-          particleCount: 3,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1, y: 0.7 },
-          colors,
-        });
-
-        if (Date.now() < end) {
-          requestAnimationFrame(frame);
-        }
-      };
-
-      frame();
-
-      // Center burst
-      setTimeout(() => {
-        confetti({
-          particleCount: 100,
-          spread: 100,
-          origin: { x: 0.5, y: 0.5 },
-          colors,
-          startVelocity: 30,
-          gravity: 0.8,
-        });
-      }, 300);
     }
   }, [badge]);
 
-  const getConfettiColors = (colorClass: string) => {
-    switch (colorClass) {
-      case "streak-fire":
-        return ["#f97316", "#ea580c", "#fb923c", "#fed7aa"];
-      case "streak-trophy":
-        return ["#eab308", "#facc15", "#fde047", "#fef3c7"];
-      case "streak-crown":
-        return ["#a855f7", "#8b5cf6", "#c084fc", "#ddd6fe"];
-      default:
-        return ["#22c55e", "#16a34a", "#4ade80", "#bbf7d0"];
-    }
-  };
 
   const handleClose = () => {
     setIsVisible(false);
