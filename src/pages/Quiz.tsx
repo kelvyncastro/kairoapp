@@ -1089,7 +1089,7 @@ export default function Quiz() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="w-full max-w-lg"
+              className="w-full max-w-2xl"
             >
               {!showFeedback ? (
                 <>
