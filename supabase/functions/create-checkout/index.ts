@@ -72,12 +72,23 @@ serve(async (req) => {
 
     const origin = req.headers.get("origin") || "https://kairoapp.lovable.app";
 
+    // Parse request body for priceId
+    let priceId = "price_1T5ULPRJMHH3zUuvllNGtQ1t"; // default: yearly
+    try {
+      const body = await req.json();
+      if (body?.priceId) {
+        priceId = body.priceId;
+      }
+    } catch {
+      // No body or invalid JSON, use default
+    }
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price: "price_1T5ULPRJMHH3zUuvllNGtQ1t",
+          price: priceId,
           quantity: 1,
         },
       ],

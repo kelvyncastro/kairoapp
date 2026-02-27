@@ -1,10 +1,14 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Sparkles, Check, ChevronLeft, Star, CheckCircle2, Target, Flame, Wallet, Calendar, BarChart3, Clock, Shield, TrendingUp, ChevronDown, LogIn, Loader2 } from "lucide-react";
+import { ArrowRight, Sparkles, Check, ChevronLeft, Star, CheckCircle2, Target, Flame, Wallet, Calendar, BarChart3, Clock, Shield, TrendingUp, ChevronDown, LogIn, Loader2, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import kairoLogo from "@/assets/kairo-penguin.png";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import NumberFlow from "@number-flow/react";
+import { cn } from "@/lib/utils";
 
 // ── Animated Background ────────────────────────────────────
 
@@ -884,6 +888,155 @@ function FloatingCtaButton() {
 
 // ── Component ──────────────────────────────────────────────
 
+// ── Pricing Card ──────────────────────────────────────────
+
+const PRICES = {
+  monthly: { id: "price_1T5UXMRJMHH3zUuvtPse22FH", amount: 29.90, label: "/mês" },
+  yearly: { id: "price_1T5ULPRJMHH3zUuvllNGtQ1t", amount: 69.90, label: "/ano" },
+};
+
+function PricingCard() {
+  const [isYearly, setIsYearly] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const price = isYearly ? PRICES.yearly : PRICES.monthly;
+
+  const handleCheckout = async () => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { priceId: price.id },
+      });
+      if (error) throw error;
+      if (data?.error) {
+        toast({ title: "Erro", description: data.error, variant: "destructive" });
+        return;
+      }
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (err) {
+      console.error("Checkout error:", err);
+      toast({ title: "Erro", description: "Não foi possível iniciar o checkout.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <motion.div
+      id="quiz-pricing"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.95 }}
+      className="mb-5"
+    >
+      <h3 className="text-lg font-bold text-center mb-1">Experimente grátis por 7 dias</h3>
+      <p className="text-xs text-muted-foreground text-center mb-4">Sem cobranças durante o período de teste</p>
+
+      {/* Toggle */}
+      <div className="flex justify-center mb-4">
+        <div className="relative flex items-center gap-1 rounded-full bg-muted/40 p-1">
+          <button
+            onClick={() => setIsYearly(false)}
+            className={cn(
+              "relative z-10 h-9 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+              !isYearly ? "text-primary-foreground" : "text-muted-foreground"
+            )}
+          >
+            {!isYearly && (
+              <motion.div layoutId="pricing-toggle" className="absolute inset-0 rounded-full bg-primary" />
+            )}
+            <span className="relative z-10">Mensal</span>
+          </button>
+          <button
+            onClick={() => setIsYearly(true)}
+            className={cn(
+              "relative z-10 h-9 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+              isYearly ? "text-primary-foreground" : "text-muted-foreground"
+            )}
+          >
+            {isYearly && (
+              <motion.div layoutId="pricing-toggle" className="absolute inset-0 rounded-full bg-primary" />
+            )}
+            <span className="relative z-10">Anual</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Single Card */}
+      <div className="relative p-6 rounded-2xl border-2 border-primary/50 bg-background/60 backdrop-blur-xl overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-transparent to-primary/10" />
+        <motion.div
+          className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-bl-lg rounded-tr-xl"
+          animate={{ scale: [1, 1.05, 1] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          7 Dias Grátis
+        </motion.div>
+        <div className="relative z-10">
+          <div className="text-xs font-medium text-muted-foreground mb-1">
+            {isYearly ? "Plano Anual" : "Plano Mensal"}
+          </div>
+          <div className="flex items-baseline gap-1.5 mb-1">
+            <span className="text-sm text-muted-foreground">R$</span>
+            <span className="text-4xl font-bold">
+              <NumberFlow value={price.amount} format={{ minimumFractionDigits: 2 }} />
+            </span>
+            <span className="text-muted-foreground text-sm">{price.label}</span>
+          </div>
+          {isYearly && (
+            <div className="flex items-center gap-2 mb-1">
+              <p className="text-muted-foreground line-through text-xs">R$197,90/ano</p>
+              <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">-65%</span>
+            </div>
+          )}
+          <p className="text-success text-xs font-medium mb-4">
+            {isYearly
+              ? "Apenas R$5,83/mês — Economize R$128,00"
+              : "Cancele quando quiser, sem compromisso"}
+          </p>
+          <ul className="space-y-2 mb-5">
+            {[
+              "7 dias grátis — cancele antes e não pague nada",
+              "Acesso total a todas as funcionalidades",
+              "Sincronização em tempo real",
+              isYearly ? "Prioridade em novos recursos" : "Flexibilidade mês a mês",
+            ].map((item, i) => (
+              <li key={i} className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
+                <span className="text-sm">{item}</span>
+              </li>
+            ))}
+          </ul>
+          <Button
+            onClick={handleCheckout}
+            disabled={loading}
+            className="w-full h-12 text-sm font-semibold rounded-xl gap-2"
+          >
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <CreditCard className="h-4 w-4" />
+            )}
+            Começar Teste Grátis
+          </Button>
+          <p className="text-[10px] text-muted-foreground text-center mt-2">
+            Crie sua conta → Inicie o teste grátis com cartão
+          </p>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── Component ──────────────────────────────────────────────
+
 export default function Quiz() {
   const [started, setStarted] = useState(false);
   const [currentQ, setCurrentQ] = useState(0);
@@ -1456,109 +1609,7 @@ export default function Quiz() {
               </motion.div>
 
               {/* Free Trial Card */}
-              <motion.div
-                id="quiz-pricing"
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.95 }}
-                className="mb-5"
-              >
-                <h3 className="text-lg font-bold text-center mb-1">Experimente grátis por 7 dias</h3>
-                <p className="text-xs text-muted-foreground text-center mb-4">Sem cobranças durante o período de teste</p>
-
-                {/* Trial Card - Highlighted */}
-                <div className="relative p-5 rounded-2xl border-2 border-primary/50 bg-background/60 backdrop-blur-xl overflow-hidden mb-3">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-transparent to-primary/10" />
-                  <motion.div
-                    className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-bl-lg rounded-tr-xl"
-                    animate={{ scale: [1, 1.05, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    7 Dias Grátis
-                  </motion.div>
-                  <div className="relative z-10">
-                    <div className="text-xs font-medium text-muted-foreground mb-1">Teste Grátis + Anual</div>
-                    <div className="flex items-baseline gap-1.5 mb-1">
-                      <span className="text-3xl font-bold">R$0,00</span>
-                      <span className="text-muted-foreground text-sm">por 7 dias</span>
-                    </div>
-                    <p className="text-muted-foreground text-xs mb-1">Depois R$69,90/ano (R$5,83/mês)</p>
-                    <p className="text-success text-xs font-medium mb-3">Cancele antes de 7 dias e não pague nada</p>
-                    <ul className="space-y-2 mb-5">
-                      {["Acesso total por 7 dias grátis", "Cartão como garantia (sem cobranças)", "Cancele a qualquer momento", "Após 7 dias: R$69,90/ano"].map((item, i) => (
-                        <li key={i} className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
-                          <span className="text-sm">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <Link to="/auth">
-                      <Button className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-semibold rounded-xl">
-                        Começar Teste Grátis
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </Link>
-                    <p className="text-[10px] text-muted-foreground text-center mt-2">
-                      Crie sua conta → Inicie o teste grátis com cartão
-                    </p>
-                  </div>
-                </div>
-
-                {/* Annual Plan */}
-                <div className="relative p-5 rounded-2xl border border-primary/30 bg-background/60 backdrop-blur-xl overflow-hidden mb-3">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/10" />
-                  <div className="relative z-10">
-                    <div className="text-xs font-medium text-muted-foreground mb-1">Anual (sem teste)</div>
-                    <div className="flex items-baseline gap-1.5 mb-1">
-                      <span className="text-3xl font-bold">R$69,90</span>
-                      <span className="text-muted-foreground text-sm">/ano</span>
-                    </div>
-                    <p className="text-muted-foreground line-through text-xs mb-1">R$197,90/ano</p>
-                    <p className="text-success text-xs font-medium mb-3">Economize R$128,00 — apenas R$5,83/mês</p>
-                    <ul className="space-y-2 mb-5">
-                      {["Acesso total a tudo", "45% de desconto", "Prioridade em novos recursos", "Suporte VIP"].map((item, i) => (
-                        <li key={i} className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
-                          <span className="text-sm">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <a href="https://pay.kirvano.com/44bf7ce3-3b3b-442b-9983-9f612db21135" target="_blank" rel="noopener noreferrer" className="block">
-                      <Button className="w-full h-12 bg-foreground text-background hover:bg-foreground/90 text-sm font-semibold rounded-xl">
-                        Começar Agora
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </a>
-                  </div>
-                </div>
-
-                {/* Monthly Plan */}
-                <div className="relative p-5 rounded-2xl border border-border/50 bg-background/60 backdrop-blur-xl overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5" />
-                  <div className="relative z-10">
-                    <div className="text-xs font-medium text-muted-foreground mb-1">Mensal</div>
-                    <div className="flex items-baseline gap-1.5 mb-1">
-                      <span className="text-3xl font-bold">R$29,90</span>
-                      <span className="text-muted-foreground text-sm">/mês</span>
-                    </div>
-                    <p className="text-muted-foreground line-through text-xs mb-2">R$39,90/mês</p>
-                    <p className="text-muted-foreground text-xs mb-3">Pague mês a mês, cancele quando quiser</p>
-                    <ul className="space-y-2 mb-5">
-                      {["Acesso total", "Sincronização em tempo real", "Suporte prioritário", "Atualizações contínuas"].map((item, i) => (
-                        <li key={i} className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
-                          <span className="text-sm">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <a href="https://pay.kirvano.com/cb78dfd0-c8e0-40bb-a16b-951ba74a0a02" target="_blank" rel="noopener noreferrer" className="block">
-                      <Button variant="outline" className="w-full h-12 backdrop-blur-sm bg-background/50 text-sm rounded-xl">
-                        Começar Agora
-                      </Button>
-                    </a>
-                  </div>
-                </div>
-              </motion.div>
+                <PricingCard />
 
               {/* Back to landing */}
               <motion.div
