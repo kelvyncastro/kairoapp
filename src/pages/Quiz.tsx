@@ -955,8 +955,8 @@ export default function Quiz() {
               transition={{ type: "spring", damping: 12, delay: 0.2 }}
               className="mb-8"
             >
-              <div className="w-20 h-20 rounded-2xl bg-card/80 backdrop-blur-xl border border-border/40 flex items-center justify-center shadow-2xl shadow-primary/10">
-                <img src={kairoLogo} alt="Kairo" className="w-12 h-12 rounded-lg" />
+              <div className="w-24 h-24 rounded-2xl bg-card/80 backdrop-blur-xl border border-border/40 flex items-center justify-center shadow-2xl shadow-primary/10">
+                <img src={kairoLogo} alt="Kairo" className="w-14 h-14 rounded-lg" />
               </div>
             </motion.div>
 
