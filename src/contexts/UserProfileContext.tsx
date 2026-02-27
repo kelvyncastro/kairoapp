@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -49,6 +49,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [subscriptionInfo, setSubscriptionInfo] = useState<SubscriptionInfo | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchProfile = useCallback(async () => {
@@ -70,8 +71,17 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
       
       if (data) {
         setProfile(data as UserProfile);
+        // Check if user is admin
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .maybeSingle();
+        setIsAdmin(!!roleData);
       } else {
         setProfile(null);
+        setIsAdmin(false);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -210,7 +220,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
   };
 
   const needsOnboarding = !loading && user !== null && (!profile || !profile.onboarding_completed);
-  const isSubscriptionInactive = !loading && user !== null && !!profile && profile.subscription_status !== 'active';
+  const isSubscriptionInactive = !loading && user !== null && !!profile && !isAdmin && profile.subscription_status !== 'active';
 
   return (
     <UserProfileContext.Provider
