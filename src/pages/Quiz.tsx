@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Sparkles, Check, ChevronLeft, Star, CheckCircle2, Target, Flame, Wallet, Calendar, BarChart3, Clock, Shield, TrendingUp } from "lucide-react";
+import { ArrowRight, Sparkles, Check, ChevronLeft, Star, CheckCircle2, Target, Flame, Wallet, Calendar, BarChart3, Clock, Shield, TrendingUp, ChevronDown, LogIn, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import confetti from "canvas-confetti";
 import kairoLogo from "@/assets/kairo-penguin.png";
@@ -648,6 +648,166 @@ function determineProfile(answers: Record<number, number | number[]>): Profile {
   return profiles.perseguidor;
 }
 
+// ── Insights generator ────────────────────────────────────
+
+function generateDetailedInsights(answers: Record<number, number | number[]>) {
+  const insights: { emoji: string; title: string; text: string }[] = [];
+  
+  // Q1 - Challenge
+  const q1 = answers[0] as number;
+  const challengeInsights = [
+    { emoji: "🧠", title: "Sobrecarga Mental", text: "Você está gastando energia demais tentando lembrar de tudo. Isso causa fadiga de decisão e reduz sua capacidade de executar. Usar um sistema externo libera sua mente para pensar estrategicamente." },
+    { emoji: "📉", title: "Ciclo de Abandono", text: "Você define metas mas não as acompanha visualmente. Sem feedback visual, seu cérebro perde a motivação. Pessoas que rastreiam progresso visualmente têm 3x mais chances de sucesso." },
+    { emoji: "💸", title: "Dinheiro Invisível", text: "Sem visibilidade financeira, você está perdendo dinheiro sem perceber. Estudos mostram que pessoas que rastreiam gastos economizam em média 20% mais. Pequenos vazamentos somam grandes perdas." },
+    { emoji: "⏳", title: "Tempo Fantasma", text: "Sem estrutura, o tempo desaparece em tarefas reativas. Pessoas que bloqueiam tempo no calendário ganham 2-3 horas produtivas extras por dia. Seu potencial está sendo desperdiçado." },
+    { emoji: "🔀", title: "Mente Fragmentada", text: "Cada interrupção custa 15-25 minutos de reengajamento. Com 5 interrupções diárias, você perde 2+ horas. Um ambiente focado pode dobrar sua produtividade real." },
+  ];
+  if (challengeInsights[q1]) insights.push(challengeInsights[q1]);
+
+  // Q2 - Work style
+  const q2 = answers[1] as number;
+  const styleInsights = [
+    { emoji: "🗺️", title: "Visão Macro", text: "Você precisa de contexto completo para tomar decisões. Ferramentas fragmentadas te prejudicam. Uma visão unificada vai transformar sua capacidade de priorizar." },
+    { emoji: "✅", title: "Executor Nato", text: "Você é orientado a ação. Listas com mais de 5 itens te paralisam. A chave é manter apenas 3 tarefas prioritárias visíveis e eliminar o ruído." },
+    { emoji: "📅", title: "Pensador Temporal", text: "Você organiza a vida pelo tempo. Time blocking é sua arma secreta. Distribuir atividades no calendário reduz ansiedade e aumenta execução em 50%." },
+    { emoji: "🎨", title: "Minimalismo Funcional", text: "Poluição visual drena sua energia. Ambientes visuais limpos aumentam foco em 30%. Você precisa de uma ferramenta que respeite seu estilo." },
+    { emoji: "📊", title: "Motivação por Dados", text: "Ver progresso é combustível para você. Gráficos e métricas visuais mantêm sua motivação 5x mais alta. Sem dados visuais, você perde o rumo." },
+  ];
+  if (styleInsights[q2]) insights.push(styleInsights[q2]);
+
+  // Q3 - Frequency
+  const q3 = answers[2] as number;
+  const freqInsights = [
+    { emoji: "⚡", title: "Alta Frequência", text: "Seu impulso de revisar constantemente é valioso, mas pode virar armadilha. Defina 3 horários fixos de revisão para canalizar essa energia sem criar ansiedade." },
+    { emoji: "🌅", title: "Ritual Diário", text: "Pessoas com rituais diários de revisão têm 70% mais consistência. Você já tem o hábito — agora precisa de uma ferramenta que torne esse ritual eficiente em 5 minutos." },
+    { emoji: "⚖️", title: "Equilíbrio Natural", text: "Você naturalmente balanceia foco e descanso. 2-3 revisões semanais é ideal para manter progresso sem burnout. Aproveite essa sabedoria natural." },
+    { emoji: "🔭", title: "Visão Estratégica", text: "Você não se perde em detalhes diários. Revisões semanais permitem ver padrões que outros não veem. Use isso para planejamento estratégico de longo prazo." },
+    { emoji: "🏔️", title: "Pensador de Longo Prazo", text: "Você opera em ciclos maiores. Isso é raro e valioso. Combine revisões mensais profundas com checkpoints semanais leves para não perder o fio." },
+  ];
+  if (freqInsights[q3]) insights.push(freqInsights[q3]);
+
+  // Q4 - Focus areas (multi-select)
+  const q4 = answers[3] as number[];
+  if (Array.isArray(q4)) {
+    if (q4.length >= 4) {
+      insights.push({ emoji: "🌐", title: "Multiáreas", text: "Você quer organizar muitas áreas ao mesmo tempo. Isso é ambicioso! A chave é ter TUDO em um único sistema. Ferramentas separadas para cada área = caos garantido." });
+    } else if (q4.includes(0) && q4.includes(2)) {
+      insights.push({ emoji: "🎯", title: "Meta + Hábito", text: "Metas sem hábitos são desejos. Hábitos sem metas são rotina. A combinação de ambos é a fórmula mais poderosa para transformação real." });
+    } else if (q4.includes(3)) {
+      insights.push({ emoji: "💰", title: "Consciência Financeira", text: "Controle financeiro é o pilar mais subestimado da produtividade. Estresse financeiro reduz capacidade cognitiva em 13 pontos de QI. Resolver isso libera sua mente." });
+    }
+  }
+
+  // Q5 - Main objective
+  const q5 = answers[4] as number;
+  const objInsights = [
+    { emoji: "🚀", title: "Produtividade Real", text: "Produtividade não é fazer mais — é fazer o certo. 80% dos resultados vêm de 20% das ações. Seu foco deve ser eliminar o desnecessário, não adicionar mais tarefas." },
+    { emoji: "🧘", title: "Paz Mental", text: "A ansiedade organizacional é real. Quando tudo está na sua cabeça, seu cérebro nunca descansa. Um sistema confiável onde tudo fica registrado é como dar férias ao seu cérebro." },
+    { emoji: "🔥", title: "Consistência é Tudo", text: "Disciplina não é motivação — é sistema. Pessoas consistentes não dependem de \"estar no mood\". Elas dependem de gatilhos, rotinas e rastreamento visual." },
+    { emoji: "📚", title: "Crescimento Contínuo", text: "Aprendizado sem aplicação é entretenimento. Para crescer de verdade, você precisa rastrear o que aprende e aplicar sistematicamente. Meta + hábito + revisão = crescimento real." },
+    { emoji: "💎", title: "Liberdade Financeira", text: "Cada real rastreado é um real salvo. Em 12 meses de rastreamento consistente, a maioria das pessoas economiza 20-30% mais. O ROI de organização financeira é imenso." },
+    { emoji: "⚖️", title: "Vida Equilibrada", text: "Burnout acontece quando uma área da vida consome todas as outras. Visualizar todas as áreas lado a lado revela desequilíbrios antes que se tornem problemas sérios." },
+  ];
+  if (objInsights[q5]) insights.push(objInsights[q5]);
+
+  // Q6 - Experience
+  const q6 = answers[5] as number;
+  const expInsights = [
+    { emoji: "🌱", title: "Começo Promissor", text: "Como iniciante, você tem uma vantagem: não tem vícios de ferramentas ruins. Comece simples, domine um módulo, depois expanda. Em 30 dias você vai sentir a diferença." },
+    { emoji: "🔄", title: "Dessa Vez é Diferente", text: "Você já tentou e desistiu. Não é culpa sua — a maioria das ferramentas são complicadas demais. A chave é simplicidade + gamificação (streaks). Quando é fácil e viciante, você não desiste." },
+    { emoji: "⭐", title: "Usuário Avançado", text: "Com sua experiência, você vai apreciar detalhes que outros não notam: velocidade, integração entre módulos, e design que não atrapalha. A Kairo foi feita para quem exige qualidade." },
+    { emoji: "🆙", title: "Pronto pro Upgrade", text: "Você sabe o que quer e o que falta. A Kairo consolida tudo que você fazia em 3-4 apps diferentes em uma única plataforma integrada. Menos fragmentação, mais resultado." },
+  ];
+  if (expInsights[q6]) insights.push(expInsights[q6]);
+
+  return insights;
+}
+
+// ── Loading Screen Component ──────────────────────────────
+
+function LoadingScreen() {
+  const [step, setStep] = useState(0);
+  const steps = [
+    "Analisando suas respostas...",
+    "Identificando seu perfil...",
+    "Gerando insights personalizados...",
+    "Preparando seu diagnóstico...",
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
+    }, 800);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="min-h-[100dvh] bg-background text-foreground flex flex-col relative overflow-hidden">
+      <AnimatedBackground />
+      <div className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center max-w-sm"
+        >
+          {/* Animated logo */}
+          <motion.div
+            className="mx-auto mb-8"
+            animate={{ rotate: [0, 360] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          >
+            <div className="w-20 h-20 rounded-full border-4 border-primary/20 border-t-primary flex items-center justify-center">
+              <img src={kairoLogo} alt="Kairo" className="w-10 h-10 rounded-lg" />
+            </div>
+          </motion.div>
+
+          {/* Steps */}
+          <div className="space-y-3 mb-6">
+            {steps.map((text, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: i <= step ? 1 : 0.3, x: 0 }}
+                transition={{ delay: i * 0.15, duration: 0.3 }}
+                className="flex items-center gap-3"
+              >
+                {i < step ? (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0"
+                  >
+                    <Check className="w-3.5 h-3.5 text-primary" />
+                  </motion.div>
+                ) : i === step ? (
+                  <div className="w-6 h-6 rounded-full border-2 border-primary/40 flex items-center justify-center flex-shrink-0">
+                    <Loader2 className="w-3.5 h-3.5 text-primary animate-spin" />
+                  </div>
+                ) : (
+                  <div className="w-6 h-6 rounded-full border-2 border-muted-foreground/20 flex-shrink-0" />
+                )}
+                <span className={`text-sm ${i <= step ? "text-foreground" : "text-muted-foreground/50"}`}>
+                  {text}
+                </span>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Progress bar */}
+          <div className="w-full h-2 rounded-full bg-muted/40 overflow-hidden">
+            <motion.div
+              className="h-full rounded-full bg-primary"
+              initial={{ width: "0%" }}
+              animate={{ width: `${((step + 1) / steps.length) * 100}%` }}
+              transition={{ duration: 0.5 }}
+            />
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
 // ── Component ──────────────────────────────────────────────
 
 export default function Quiz() {
@@ -658,12 +818,25 @@ export default function Quiz() {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [multiSelected, setMultiSelected] = useState<number[]>([]);
   const [finished, setFinished] = useState(false);
+  const [showLoading, setShowLoading] = useState(false);
+  const [showResults, setShowResults] = useState(false);
 
   const q = questions[currentQ];
   const totalQ = questions.length;
 
+  // Loading → Results transition
   useEffect(() => {
-    if (!finished) return;
+    if (!showLoading) return;
+    const timer = setTimeout(() => {
+      setShowLoading(false);
+      setShowResults(true);
+    }, 3500);
+    return () => clearTimeout(timer);
+  }, [showLoading]);
+
+  // Confetti on results
+  useEffect(() => {
+    if (!showResults) return;
     const duration = 3000;
     const end = Date.now() + duration;
     const colors = ["#f97316", "#eab308", "#22c55e", "#a855f7", "#3b82f6"];
@@ -676,7 +849,7 @@ export default function Quiz() {
     setTimeout(() => {
       confetti({ particleCount: 150, spread: 120, origin: { x: 0.5, y: 0.4 }, colors, startVelocity: 35, gravity: 0.8 });
     }, 400);
-  }, [finished]);
+  }, [showResults]);
 
   const handleSelect = (idx: number) => {
     if (showFeedback) return;
@@ -700,8 +873,12 @@ export default function Quiz() {
     setShowFeedback(false);
     setSelectedOption(null);
     setMultiSelected([]);
-    if (currentQ < totalQ - 1) setCurrentQ((prev) => prev + 1);
-    else setFinished(true);
+    if (currentQ < totalQ - 1) {
+      setCurrentQ((prev) => prev + 1);
+    } else {
+      setFinished(true);
+      setShowLoading(true);
+    }
   };
 
   const handleBack = () => {
@@ -712,8 +889,14 @@ export default function Quiz() {
     }
   };
 
-  const profile = finished ? determineProfile(answers) : null;
+  const profile = (finished) ? determineProfile(answers) : null;
   const feedbackData = selectedOption !== null ? q.options[selectedOption].feedback : null;
+  const detailedInsights = useMemo(() => showResults ? generateDetailedInsights(answers) : [], [showResults, answers]);
+
+  // ── Loading Screen ──
+  if (showLoading) {
+    return <LoadingScreen />;
+  }
 
   // ── Splash Screen ──
   if (!started) {
@@ -721,7 +904,7 @@ export default function Quiz() {
       <div className="min-h-[100dvh] bg-background text-foreground flex flex-col relative overflow-hidden">
         <AnimatedBackground />
 
-        <main className="flex-1 flex flex-col items-center justify-center px-5 relative z-10">
+        <main className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -733,10 +916,10 @@ export default function Quiz() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", damping: 12, delay: 0.2 }}
-              className="mb-6"
+              className="mb-8"
             >
-              <div className="w-16 h-16 rounded-2xl bg-card/80 backdrop-blur-xl border border-border/40 flex items-center justify-center shadow-2xl shadow-primary/10">
-                <img src={kairoLogo} alt="Kairo" className="w-10 h-10 rounded-lg" />
+              <div className="w-20 h-20 rounded-2xl bg-card/80 backdrop-blur-xl border border-border/40 flex items-center justify-center shadow-2xl shadow-primary/10">
+                <img src={kairoLogo} alt="Kairo" className="w-12 h-12 rounded-lg" />
               </div>
             </motion.div>
 
@@ -745,45 +928,45 @@ export default function Quiz() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4 }}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/8 border border-primary/15 mb-4"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/8 border border-primary/15 mb-5"
             >
-              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              <span className="text-[10px] font-bold tracking-[0.12em] text-primary/80 uppercase">
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <span className="text-xs font-bold tracking-[0.12em] text-primary/80 uppercase">
                 Quiz personalizado
               </span>
             </motion.div>
 
             {/* Title */}
-              <motion.h1
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="text-[22px] sm:text-3xl font-bold leading-tight mb-2.5"
-              >
-                Descubra seu estilo de produtividade
-              </motion.h1>
+            <motion.h1
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="text-2xl sm:text-3xl font-bold leading-tight mb-3"
+            >
+              Descubra seu estilo de produtividade
+            </motion.h1>
 
-              {/* Subtitle */}
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-                className="text-[13px] text-muted-foreground leading-relaxed mb-6 max-w-[300px]"
-              >
-                Em 3 minutos, entenda qual é a melhor forma de organizar sua vida e quais ferramentas da Kairo são perfeitas para você.
-              </motion.p>
+            {/* Subtitle */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="text-sm text-muted-foreground leading-relaxed mb-8 max-w-[320px]"
+            >
+              Em 3 minutos, entenda qual é a melhor forma de organizar sua vida e quais ferramentas da Kairo são perfeitas para você.
+            </motion.p>
 
             {/* Social proof */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.7 }}
-              className="flex items-center gap-1.5 mb-5"
+              className="flex items-center gap-2 mb-6"
             >
               {[...Array(5)].map((_, i) => (
-                <Star key={i} className="h-3 w-3 fill-amber-400 text-amber-400" />
+                <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
               ))}
-              <span className="text-[11px] text-muted-foreground ml-1">+500 já fizeram</span>
+              <span className="text-xs text-muted-foreground ml-1">+500 já fizeram</span>
             </motion.div>
 
             {/* CTA */}
@@ -795,10 +978,10 @@ export default function Quiz() {
             >
               <Button
                 onClick={() => setStarted(true)}
-                className="w-full h-12 rounded-2xl text-sm font-bold tracking-wide uppercase gap-2 shadow-xl shadow-primary/20"
+                className="w-full h-14 rounded-2xl text-base font-bold tracking-wide uppercase gap-2 shadow-xl shadow-primary/20"
               >
                 Começar agora
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-5 w-5" />
               </Button>
             </motion.div>
 
@@ -807,7 +990,7 @@ export default function Quiz() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.9 }}
-              className="text-[11px] text-muted-foreground/50 mt-3"
+              className="text-xs text-muted-foreground/50 mt-4"
             >
               ⏱ Leva menos de 2 minutos
             </motion.p>
@@ -824,43 +1007,45 @@ export default function Quiz() {
 
       {/* Header */}
       <header className="w-full bg-background/60 backdrop-blur-2xl sticky top-0 z-50 border-b border-border/20 safe-area-top">
-        <div className="max-w-lg mx-auto px-4 py-2.5 flex items-center">
+        <div className="max-w-lg mx-auto px-4 py-3 flex items-center">
           {currentQ > 0 && !showFeedback && !finished ? (
-            <button onClick={handleBack} className="p-1 -ml-1 rounded-full active:bg-accent transition-colors">
+            <button onClick={handleBack} className="p-1.5 -ml-1 rounded-full active:bg-accent transition-colors">
               <ChevronLeft className="h-5 w-5 text-muted-foreground" />
             </button>
           ) : (
-            <div className="w-7" />
+            <div className="w-8" />
           )}
           <div className="flex-1 flex justify-center">
-            <img src={kairoLogo} alt="Kairo" className="h-5 w-5 rounded-md" />
+            <img src={kairoLogo} alt="Kairo" className="h-6 w-6 rounded-md" />
           </div>
-          <span className="text-[11px] text-muted-foreground font-semibold tabular-nums w-7 text-right">
-            {finished ? totalQ : currentQ + 1}/{totalQ}
+          <span className="text-xs text-muted-foreground font-semibold tabular-nums w-8 text-right">
+            {showResults ? totalQ : currentQ + 1}/{totalQ}
           </span>
         </div>
 
         {/* Progress */}
-        <div className="max-w-lg mx-auto px-4 pb-2">
-          <div className="flex gap-1">
-            {Array.from({ length: totalQ }).map((_, i) => (
-              <div key={i} className="flex-1 h-[3px] rounded-full overflow-hidden bg-muted/40">
-                <motion.div
-                  className="h-full rounded-full bg-primary"
-                  initial={false}
-                  animate={{ width: i < currentQ || finished ? "100%" : i === currentQ ? "40%" : "0%" }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
-                />
-              </div>
-            ))}
+        {!showResults && (
+          <div className="max-w-lg mx-auto px-4 pb-2.5">
+            <div className="flex gap-1">
+              {Array.from({ length: totalQ }).map((_, i) => (
+                <div key={i} className="flex-1 h-1 rounded-full overflow-hidden bg-muted/40">
+                  <motion.div
+                    className="h-full rounded-full bg-primary"
+                    initial={false}
+                    animate={{ width: i < currentQ || finished ? "100%" : i === currentQ ? "40%" : "0%" }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </header>
 
       {/* Content */}
-      <main className="flex-1 flex flex-col items-center px-4 py-4 overflow-y-auto relative z-10">
+      <main className="flex-1 flex flex-col items-center px-5 py-5 overflow-y-auto relative z-10">
         <AnimatePresence mode="wait">
-          {!finished ? (
+          {!showResults ? (
             <motion.div
               key={`q-${currentQ}-${showFeedback ? "fb" : "q"}`}
               initial={{ opacity: 0, y: 20 }}
@@ -872,17 +1057,17 @@ export default function Quiz() {
               {!showFeedback ? (
                 <>
                   {/* Question */}
-                  <div className="mb-4">
-                    <h2 className="text-[17px] sm:text-xl font-bold text-center leading-snug mb-1">
+                  <div className="mb-5">
+                    <h2 className="text-xl sm:text-2xl font-bold text-center leading-snug mb-2">
                       {q.question}
                     </h2>
                     {q.subtitle && (
-                      <p className="text-[11px] text-muted-foreground text-center">{q.subtitle}</p>
+                      <p className="text-sm text-muted-foreground text-center">{q.subtitle}</p>
                     )}
                   </div>
 
                   {/* Options */}
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2.5">
                     {q.options.map((opt, idx) => {
                       const isMultiSelected = multiSelected.includes(idx);
                       return (
@@ -892,17 +1077,17 @@ export default function Quiz() {
                           initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: idx * 0.03, duration: 0.25 }}
-                          className={`group flex items-center gap-3 w-full text-left px-3.5 py-3 rounded-xl border transition-all duration-150 active:scale-[0.98] ${
+                          className={`group flex items-center gap-3 w-full text-left px-4 py-3.5 rounded-xl border transition-all duration-150 active:scale-[0.98] ${
                             isMultiSelected
                               ? "border-primary/40 bg-primary/8 shadow-[0_0_20px_-6px] shadow-primary/15"
                               : "border-border/30 bg-card/40 backdrop-blur-sm active:bg-accent/40"
                           }`}
                         >
-                          <span className="text-lg flex-shrink-0">{opt.icon}</span>
+                          <span className="text-xl flex-shrink-0">{opt.icon}</span>
                           <div className="flex-1 min-w-0">
-                            <span className="block font-semibold text-[13px] leading-snug">{opt.label}</span>
+                            <span className="block font-semibold text-[15px] leading-snug">{opt.label}</span>
                             {opt.description && (
-                              <span className="block text-[11px] text-muted-foreground leading-snug mt-0.5">{opt.description}</span>
+                              <span className="block text-xs text-muted-foreground leading-snug mt-0.5">{opt.description}</span>
                             )}
                           </div>
                           {q.multiSelect && (
@@ -919,11 +1104,11 @@ export default function Quiz() {
 
                   {/* Multi-select continue */}
                   {q.multiSelect && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-5">
                       <Button
                         onClick={handleMultiContinue}
                         disabled={multiSelected.length === 0}
-                        className="w-full h-11 rounded-xl gap-2 text-sm font-semibold disabled:opacity-30"
+                        className="w-full h-12 rounded-xl gap-2 text-sm font-semibold disabled:opacity-30"
                       >
                         Continuar
                         <ArrowRight className="h-4 w-4" />
@@ -942,22 +1127,22 @@ export default function Quiz() {
                       className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl overflow-hidden"
                     >
                       {/* Header */}
-                      <div className="px-4 pt-4 pb-3 border-b border-border/20 bg-primary/5">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
-                            <Sparkles className="h-4 w-4 text-primary" />
+                      <div className="px-5 pt-5 pb-3.5 border-b border-border/20 bg-primary/5">
+                        <div className="flex items-center gap-2.5 mb-2">
+                          <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                            <Sparkles className="h-4.5 w-4.5 text-primary" />
                           </div>
-                          <h3 className="text-[15px] font-bold leading-tight">{feedbackData.title}</h3>
+                          <h3 className="text-base font-bold leading-tight">{feedbackData.title}</h3>
                         </div>
-                        <p className="text-[12px] text-muted-foreground leading-relaxed">{feedbackData.insight}</p>
+                        <p className="text-[13px] text-muted-foreground leading-relaxed">{feedbackData.insight}</p>
                       </div>
 
                       {/* Steps */}
-                      <div className="px-4 py-3 border-b border-border/20">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-primary/70 mb-2">
+                      <div className="px-5 py-4 border-b border-border/20">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-primary/70 mb-2.5">
                           {feedbackData.stepsLabel || "Faça AGORA"}
                         </p>
-                        <div className="space-y-2">
+                        <div className="space-y-2.5">
                           {feedbackData.steps.map((step, i) => (
                             <motion.div
                               key={i}
@@ -966,20 +1151,20 @@ export default function Quiz() {
                               transition={{ delay: 0.15 + i * 0.06 }}
                               className="flex items-start gap-2.5"
                             >
-                              <span className="flex-shrink-0 w-5 h-5 rounded-md bg-secondary/80 flex items-center justify-center text-[10px] font-bold text-foreground/70 mt-0.5">
+                              <span className="flex-shrink-0 w-6 h-6 rounded-md bg-secondary/80 flex items-center justify-center text-[11px] font-bold text-foreground/70 mt-0.5">
                                 {i + 1}
                               </span>
-                              <span className="text-[12px] leading-snug text-foreground/90">{step}</span>
+                              <span className="text-[13px] leading-snug text-foreground/90">{step}</span>
                             </motion.div>
                           ))}
                         </div>
                       </div>
 
                       {/* Kairo Tip */}
-                      <div className="px-4 py-3 bg-primary/[0.03]">
-                        <div className="flex items-start gap-2">
-                          <img src={kairoLogo} alt="Kairo" className="w-4 h-4 rounded-sm mt-0.5 flex-shrink-0" />
-                          <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      <div className="px-5 py-3.5 bg-primary/[0.03]">
+                        <div className="flex items-start gap-2.5">
+                          <img src={kairoLogo} alt="Kairo" className="w-5 h-5 rounded-sm mt-0.5 flex-shrink-0" />
+                          <p className="text-xs text-muted-foreground leading-relaxed">
                             <span className="font-semibold text-foreground/80">Na Kairo:</span> {feedbackData.kairoTip}
                           </p>
                         </div>
@@ -992,9 +1177,9 @@ export default function Quiz() {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="mt-4"
+                    className="mt-5"
                   >
-                    <Button onClick={handleNext} className="w-full h-11 rounded-xl gap-2 text-sm font-semibold">
+                    <Button onClick={handleNext} className="w-full h-12 rounded-xl gap-2 text-sm font-semibold">
                       {currentQ < totalQ - 1 ? "Próxima pergunta" : "Ver meu resultado"}
                       <ArrowRight className="h-4 w-4" />
                     </Button>
@@ -1003,24 +1188,24 @@ export default function Quiz() {
               )}
             </motion.div>
           ) : (
-            /* ── Result Screen with Benefits & Pricing ── */
+            /* ── Result Screen ── */
             <motion.div
               key="result"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
-              className="w-full max-w-lg pb-8"
+              className="w-full max-w-lg pb-10"
             >
               {/* Profile card */}
               <div className="relative rounded-2xl border border-border/30 overflow-hidden mb-6">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/5" />
                 <div className="absolute inset-0 bg-card/60 backdrop-blur-2xl" />
-                <div className="relative z-10 p-5 text-center">
+                <div className="relative z-10 p-6 text-center">
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", damping: 10, delay: 0.2 }}
-                    className="text-4xl mb-2"
+                    className="text-5xl mb-3"
                   >
                     {profile?.emoji}
                   </motion.div>
@@ -1028,15 +1213,15 @@ export default function Quiz() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/8 border border-primary/15 mb-1.5"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/8 border border-primary/15 mb-2"
                   >
-                    <span className="text-[9px] font-bold tracking-[0.12em] text-primary/70 uppercase">Seu perfil</span>
+                    <span className="text-[10px] font-bold tracking-[0.12em] text-primary/70 uppercase">Seu perfil</span>
                   </motion.div>
                   <motion.h2
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.35 }}
-                    className="text-lg font-bold mb-1.5"
+                    className="text-xl font-bold mb-2"
                   >
                     {profile?.title}
                   </motion.h2>
@@ -1044,31 +1229,69 @@ export default function Quiz() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.45 }}
-                    className="text-xs text-muted-foreground leading-relaxed"
+                    className="text-sm text-muted-foreground leading-relaxed"
                   >
                     {profile?.description}
                   </motion.p>
                 </div>
               </div>
 
-              {/* Modules + Tip compact */}
+              {/* Scroll indicator */}
+              <motion.div
+                className="flex flex-col items-center mb-6"
+                animate={{ opacity: [0.4, 1, 0.4], y: [0, 6, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <p className="text-xs text-muted-foreground mb-1">Role para ver seus insights</p>
+                <ChevronDown className="h-5 w-5 text-primary" />
+              </motion.div>
+
+              {/* Modules + Tip */}
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="flex gap-2 mb-6"
+                className="flex gap-2.5 mb-6"
               >
-                <div className="flex-1 bg-card/50 backdrop-blur-sm border border-border/25 rounded-xl p-3">
-                  <p className="text-[10px] font-semibold mb-1.5 flex items-center gap-1">📌 Recomendados</p>
-                  <div className="flex flex-wrap gap-1">
+                <div className="flex-1 bg-card/50 backdrop-blur-sm border border-border/25 rounded-xl p-4">
+                  <p className="text-xs font-semibold mb-2 flex items-center gap-1">📌 Recomendados</p>
+                  <div className="flex flex-wrap gap-1.5">
                     {profile?.modules.map((m) => (
-                      <span key={m} className="px-2 py-0.5 bg-primary/8 text-primary text-[10px] font-semibold rounded-md border border-primary/15">{m}</span>
+                      <span key={m} className="px-2.5 py-1 bg-primary/8 text-primary text-[11px] font-semibold rounded-md border border-primary/15">{m}</span>
                     ))}
                   </div>
                 </div>
-                <div className="flex-1 bg-card/50 backdrop-blur-sm border border-border/25 rounded-xl p-3">
-                  <p className="text-[10px] font-semibold mb-1 flex items-center gap-1">💡 Dica</p>
-                  <p className="text-[10px] text-muted-foreground leading-relaxed">{profile?.tip}</p>
+                <div className="flex-1 bg-card/50 backdrop-blur-sm border border-border/25 rounded-xl p-4">
+                  <p className="text-xs font-semibold mb-1.5 flex items-center gap-1">💡 Dica</p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">{profile?.tip}</p>
+                </div>
+              </motion.div>
+
+              {/* Detailed Insights Section */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.55 }}
+                className="mb-6"
+              >
+                <h3 className="text-lg font-bold text-center mb-1">🔍 Seus Insights Personalizados</h3>
+                <p className="text-xs text-muted-foreground text-center mb-4">Baseado nas suas respostas</p>
+                <div className="space-y-3">
+                  {detailedInsights.map((insight, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.6 + i * 0.08 }}
+                      className="p-4 rounded-xl border border-border/30 bg-card/50 backdrop-blur-sm"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xl">{insight.emoji}</span>
+                        <h4 className="text-sm font-bold">{insight.title}</h4>
+                      </div>
+                      <p className="text-[13px] text-muted-foreground leading-relaxed">{insight.text}</p>
+                    </motion.div>
+                  ))}
                 </div>
               </motion.div>
 
@@ -1076,11 +1299,11 @@ export default function Quiz() {
               <motion.div
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.55 }}
+                transition={{ delay: 0.7 }}
                 className="mb-6"
               >
-                <h3 className="text-base font-bold text-center mb-4">O que você ganha com a Kairo</h3>
-                <div className="space-y-2">
+                <h3 className="text-lg font-bold text-center mb-4">O que você ganha com a Kairo</h3>
+                <div className="space-y-2.5">
                   {[
                     { icon: Target, title: "Metas Inteligentes", desc: "Progresso visual e histórico detalhado" },
                     { icon: Flame, title: "Streaks de Consistência", desc: "Sequências e conquistas diárias" },
@@ -1093,15 +1316,15 @@ export default function Quiz() {
                       key={item.title}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.6 + i * 0.05 }}
-                      className="flex items-center gap-3 p-3 rounded-xl border border-border/30 bg-card/40 backdrop-blur-sm"
+                      transition={{ delay: 0.75 + i * 0.05 }}
+                      className="flex items-center gap-3 p-3.5 rounded-xl border border-border/30 bg-card/40 backdrop-blur-sm"
                     >
-                      <div className="h-8 w-8 rounded-lg bg-secondary/80 flex items-center justify-center shrink-0">
-                        <item.icon className="h-4 w-4" />
+                      <div className="h-9 w-9 rounded-lg bg-secondary/80 flex items-center justify-center shrink-0">
+                        <item.icon className="h-4.5 w-4.5" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-semibold">{item.title}</p>
-                        <p className="text-[10px] text-muted-foreground">{item.desc}</p>
+                        <p className="text-sm font-semibold">{item.title}</p>
+                        <p className="text-xs text-muted-foreground">{item.desc}</p>
                       </div>
                     </motion.div>
                   ))}
@@ -1112,10 +1335,10 @@ export default function Quiz() {
               <motion.div
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
+                transition={{ delay: 0.85 }}
                 className="mb-6"
               >
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2.5">
                   {[
                     { icon: CheckCircle2, title: "Design Minimalista", desc: "Foco no que importa" },
                     { icon: Shield, title: "Dados Seguros", desc: "Criptografados na nuvem" },
@@ -1126,14 +1349,49 @@ export default function Quiz() {
                       key={item.title}
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.75 + i * 0.05 }}
-                      className="p-3 rounded-xl border border-border/30 bg-card/40 backdrop-blur-sm text-center"
+                      transition={{ delay: 0.9 + i * 0.05 }}
+                      className="p-3.5 rounded-xl border border-border/30 bg-card/40 backdrop-blur-sm text-center"
                     >
-                      <item.icon className="h-4 w-4 mx-auto mb-1.5 text-success" />
-                      <p className="text-[11px] font-semibold">{item.title}</p>
-                      <p className="text-[9px] text-muted-foreground">{item.desc}</p>
+                      <item.icon className="h-5 w-5 mx-auto mb-2 text-success" />
+                      <p className="text-xs font-semibold">{item.title}</p>
+                      <p className="text-[10px] text-muted-foreground">{item.desc}</p>
                     </motion.div>
                   ))}
+                </div>
+              </motion.div>
+
+              {/* Login CTA - Pulsing */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.95 }}
+                className="mb-6"
+              >
+                <div className="relative p-5 rounded-2xl border-2 border-primary/40 bg-primary/5 backdrop-blur-xl overflow-hidden">
+                  <motion.div
+                    className="absolute inset-0 border-2 border-primary/30 rounded-2xl"
+                    animate={{ opacity: [0.3, 0.8, 0.3], scale: [1, 1.02, 1] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                  <div className="relative z-10 text-center">
+                    <motion.div
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                      className="w-12 h-12 mx-auto mb-3 rounded-full bg-primary/15 flex items-center justify-center"
+                    >
+                      <LogIn className="h-6 w-6 text-primary" />
+                    </motion.div>
+                    <h3 className="text-base font-bold mb-1.5">Já é membro? Acesse agora!</h3>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Faça login para acessar todas as funcionalidades da Kairo
+                    </p>
+                    <Link to="/auth">
+                      <Button className="w-full h-12 rounded-xl gap-2 text-sm font-bold">
+                        <LogIn className="h-4 w-4" />
+                        Entrar na minha conta
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </motion.div>
 
@@ -1141,40 +1399,40 @@ export default function Quiz() {
               <motion.div
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.85 }}
-                className="mb-4"
+                transition={{ delay: 1 }}
+                className="mb-5"
               >
-                <h3 className="text-base font-bold text-center mb-1">Escolha seu plano</h3>
-                <p className="text-[11px] text-muted-foreground text-center mb-4">Acesso total a todas as funcionalidades</p>
+                <h3 className="text-lg font-bold text-center mb-1">Escolha seu plano</h3>
+                <p className="text-xs text-muted-foreground text-center mb-4">Acesso total a todas as funcionalidades</p>
 
                 {/* Annual Plan - Primary */}
                 <div className="relative p-5 rounded-2xl border border-primary/30 bg-background/60 backdrop-blur-xl overflow-hidden mb-3">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/10" />
                   <motion.div
-                    className="absolute -top-0.5 -right-0.5 bg-foreground text-background text-[9px] font-bold px-2.5 py-0.5 rounded-bl-lg rounded-tr-xl"
+                    className="absolute -top-0.5 -right-0.5 bg-foreground text-background text-[10px] font-bold px-3 py-1 rounded-bl-lg rounded-tr-xl"
                     animate={{ scale: [1, 1.05, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
                     Mais Popular
                   </motion.div>
                   <div className="relative z-10">
-                    <div className="text-[10px] font-medium text-muted-foreground mb-0.5">Anual</div>
-                    <div className="flex items-baseline gap-1 mb-0.5">
-                      <span className="text-2xl font-bold">R$69,90</span>
-                      <span className="text-muted-foreground text-xs">/ano</span>
+                    <div className="text-xs font-medium text-muted-foreground mb-1">Anual</div>
+                    <div className="flex items-baseline gap-1.5 mb-1">
+                      <span className="text-3xl font-bold">R$69,90</span>
+                      <span className="text-muted-foreground text-sm">/ano</span>
                     </div>
-                    <p className="text-muted-foreground line-through text-[10px] mb-0.5">R$197,90/ano</p>
-                    <p className="text-success text-[11px] font-medium mb-2">Economize R$128,00 — apenas R$5,83/mês</p>
-                    <ul className="space-y-1.5 mb-4">
+                    <p className="text-muted-foreground line-through text-xs mb-1">R$197,90/ano</p>
+                    <p className="text-success text-xs font-medium mb-3">Economize R$128,00 — apenas R$5,83/mês</p>
+                    <ul className="space-y-2 mb-5">
                       {["Acesso total a tudo", "45% de desconto", "Prioridade em novos recursos", "Suporte VIP"].map((item, i) => (
                         <li key={i} className="flex items-center gap-2">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
-                          <span className="text-[11px]">{item}</span>
+                          <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
+                          <span className="text-sm">{item}</span>
                         </li>
                       ))}
                     </ul>
                     <a href="https://pay.kirvano.com/44bf7ce3-3b3b-442b-9983-9f612db21135" target="_blank" rel="noopener noreferrer" className="block">
-                      <Button className="w-full h-11 bg-foreground text-background hover:bg-foreground/90 text-sm font-semibold rounded-xl">
+                      <Button className="w-full h-12 bg-foreground text-background hover:bg-foreground/90 text-sm font-semibold rounded-xl">
                         Começar Agora
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
@@ -1186,23 +1444,23 @@ export default function Quiz() {
                 <div className="relative p-5 rounded-2xl border border-border/50 bg-background/60 backdrop-blur-xl overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5" />
                   <div className="relative z-10">
-                    <div className="text-[10px] font-medium text-muted-foreground mb-0.5">Mensal</div>
-                    <div className="flex items-baseline gap-1 mb-0.5">
-                      <span className="text-2xl font-bold">R$29,90</span>
-                      <span className="text-muted-foreground text-xs">/mês</span>
+                    <div className="text-xs font-medium text-muted-foreground mb-1">Mensal</div>
+                    <div className="flex items-baseline gap-1.5 mb-1">
+                      <span className="text-3xl font-bold">R$29,90</span>
+                      <span className="text-muted-foreground text-sm">/mês</span>
                     </div>
-                    <p className="text-muted-foreground line-through text-[10px] mb-2">R$39,90/mês</p>
-                    <p className="text-muted-foreground text-[11px] mb-3">Pague mês a mês, cancele quando quiser</p>
-                    <ul className="space-y-1.5 mb-4">
+                    <p className="text-muted-foreground line-through text-xs mb-2">R$39,90/mês</p>
+                    <p className="text-muted-foreground text-xs mb-3">Pague mês a mês, cancele quando quiser</p>
+                    <ul className="space-y-2 mb-5">
                       {["Acesso total", "Sincronização em tempo real", "Suporte prioritário", "Atualizações contínuas"].map((item, i) => (
                         <li key={i} className="flex items-center gap-2">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
-                          <span className="text-[11px]">{item}</span>
+                          <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
+                          <span className="text-sm">{item}</span>
                         </li>
                       ))}
                     </ul>
                     <a href="https://pay.kirvano.com/cb78dfd0-c8e0-40bb-a16b-951ba74a0a02" target="_blank" rel="noopener noreferrer" className="block">
-                      <Button variant="outline" className="w-full h-11 backdrop-blur-sm bg-background/50 text-sm rounded-xl">
+                      <Button variant="outline" className="w-full h-12 backdrop-blur-sm bg-background/50 text-sm rounded-xl">
                         Começar Agora
                       </Button>
                     </a>
@@ -1214,10 +1472,10 @@ export default function Quiz() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 1 }}
+                transition={{ delay: 1.1 }}
               >
                 <Link to="/">
-                  <Button variant="ghost" className="w-full h-9 rounded-xl text-[11px] text-muted-foreground">
+                  <Button variant="ghost" className="w-full h-10 rounded-xl text-xs text-muted-foreground">
                     Saiba mais sobre o Kairo
                   </Button>
                 </Link>
