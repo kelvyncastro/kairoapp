@@ -4,7 +4,11 @@ import { ArrowRight, Sparkles, Check, ChevronLeft, Star, CheckCircle2, Target, F
 import { Button } from "@/components/ui/button";
 
 import kairoLogo from "@/assets/kairo-penguin.png";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import NumberFlow from "@number-flow/react";
+import { cn } from "@/lib/utils";
 
 // ── Animated Background ────────────────────────────────────
 
