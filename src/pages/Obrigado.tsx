@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import confetti from "canvas-confetti";
+
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles, ArrowRight, Clock, Mail } from "lucide-react";
 import kairoLogo from "@/assets/kairo-penguin.png";
