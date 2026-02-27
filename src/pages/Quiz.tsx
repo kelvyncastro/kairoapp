@@ -1160,11 +1160,11 @@ export default function Quiz() {
                   <div className="relative z-10">
                     <div className="text-[10px] font-medium text-muted-foreground mb-0.5">Anual</div>
                     <div className="flex items-baseline gap-1 mb-0.5">
-                      <span className="text-2xl font-bold">R$197,90</span>
+                      <span className="text-2xl font-bold">R$69,90</span>
                       <span className="text-muted-foreground text-xs">/ano</span>
                     </div>
                     <p className="text-muted-foreground line-through text-[10px] mb-0.5">R$397,90/ano</p>
-                    <p className="text-success text-[11px] font-medium mb-2">Economize R$160,90 — apenas R$16,49/mês</p>
+                    <p className="text-success text-[11px] font-medium mb-2">Economize R$328,00 — apenas R$5,83/mês</p>
                     <ul className="space-y-1.5 mb-4">
                       {["Acesso total a tudo", "45% de desconto", "Prioridade em novos recursos", "Suporte VIP"].map((item, i) => (
                         <li key={i} className="flex items-center gap-2">
