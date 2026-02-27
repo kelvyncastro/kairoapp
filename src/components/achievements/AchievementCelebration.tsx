@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import confetti from "canvas-confetti";
+
 import { Flame, Trophy, Crown, X, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
