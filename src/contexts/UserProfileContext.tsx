@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -19,14 +19,25 @@ export interface UserProfile {
   account_status: string;
 }
 
+export interface SubscriptionInfo {
+  subscribed: boolean;
+  status: string;
+  is_trial?: boolean;
+  trial_end?: string | null;
+  subscription_end?: string | null;
+  message?: string;
+}
+
 interface UserProfileContextType {
   profile: UserProfile | null;
   loading: boolean;
   needsOnboarding: boolean;
   isSubscriptionInactive: boolean;
+  subscriptionInfo: SubscriptionInfo | null;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   uploadAvatar: (file: File) => Promise<string | null>;
   refreshProfile: () => Promise<void>;
+  checkSubscription: () => Promise<void>;
   getInitials: () => string;
   getDisplayName: () => string;
 }
@@ -37,6 +48,8 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [subscriptionInfo, setSubscriptionInfo] = useState<SubscriptionInfo | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchProfile = useCallback(async () => {
     if (!user) {
@@ -67,9 +80,57 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
+  const checkSubscription = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      
+      if (error) {
+        console.error('Error checking subscription:', error);
+        return;
+      }
+
+      if (data) {
+        setSubscriptionInfo(data as SubscriptionInfo);
+        // Re-fetch profile to get updated subscription_status
+        await fetchProfile();
+      }
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+    }
+  }, [user, fetchProfile]);
+
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
+
+  // Check subscription on login and periodically
+  useEffect(() => {
+    if (!user || !profile) return;
+
+    // Check on load
+    checkSubscription();
+
+    // Check every 60 seconds
+    intervalRef.current = setInterval(checkSubscription, 60000);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [user, profile?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Check subscription after checkout redirect
+  useEffect(() => {
+    if (!user) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('checkout') === 'success') {
+      // Delay to give Stripe time to process
+      setTimeout(() => checkSubscription(), 2000);
+      // Clean URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [user, checkSubscription]);
 
   // Apply theme
   useEffect(() => {
@@ -158,9 +219,11 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
         loading,
         needsOnboarding,
         isSubscriptionInactive,
+        subscriptionInfo,
         updateProfile,
         uploadAvatar,
         refreshProfile: fetchProfile,
+        checkSubscription,
         getInitials,
         getDisplayName,
       }}
