@@ -988,7 +988,7 @@ export default function Quiz() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
-              className="text-sm text-muted-foreground leading-relaxed mb-8 max-w-[320px]"
+              className="text-base text-muted-foreground leading-relaxed mb-8 max-w-[360px]"
             >
               Em 3 minutos, entenda qual é a melhor forma de organizar sua vida e quais ferramentas da Kairo são perfeitas para você.
             </motion.p>
