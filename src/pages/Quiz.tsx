@@ -946,7 +946,7 @@ export default function Quiz() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: "easeOut" }}
-            className="w-full max-w-sm flex flex-col items-center text-center"
+            className="w-full max-w-md flex flex-col items-center text-center"
           >
             {/* Logo */}
             <motion.div
