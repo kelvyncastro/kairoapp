@@ -946,7 +946,7 @@ export default function Quiz() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: "easeOut" }}
-            className="w-full max-w-sm flex flex-col items-center text-center"
+            className="w-full max-w-md flex flex-col items-center text-center"
           >
             {/* Logo */}
             <motion.div
@@ -955,8 +955,8 @@ export default function Quiz() {
               transition={{ type: "spring", damping: 12, delay: 0.2 }}
               className="mb-8"
             >
-              <div className="w-20 h-20 rounded-2xl bg-card/80 backdrop-blur-xl border border-border/40 flex items-center justify-center shadow-2xl shadow-primary/10">
-                <img src={kairoLogo} alt="Kairo" className="w-12 h-12 rounded-lg" />
+              <div className="w-24 h-24 rounded-2xl bg-card/80 backdrop-blur-xl border border-border/40 flex items-center justify-center shadow-2xl shadow-primary/10">
+                <img src={kairoLogo} alt="Kairo" className="w-14 h-14 rounded-lg" />
               </div>
             </motion.div>
 
@@ -978,7 +978,7 @@ export default function Quiz() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className="text-2xl sm:text-3xl font-bold leading-tight mb-3"
+              className="text-3xl sm:text-4xl font-bold leading-tight mb-4"
             >
               Descubra seu estilo de produtividade
             </motion.h1>
@@ -988,7 +988,7 @@ export default function Quiz() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
-              className="text-sm text-muted-foreground leading-relaxed mb-8 max-w-[320px]"
+              className="text-base text-muted-foreground leading-relaxed mb-8 max-w-[360px]"
             >
               Em 3 minutos, entenda qual é a melhor forma de organizar sua vida e quais ferramentas da Kairo são perfeitas para você.
             </motion.p>
@@ -1044,7 +1044,7 @@ export default function Quiz() {
 
       {/* Header */}
       <header className="w-full bg-background/60 backdrop-blur-2xl sticky top-0 z-50 border-b border-border/20 safe-area-top">
-        <div className="max-w-lg mx-auto px-4 py-3 flex items-center">
+        <div className="max-w-2xl mx-auto px-5 py-3 flex items-center">
           {currentQ > 0 && !showFeedback && !finished ? (
             <button onClick={handleBack} className="p-1.5 -ml-1 rounded-full active:bg-accent transition-colors">
               <ChevronLeft className="h-5 w-5 text-muted-foreground" />
@@ -1062,7 +1062,7 @@ export default function Quiz() {
 
         {/* Progress */}
         {!showResults && (
-          <div className="max-w-lg mx-auto px-4 pb-2.5">
+          <div className="max-w-2xl mx-auto px-5 pb-2.5">
             <div className="flex gap-1">
               {Array.from({ length: totalQ }).map((_, i) => (
                 <div key={i} className="flex-1 h-1 rounded-full overflow-hidden bg-muted/40">
@@ -1080,7 +1080,7 @@ export default function Quiz() {
       </header>
 
       {/* Content */}
-      <main className="flex-1 flex flex-col items-center px-5 py-5 overflow-y-auto relative z-10">
+      <main className="flex-1 flex flex-col items-center px-5 py-6 overflow-y-auto relative z-10">
         <AnimatePresence mode="wait">
           {!showResults ? (
             <motion.div
@@ -1089,13 +1089,13 @@ export default function Quiz() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="w-full max-w-lg"
+              className="w-full max-w-2xl"
             >
               {!showFeedback ? (
                 <>
                   {/* Question */}
-                  <div className="mb-5">
-                    <h2 className="text-xl sm:text-2xl font-bold text-center leading-snug mb-2">
+                  <div className="mb-6">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-center leading-snug mb-2">
                       {q.question}
                     </h2>
                     {q.subtitle && (
@@ -1104,7 +1104,7 @@ export default function Quiz() {
                   </div>
 
                   {/* Options */}
-                  <div className="flex flex-col gap-2.5">
+                  <div className="flex flex-col gap-3">
                     {q.options.map((opt, idx) => {
                       const isMultiSelected = multiSelected.includes(idx);
                       return (
@@ -1114,17 +1114,17 @@ export default function Quiz() {
                           initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: idx * 0.03, duration: 0.25 }}
-                          className={`group flex items-center gap-3 w-full text-left px-4 py-3.5 rounded-xl border transition-all duration-150 active:scale-[0.98] ${
+                          className={`group flex items-center gap-4 w-full text-left px-5 py-4 rounded-xl border transition-all duration-150 active:scale-[0.98] ${
                             isMultiSelected
                               ? "border-primary/40 bg-primary/8 shadow-[0_0_20px_-6px] shadow-primary/15"
                               : "border-border/30 bg-card/40 backdrop-blur-sm active:bg-accent/40"
                           }`}
                         >
-                          <span className="text-xl flex-shrink-0">{opt.icon}</span>
+                          <span className="text-2xl flex-shrink-0">{opt.icon}</span>
                           <div className="flex-1 min-w-0">
-                            <span className="block font-semibold text-[15px] leading-snug">{opt.label}</span>
+                            <span className="block font-semibold text-base leading-snug">{opt.label}</span>
                             {opt.description && (
-                              <span className="block text-xs text-muted-foreground leading-snug mt-0.5">{opt.description}</span>
+                              <span className="block text-sm text-muted-foreground leading-snug mt-1">{opt.description}</span>
                             )}
                           </div>
                           {q.multiSelect && (
@@ -1231,7 +1231,7 @@ export default function Quiz() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
-              className="w-full max-w-lg pb-10"
+              className="w-full max-w-2xl pb-10"
             >
               {/* Floating draggable CTA */}
               <FloatingCtaButton />
