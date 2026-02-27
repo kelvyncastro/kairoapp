@@ -888,6 +888,155 @@ function FloatingCtaButton() {
 
 // ── Component ──────────────────────────────────────────────
 
+// ── Pricing Card ──────────────────────────────────────────
+
+const PRICES = {
+  monthly: { id: "price_1T5UXMRJMHH3zUuvtPse22FH", amount: 29.90, label: "/mês" },
+  yearly: { id: "price_1T5ULPRJMHH3zUuvllNGtQ1t", amount: 69.90, label: "/ano" },
+};
+
+function PricingCard() {
+  const [isYearly, setIsYearly] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const price = isYearly ? PRICES.yearly : PRICES.monthly;
+
+  const handleCheckout = async () => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { priceId: price.id },
+      });
+      if (error) throw error;
+      if (data?.error) {
+        toast({ title: "Erro", description: data.error, variant: "destructive" });
+        return;
+      }
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (err) {
+      console.error("Checkout error:", err);
+      toast({ title: "Erro", description: "Não foi possível iniciar o checkout.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <motion.div
+      id="quiz-pricing"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.95 }}
+      className="mb-5"
+    >
+      <h3 className="text-lg font-bold text-center mb-1">Experimente grátis por 7 dias</h3>
+      <p className="text-xs text-muted-foreground text-center mb-4">Sem cobranças durante o período de teste</p>
+
+      {/* Toggle */}
+      <div className="flex justify-center mb-4">
+        <div className="relative flex items-center gap-1 rounded-full bg-muted/40 p-1">
+          <button
+            onClick={() => setIsYearly(false)}
+            className={cn(
+              "relative z-10 h-9 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+              !isYearly ? "text-primary-foreground" : "text-muted-foreground"
+            )}
+          >
+            {!isYearly && (
+              <motion.div layoutId="pricing-toggle" className="absolute inset-0 rounded-full bg-primary" />
+            )}
+            <span className="relative z-10">Mensal</span>
+          </button>
+          <button
+            onClick={() => setIsYearly(true)}
+            className={cn(
+              "relative z-10 h-9 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+              isYearly ? "text-primary-foreground" : "text-muted-foreground"
+            )}
+          >
+            {isYearly && (
+              <motion.div layoutId="pricing-toggle" className="absolute inset-0 rounded-full bg-primary" />
+            )}
+            <span className="relative z-10">Anual</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Single Card */}
+      <div className="relative p-6 rounded-2xl border-2 border-primary/50 bg-background/60 backdrop-blur-xl overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-transparent to-primary/10" />
+        <motion.div
+          className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-bl-lg rounded-tr-xl"
+          animate={{ scale: [1, 1.05, 1] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          7 Dias Grátis
+        </motion.div>
+        <div className="relative z-10">
+          <div className="text-xs font-medium text-muted-foreground mb-1">
+            {isYearly ? "Plano Anual" : "Plano Mensal"}
+          </div>
+          <div className="flex items-baseline gap-1.5 mb-1">
+            <span className="text-sm text-muted-foreground">R$</span>
+            <span className="text-4xl font-bold">
+              <NumberFlow value={price.amount} format={{ minimumFractionDigits: 2 }} />
+            </span>
+            <span className="text-muted-foreground text-sm">{price.label}</span>
+          </div>
+          {isYearly && (
+            <div className="flex items-center gap-2 mb-1">
+              <p className="text-muted-foreground line-through text-xs">R$197,90/ano</p>
+              <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">-65%</span>
+            </div>
+          )}
+          <p className="text-success text-xs font-medium mb-4">
+            {isYearly
+              ? "Apenas R$5,83/mês — Economize R$128,00"
+              : "Cancele quando quiser, sem compromisso"}
+          </p>
+          <ul className="space-y-2 mb-5">
+            {[
+              "7 dias grátis — cancele antes e não pague nada",
+              "Acesso total a todas as funcionalidades",
+              "Sincronização em tempo real",
+              isYearly ? "Prioridade em novos recursos" : "Flexibilidade mês a mês",
+            ].map((item, i) => (
+              <li key={i} className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
+                <span className="text-sm">{item}</span>
+              </li>
+            ))}
+          </ul>
+          <Button
+            onClick={handleCheckout}
+            disabled={loading}
+            className="w-full h-12 text-sm font-semibold rounded-xl gap-2"
+          >
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <CreditCard className="h-4 w-4" />
+            )}
+            Começar Teste Grátis
+          </Button>
+          <p className="text-[10px] text-muted-foreground text-center mt-2">
+            Crie sua conta → Inicie o teste grátis com cartão
+          </p>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── Component ──────────────────────────────────────────────
+
 export default function Quiz() {
   const [started, setStarted] = useState(false);
   const [currentQ, setCurrentQ] = useState(0);
