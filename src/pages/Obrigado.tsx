@@ -1,7 +1,6 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles, ArrowRight, Clock, Mail } from "lucide-react";
 import kairoLogo from "@/assets/kairo-penguin.png";
@@ -10,8 +9,6 @@ export default function Obrigado() {
   const navigate = useNavigate();
   const [countdown, setCountdown] = useState(10);
 
-    return () => clearInterval(interval);
-  }, []);
 
   // Countdown timer
   useEffect(() => {
