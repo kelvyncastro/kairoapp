@@ -511,23 +511,6 @@ export default function Metas() {
 
     if (completed && goal.status !== "COMPLETED") {
       playCheck();
-      confetti({
-        particleCount: 150,
-        spread: 70,
-        origin: { y: 0.6 },
-      });
-      setTimeout(() => {
-        confetti({
-          particleCount: 100,
-          spread: 100,
-          origin: { y: 0.5, x: 0.3 },
-        });
-        confetti({
-          particleCount: 100,
-          spread: 100,
-          origin: { y: 0.5, x: 0.7 },
-        });
-      }, 200);
       toast({ title: "🎯 Meta alcançada!", description: goal.title });
     } else {
       playCheck();

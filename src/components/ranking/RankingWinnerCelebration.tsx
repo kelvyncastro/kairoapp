@@ -44,62 +44,6 @@ export function RankingWinnerCelebration({
       // Delay podium animation
       setTimeout(() => setShowPodium(true), 800);
       
-      // Fire confetti
-      const duration = 4000;
-      const end = Date.now() + duration;
-
-      const colors = ["#fbbf24", "#f59e0b", "#d97706", "#fef3c7", "#fcd34d"];
-
-      const frame = () => {
-        confetti({
-          particleCount: 4,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0, y: 0.7 },
-          colors,
-        });
-        confetti({
-          particleCount: 4,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1, y: 0.7 },
-          colors,
-        });
-
-        if (Date.now() < end) {
-          requestAnimationFrame(frame);
-        }
-      };
-
-      frame();
-
-      // Center burst for winner
-      setTimeout(() => {
-        confetti({
-          particleCount: 150,
-          spread: 120,
-          origin: { x: 0.5, y: 0.4 },
-          colors,
-          startVelocity: 35,
-          gravity: 0.8,
-        });
-      }, 500);
-
-      // Extra celebration burst
-      setTimeout(() => {
-        confetti({
-          particleCount: 80,
-          spread: 100,
-          origin: { x: 0.3, y: 0.6 },
-          colors: ["#a855f7", "#8b5cf6", "#c084fc"],
-        });
-        confetti({
-          particleCount: 80,
-          spread: 100,
-          origin: { x: 0.7, y: 0.6 },
-          colors: ["#22c55e", "#16a34a", "#4ade80"],
-        });
-      }, 1200);
     }
   }, [winner]);
 

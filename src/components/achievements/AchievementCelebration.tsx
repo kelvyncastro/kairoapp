@@ -26,18 +26,6 @@ export function AchievementCelebration({ badge, onClose }: AchievementCelebratio
     }
   }, [badge]);
 
-  const getConfettiColors = (colorClass: string) => {
-    switch (colorClass) {
-      case "streak-fire":
-        return ["#f97316", "#ea580c", "#fb923c", "#fed7aa"];
-      case "streak-trophy":
-        return ["#eab308", "#facc15", "#fde047", "#fef3c7"];
-      case "streak-crown":
-        return ["#a855f7", "#8b5cf6", "#c084fc", "#ddd6fe"];
-      default:
-        return ["#22c55e", "#16a34a", "#4ade80", "#bbf7d0"];
-    }
-  };
 
   const handleClose = () => {
     setIsVisible(false);

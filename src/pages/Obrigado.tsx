@@ -9,44 +9,6 @@ import kairoLogo from "@/assets/kairo-penguin.png";
 export default function Obrigado() {
   const navigate = useNavigate();
   const [countdown, setCountdown] = useState(10);
-  const hasLaunchedConfetti = useRef(false);
-
-
-  // Launch confetti on first render
-  useEffect(() => {
-    if (hasLaunchedConfetti.current) return;
-    hasLaunchedConfetti.current = true;
-
-    // Initial burst
-    const duration = 3000;
-    const animationEnd = Date.now() + duration;
-    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
-
-    const randomInRange = (min: number, max: number) =>
-      Math.random() * (max - min) + min;
-
-    const interval = setInterval(() => {
-      const timeLeft = animationEnd - Date.now();
-      if (timeLeft <= 0) {
-        clearInterval(interval);
-        return;
-      }
-
-      const particleCount = 50 * (timeLeft / duration);
-      
-      confetti({
-        ...defaults,
-        particleCount,
-        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
-        colors: ["#10b981", "#34d399", "#6ee7b7", "#a7f3d0", "#d1fae5"],
-      });
-      confetti({
-        ...defaults,
-        particleCount,
-        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
-        colors: ["#8b5cf6", "#a78bfa", "#c4b5fd", "#ddd6fe", "#ede9fe"],
-      });
-    }, 250);
 
     return () => clearInterval(interval);
   }, []);

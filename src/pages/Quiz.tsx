@@ -887,22 +887,6 @@ export default function Quiz() {
     return () => clearTimeout(timer);
   }, [showLoading]);
 
-  // Confetti on results
-  useEffect(() => {
-    if (!showResults) return;
-    const duration = 3000;
-    const end = Date.now() + duration;
-    const colors = ["#f97316", "#eab308", "#22c55e", "#a855f7", "#3b82f6"];
-    const frame = () => {
-      confetti({ particleCount: 4, angle: 60, spread: 55, origin: { x: 0, y: 0.7 }, colors });
-      confetti({ particleCount: 4, angle: 120, spread: 55, origin: { x: 1, y: 0.7 }, colors });
-      if (Date.now() < end) requestAnimationFrame(frame);
-    };
-    frame();
-    setTimeout(() => {
-      confetti({ particleCount: 150, spread: 120, origin: { x: 0.5, y: 0.4 }, colors, startVelocity: 35, gravity: 0.8 });
-    }, 400);
-  }, [showResults]);
 
   const handleSelect = (idx: number) => {
     if (showFeedback) return;
