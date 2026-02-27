@@ -16,10 +16,17 @@ export default function AssinaturaInativa() {
 
   const isPastDue = subscriptionInfo?.status === "past_due";
 
-  const handleStartTrial = async () => {
+  const PRICES = {
+    monthly: { id: "price_1T5UXMRJMHH3zUuvtPse22FH", amount: 29.90, label: "/mês" },
+    yearly: { id: "price_1T5ULPRJMHH3zUuvllNGtQ1t", amount: 69.90, label: "/ano" },
+  };
+
+  const handleStartTrial = async (planKey: "monthly" | "yearly" = "yearly") => {
     setLoadingCheckout(true);
     try {
-      const { data, error } = await supabase.functions.invoke("create-checkout");
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { priceId: PRICES[planKey].id },
+      });
       if (error) throw error;
       if (data?.error) {
         toast({ title: "Erro", description: data.error, variant: "destructive" });
