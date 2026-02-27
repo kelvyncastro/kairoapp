@@ -1592,21 +1592,7 @@ export default function Quiz() {
                       transition={{ duration: 1.5, repeat: Infinity }}
                       className="w-12 h-12 mx-auto mb-3 rounded-full bg-primary/15 flex items-center justify-center"
                     >
-                      <LogIn className="h-6 w-6 text-primary" />
-                    </motion.div>
-                    <h3 className="text-base font-bold mb-1.5">Já é membro? Acesse agora!</h3>
-                    <p className="text-xs text-muted-foreground mb-4">
-                      Faça login para acessar todas as funcionalidades da Kairo
-                    </p>
-                    <Link to="/auth">
-                      <Button className="w-full h-12 rounded-xl gap-2 text-sm font-bold">
-                        <LogIn className="h-4 w-4" />
-                        Entrar na minha conta
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </motion.div>
+                    
 
               {/* Free Trial Card */}
                 <PricingCard />
