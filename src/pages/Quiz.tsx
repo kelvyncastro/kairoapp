@@ -1062,7 +1062,7 @@ export default function Quiz() {
 
         {/* Progress */}
         {!showResults && (
-          <div className="max-w-lg mx-auto px-4 pb-2.5">
+          <div className="max-w-2xl mx-auto px-5 pb-2.5">
             <div className="flex gap-1">
               {Array.from({ length: totalQ }).map((_, i) => (
                 <div key={i} className="flex-1 h-1 rounded-full overflow-hidden bg-muted/40">
