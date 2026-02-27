@@ -1094,8 +1094,8 @@ export default function Quiz() {
               {!showFeedback ? (
                 <>
                   {/* Question */}
-                  <div className="mb-5">
-                    <h2 className="text-xl sm:text-2xl font-bold text-center leading-snug mb-2">
+                  <div className="mb-6">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-center leading-snug mb-2">
                       {q.question}
                     </h2>
                     {q.subtitle && (
