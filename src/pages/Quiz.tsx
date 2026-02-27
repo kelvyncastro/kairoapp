@@ -808,6 +808,58 @@ function LoadingScreen() {
   );
 }
 
+// ── Floating Draggable CTA Button ─────────────────────────
+
+function FloatingCtaButton() {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleClick = () => {
+    if (isDragging) return;
+    const el = document.getElementById("quiz-pricing");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  return (
+    <motion.div
+      drag
+      dragMomentum={false}
+      onDragStart={() => setIsDragging(true)}
+      onDragEnd={(_, info) => {
+        setPosition((prev) => ({ x: prev.x + info.offset.x, y: prev.y + info.offset.y }));
+        setTimeout(() => setIsDragging(false), 100);
+      }}
+      style={{ x: position.x, y: position.y }}
+      initial={{ opacity: 0, scale: 0 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: 1.5, type: "spring", damping: 12 }}
+      className="fixed bottom-6 right-6 z-50 cursor-grab active:cursor-grabbing touch-none"
+    >
+      <motion.button
+        onClick={handleClick}
+        animate={{
+          boxShadow: [
+            "0 0 0 0 rgba(255,255,255,0.4)",
+            "0 0 0 12px rgba(255,255,255,0)",
+            "0 0 0 0 rgba(255,255,255,0)",
+          ],
+        }}
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        className="relative flex items-center gap-2 px-5 py-3.5 rounded-full bg-white text-black font-bold text-sm shadow-xl hover:shadow-2xl transition-shadow select-none"
+      >
+        <motion.span
+          animate={{ scale: [1, 1.2, 1] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        >
+          🚀
+        </motion.span>
+        Começar Agora
+        <ArrowRight className="h-4 w-4" />
+      </motion.button>
+    </motion.div>
+  );
+}
+
 // ── Component ──────────────────────────────────────────────
 
 export default function Quiz() {
@@ -1196,6 +1248,8 @@ export default function Quiz() {
               transition={{ duration: 0.5 }}
               className="w-full max-w-lg pb-10"
             >
+              {/* Floating draggable CTA */}
+              <FloatingCtaButton />
               {/* Profile card */}
               <div className="relative rounded-2xl border border-border/30 overflow-hidden mb-6">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/5" />
@@ -1397,6 +1451,7 @@ export default function Quiz() {
 
               {/* Pricing Cards */}
               <motion.div
+                id="quiz-pricing"
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1 }}
