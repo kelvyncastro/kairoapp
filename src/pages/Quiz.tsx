@@ -741,6 +741,27 @@ function LoadingScreen() {
     return () => clearInterval(interval);
   }, []);
 
+  // Dispara evento de lead quando o usuário finaliza o quiz
+  useEffect(() => {
+    try {
+      // Facebook Pixel
+      if (typeof window !== "undefined" && (window as any).fbq) {
+        (window as any).fbq("track", "Lead");
+      }
+      // Google Ads / gtag
+      if (typeof window !== "undefined" && (window as any).gtag) {
+        (window as any).gtag("event", "generate_lead", {
+          event_category: "quiz",
+          event_label: "quiz_completed",
+        });
+      }
+      // Evento customizado para qualquer outro tracker
+      window.dispatchEvent(new CustomEvent("quiz_lead", { detail: { source: "quiz" } }));
+    } catch (e) {
+      console.error("Erro ao disparar evento de lead:", e);
+    }
+  }, []);
+
   return (
     <div className="min-h-[100dvh] bg-background text-foreground flex flex-col relative overflow-hidden">
       <AnimatedBackground />
