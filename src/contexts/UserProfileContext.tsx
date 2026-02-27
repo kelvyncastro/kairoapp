@@ -102,7 +102,14 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
       }
 
       if (data) {
-        setSubscriptionInfo(data as SubscriptionInfo);
+        const subData = data as SubscriptionInfo & { source?: string };
+        setSubscriptionInfo(subData);
+        
+        // If backend confirms access (admin or active sub), mark admin immediately
+        if (subData.subscribed && subData.source === 'admin') {
+          setIsAdmin(true);
+        }
+        
         // Re-fetch profile to get updated subscription_status
         await fetchProfile();
       }
@@ -220,7 +227,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
   };
 
   const needsOnboarding = !loading && user !== null && (!profile || !profile.onboarding_completed);
-  const isSubscriptionInactive = !loading && user !== null && !!profile && !isAdmin && profile.subscription_status !== 'active';
+  const isSubscriptionInactive = !loading && user !== null && !!profile && !isAdmin && profile.subscription_status !== 'active' && !(subscriptionInfo?.subscribed === true);
 
   return (
     <UserProfileContext.Provider
