@@ -109,18 +109,33 @@ export default function AssinaturaInativa() {
               Atualizar Pagamento
             </Button>
           ) : (
-            <Button
-              onClick={handleStartTrial}
-              disabled={loadingCheckout}
-              className="w-full"
-            >
-              {loadingCheckout ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <CreditCard className="mr-2 h-4 w-4" />
-              )}
-              Teste Grátis por 7 Dias
-            </Button>
+            <div className="space-y-2">
+              <Button
+                onClick={() => handleStartTrial("yearly")}
+                disabled={loadingCheckout}
+                className="w-full"
+              >
+                {loadingCheckout ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <CreditCard className="mr-2 h-4 w-4" />
+                )}
+                Anual — R$ 69,90/ano
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => handleStartTrial("monthly")}
+                disabled={loadingCheckout}
+                className="w-full"
+              >
+                {loadingCheckout ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <CreditCard className="mr-2 h-4 w-4" />
+                )}
+                Mensal — R$ 29,90/mês
+              </Button>
+            </div>
           )}
 
           <Button
