@@ -227,7 +227,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
   };
 
   const needsOnboarding = !loading && user !== null && (!profile || !profile.onboarding_completed);
-  const isSubscriptionInactive = !loading && user !== null && !!profile && !isAdmin && profile.subscription_status !== 'active';
+  const isSubscriptionInactive = !loading && user !== null && !!profile && !isAdmin && profile.subscription_status !== 'active' && !(subscriptionInfo?.subscribed === true);
 
   return (
     <UserProfileContext.Provider
