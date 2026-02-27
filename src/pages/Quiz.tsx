@@ -1455,29 +1455,60 @@ export default function Quiz() {
                 </div>
               </motion.div>
 
-              {/* Pricing Cards */}
+              {/* Free Trial Card */}
               <motion.div
                 id="quiz-pricing"
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1 }}
+                transition={{ delay: 0.95 }}
                 className="mb-5"
               >
-                <h3 className="text-lg font-bold text-center mb-1">Escolha seu plano</h3>
-                <p className="text-xs text-muted-foreground text-center mb-4">Acesso total a todas as funcionalidades</p>
+                <h3 className="text-lg font-bold text-center mb-1">Experimente grátis por 7 dias</h3>
+                <p className="text-xs text-muted-foreground text-center mb-4">Sem cobranças durante o período de teste</p>
 
-                {/* Annual Plan - Primary */}
-                <div className="relative p-5 rounded-2xl border border-primary/30 bg-background/60 backdrop-blur-xl overflow-hidden mb-3">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/10" />
+                {/* Trial Card - Highlighted */}
+                <div className="relative p-5 rounded-2xl border-2 border-primary/50 bg-background/60 backdrop-blur-xl overflow-hidden mb-3">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-transparent to-primary/10" />
                   <motion.div
-                    className="absolute -top-0.5 -right-0.5 bg-foreground text-background text-[10px] font-bold px-3 py-1 rounded-bl-lg rounded-tr-xl"
+                    className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-bl-lg rounded-tr-xl"
                     animate={{ scale: [1, 1.05, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
-                    Mais Popular
+                    7 Dias Grátis
                   </motion.div>
                   <div className="relative z-10">
-                    <div className="text-xs font-medium text-muted-foreground mb-1">Anual</div>
+                    <div className="text-xs font-medium text-muted-foreground mb-1">Teste Grátis + Anual</div>
+                    <div className="flex items-baseline gap-1.5 mb-1">
+                      <span className="text-3xl font-bold">R$0,00</span>
+                      <span className="text-muted-foreground text-sm">por 7 dias</span>
+                    </div>
+                    <p className="text-muted-foreground text-xs mb-1">Depois R$69,90/ano (R$5,83/mês)</p>
+                    <p className="text-success text-xs font-medium mb-3">Cancele antes de 7 dias e não pague nada</p>
+                    <ul className="space-y-2 mb-5">
+                      {["Acesso total por 7 dias grátis", "Cartão como garantia (sem cobranças)", "Cancele a qualquer momento", "Após 7 dias: R$69,90/ano"].map((item, i) => (
+                        <li key={i} className="flex items-center gap-2">
+                          <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
+                          <span className="text-sm">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <Link to="/auth">
+                      <Button className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-semibold rounded-xl">
+                        Começar Teste Grátis
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <p className="text-[10px] text-muted-foreground text-center mt-2">
+                      Crie sua conta → Inicie o teste grátis com cartão
+                    </p>
+                  </div>
+                </div>
+
+                {/* Annual Plan */}
+                <div className="relative p-5 rounded-2xl border border-primary/30 bg-background/60 backdrop-blur-xl overflow-hidden mb-3">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/10" />
+                  <div className="relative z-10">
+                    <div className="text-xs font-medium text-muted-foreground mb-1">Anual (sem teste)</div>
                     <div className="flex items-baseline gap-1.5 mb-1">
                       <span className="text-3xl font-bold">R$69,90</span>
                       <span className="text-muted-foreground text-sm">/ano</span>
