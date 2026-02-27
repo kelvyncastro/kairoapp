@@ -1248,6 +1248,8 @@ export default function Quiz() {
               transition={{ duration: 0.5 }}
               className="w-full max-w-lg pb-10"
             >
+              {/* Floating draggable CTA */}
+              <FloatingCtaButton />
               {/* Profile card */}
               <div className="relative rounded-2xl border border-border/30 overflow-hidden mb-6">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/5" />
