@@ -46,11 +46,21 @@ serve(async (req) => {
 
     if (customers.data.length === 0) {
       logStep("No Stripe customer found");
-      // Update profile to inactive
-      await supabaseClient
+
+      // Check if user was provisioned externally (e.g. Kirvano) with active status
+      const { data: profileData } = await supabaseClient
         .from("user_profiles")
-        .update({ subscription_status: "inactive" })
-        .eq("user_id", user.id);
+        .select("subscription_status")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (profileData?.subscription_status === "active") {
+        logStep("User has active status from external provisioning, keeping access");
+        return new Response(
+          JSON.stringify({ subscribed: true, status: "active", source: "external" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+        );
+      }
 
       return new Response(
         JSON.stringify({ subscribed: false, status: "no_customer" }),
