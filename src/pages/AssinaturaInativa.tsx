@@ -16,10 +16,17 @@ export default function AssinaturaInativa() {
 
   const isPastDue = subscriptionInfo?.status === "past_due";
 
-  const handleStartTrial = async () => {
+  const PRICES = {
+    monthly: { id: "price_1T5UXMRJMHH3zUuvtPse22FH", amount: 29.90, label: "/mês" },
+    yearly: { id: "price_1T5ULPRJMHH3zUuvllNGtQ1t", amount: 69.90, label: "/ano" },
+  };
+
+  const handleStartTrial = async (planKey: "monthly" | "yearly" = "yearly") => {
     setLoadingCheckout(true);
     try {
-      const { data, error } = await supabase.functions.invoke("create-checkout");
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { priceId: PRICES[planKey].id },
+      });
       if (error) throw error;
       if (data?.error) {
         toast({ title: "Erro", description: data.error, variant: "destructive" });
@@ -102,18 +109,33 @@ export default function AssinaturaInativa() {
               Atualizar Pagamento
             </Button>
           ) : (
-            <Button
-              onClick={handleStartTrial}
-              disabled={loadingCheckout}
-              className="w-full"
-            >
-              {loadingCheckout ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <CreditCard className="mr-2 h-4 w-4" />
-              )}
-              Teste Grátis por 7 Dias
-            </Button>
+            <div className="space-y-2">
+              <Button
+                onClick={() => handleStartTrial("yearly")}
+                disabled={loadingCheckout}
+                className="w-full"
+              >
+                {loadingCheckout ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <CreditCard className="mr-2 h-4 w-4" />
+                )}
+                Anual — R$ 69,90/ano
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => handleStartTrial("monthly")}
+                disabled={loadingCheckout}
+                className="w-full"
+              >
+                {loadingCheckout ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <CreditCard className="mr-2 h-4 w-4" />
+                )}
+                Mensal — R$ 29,90/mês
+              </Button>
+            </div>
           )}
 
           <Button
