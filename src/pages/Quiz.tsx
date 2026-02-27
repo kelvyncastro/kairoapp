@@ -748,46 +748,46 @@ function LoadingScreen() {
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-center max-w-sm"
+          className="text-center max-w-md w-full"
         >
           {/* Animated logo with spinning ring */}
-          <div className="relative mx-auto mb-8 w-24 h-24 flex items-center justify-center">
+          <div className="relative mx-auto mb-10 w-32 h-32 flex items-center justify-center">
             {/* Spinning ring */}
             <motion.div
-              className="absolute inset-0 rounded-full border-4 border-primary/15 border-t-primary"
+              className="absolute inset-0 rounded-full border-[5px] border-primary/15 border-t-primary"
               animate={{ rotate: 360 }}
               transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
             />
             {/* Static logo */}
-            <img src={kairoLogo} alt="Kairo" className="w-12 h-12 rounded-xl relative z-10" />
+            <img src={kairoLogo} alt="Kairo" className="w-16 h-16 rounded-xl relative z-10" />
           </div>
 
           {/* Steps */}
-          <div className="space-y-3 mb-6">
+          <div className="space-y-4 mb-8">
             {steps.map((text, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: i <= step ? 1 : 0.3, x: 0 }}
                 transition={{ delay: i * 0.15, duration: 0.3 }}
-                className="flex items-center gap-3"
+                className="flex items-center gap-4"
               >
                 {i < step ? (
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0"
+                    className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0"
                   >
-                    <Check className="w-3.5 h-3.5 text-primary" />
+                    <Check className="w-4 h-4 text-primary" />
                   </motion.div>
                 ) : i === step ? (
-                  <div className="w-6 h-6 rounded-full border-2 border-primary/40 flex items-center justify-center flex-shrink-0">
-                    <Loader2 className="w-3.5 h-3.5 text-primary animate-spin" />
+                  <div className="w-8 h-8 rounded-full border-2 border-primary/40 flex items-center justify-center flex-shrink-0">
+                    <Loader2 className="w-4 h-4 text-primary animate-spin" />
                   </div>
                 ) : (
-                  <div className="w-6 h-6 rounded-full border-2 border-muted-foreground/20 flex-shrink-0" />
+                  <div className="w-8 h-8 rounded-full border-2 border-muted-foreground/20 flex-shrink-0" />
                 )}
-                <span className={`text-sm ${i <= step ? "text-foreground" : "text-muted-foreground/50"}`}>
+                <span className={`text-base ${i <= step ? "text-foreground" : "text-muted-foreground/50"}`}>
                   {text}
                 </span>
               </motion.div>
@@ -795,7 +795,7 @@ function LoadingScreen() {
           </div>
 
           {/* Progress bar */}
-          <div className="w-full h-2 rounded-full bg-muted/40 overflow-hidden">
+          <div className="w-full h-2.5 rounded-full bg-muted/40 overflow-hidden">
             <motion.div
               className="h-full rounded-full bg-primary"
               initial={{ width: "0%" }}
