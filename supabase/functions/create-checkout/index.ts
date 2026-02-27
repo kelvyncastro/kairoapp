@@ -97,8 +97,15 @@ serve(async (req) => {
         trial_period_days: 7,
       },
       payment_method_collection: "always",
+      payment_method_types: ["card"],
+      payment_method_options: {
+        card: {
+          request_three_d_secure: "automatic",
+        },
+      },
+      locale: "pt-BR",
       success_url: `${origin}/dashboard?checkout=success`,
-      cancel_url: `${origin}/assinatura-inativa?checkout=cancel`,
+      cancel_url: `${origin}/quiz?checkout=cancel`,
     });
 
     logStep("Checkout session created", { sessionId: session.id });
