@@ -978,7 +978,7 @@ export default function Quiz() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className="text-2xl sm:text-3xl font-bold leading-tight mb-3"
+              className="text-3xl sm:text-4xl font-bold leading-tight mb-4"
             >
               Descubra seu estilo de produtividade
             </motion.h1>
