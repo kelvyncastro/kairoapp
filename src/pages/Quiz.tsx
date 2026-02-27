@@ -750,16 +750,17 @@ function LoadingScreen() {
           animate={{ opacity: 1, scale: 1 }}
           className="text-center max-w-sm"
         >
-          {/* Animated logo */}
-          <motion.div
-            className="mx-auto mb-8"
-            animate={{ rotate: [0, 360] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-          >
-            <div className="w-20 h-20 rounded-full border-4 border-primary/20 border-t-primary flex items-center justify-center">
-              <img src={kairoLogo} alt="Kairo" className="w-10 h-10 rounded-lg" />
-            </div>
-          </motion.div>
+          {/* Animated logo with spinning ring */}
+          <div className="relative mx-auto mb-8 w-24 h-24 flex items-center justify-center">
+            {/* Spinning ring */}
+            <motion.div
+              className="absolute inset-0 rounded-full border-4 border-primary/15 border-t-primary"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+            />
+            {/* Static logo */}
+            <img src={kairoLogo} alt="Kairo" className="w-12 h-12 rounded-xl relative z-10" />
+          </div>
 
           {/* Steps */}
           <div className="space-y-3 mb-6">
