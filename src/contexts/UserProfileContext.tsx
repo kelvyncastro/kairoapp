@@ -71,8 +71,17 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
       
       if (data) {
         setProfile(data as UserProfile);
+        // Check if user is admin
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .maybeSingle();
+        setIsAdmin(!!roleData);
       } else {
         setProfile(null);
+        setIsAdmin(false);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
