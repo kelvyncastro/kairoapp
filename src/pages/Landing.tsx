@@ -625,12 +625,12 @@ export default function Landing() {
               <div className="relative z-10">
                 <div className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Anual</div>
                 <div className="flex items-baseline gap-1 mb-1">
-                  <span className="text-3xl sm:text-4xl font-bold">R$197,90</span>
+                  <span className="text-3xl sm:text-4xl font-bold">R$69,90</span>
                   <span className="text-muted-foreground text-sm">/ano</span>
                 </div>
                 <p className="text-muted-foreground line-through text-xs mb-1">R$397,90/ano</p>
-                <p className="text-success text-xs sm:text-sm font-medium mb-3">Economize R$160,90</p>
-                <p className="text-muted-foreground text-xs sm:text-sm mb-4 sm:mb-6">Apenas R$16,49/mês — mais de 5 meses grátis!</p>
+                <p className="text-success text-xs sm:text-sm font-medium mb-3">Economize R$328,00</p>
+                <p className="text-muted-foreground text-xs sm:text-sm mb-4 sm:mb-6">Apenas R$5,83/mês</p>
                 <ul className="space-y-2 sm:space-y-3 mb-5 sm:mb-8">
                   {["Tudo do plano mensal", "45% de desconto", "Prioridade em novos recursos", "Suporte VIP"].map((item, i) => (
                     <li key={i} className="flex items-center gap-2">
