@@ -1120,11 +1120,11 @@ export default function Quiz() {
                               : "border-border/30 bg-card/40 backdrop-blur-sm active:bg-accent/40"
                           }`}
                         >
-                          <span className="text-xl flex-shrink-0">{opt.icon}</span>
+                          <span className="text-2xl flex-shrink-0">{opt.icon}</span>
                           <div className="flex-1 min-w-0">
-                            <span className="block font-semibold text-[15px] leading-snug">{opt.label}</span>
+                            <span className="block font-semibold text-base leading-snug">{opt.label}</span>
                             {opt.description && (
-                              <span className="block text-xs text-muted-foreground leading-snug mt-0.5">{opt.description}</span>
+                              <span className="block text-sm text-muted-foreground leading-snug mt-1">{opt.description}</span>
                             )}
                           </div>
                           {q.multiSelect && (
