@@ -52,14 +52,14 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const fetchProfile = useCallback(async () => {
+  const fetchProfile = useCallback(async (isInitialLoad = false) => {
     if (!user) {
       setProfile(null);
       setLoading(false);
       return;
     }
 
-    setLoading(true);
+    if (isInitialLoad) setLoading(true);
     try {
       const { data, error } = await supabase
         .from('user_profiles')
