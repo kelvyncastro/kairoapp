@@ -110,8 +110,8 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
           setIsAdmin(true);
         }
         
-        // Re-fetch profile to get updated subscription_status
-        await fetchProfile();
+        // Re-fetch profile to get updated subscription_status (silent, no loading state)
+        await fetchProfile(false);
       }
     } catch (error) {
       console.error('Error checking subscription:', error);
