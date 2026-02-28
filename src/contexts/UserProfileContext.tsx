@@ -52,14 +52,14 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const fetchProfile = useCallback(async () => {
+  const fetchProfile = useCallback(async (isInitialLoad = false) => {
     if (!user) {
       setProfile(null);
       setLoading(false);
       return;
     }
 
-    setLoading(true);
+    if (isInitialLoad) setLoading(true);
     try {
       const { data, error } = await supabase
         .from('user_profiles')
@@ -110,8 +110,8 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
           setIsAdmin(true);
         }
         
-        // Re-fetch profile to get updated subscription_status
-        await fetchProfile();
+        // Re-fetch profile to get updated subscription_status (silent, no loading state)
+        await fetchProfile(false);
       }
     } catch (error) {
       console.error('Error checking subscription:', error);
@@ -119,7 +119,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
   }, [user, fetchProfile]);
 
   useEffect(() => {
-    fetchProfile();
+    fetchProfile(true);
   }, [fetchProfile]);
 
   // Check subscription on login and periodically
