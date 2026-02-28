@@ -119,7 +119,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
   }, [user, fetchProfile]);
 
   useEffect(() => {
-    fetchProfile();
+    fetchProfile(true);
   }, [fetchProfile]);
 
   // Check subscription on login and periodically
